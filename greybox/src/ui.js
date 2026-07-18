@@ -1,0 +1,218 @@
+/* src/ui.js — 表現層。所有狀態變更一律經由 Engine 純函式;本檔僅負責讀取輸入與渲染。 */
+(function () {
+  "use strict";
+  var Engine = window.GB.Engine;
+  var DEBATE = window.GB.DATA.debate;
+  var state = Engine.initialState();
+  var viewMode = "inc";
+
+  function $(id) { return document.getElementById(id); }
+  function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); } /* 顯示至 0.1;內部保持精確值 */
+  function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
+
+  /* ---------- 面板切換 ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function (btn) {
+    btn.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function (b) { b.classList.remove("active"); });
+      Array.prototype.forEach.call(document.querySelectorAll("section.panel"), function (p) { p.classList.remove("active"); });
+      btn.classList.add("active");
+      $("panel-" + btn.dataset.panel).classList.add("active");
+    };
+  });
+
+  /* ---------- 共用渲染 ---------- */
+  function renderHeader() {
+    $("dayCount").textContent = state.days;
+    var e3 = state.evidence.e3;
+    $("e3State").textContent = "E3:a" + (e3.a ? "●" : "○") + " b" + (e3.b ? "●" : "○") + " c" + (e3.c ? "●" : "○") + (Engine.e3Established(state) ? "(確立)" : "");
+    var P3 = state.belief.P3;
+    $("persuasion").textContent = "說服力:" + Array(P3.persuasion + 1).join("●") + Array(5 - P3.persuasion + 1).join("○");
+    $("p3Status").textContent = "支柱P3:" + ({ pending: "未決", suspended: "辯論中止", broken: "已破裂" })[P3.status];
+  }
+
+  function renderRuns() {
+    var tbody = $("runsBody");
+    tbody.innerHTML = "";
+    state.evidence.runs.forEach(function (r) {
+      var vals = viewMode === "inc" ? r.readings : Engine.cumulative(r.readings);
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td><input type='checkbox' class='runSel' data-id='" + r.id + "'></td>" +
+        "<td>#" + r.id + "</td><td>" + cfgLabel(r.config) + "</td>" +
+        vals.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") +
+        "<td>" + r.day + "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderClaims() {
+    var tbody = $("claimsBody");
+    tbody.innerHTML = "";
+    state.inference.claims.forEach(function (c) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td><input type='checkbox' class='claimSel' data-id='" + c.id + "'></td>" +
+        "<td>#" + c.id + "</td><td>" + cfgLabel(c.config) + "</td>" +
+        "<td>" + fmt(c.prediction) + "</td><td>" + (c.ok ? "成立" : "不成立") + "</td><td>" + c.day + "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderStatements() {
+    var box = $("statements");
+    box.innerHTML = "";
+    DEBATE.statements.forEach(function (st) {
+      var stateTag = state.belief.P3.statements[st.id];
+      var div = document.createElement("div");
+      var extra = (st.id === "s2" && state.belief.P3.s2NeedFlag && stateTag !== "broken")
+        ? "<div class='hint'>(證詞追加)" + st.insufficient.reply + "</div>" : "";
+      div.innerHTML = "<p class='" + (stateTag === "broken" ? "broken" : "") + "'><b>" + st.id + "</b> " + st.text +
+        " <button class='pressBtn' data-id='" + st.id + "'>追問</button></p>" + extra;
+      box.appendChild(div);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".pressBtn"), function (b) {
+      b.onclick = function () { log("【追問 " + b.dataset.id + "】" + Engine.press(b.dataset.id)); };
+    });
+  }
+
+  function renderDebateControls() {
+    var P3 = state.belief.P3;
+    $("btnPresent").disabled = (P3.status !== "pending");
+    $("btnReenter").style.display = (P3.status === "suspended") ? "" : "none";
+    if (P3.status === "broken" && $("victory").style.display === "none") {
+      $("victory").style.display = "";
+      $("victory").innerHTML = "<p>" + DEBATE.texts.victory + "</p>" +
+        "<p><b>支柱 P3 破裂——本切片結束。總耗天數:" + state.days + " 天。</b></p>" +
+        "<p>你改了什麼讓數據變好?<br><textarea id='q1' rows='2'></textarea></p>" +
+        "<p>這組證據還不能證明什麼?<br><textarea id='q2' rows='2'></textarea></p>" +
+        "<p class='hint'>(自由作答,僅存於本次記憶體,不評分——供形成性試玩之因果回述觀察)</p>";
+      $("q1").onchange = function () { state.review.q1 = this.value; };
+      $("q2").onchange = function () { state.review.q2 = this.value; };
+    }
+  }
+
+  function renderAll() {
+    renderHeader(); renderRuns(); renderClaims(); renderStatements(); renderDebateControls();
+  }
+
+  function log(msg) {
+    var el = $("debateLog");
+    el.textContent += (el.textContent ? "\n" : "") + msg;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function checkedIds(cls) {
+    return Array.prototype.map.call(document.querySelectorAll("." + cls + ":checked"), function (el) {
+      return parseInt(el.dataset.id, 10);
+    });
+  }
+
+  /* ---------- 實驗台 ---------- */
+  $("btnRun").onclick = function () {
+    var config = { ball: $("selBall").value, surface: $("selSurface").value, incline: $("selIncline").value, timer: $("selTimer").value };
+    var res = Engine.runExperiment(state, config);
+    state = res.state;
+    var r = res.run;
+    $("labMsg").textContent = "run #" + r.id + " 完成(" + cfgLabel(r.config) + ",第 " + r.seq + " 次)。讀值已存入旅人筆記。";
+    $("lastRun").innerHTML = "<table><thead><tr><th>四段等時距</th><th>Δ1</th><th>Δ2</th><th>Δ3</th><th>Δ4</th></tr></thead>" +
+      "<tbody><tr><td>增量讀值(刻度)</td>" + r.readings.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") + "</tr></tbody></table>";
+    renderAll();
+  };
+
+  /* ---------- 筆記 ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=viewMode]"), function (radio) {
+    radio.onchange = function () { viewMode = this.value; renderRuns(); };
+  });
+
+  $("btnCompare").onclick = function () {
+    var ids = checkedIds("runSel");
+    if (ids.length !== 2) { $("compareMsg").textContent = "請恰好勾選兩筆 run。"; return; }
+    var res = Engine.compareRuns(state, ids);
+    if (res.error) { $("compareMsg").textContent = res.error; return; }
+    state = res.state;
+    $("compareMsg").textContent = "run #" + ids[0] + " vs #" + ids[1] + " 相異變因:" +
+      (res.comparison.diff.length ? res.comparison.diff.join("、") : "無(配置完全相同)");
+  };
+
+  $("btnJudge").onclick = function () {
+    var ids = checkedIds("runSel");
+    var pred = parseFloat($("prediction").value);
+    if (!ids.length) { $("judgeMsg").textContent = "請先勾選 1–3 筆 run 作為判定選集。"; return; }
+    if (isNaN(pred)) { $("judgeMsg").textContent = "請輸入第五段增量之預測值。"; return; }
+    var res = Engine.judge(state, ids, pred);
+    if (res.rejected) {
+      $("judgeMsg").textContent = res.rejected.reason + (res.rejected.diff.length ? "——相異變因:" + res.rejected.diff.join("、") : "");
+      return;
+    }
+    state = res.state;
+    var c = res.claim;
+    if (c.ok) {
+      $("judgeMsg").textContent = "主張 #" + c.id + " 成立(" + cfgLabel(c.config) + ")。已入主張紀錄。";
+    } else {
+      var parts = [];
+      if (!c.predHit) parts.push("預測未中(偏差 " + (c.predDev * 100).toFixed(1) + "%)");
+      if (!c.consistent) parts.push("選集內部不一致(最大偏差 " + (c.maxDev * 100).toFixed(1) + "%)");
+      $("judgeMsg").textContent = "主張 #" + c.id + " 不成立:" + parts.join(";") + "。";
+    }
+    renderAll();
+  };
+
+  function doAssert(type) {
+    var ids = checkedIds("claimSel");
+    if (ids.length !== 2) { $("assertMsg").textContent = "請恰好勾選兩筆主張。"; return; }
+    var res = Engine.assertE3(state, type, ids);
+    state = res.state;
+    var a = res.assertion;
+    if (a.ok) {
+      $("assertMsg").textContent = "斷言成立:E3." + type + " 點亮。";
+    } else {
+      $("assertMsg").textContent = "斷言不成立:" + a.reason + (a.diff.length ? "——實際相異變因:" + a.diff.join("、") : "");
+    }
+    renderAll();
+  }
+  $("btnAssertB").onclick = function () { doAssert("b"); };
+  $("btnAssertC").onclick = function () { doAssert("c"); };
+
+  /* ---------- 辯論廳 ---------- */
+  $("selEvidence").onchange = function () {
+    $("subitemWrap").style.display = (this.value === "E3") ? "" : "none";
+  };
+
+  $("btnPresent").onclick = function () {
+    var ev = $("selEvidence").value;
+    var sub = (ev === "E3") ? $("selSubitem").value : null;
+    var target = $("selTarget").value;
+    var res = Engine.present(state, { evidence: ev, subitem: sub, target: target });
+    state = res.state;
+    var label = "【出示】" + ev + (sub ? "." + sub : "") + " → " + target + ":";
+    switch (res.outcome) {
+      case "correct":
+        log(label + " 命中要害。s2 破裂,支柱 P3 崩塌。");
+        break;
+      case "insufficient":
+        log(label + " 方向對,但不足。" + DEBATE.statements[1].insufficient.reply + "(量表不減)");
+        break;
+      case "wrong":
+        log(label + " " + DEBATE.texts.absorb + "(說服力 −1)");
+        break;
+      case "suspended":
+        log(label + " " + DEBATE.texts.absorb + "(說服力 −1)\n【辯論中止】" + DEBATE.texts.suspendHint + "\n(證據與主張完整保留,回實驗台補強後可再入辯論)");
+        break;
+      case "suspended_block":
+        log("(辯論已中止——請先按「再入辯論」)");
+        break;
+      case "already_broken":
+        log("(支柱已破裂,辯論結束)");
+        break;
+    }
+    renderAll();
+  };
+
+  $("btnReenter").onclick = function () {
+    var res = Engine.reenterDebate(state);
+    if (res.error) { log("(" + res.error + ")"); return; }
+    state = res.state;
+    log("【再入辯論】說服力重置為 5;證詞狀態保留。");
+    renderAll();
+  };
+
+  renderAll();
+})();

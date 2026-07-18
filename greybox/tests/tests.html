@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>《發現之前》灰盒 — 瀏覽器測試(R-ENV-02)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 16px; max-width: 900px; }
+  li.pass { color: #060; } li.fail { color: #900; }
+</style>
+</head>
+<body>
+<h1>自動化測試(瀏覽器版)</h1>
+<p>R-DATA-05 鏡像一致性測試需檔案系統,由 <code>npm test</code>(node)執行;其餘測試如下。</p>
+<ul id="results"></ul>
+<p id="summary"></p>
+<script src="../data/patterns.js"></script>
+<script src="../data/debate.js"></script>
+<script src="../src/engine.js"></script>
+<script src="suite.js"></script>
+<script>
+(function () {
+  "use strict";
+  var tests = window.GB.buildSuite(window.GB.Engine, window.GB.DATA.patterns, window.GB.DATA.debate);
+  var ul = document.getElementById("results");
+  var pass = 0, fail = 0;
+  tests.forEach(function (t) {
+    var li = document.createElement("li");
+    try { t.fn(); pass++; li.className = "pass"; li.textContent = "✓ " + t.name; }
+    catch (e) { fail++; li.className = "fail"; li.textContent = "✗ " + t.name + " — " + e.message; }
+    ul.appendChild(li);
+  });
+  document.getElementById("summary").textContent = pass + " 通過," + fail + " 失敗(共 " + tests.length + ")";
+})();
+</script>
+</body>
+</html>

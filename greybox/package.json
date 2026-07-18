@@ -1,0 +1,9 @@
+{
+  "name": "before-discovery-greybox",
+  "version": "0.1.1",
+  "private": true,
+  "description": "《發現之前》灰盒切片:斜面實驗+P3 論辯(規格 v0.1.1)",
+  "scripts": {
+    "test": "node tests/run-node.mjs"
+  }
+}
