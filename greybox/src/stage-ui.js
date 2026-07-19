@@ -260,7 +260,9 @@
     np.textContent = showName ? item.speaker : "";
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
-    $("dlgText").className = isNarr ? "narr" : (isSys ? "sys" : (item.cls === "player" ? "pl" : ""));
+    $("dlgText").className = isNarr ? "narr"
+      : (isSys ? ("sys" + (/^(取得證據|旅人筆記解鎖|E\d)/.test(item.text) ? " gain" : ""))
+      : (item.cls === "player" ? "pl" : ""));
     setBust(item.speaker, item.cls);
     pages = paginate(item.text);
     curInstantMode = isNarr || isSys; /* 旁白/系統:整頁淡入不逐字 */

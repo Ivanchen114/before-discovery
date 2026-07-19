@@ -126,7 +126,9 @@
   #dlgText { color: #ece3d0; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.55;
              font-family: var(--font-dialogue); min-height: 2.4em; white-space: pre-wrap; }
   #dlgText.narr { color: #c8bba2; font-style: italic; animation: bdFade var(--motion-fast) ease; }
-  #dlgText.sys { color: #b7c4cf; font-size: 0.8em; animation: bdFade var(--motion-fast) ease; }
+  #dlgText.sys { color: #b7c4cf; font-size: 0.95em; animation: bdFade var(--motion-fast) ease; }
+  #dlgText.sys.gain { color: #e9cf9a; } /* 取得證據/解鎖=獎勵時刻:金色+全字級,不弱化 */
+  #dlgText.sys.gain::before { content: "◆ "; color: #cfa96b; }
   #dlgText.pl { color: #d9e4f0; }
   @keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
   #dlgCue { position: absolute; right: 16px; bottom: 10px; color: #cfa96b; font-size: 16px;
