@@ -15,7 +15,18 @@
 | `ch01_styleframe_debate_hall_v01.png` | 兩角色母版 | 觀眾降複製臉感；證據紙改由 runtime SVG／HTML 疊合 |
 | `ch01_styleframe_incline_study_v01.png` | Galileo 母版＋既有風格 | 水鐘、支架先做功能圖再重製；圖上偽字不得進 runtime |
 
-五張來源圖均為 1672×941、約 2.0–2.2MB PNG。正式 runtime 需輸出合適尺寸 WebP 並遵守美術規格 v0.2 的單檔預算。
+五張早期探索圖均為 1672×941、約 2.0–2.2MB PNG。正式 runtime 需輸出合適尺寸 WebP 並遵守美術規格 v0.2 的單檔預算。
+
+## G1 任務交付
+
+| 類別 | 檔案 |
+|---|---|
+| 指定 Style Frame | `proof_sf01_study_night_v01.png`、`proof_sf02_workshop_day_v01.png`、`ch01_styleframe_debate_hall_v01.png` |
+| 指定角色表情 | `ch01_char_galileo_expressions_v01.png`、`ch01_char_simplicio_expressions_v01.png` |
+| 空景與器材 | `ch01_bg_workshop_empty_v01.png`、`ch01_prop_ball_groove_detail_v01.png`、`ch01_prop_water_clock_detail_v01.png`、`ch01_prop_folding_fan_detail_v01.png`、`ch01_prop_manuscript_detail_v01.png` |
+| 遊戲畫面合成 | `ch01_composite_workshop_ui_v01.png` |
+
+上述新增圖與 A/B 差分來源的逐字提示詞、工具、seed 狀態、尺寸、放大與人工處理均記於 `PROMPTS_G1_20260719.md`。本檔下方保留五張早期探索圖的逐字提示詞，兩者合併為完整生成帳。
 
 ## 最終提示詞
 
@@ -104,4 +115,3 @@ Historical and scientific constraints: Pisa, 1590; no telescope, no pendulum clo
 Identity invariants: Galileo must exactly match the young reference and look 26
 Constraints: no readable text, no captions, no logos, no watermark, no embedded UI, no fantasy glow, no extra people, natural hands, apparatus geometry coherent, copper balls clearly different sizes, no impossible floating parts
 ```
-
