@@ -148,8 +148,9 @@ tests.push({
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     /* 一、筆記本模式:modal 語義+分頁+44px 觸控+焦點歸還 */
     for (const frag of ['id="notebook"', 'role="dialog"', 'aria-modal="true"',
-      'id="nbTabEvidence"', 'id="nbTabLog"', 'id="nbLabSnap"']) {
-      if (!stageHtml.includes(frag)) throw new Error("stage.html 缺筆記本要素:" + frag);
+      'id="nbTabEvidence"', 'id="nbTabLog"', 'id="nbLabSnap"',
+      'id="labIntro"', 'id="btnLabHelp"', ">第1段<", "紀錄不可刪"]) {
+      if (!stageHtml.includes(frag)) throw new Error("stage.html 缺筆記本/實驗台要素:" + frag);
     }
     if (!stageHtml.includes("min-height: 44px")) throw new Error("觸控區 44px 規則缺失");
     if (!/btnDrawer"\)\.focus\(\)/.test(sui)) throw new Error("筆記關閉後焦點未歸還 btnDrawer");

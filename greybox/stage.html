@@ -164,6 +164,47 @@
               text-shadow: 0 1px 2px rgba(247,240,223,0.9); }
   .evcard span { font-size: 0.78em; color: var(--color-ink-secondary);
                  text-shadow: 0 1px 2px rgba(247,240,223,0.9); }
+  /* --- 實驗台去現代感:舊紙帳簿風(表現層 CSS,引擎資料零改動) --- */
+  #lab select, #lab input[type="number"] { background: #efe4c9; color: var(--color-ink-primary);
+    border: 1px solid var(--color-ink-secondary); border-radius: 3px;
+    font-family: var(--font-ui); padding: 6px 8px; }
+  #lab select:hover, #lab input[type="number"]:hover { border-color: var(--color-chapter-accent); }
+  #lab input[type="checkbox"], #controls input[type="checkbox"] {
+    accent-color: var(--color-chapter-accent); width: 18px; height: 18px; }
+  #panelWrap h3 { font-family: var(--font-dialogue); letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--color-chapter-accent); padding-bottom: 3px; }
+  #panelWrap table { border: 1px solid var(--color-ink-secondary); background: rgba(255, 250, 236, 0.45); }
+  #panelWrap th { font-family: var(--font-dialogue); font-weight: 600; border: none;
+    border-bottom: 2px solid var(--color-ink-secondary); background: rgba(122, 75, 42, 0.12); }
+  #panelWrap td { border-left: none; border-right: none; border-top: none;
+    border-bottom: 1px dashed rgba(90, 70, 56, 0.4); }
+  #panelWrap tr:hover td { background: rgba(122, 75, 42, 0.06); }
+  #panelWrap tr:has(input:checked) td { background: rgba(122, 75, 42, 0.16); }
+  tr.offconfig { opacity: 0.35; } /* 勾選後,非同配置列淡出(視圖聚焦;資料一筆不刪) */
+  .tblhint { margin: 2px 0 6px; }
+  #btnLabHelp { min-height: 30px !important; min-width: 30px; padding: 2px 10px !important;
+    border-radius: 50% !important; margin-left: 8px; font-family: var(--font-dialogue); }
+  /* --- 首次實驗備忘卡 --- */
+  #labIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
+    display: flex; align-items: center; justify-content: center; }
+  #labIntro[hidden] { display: none; }
+  #liSheet { width: min(640px, 92%); background: var(--color-surface-notebook);
+    color: var(--color-ink-primary); border: 2px solid var(--color-chapter-accent); border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6); padding: 18px 24px; }
+  #liSheet h2 { font-family: var(--font-dialogue); font-size: clamp(18px, 1.8vw, 24px);
+    margin: 0 0 8px; border-bottom: 1px solid var(--color-ink-secondary); padding-bottom: 6px; }
+  #liSheet ol { margin: 8px 0; padding-left: 22px; line-height: 1.75;
+    font-size: clamp(15px, 1.35vw, 18px); }
+  #liSheet li { margin: 6px 0; }
+  #liProps { float: right; display: flex; flex-direction: column; gap: 8px; margin: 0 0 8px 12px; }
+  #liProps img { height: 84px; width: auto; border: 1px solid var(--color-ink-secondary);
+    border-radius: 4px; background: #efe4c9; }
+  #btnLabIntroGo { background: var(--color-chapter-accent); color: #f3e9d5;
+    border: 1px solid rgba(230,215,189,0.5); border-radius: 6px; min-height: 44px;
+    padding: 8px 26px; font-size: 1em; cursor: pointer; font-family: var(--font-dialogue);
+    letter-spacing: 0.14em; display: block; margin: 10px 0 2px auto; }
+  #btnLabIntroGo:hover { background: #935c35; }
+  @media (max-height: 520px) { #liProps img { height: 56px; } #liSheet { max-height: 92%; overflow-y: auto; } }
   #labProps { float: right; display: flex; gap: 8px; margin: 0 0 6px 10px; }
   #labProps img { height: 72px; width: auto; opacity: 0.92; }
   #tomeDecor { display: none; }
@@ -295,15 +336,16 @@
         <button id="labRun">執行實驗</button>
         <div class="labmsg" id="labMsg" role="status" aria-live="polite">尚未執行實驗。</div>
 
-        <h3>run 紀錄(勾選 1–3 筆同配置 → 預測第五段 → 認證)</h3>
-        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>Δ1</th><th>Δ2</th><th>Δ3</th><th>Δ4</th><th>天</th></tr></thead>
+        <h3>實驗紀錄簿(勾選 1–3 筆同配置 → 預測第五段 → 認證)<button id="btnLabHelp" type="button" aria-label="重看實驗備忘">?</button></h3>
+        <p class="hint tblhint">「段」=水鐘滴下等量水的<b>等時距</b>;數字=該段滾過的刻度格數。每列是一次完整實驗;筆記簿以墨水書寫,<b>紀錄不可刪</b>——勾選你要引用的紀錄即可。</p>
+        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th><th>第幾天</th></tr></thead>
           <tbody id="labRunsBody"></tbody></table>
         <label>第五段增量預測值:<input type="number" id="labPred" step="0.1" style="width:90px"></label>
         <button id="labJudge">認證規律</button>
         <div class="labmsg" id="judgeMsg" role="status" aria-live="polite"></div>
 
         <h3>主張紀錄(勾選兩筆 → 斷言)</h3>
-        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>天</th></tr></thead>
+        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>第幾天</th></tr></thead>
           <tbody id="labClaimsBody"></tbody></table>
         <button id="labAssertB">斷言:與球重無關</button>
         <button id="labAssertC" style="display:none">斷言:隨傾角形式不變</button>
@@ -311,6 +353,20 @@
         <div id="embedGate"></div>
       </div>
       <div id="controls"></div>
+    </div>
+
+    <div id="labIntro" role="dialog" aria-modal="true" aria-label="實驗備忘" hidden>
+      <div id="liSheet">
+        <h2>旅人筆記・實驗備忘</h2>
+        <div id="liProps" aria-hidden="true"></div>
+        <ol>
+          <li><b>器材</b>——銅球沿斜槽滾下;水鐘在旁滴水計時。滴下<b>等量的水=等長的時間</b>。</li>
+          <li><b>量什麼</b>——把滾動切成四個等時段,記下每段滾過幾格刻度。紀錄簿裡的「第 1–4 段」就是它們。</li>
+          <li><b>怎麼做</b>——選配置 → 執行實驗 → 勾 1–3 筆<b>同配置</b>紀錄 → 押「第五段」會滾幾格 → 認證。押中了,規律才算你的。</li>
+          <li><b>備忘</b>——每次實驗都花天數;筆記簿以墨水書寫,寫下的紀錄<b>不可刪</b>。</li>
+        </ol>
+        <button id="btnLabIntroGo" type="button">開始動手</button>
+      </div>
     </div>
 
     <div id="dialogue">

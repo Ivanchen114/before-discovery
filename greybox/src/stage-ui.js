@@ -291,11 +291,17 @@
         if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
       }, 0);
     }
+    if (view === "lab" && !labIntroSeen) { /* 首次上實驗台:先給備忘卡,緩住「跳太快」 */
+      labIntroSeen = true;
+      setTimeout(showLabIntro, 0);
+    }
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false;
     if (timer) clearTimeout(timer);
     curBustId = null;
+    labIntroSeen = false;
+    $("labIntro").hidden = true;
     $("dialogue").classList.remove("has-bust");
     $("dlgText").textContent = ""; $("nameplate").style.display = "none";
     closeNotebook(true);
@@ -305,9 +311,50 @@
     else needKickoff = true;
   });
 
+  /* ---------- 實驗備忘卡(首次進實驗台自動彈;? 鈕可重看)+同配置聚焦 ---------- */
+  var labIntroSeen = false;
+  function fillLabIntroProps() {
+    var box = $("liProps");
+    if (!box || box.children.length) return;
+    ["prop_water_clock", "prop_ball_groove"].forEach(function (id) {
+      var e = assetEntry(id);
+      if (!e) return;
+      var img = document.createElement("img");
+      img.src = assetUrl(e); img.alt = "";
+      box.appendChild(img);
+    });
+  }
+  function showLabIntro() {
+    fillLabIntroProps();
+    $("labIntro").hidden = false;
+    $("btnLabIntroGo").focus();
+  }
+  $("btnLabIntroGo").addEventListener("click", function () {
+    $("labIntro").hidden = true;
+    $("btnLabHelp").focus();
+  });
+  $("btnLabHelp").addEventListener("click", function () { showLabIntro(); });
+  /* 勾選後視圖聚焦同配置(判定選集本就要求同配置);資料一筆不刪——筆記簿倫理 */
+  function applyRunFocus() {
+    var tbody = $("labRunsBody");
+    if (!tbody) return;
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+    var cfgs = [];
+    rows.forEach(function (r) {
+      if (r.querySelector("input:checked") && r.cells[2]) cfgs.push(r.cells[2].textContent);
+    });
+    rows.forEach(function (r) {
+      var cfg = r.cells[2] ? r.cells[2].textContent : "";
+      r.classList.toggle("offconfig", cfgs.length > 0 && cfgs.indexOf(cfg) < 0);
+    });
+  }
+  $("labRunsBody").addEventListener("change", applyRunFocus);
+  try { new MutationObserver(applyRunFocus).observe($("labRunsBody"), { childList: true }); } catch (e) {}
+
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
     if (!$("notebook").hidden) return;
+    if (!$("labIntro").hidden) return;
     if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen")) return;
     if (advanceIntent()) return;
     idleAdvance();
@@ -315,6 +362,7 @@
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
+    if (!$("labIntro").hidden) return; /* 備忘卡開啟:交還原生(按鈕 Enter 即關閉) */
     if (typing || waiting) {           /* 演出未完:先消化演出,不觸底層按鈕 */
       ev.preventDefault(); ev.stopPropagation();
       advanceIntent();
@@ -426,7 +474,9 @@
   });
   $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
   document.addEventListener("keydown", function (ev) {
-    if (ev.key === "Escape" && !$("notebook").hidden) { ev.preventDefault(); closeNotebook(); }
+    if (ev.key !== "Escape") return;
+    if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
+    if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); }
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal */
     var nb = $("notebook");
