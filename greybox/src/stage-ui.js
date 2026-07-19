@@ -286,7 +286,8 @@
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
-    if (needKickoff && view === "narration") { /* 全新開局:代玩家按一次繼續,首句自動開演 */
+    if (needKickoff && view === "narration" && $("prologueCard").hidden) {
+      /* 全新開局:題詞卡收掉後,代玩家按一次繼續,首句自動開演 */
       needKickoff = false;
       setTimeout(function () {
         var btns = $("controls").querySelectorAll("button");
@@ -308,10 +309,26 @@
     $("dlgText").textContent = ""; $("nameplate").style.display = "none";
     closeNotebook(true);
     syncFlags();
-    /* 開場語境:讀檔→最後一句即顯;全新開局(transcript 空)→標記 kickoff,由 bd:view 代按首次繼續 */
-    if (lastReplay) { startLine(lastReplay, true); lastReplay = null; needKickoff = false; }
-    else needKickoff = true;
+    /* 開場語境:讀檔→最後一句即顯(不重播題詞);全新開局→題詞卡先行,收卡後 kickoff */
+    if (lastReplay) {
+      $("prologueCard").hidden = true;
+      startLine(lastReplay, true); lastReplay = null; needKickoff = false;
+    } else {
+      needKickoff = true;
+      $("prologueCard").hidden = false;
+      setTimeout(function () { $("btnPrologueGo").focus(); }, 50);
+    }
   });
+  function dismissPrologue() {
+    if ($("prologueCard").hidden) return;
+    $("prologueCard").hidden = true;
+    if (needKickoff) { /* 卡收掉才開演 */
+      needKickoff = false;
+      var btns = $("controls").querySelectorAll("button");
+      if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
+    }
+  }
+  $("btnPrologueGo").addEventListener("click", dismissPrologue);
 
   /* ---------- 實驗備忘卡(首次進實驗台自動彈;? 鈕可重看)+同配置聚焦 ---------- */
   var labIntroSeen = false;
@@ -356,6 +373,7 @@
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
     if (!$("notebook").hidden) return;
+    if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("labIntro").hidden) return;
     if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen")) return;
     if (advanceIntent()) return;
@@ -364,6 +382,7 @@
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
+    if (!$("prologueCard").hidden) return; /* 題詞卡:交還原生(啟程鈕聚焦中) */
     if (!$("labIntro").hidden) return; /* 備忘卡開啟:交還原生(按鈕 Enter 即關閉) */
     if (typing || waiting) {           /* 演出未完:先消化演出,不觸底層按鈕 */
       ev.preventDefault(); ev.stopPropagation();
@@ -478,6 +497,7 @@
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== "Escape") return;
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
+    if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); }
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal */

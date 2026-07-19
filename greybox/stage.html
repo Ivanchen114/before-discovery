@@ -185,6 +185,26 @@
   .tblhint { margin: 2px 0 6px; }
   #btnLabHelp { min-height: 30px !important; min-width: 30px; padding: 2px 10px !important;
     border-radius: 50% !important; margin-left: 8px; font-family: var(--font-dialogue); }
+  /* --- 開場題詞卡(新遊戲限定;讀檔/貼碼不重播) --- */
+  #prologueCard { position: absolute; inset: 0; z-index: 48; background: #0d0a07;
+    display: flex; align-items: center; justify-content: center; text-align: center; }
+  #prologueCard[hidden] { display: none; }
+  #pcInner { max-width: 620px; padding: 24px; font-family: var(--font-dialogue); color: #e6d7bd; }
+  #pcInner .pc1 { font-size: clamp(20px, 2.4vw, 30px); letter-spacing: 0.3em; margin: 0 0 18px; color: #cfa96b; }
+  #pcInner .pc2 { font-size: clamp(17px, 1.9vw, 24px); line-height: 2; margin: 0 0 18px; }
+  #pcInner .pc3 { font-size: clamp(17px, 1.9vw, 24px); line-height: 2.1; margin: 0 0 26px; }
+  #pcInner .pc1, #pcInner .pc2, #pcInner .pc3 { opacity: 0; animation: bdFade var(--motion-dramatic) ease forwards; }
+  #pcInner .pc2 { animation-delay: calc(var(--motion-dramatic) * 0.9); }
+  #pcInner .pc3 { animation-delay: calc(var(--motion-dramatic) * 1.8); }
+  #btnPrologueGo { background: none; color: #cfa96b; border: 1px solid rgba(207,169,107,0.55);
+    border-radius: 999px; min-height: 44px; padding: 8px 38px; font-size: clamp(15px, 1.4vw, 18px);
+    letter-spacing: 0.3em; cursor: pointer; font-family: var(--font-dialogue);
+    opacity: 0; animation: bdFade var(--motion-dramatic) ease forwards;
+    animation-delay: calc(var(--motion-dramatic) * 2.6); }
+  #btnPrologueGo:hover { background: rgba(122, 75, 42, 0.4); color: #f3e9d5; }
+  @media (prefers-reduced-motion: reduce) {
+    #pcInner .pc1, #pcInner .pc2, #pcInner .pc3, #btnPrologueGo { animation: none; opacity: 1; }
+  }
   /* --- 首次實驗備忘卡 --- */
   #labIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
     display: flex; align-items: center; justify-content: center; }
@@ -356,6 +376,15 @@
       <div id="controls"></div>
     </div>
 
+    <div id="prologueCard" role="dialog" aria-modal="true" aria-label="題詞" hidden>
+      <div id="pcInner">
+        <p class="pc1">一五九〇年,比薩。</p>
+        <p class="pc2">你帶著四百年後的答案,墜入這個清晨。</p>
+        <p class="pc3">但在這裡,知道答案是詛咒——<br>沒有人相信說出口的謎底。<br>這個世界,只為證據付費。</p>
+        <button id="btnPrologueGo" type="button">啟程</button>
+      </div>
+    </div>
+
     <div id="labIntro" role="dialog" aria-modal="true" aria-label="實驗備忘" hidden>
       <div id="liSheet">
         <h2>旅人筆記・實驗備忘</h2>
@@ -409,6 +438,7 @@
     <div id="titleCard">
       <p class="t1">發現之前</p>
       <p class="t2">第一章:重物的渴望</p>
+      <p class="hint" style="margin:-14px 0 0">知道答案是詛咒——這個世界,只為證據付費。</p>
       <div id="continueWrap" style="display:none">
         <button id="btnContinue">繼續上次進度</button>
       </div>
