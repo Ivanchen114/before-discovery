@@ -7,11 +7,16 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="../public/assets/global/tokens.css">
 <style>
-  /* stage.html — 滿版舞台殼(總監裁決 2026-07-19:逆轉裁判式呈現;對話逐字、旁白淡入)。
+  /* stage.html — 滿版舞台殼 v2(總監裁決 2026-07-19 第一輪視覺修正:
+     筆記本模式取代抽屜/對話框左側半身像/字級放大 RWD)。
      引擎/資料/存檔與 chapter.html 完全共用;本檔只換表現層。灰盒版仍在 chapter.html。 */
+  :root {
+    --font-dialogue: "Noto Serif TC", "Source Han Serif TC", "Songti TC", Georgia, serif;
+    --font-ui: system-ui, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  }
   html, body { height: 100%; margin: 0; }
   body { background: #14100c; overflow: hidden; color: var(--color-ink-primary);
-         font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif;
+         font-family: var(--font-ui);
          -webkit-user-select: none; user-select: none; }
   #stage { position: absolute; inset: 0; margin: auto;
            width: min(100vw, calc(100vh * 16 / 9)); height: min(100vh, calc(100vw * 9 / 16));
@@ -24,53 +29,42 @@
                 display: flex; align-items: center; justify-content: center; }
   #bgFallback.off { display: none; }
   #fbTitle { color: rgba(230, 215, 189, 0.28); font-size: clamp(20px, 4vw, 44px);
-             font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif; letter-spacing: 0.2em; }
+             font-family: var(--font-dialogue); letter-spacing: 0.2em; }
   #vignette { position: absolute; inset: 0; pointer-events: none;
               box-shadow: inset 0 0 12vmin rgba(0,0,0,0.55); }
 
-  /* --- 立繪層 --- */
-  #portraitBox { position: absolute; right: 4%; bottom: 24%; height: 64%; aspect-ratio: 3 / 4;
-                 display: flex; align-items: flex-end; justify-content: center;
-                 transition: filter var(--motion-fast) ease, opacity var(--motion-fast) ease; opacity: 0; }
-  #portraitBox.on { opacity: 1; }
-  #portraitBox.dim { filter: brightness(0.55) saturate(0.7); }
-  #portraitBox img { max-height: 100%; max-width: 100%; display: block; }
-  #portraitBox .composite { position: relative; display: inline-block; }
-  #portraitBox .composite img.layer { position: absolute; }
-  body[data-view="lab"] #portraitBox, body[data-view="review"] #portraitBox,
-  body[data-view="histfacts"] #portraitBox { display: none; }
-
   /* --- HUD --- */
   #hud { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 6px; align-items: center;
-         padding: 8px 10px; flex-wrap: wrap; z-index: 30; font-size: 12px; }
-  #hud .chip { background: rgba(20, 14, 10, 0.72); color: #e6d7bd; padding: 3px 10px;
+         padding: 8px 10px; flex-wrap: wrap; z-index: 30; font-size: clamp(13px, 1.1vw, 16px); }
+  #hud .chip { background: rgba(20, 14, 10, 0.72); color: #e6d7bd; padding: 4px 10px;
                border: 1px solid rgba(230, 215, 189, 0.25); border-radius: 3px;
                font-variant-numeric: tabular-nums; white-space: nowrap; }
   #hud .chip b { color: #fff; font-weight: 600; }
   #hud button { background: rgba(20, 14, 10, 0.72); color: #e6d7bd; border: 1px solid rgba(230,215,189,0.4);
-                border-radius: 3px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+                border-radius: 3px; padding: 6px 12px; font-size: inherit; cursor: pointer; min-height: 36px; }
   #hud button:hover { background: rgba(122, 75, 42, 0.8); }
   #hud .spacer { flex: 1; }
-  #sceneChip { position: absolute; top: 38px; left: 10px; z-index: 29; font-size: 11px;
+  #sceneChip { position: absolute; top: 46px; left: 10px; z-index: 29; font-size: 12px;
                color: rgba(230, 215, 189, 0.55); background: rgba(20,14,10,0.45); padding: 2px 8px; border-radius: 3px; }
 
   /* --- 中央面板(實驗台/辯論/回顧/史實) --- */
   #panelWrap { position: absolute; z-index: 20; display: none; overflow-y: auto;
                background: var(--color-surface-notebook); color: var(--color-ink-primary);
                border: 2px solid var(--color-chapter-accent); border-radius: 6px;
-               box-shadow: 0 8px 30px rgba(0,0,0,0.5); padding: 14px 18px; line-height: 1.65; }
+               box-shadow: 0 8px 30px rgba(0,0,0,0.5); padding: 14px 18px; line-height: 1.6;
+               font-size: clamp(16px, 1.3vw, 18px); }
   body[data-view="lab"] #panelWrap { display: block; left: 4%; right: 4%; top: 9%; bottom: 6%; }
   body[data-view="review"] #panelWrap, body[data-view="histfacts"] #panelWrap {
     display: block; left: 10%; right: 10%; top: 10%; bottom: 8%; }
-  body[data-view="debate"] #panelWrap { display: block; left: 3%; right: 36%; top: 9%; bottom: 27%;
+  body[data-view="debate"] #panelWrap { display: block; left: 3%; right: 3%; top: 9%; bottom: 32%;
     background: rgba(247, 240, 223, 0.96); }
-  body[data-view="choice"] #panelWrap { display: block; left: auto; right: 3%; top: auto; bottom: 27%;
+  body[data-view="choice"] #panelWrap { display: block; left: auto; right: 3%; top: auto; bottom: 31%;
     max-width: 62%; background: none; border: none; box-shadow: none; padding: 0; overflow: visible; }
   body.held #panelWrap { visibility: hidden; }
 
-  #panelWrap h3 { margin: 6px 0 4px; font-size: 1em; border-bottom: 1px solid var(--color-ink-secondary); }
-  #panelWrap table { border-collapse: collapse; margin: 6px 0; font-size: 0.92em; }
-  #panelWrap th, #panelWrap td { border: 1px solid var(--color-ink-secondary); padding: 2px 7px;
+  #panelWrap h3 { margin: 6px 0 4px; font-size: 1.05em; border-bottom: 1px solid var(--color-ink-secondary); }
+  #panelWrap table { border-collapse: collapse; margin: 6px 0; font-size: clamp(16px, 1.2vw, 17px); }
+  #panelWrap th, #panelWrap td { border: 1px solid var(--color-ink-secondary); padding: 3px 8px;
     text-align: right; font-variant-numeric: tabular-nums; }
   #panelWrap th:first-child, #panelWrap td:first-child { text-align: left; }
   .labmsg { border: 1px dashed var(--color-ink-secondary); padding: 4px 8px; margin: 6px 0; min-height: 1.2em; }
@@ -78,65 +72,94 @@
   #lab button, #controls button, #panelWrap button {
     background: var(--color-surface-world); color: var(--color-ink-primary);
     border: 1px solid var(--color-chapter-accent); border-radius: 4px;
-    padding: 6px 14px; margin: 4px 4px 4px 0; cursor: pointer; font-size: 0.95em; }
+    padding: 8px 16px; margin: 4px 4px 4px 0; cursor: pointer;
+    font-size: clamp(16px, 1.3vw, 18px); min-height: 44px; }
   #lab button:hover, #controls button:hover { background: #d9c39a; }
   #lab button:disabled, #controls button:disabled { opacity: 0.45; cursor: default; }
-  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--color-focus); }
-  #lab select, #lab input, #controls select { font-size: 0.95em; padding: 2px 4px; }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--color-focus); }
+  #lab select, #lab input, #controls select { font-size: 1em; padding: 4px 6px; min-height: 36px; }
 
   /* 選項(choice)呈 VN 疊卡 */
   body[data-view="choice"] #controls button { display: block; margin: 8px 0 0 auto;
     background: rgba(20, 14, 10, 0.88); color: #e6d7bd; border: 1px solid rgba(230,215,189,0.5);
-    padding: 9px 16px; border-radius: 4px; max-width: 100%; text-align: left;
-    font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif; }
+    padding: 10px 18px; border-radius: 4px; max-width: 100%; text-align: left; min-height: 44px;
+    font-family: var(--font-dialogue); font-size: clamp(18px, 1.7vw, 24px); }
   body[data-view="choice"] #controls button:hover { background: rgba(122, 75, 42, 0.92); color: #fff; }
   body[data-view="choice"] #controls > p { text-align: right; color: rgba(230,215,189,0.8);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8); margin: 0; }
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8); margin: 0; font-size: clamp(16px, 1.4vw, 20px); }
 
   /* 敘事(narration/end):繼續鈕縮成對話框角落的小膠囊 */
   body[data-view="narration"] #panelWrap, body[data-view="end"] #panelWrap {
-    display: block; left: auto; right: 3.5%; top: auto; bottom: 3.5%; z-index: 26;
+    display: block; left: auto; right: 3.5%; top: auto; bottom: 4%; z-index: 26;
     background: none; border: none; box-shadow: none; padding: 0; overflow: visible; }
   body[data-view="narration"] #controls button, body[data-view="end"] #controls button {
     background: rgba(122, 75, 42, 0.9); color: #f3e9d5; border: 1px solid rgba(230,215,189,0.5);
-    border-radius: 999px; padding: 4px 14px; font-size: 0.85em; }
+    border-radius: 999px; padding: 6px 16px; font-size: clamp(14px, 1.2vw, 17px); min-height: 40px; }
 
-  /* --- 對話框 --- */
+  /* --- 對話框(v2:桌機約 28% 高;左側半身像) --- */
   #dialogue { position: absolute; z-index: 25; left: 3%; right: 3%; bottom: 3%;
-              min-height: 21%; background: rgba(16, 11, 8, 0.88);
+              min-height: 28%; background: rgba(16, 11, 8, 0.88);
               border: 1px solid rgba(230, 215, 189, 0.35); border-top: 2px solid var(--color-chapter-accent);
-              border-radius: 6px; padding: 14px 18px 16px; box-sizing: border-box; }
+              border-radius: 6px; padding: 16px 20px 18px; box-sizing: border-box; }
   body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue,
   body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue { display: none; }
   body.queue-active #dialogue { display: block !important; }
-  #nameplate { position: absolute; top: -13px; left: 14px; background: var(--color-chapter-accent);
-               color: #f3e9d5; font-size: 13px; padding: 2px 14px; border-radius: 3px; letter-spacing: 0.08em; }
-  #dlgText { color: #ece3d0; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.85;
-             font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif; min-height: 2.6em;
-             max-height: 17vh; overflow-y: auto; white-space: pre-wrap; }
+  #bust { position: absolute; left: 16px; bottom: 0; height: clamp(170px, 26vh, 220px);
+          display: none; pointer-events: none;
+          transition: filter var(--motion-fast) ease; }
+  #dialogue.has-bust #bust { display: block; }
+  #bust img { height: 100%; width: auto; display: block;
+              /* 暫時 fallback:600×600 筆記頭像以柔邊墨暈遮罩呈現,不露方形米底(正式透明 WebP 由 Sol 供應) */ }
+  #bust.masked img { -webkit-mask-image: radial-gradient(105% 105% at 50% 38%, #000 55%, transparent 78%);
+                     mask-image: radial-gradient(105% 105% at 50% 38%, #000 55%, transparent 78%); }
+  #bust.dim { filter: brightness(0.55) saturate(0.7); }
+  #dialogue.has-bust #nameplate { left: 190px; }
+  #dialogue.has-bust #dlgText { margin-left: 180px; }
+  #nameplate { position: absolute; top: -14px; left: 16px; background: var(--color-chapter-accent);
+               color: #f3e9d5; font-size: clamp(16px, 1.4vw, 20px); padding: 3px 16px;
+               border-radius: 3px; letter-spacing: 0.08em; font-family: var(--font-dialogue); }
+  #dlgText { color: #ece3d0; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.55;
+             font-family: var(--font-dialogue); min-height: 2.4em; white-space: pre-wrap; }
   #dlgText.narr { color: #c8bba2; font-style: italic; animation: bdFade var(--motion-fast) ease; }
-  #dlgText.sys { color: #b7c4cf; font-size: 0.92em; animation: bdFade var(--motion-fast) ease; }
+  #dlgText.sys { color: #b7c4cf; font-size: 0.8em; animation: bdFade var(--motion-fast) ease; }
   #dlgText.pl { color: #d9e4f0; }
   @keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
-  #dlgCue { position: absolute; right: 14px; bottom: 8px; color: #cfa96b; font-size: 13px;
+  #dlgCue { position: absolute; right: 16px; bottom: 10px; color: #cfa96b; font-size: 16px;
             animation: bdBlink 1.1s step-end infinite; }
-  @keyframes bdBlink { 50% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) {
-    #bgImg, #portraitBox { transition: none; }
+    #bgImg, #bust { transition: none; }
     #dlgText.narr, #dlgText.sys { animation: none; }
     #dlgCue { animation: none; }
   }
 
-  /* --- 旅人筆記抽屜(回顧+證據) --- */
-  #drawer { position: absolute; z-index: 40; top: 0; right: 0; bottom: 0; width: min(480px, 88%);
-            background: var(--color-surface-notebook); color: var(--color-ink-primary);
-            border-left: 3px solid var(--color-chapter-accent); padding: 12px 16px; box-sizing: border-box;
-            transform: translateX(102%); transition: transform var(--motion-fast) ease;
-            display: flex; flex-direction: column; -webkit-user-select: text; user-select: text; }
-  body.drawer-open #drawer { transform: none; }
-  #drawer h2 { font-size: 1.05em; margin: 4px 0 8px; }
-  #evidence { border: 1px dashed var(--color-ink-secondary); padding: 6px 10px; margin-bottom: 8px; font-size: 0.92em; }
-  #log { flex: 1; overflow-y: auto; font-size: 0.92em; line-height: 1.7; padding-right: 6px; }
+  /* --- 旅人筆記(v2:全畫面筆記本模式,取代側抽屜) --- */
+  #notebook { position: absolute; inset: 0; z-index: 40; background: rgba(10, 7, 5, 0.72);
+              display: flex; align-items: center; justify-content: center;
+              -webkit-user-select: text; user-select: text; }
+  #notebook[hidden] { display: none; }
+  #nbSheet { width: 92%; height: 88%; background: var(--color-surface-notebook);
+             /* notebookBackground 資產掛點:Sol 交攤開筆記本底圖後由 JS 設 background-image(文字仍為 HTML) */
+             color: var(--color-ink-primary); border-radius: 8px;
+             border: 2px solid var(--color-chapter-accent); box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+             display: flex; flex-direction: column; padding: 10px 16px 14px; box-sizing: border-box; }
+  #nbHead { display: flex; align-items: center; gap: 8px; }
+  #nbHead h2 { font-family: var(--font-dialogue); font-size: clamp(18px, 1.6vw, 22px); margin: 4px 8px 4px 0; }
+  #nbTabs { display: none; gap: 6px; }
+  #nbTabs button, #btnDrawerClose { min-height: 44px; min-width: 44px; padding: 8px 16px;
+    background: var(--color-surface-world); border: 1px solid var(--color-chapter-accent);
+    border-radius: 4px; font-size: clamp(16px, 1.3vw, 18px); cursor: pointer; }
+  #nbTabs button[aria-selected="true"] { background: var(--color-chapter-accent); color: #f3e9d5; }
+  #nbHead .spacer { flex: 1; }
+  #nbPages { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 0; }
+  #nbLeft, #nbRight { overflow-y: auto; padding: 10px 18px; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.7; }
+  #nbLeft { border-right: 2px solid rgba(90, 70, 56, 0.35); } /* 書脊 */
+  #nbLeft h3, #nbRight h3 { font-family: var(--font-dialogue); font-size: 1.05em;
+    border-bottom: 1px solid var(--color-ink-secondary); margin: 8px 0 6px; }
+  #evidence { border: 1px dashed var(--color-ink-secondary); padding: 8px 10px; margin-bottom: 8px; }
+  #nbLabSnap table { border-collapse: collapse; margin: 6px 0; font-size: 0.92em; width: 100%; }
+  #nbLabSnap th, #nbLabSnap td { border: 1px solid var(--color-ink-secondary); padding: 2px 7px;
+    text-align: right; font-variant-numeric: tabular-nums; }
+  #nbLabSnap th:first-child, #nbLabSnap td:first-child { text-align: left; }
   #log .line { margin: 8px 0; }
   #log .line .spk { font-weight: bold; margin-right: 6px; }
   #log .line.stage { color: var(--color-ink-secondary); font-style: italic; }
@@ -149,29 +172,48 @@
   #log .portrait { width: 36px; height: 36px; object-fit: cover; vertical-align: middle;
                    margin-right: 6px; border: 1px solid var(--color-ink-secondary); }
   #log .composite { width: 36px; vertical-align: middle; margin-right: 6px; }
-  #btnDrawerClose { align-self: flex-end; }
+
+  /* --- 手機橫屏(低高度視窗) --- */
+  @media (max-height: 520px) {
+    #dialogue { min-height: 38%; padding: 12px 14px 14px; }
+    #dlgText { font-size: clamp(20px, 4.4vh, 24px); }
+    #bust { height: clamp(110px, 30vh, 150px); left: 10px; }
+    #dialogue.has-bust #dlgText { margin-left: 120px; }
+    #dialogue.has-bust #nameplate { left: 130px; }
+    #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/說服力 */
+    #sceneChip { display: none; }
+    body[data-view="choice"] #panelWrap { bottom: 41%; }
+    body[data-view="debate"] #panelWrap { bottom: 42%; }
+    #nbSheet { width: 97%; height: 95%; }
+    #nbPages { grid-template-columns: 1fr; }
+    #nbLeft { border-right: none; }
+    #nbTabs { display: flex; }
+    #notebook[data-tab="evidence"] #nbRight { display: none; }
+    #notebook[data-tab="log"] #nbLeft { display: none; }
+  }
 
   /* --- 標題畫面 --- */
   #title-screen { position: absolute; inset: 0; z-index: 50; background: #1d1610;
-                  display: flex; align-items: center; justify-content: center; }
-  #titleCard { text-align: center; color: #e6d7bd; max-width: 520px; padding: 24px;
+                  display: flex; align-items: center; justify-content: center; overflow-y: auto; }
+  #titleCard { text-align: center; color: #e6d7bd; max-width: 560px; padding: 24px;
                -webkit-user-select: text; user-select: text; }
-  #titleCard .t1 { font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif;
+  #titleCard .t1 { font-family: var(--font-dialogue);
                    font-size: clamp(34px, 6vw, 56px); letter-spacing: 0.3em; margin: 0 0 4px; }
-  #titleCard .t2 { color: #cfa96b; font-size: clamp(14px, 2vw, 18px); letter-spacing: 0.15em; margin: 0 0 28px; }
+  #titleCard .t2 { color: #cfa96b; font-size: clamp(15px, 2vw, 19px); letter-spacing: 0.15em; margin: 0 0 24px; }
   #titleCard fieldset { border: 1px solid rgba(230,215,189,0.35); border-radius: 4px;
                         text-align: left; padding: 12px 16px; margin-top: 14px; }
   #titleCard legend { padding: 0 6px; color: #cfa96b; }
   #titleCard button { background: var(--color-chapter-accent); color: #f3e9d5;
                       border: 1px solid rgba(230,215,189,0.5); border-radius: 4px;
-                      padding: 8px 22px; font-size: 1em; cursor: pointer; margin-top: 8px; }
+                      padding: 10px 22px; font-size: clamp(16px, 1.4vw, 18px); cursor: pointer;
+                      margin-top: 8px; min-height: 44px; }
   #titleCard button:hover { background: #935c35; }
   #continueWrap button { width: 100%; font-size: 1.05em; }
-  .hint { font-size: 0.85em; color: rgba(230,215,189,0.75); }
-  #titleCard label { display: block; margin: 4px 0; }
+  .hint { font-size: clamp(13px, 1.1vw, 15px); color: rgba(230,215,189,0.75); }
+  #titleCard label { display: block; margin: 6px 0; font-size: clamp(15px, 1.3vw, 17px); }
   #titleCard textarea { width: 95%; background: rgba(230,215,189,0.12); color: #e6d7bd;
                         border: 1px solid rgba(230,215,189,0.35); border-radius: 4px;
-                        padding: 6px; font-size: 12px; margin: 6px 0; }
+                        padding: 6px; font-size: 13px; margin: 6px 0; }
 </style>
 </head>
 <body data-view="title">
@@ -180,7 +222,6 @@
   <img id="bgImg" alt="">
   <div id="bgFallback"><span id="fbTitle">發現之前</span></div>
   <div id="vignette"></div>
-  <div id="portraitBox" aria-hidden="true"></div>
   <div id="sceneChip"></div>
 
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">
@@ -192,7 +233,7 @@
       <span class="chip" id="modeVal"></span>
       <span class="chip" id="sceneVal" style="display:none"></span>
       <span class="spacer"></span>
-      <button id="btnDrawer" type="button" aria-controls="drawer" aria-expanded="false">旅人筆記</button>
+      <button id="btnDrawer" type="button" aria-haspopup="dialog" aria-expanded="false">旅人筆記</button>
       <button id="btnBackTitle">回標題</button>
     </div>
 
@@ -226,17 +267,37 @@
     </div>
 
     <div id="dialogue">
+      <div id="bust" aria-hidden="true"></div>
       <span id="nameplate" style="display:none"></span>
       <div id="dlgText" aria-hidden="true"></div>
       <span id="dlgCue" style="display:none">▼</span>
     </div>
 
-    <aside id="drawer" aria-label="旅人筆記:證據與完整紀錄">
-      <button id="btnDrawerClose" type="button">關閉 ✕</button>
-      <h2>旅人筆記</h2>
-      <div id="evidence"><b>證據</b>:<span id="evidenceList">(尚無)</span></div>
-      <div id="log" aria-live="polite"></div>
-    </aside>
+    <div id="notebook" role="dialog" aria-modal="true" aria-label="旅人筆記" data-tab="evidence" hidden>
+      <div id="nbSheet">
+        <div id="nbHead">
+          <h2>旅人筆記</h2>
+          <div id="nbTabs" role="tablist" aria-label="筆記分頁">
+            <button id="nbTabEvidence" role="tab" aria-selected="true">證據/實驗</button>
+            <button id="nbTabLog" role="tab" aria-selected="false">完整紀錄</button>
+          </div>
+          <span class="spacer"></span>
+          <button id="btnDrawerClose" type="button">關閉 ✕</button>
+        </div>
+        <div id="nbPages">
+          <section id="nbLeft" aria-label="證據與實驗紀錄">
+            <h3>證據</h3>
+            <div id="evidence"><b>證據</b>:<span id="evidenceList">(尚無)</span></div>
+            <h3>實驗紀錄(快照)</h3>
+            <div id="nbLabSnap"><p class="hint" style="color:var(--color-ink-secondary)">(尚無實驗紀錄)</p></div>
+          </section>
+          <section id="nbRight" aria-label="完整紀錄">
+            <h3>完整紀錄</h3>
+            <div id="log" aria-live="polite"></div>
+          </section>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="title-screen" aria-label="標題畫面">

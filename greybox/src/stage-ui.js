@@ -1,13 +1,22 @@
-/* src/stage-ui.js — 滿版舞台表現層(僅 stage.html 載入;chapter.html 不載本檔=灰盒不變)。
-   職責:訂閱 chapter-ui.js 的 bd:* 事件,做打字機/旁白淡入/場景背景/立繪/回顧抽屜。
-   鐵律:不碰引擎、不碰狀態、不碰存檔——只消費事件與唯讀資料(scenes/assets)。
-   總監裁決(2026-07-19):對話逐字、旁白與系統行淡入;點擊跳完;reduced-motion 全顯。 */
+/* src/stage-ui.js — 滿版舞台表現層 v2(僅 stage.html 載入;chapter.html 不載本檔=灰盒不變)。
+   職責:訂閱 chapter-ui.js 的 bd:* 事件,做打字機/半身像/場景背景/筆記本模式。
+   鐵律:不碰引擎、不碰狀態、不碰存檔——只消費事件、唯讀資料(scenes/assets)與 DOM。
+   v2(總監裁決 2026-07-19 第一輪視覺修正):
+   - 對話肖像=對話框左側半身像;接口鏈 speakerDialoguePortrait→speakerPortrait(遮罩 fallback);
+     不做 CSS 鏡像(角色特徵不可翻面);普通對話不用大型立繪(stageSprite 留高潮演出,未實裝)。
+   - 打字機 40ms 基速+標點停頓(逗短/句長);超過約三行=表現層分頁(不出捲軸,不改劇本文字)。
+   - 句子顯示完畢後 Enter/Space 觸發唯一「繼續」;表單/選項/筆記開啟不誤觸。
+   - 旅人筆記=全畫面筆記本 modal(桌機雙頁/低高度視窗分頁);Esc 關閉,焦點歸還;舞台暫停。
+   - 預載改場景範圍(當前+下一場景背景+對話肖像),不隨美術量產一次抓全章。 */
 (function () {
   "use strict";
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
-  var TYPE_MS = 30; /* 逐字間隔;約 33 字/秒 */
+  var TYPE_MS = 40;                    /* 逐字基速 */
+  var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
+  var SHORT_P = "、,,;;::·—", LONG_P = "。.?!?!…";
   function $(id) { return document.getElementById(id); }
+  var body = document.body;
 
   var reduced = false;
   try { reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
@@ -20,13 +29,28 @@
     return (hit && hit.path) ? hit : null;
   }
   function assetUrl(e) { return ASSETS.basePath + e.path; }
-  function preloadAll() {
+  function preloadEntry(e) {
+    if (!e || !e.path) return;
+    var im = new Image(); im.src = assetUrl(e);
+    (e.layers || []).forEach(function (L) {
+      if (L.path) { var i2 = new Image(); i2.src = ASSETS.basePath + L.path; }
+    });
+  }
+  /* 場景範圍預載:當前+下一場景背景與對話肖像;禁止全 manifest 預載(首屏 3MB 預算) */
+  function preloadScene(sceneId) {
     if (!ASSETS) return;
-    ASSETS.entries.forEach(function (e) {
-      if (e.path) { var im = new Image(); im.src = assetUrl(e); }
-      (e.layers || []).forEach(function (L) {
-        if (L.path) { var im2 = new Image(); im2.src = ASSETS.basePath + L.path; }
+    if (ASSETS.sceneBg) {
+      var idx = -1;
+      SCENES.scenes.forEach(function (s, i) { if (s.id === sceneId) idx = i; });
+      var nextId = (idx >= 0 && SCENES.scenes[idx + 1]) ? SCENES.scenes[idx + 1].id : null;
+      [sceneId, nextId].forEach(function (sid) {
+        if (sid) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
       });
+    }
+    ["speakerDialoguePortrait", "speakerPortrait"].forEach(function (k) {
+      var map = ASSETS[k];
+      if (!map) return;
+      Object.keys(map).forEach(function (sp) { preloadEntry(assetEntry(map[sp])); });
     });
   }
 
@@ -40,6 +64,7 @@
   function setScene(sceneId) {
     if (sceneId === curSceneId) return;
     curSceneId = sceneId;
+    preloadScene(sceneId);
     var sc = sceneInfo(sceneId);
     $("sceneChip").textContent = sceneId + (sc && sc.title ? "|" + sc.title : "");
     var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[sceneId]) : null;
@@ -51,95 +76,144 @@
         img.onload = function () { img.style.opacity = 1; };
         img.src = assetUrl(e);
         img.alt = e.label || "";
-        if (img.complete) img.style.opacity = 1; /* 快取即載:onload 可能不觸發 */
+        if (img.complete) img.style.opacity = 1;
       }
       img.style.display = "";
       fb.classList.add("off");
     } else {
       curBgId = null;
       img.style.display = "none";
+      img.removeAttribute("src");
       fb.classList.remove("off");
       $("fbTitle").textContent = (sc && sc.title) ? sc.title : sceneId;
     }
   }
 
-  /* ---------- 立繪 ---------- */
-  var curPortraitId = null;
-  function buildStagePortrait(e, alt) { /* ART-ADR-001 混合制,同 chapter-ui 縮放語義 */
+  /* ---------- 對話框左側半身像 ---------- */
+  var curBustId = null;
+  function buildBustImg(e, alt) { /* ART-ADR-001 混合制;高度貼容器,不裁不鏡像 */
     if (!e.layers || !e.layers.length) {
       var img = document.createElement("img");
       img.src = assetUrl(e); img.alt = alt || e.label || e.id;
       return img;
     }
     var wrap = document.createElement("span");
-    wrap.className = "composite";
+    wrap.style.position = "relative"; wrap.style.display = "inline-block"; wrap.style.height = "100%";
     var base = document.createElement("img");
     base.src = assetUrl(e); base.alt = alt || e.label || e.id;
-    base.style.display = "block"; base.style.maxHeight = "100%";
+    base.style.height = "100%"; base.style.width = "auto"; base.style.display = "block";
     wrap.appendChild(base);
     e.layers.forEach(function (L) {
       if (!L.path) return;
       var li = document.createElement("img");
-      li.src = ASSETS.basePath + L.path; li.alt = ""; li.className = "layer";
+      li.src = ASSETS.basePath + L.path; li.alt = "";
+      li.style.position = "absolute";
       li.style.left = (100 * L.anchorX / e.w) + "%";
       li.style.top = (100 * L.anchorY / e.h) + "%";
       li.style.width = (100 * L.w / e.w) + "%";
+      li.style.height = "auto";
       wrap.appendChild(li);
     });
     return wrap;
   }
-  function setPortrait(speaker, cls) {
-    var box = $("portraitBox");
-    if (cls === "stage" || cls === "system") return; /* 旁白/系統:立繪不動 */
-    if (cls === "player") { box.classList.add("dim"); return; } /* 你說話:對方立繪壓暗 */
-    var key = (ASSETS && ASSETS.speakerPortrait) ? ASSETS.speakerPortrait[speaker] : null;
-    var e = assetEntry(key);
-    if (!e) { box.classList.remove("on"); curPortraitId = null; return; } /* 無圖角色:清場 */
-    if (curPortraitId !== e.id) {
-      curPortraitId = e.id;
-      box.innerHTML = "";
-      box.appendChild(buildStagePortrait(e, speaker));
+  function setBust(speaker, cls) {
+    var box = $("bust"), dlg = $("dialogue");
+    if (cls === "stage" || cls === "system") return;      /* 旁白/系統:半身像不動 */
+    if (cls === "player") { box.classList.add("dim"); return; } /* 你說話:對方壓暗 */
+    var entry = null, masked = false;
+    if (ASSETS && ASSETS.speakerDialoguePortrait) entry = assetEntry(ASSETS.speakerDialoguePortrait[speaker]);
+    if (!entry && ASSETS && ASSETS.speakerPortrait) {
+      entry = assetEntry(ASSETS.speakerPortrait[speaker]);
+      masked = true; /* 600×600 筆記頭像僅為暫時 fallback:柔邊遮罩,不露方形邊界 */
     }
-    box.classList.add("on");
+    if (!entry) { dlg.classList.remove("has-bust"); curBustId = null; return; }
+    if (curBustId !== entry.id) {
+      curBustId = entry.id;
+      box.innerHTML = "";
+      box.appendChild(buildBustImg(entry, speaker));
+    }
+    box.classList.toggle("masked", masked);
     box.classList.remove("dim");
+    dlg.classList.add("has-bust");
   }
 
-  /* ---------- 打字機佇列 ---------- */
-  var queue = [], typing = false, waiting = false, timer = null, curFull = "";
-  var body = document.body;
+  /* ---------- 打字機:分頁+標點停頓 ---------- */
+  var queue = [], pages = [], pageIdx = 0, curPage = "", pos = 0;
+  var typing = false, waiting = false, timer = null, paused = false;
   function syncFlags() {
     var active = typing || waiting || queue.length > 0;
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
   }
-  function lineDone() {
+  function charDelay(ch) {
+    if (LONG_P.indexOf(ch) >= 0) return TYPE_MS + PAUSE_LONG;
+    if (SHORT_P.indexOf(ch) >= 0) return TYPE_MS + PAUSE_SHORT;
+    return TYPE_MS;
+  }
+  /* 以容器實寬估每行字數,超過約三行則分頁(斷點優先找標點;jsdom/未布局時不分頁) */
+  function paginate(text) {
+    var tx = $("dlgText");
+    var w = tx.clientWidth, fs = parseFloat(getComputedStyle(tx).fontSize);
+    if (!w || !fs || w < fs * 4) return [text];
+    var cpl = Math.max(8, Math.floor(w / fs));
+    var budget = cpl * 3;
+    if (text.length <= budget) return [text];
+    var out = [], rest = text, PUNCT = LONG_P + SHORT_P;
+    while (rest.length > budget) {
+      var cut = -1;
+      for (var i = budget; i >= Math.floor(budget * 0.55); i--) {
+        if (PUNCT.indexOf(rest.charAt(i - 1)) >= 0) { cut = i; break; }
+      }
+      if (cut < 0) cut = budget;
+      out.push(rest.slice(0, cut));
+      rest = rest.slice(cut);
+    }
+    if (rest) out.push(rest);
+    return out;
+  }
+  function showCue(on) { $("dlgCue").style.display = on ? "" : "none"; }
+  function pageDone() {
     typing = false;
-    if (queue.length) { waiting = true; $("dlgCue").style.display = ""; }
-    else { waiting = false; $("dlgCue").style.display = "none"; }
+    if (pageIdx < pages.length - 1) { waiting = true; showCue(true); }
+    else if (queue.length) { waiting = true; showCue(true); }
+    else { waiting = false; showCue(false); }
     syncFlags();
   }
+  function step() {
+    if (paused) return;
+    pos++;
+    $("dlgText").textContent = curPage.slice(0, pos);
+    if (pos >= curPage.length) { pageDone(); return; }
+    timer = setTimeout(step, charDelay(curPage.charAt(pos - 1)));
+  }
+  var curInstantMode = false;
+  function startPage(instant) {
+    curPage = pages[pageIdx];
+    showCue(false);
+    var tx = $("dlgText");
+    if (curInstantMode || instant || reduced) {
+      tx.style.animation = "none"; void tx.offsetWidth; tx.style.animation = "";
+      tx.textContent = curPage;
+      typing = false;
+      pageDone();
+      return;
+    }
+    tx.textContent = ""; pos = 0; typing = true; syncFlags();
+    timer = setTimeout(step, TYPE_MS);
+  }
   function startLine(item, instant) {
-    var np = $("nameplate"), tx = $("dlgText");
-    $("dlgCue").style.display = "none";
+    var np = $("nameplate");
     var isNarr = item.cls === "stage", isSys = item.cls === "system";
     var showName = item.speaker && !isNarr && !isSys;
     np.style.display = showName ? "" : "none";
     np.textContent = showName ? item.speaker : "";
-    tx.className = isNarr ? "narr" : (isSys ? "sys" : (item.cls === "player" ? "pl" : ""));
-    setPortrait(item.speaker, item.cls);
-    if (isNarr || isSys) { /* 旁白/系統:整句淡入(CSS 動畫重觸發) */
-      tx.style.animation = "none"; void tx.offsetWidth; tx.style.animation = "";
-      tx.textContent = item.text;
-      lineDone(); return;
-    }
-    if (reduced || instant) { tx.textContent = item.text; lineDone(); return; }
-    tx.textContent = ""; curFull = item.text; typing = true; syncFlags();
-    var pos = 0;
-    timer = setInterval(function () {
-      pos++;
-      tx.textContent = curFull.slice(0, pos);
-      if (pos >= curFull.length) { clearInterval(timer); lineDone(); }
-    }, TYPE_MS);
+    $("dlgText").className = isNarr ? "narr" : (isSys ? "sys" : (item.cls === "player" ? "pl" : ""));
+    setBust(item.speaker, item.cls);
+    pages = paginate(item.text);
+    curInstantMode = isNarr || isSys; /* 旁白/系統:整頁淡入不逐字 */
+    if (instant) { pageIdx = pages.length - 1; startPage(true); return; } /* 讀檔即顯:直接停最後一頁 */
+    pageIdx = 0;
+    startPage(false);
   }
   function next() { waiting = false; startLine(queue.shift()); }
   function enqueue(item) {
@@ -147,10 +221,33 @@
     syncFlags();
     if (!typing && !waiting) next();
   }
-  /* 回傳 true=本次輸入已被表現層消化(跳完或翻下一句) */
+  function pauseTyping() { paused = true; if (timer) clearTimeout(timer); }
+  function resumeTyping() { if (!paused) return; paused = false; if (typing) timer = setTimeout(step, TYPE_MS); }
+  /* 回傳 true=本次輸入已被表現層消化(跳完本頁或翻下一頁/句) */
   function advanceIntent() {
-    if (typing) { clearInterval(timer); $("dlgText").textContent = curFull; lineDone(); return true; }
-    if (waiting && queue.length) { next(); return true; }
+    if (typing) {
+      if (timer) clearTimeout(timer);
+      $("dlgText").textContent = curPage;
+      typing = false;
+      pageDone();
+      return true;
+    }
+    if (waiting) {
+      waiting = false;
+      if (pageIdx < pages.length - 1) { pageIdx++; startPage(false); }
+      else if (queue.length) { next(); }
+      else { syncFlags(); }
+      return true;
+    }
+    return false;
+  }
+  /* 句子顯示完畢+閒置:Enter/Space/點擊觸發唯一「繼續」 */
+  function idleAdvance() {
+    if (!$("notebook").hidden) return false;
+    var view = body.getAttribute("data-view");
+    if (view !== "narration" && view !== "end") return false;
+    var btns = $("controls").querySelectorAll("button");
+    if (btns.length === 1) { btns[0].click(); return true; }
     return false;
   }
 
@@ -159,7 +256,7 @@
   var lastReplay = null;
   document.addEventListener("bd:line", function (ev) {
     var d = ev.detail;
-    if (d.replay) { lastReplay = d; return; } /* 回放進回顧抽屜,不重演;記住最後一句當開場語境 */
+    if (d.replay) { lastReplay = d; return; } /* 回放進筆記(chapter-ui 寫入 #log),不重演 */
     enqueue(d);
   });
   var needKickoff = false;
@@ -178,13 +275,12 @@
     }
   });
   document.addEventListener("bd:start", function () {
-    queue = []; typing = false; waiting = false;
-    if (timer) clearInterval(timer);
-    curPortraitId = null;
-    $("portraitBox").classList.remove("on");
+    queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false;
+    if (timer) clearTimeout(timer);
+    curBustId = null;
+    $("dialogue").classList.remove("has-bust");
     $("dlgText").textContent = ""; $("nameplate").style.display = "none";
-    body.classList.remove("drawer-open");
-    $("btnDrawer").setAttribute("aria-expanded", "false");
+    closeNotebook(true);
     syncFlags();
     /* 開場語境:讀檔→最後一句即顯;全新開局(transcript 空)→標記 kickoff,由 bd:view 代按首次繼續 */
     if (lastReplay) { startLine(lastReplay, true); lastReplay = null; needKickoff = false; }
@@ -193,36 +289,90 @@
 
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
-    if (body.classList.contains("drawer-open")) return;
-    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #drawer, #title-screen")) return;
+    if (!$("notebook").hidden) return;
+    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen")) return;
     if (advanceIntent()) return;
-    var view = body.getAttribute("data-view");
-    if (view === "narration" || view === "end") {
-      var btns = $("controls").querySelectorAll("button");
-      if (btns.length === 1) btns[0].click();
-    }
+    idleAdvance();
   });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
-    if (typing || waiting) { /* 演出未完:任何 Enter/Space 先消化演出,不觸發底層按鈕 */
+    if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
+    if (typing || waiting) {           /* 演出未完:先消化演出,不觸底層按鈕 */
       ev.preventDefault(); ev.stopPropagation();
       advanceIntent();
+      return;
     }
+    if (ev.target && ev.target.closest && ev.target.closest("button, select, input, textarea, a")) return; /* 交還原生 */
+    if (idleAdvance()) ev.preventDefault();
   }, true);
 
-  /* ---------- 旅人筆記抽屜 ---------- */
-  function toggleDrawer(open) {
-    body.classList.toggle("drawer-open", open);
-    $("btnDrawer").setAttribute("aria-expanded", open ? "true" : "false");
-    if (open) { var log = $("log"); log.scrollTop = log.scrollHeight; }
+  /* ---------- 旅人筆記(全畫面筆記本模式) ---------- */
+  function stripIds(root) {
+    var withId = root.querySelectorAll("[id]");
+    for (var i = 0; i < withId.length; i++) withId[i].removeAttribute("id");
+  }
+  function snapshotLab() { /* 靜態快照:克隆去 id、控件停用——不與實驗台活表格撞 id */
+    var snap = $("nbLabSnap");
+    var parts = [["run 紀錄", $("labRunsBody")], ["主張紀錄", $("labClaimsBody")]];
+    var any = false;
+    snap.innerHTML = "";
+    parts.forEach(function (p) {
+      var tbody = p[1];
+      if (!tbody || !tbody.children.length) return;
+      any = true;
+      var head = document.createElement("p");
+      head.style.margin = "8px 0 2px"; head.style.fontWeight = "bold";
+      head.textContent = p[0];
+      var tbl = tbody.closest("table").cloneNode(true);
+      stripIds(tbl);
+      var inputs = tbl.querySelectorAll("input");
+      for (var i = 0; i < inputs.length; i++) inputs[i].disabled = true;
+      snap.appendChild(head);
+      snap.appendChild(tbl);
+    });
+    if (!any) snap.innerHTML = '<p class="hint" style="color:var(--color-ink-secondary)">(尚無實驗紀錄)</p>';
+  }
+  function applyNotebookBg() { /* notebookBackground 資產掛點:Sol 交底圖(id=bg_notebook)即生效 */
+    var e = assetEntry("bg_notebook");
+    if (e) {
+      var sheet = $("nbSheet");
+      sheet.style.backgroundImage = "url(" + assetUrl(e) + ")";
+      sheet.style.backgroundSize = "cover";
+      sheet.style.backgroundPosition = "center";
+    }
+  }
+  function openNotebook() {
+    snapshotLab();
+    applyNotebookBg();
+    $("notebook").hidden = false;
+    $("btnDrawer").setAttribute("aria-expanded", "true");
+    pauseTyping();
+    var log = $("log"); log.scrollTop = log.scrollHeight;
+    $("btnDrawerClose").focus();
+  }
+  function closeNotebook(silent) {
+    if ($("notebook").hidden) return;
+    $("notebook").hidden = true;
+    $("btnDrawer").setAttribute("aria-expanded", "false");
+    resumeTyping();
+    if (!silent) $("btnDrawer").focus(); /* 焦點歸還 */
   }
   $("btnDrawer").addEventListener("click", function () {
-    toggleDrawer(!body.classList.contains("drawer-open"));
+    if ($("notebook").hidden) openNotebook(); else closeNotebook();
   });
-  $("btnDrawerClose").addEventListener("click", function () { toggleDrawer(false); });
+  $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
   document.addEventListener("keydown", function (ev) {
-    if (ev.key === "Escape" && body.classList.contains("drawer-open")) toggleDrawer(false);
+    if (ev.key === "Escape" && !$("notebook").hidden) { ev.preventDefault(); closeNotebook(); }
   });
-
-  preloadAll();
+  document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal */
+    var nb = $("notebook");
+    if (!nb.hidden && !nb.contains(ev.target)) $("btnDrawerClose").focus();
+  });
+  function selectTab(which) {
+    $("notebook").setAttribute("data-tab", which);
+    $("nbTabEvidence").setAttribute("aria-selected", which === "evidence" ? "true" : "false");
+    $("nbTabLog").setAttribute("aria-selected", which === "log" ? "true" : "false");
+  }
+  $("nbTabEvidence").addEventListener("click", function () { selectTab("evidence"); });
+  $("nbTabLog").addEventListener("click", function () { selectTab("log"); });
 })();

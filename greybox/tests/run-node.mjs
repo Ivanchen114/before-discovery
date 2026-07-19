@@ -141,6 +141,37 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "舞台殼 v2|視覺修正契約:筆記本模式/半身像 fallback/idle 推進/場景範圍預載",
+  fn: () => {
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    /* 一、筆記本模式:modal 語義+分頁+44px 觸控+焦點歸還 */
+    for (const frag of ['id="notebook"', 'role="dialog"', 'aria-modal="true"',
+      'id="nbTabEvidence"', 'id="nbTabLog"', 'id="nbLabSnap"']) {
+      if (!stageHtml.includes(frag)) throw new Error("stage.html 缺筆記本要素:" + frag);
+    }
+    if (!stageHtml.includes("min-height: 44px")) throw new Error("觸控區 44px 規則缺失");
+    if (!/btnDrawer"\)\.focus\(\)/.test(sui)) throw new Error("筆記關閉後焦點未歸還 btnDrawer");
+    if (!sui.includes("focusin")) throw new Error("modal 焦點圍欄缺失");
+    /* 二、半身像:接口鏈+遮罩 fallback+禁鏡像 */
+    if (!stageHtml.includes('id="bust"') || !stageHtml.includes("mask-image"))
+      throw new Error("半身像容器或柔邊遮罩 fallback 缺失");
+    if (!sui.includes("speakerDialoguePortrait")) throw new Error("speakerDialoguePortrait 接口鏈缺失");
+    if (/scaleX\(\s*-1\s*\)/.test(sui) || /scaleX\(\s*-1\s*\)/.test(stageHtml))
+      throw new Error("偵測到 CSS 水平鏡像——角色特徵不可翻面");
+    /* 三、字級:對話 clamp 下限 ≥24px(桌機),分頁函式存在(不出捲軸) */
+    if (!/#dlgText\s*\{[^}]*clamp\(2[4-9]px/.test(stageHtml)) throw new Error("對話字級 clamp 下限低於 24px");
+    if (!sui.includes("function paginate")) throw new Error("對話分頁缺失(長台詞會溢出或出捲軸)");
+    if (/#dlgText\s*\{[^}]*overflow-y/.test(stageHtml)) throw new Error("對話框出現捲軸樣式——應以分頁處理");
+    /* 四、idle 推進+標點停頓+場景範圍預載(禁全 manifest) */
+    if (!sui.includes("function idleAdvance")) throw new Error("句完 Enter/Space 觸發繼續(idleAdvance)缺失");
+    if (!sui.includes("charDelay")) throw new Error("標點停頓(charDelay)缺失");
+    if (!sui.includes("function preloadScene")) throw new Error("場景範圍預載缺失");
+    if (/function preloadAll/.test(sui)) throw new Error("禁止全 manifest 預載(preloadAll)——首屏 3MB 預算");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
