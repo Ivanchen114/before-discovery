@@ -53,11 +53,71 @@ tests.push({
     if (JSON.stringify(scenes) !== JSON.stringify(json)) throw new Error("scenes 鏡像漂移");
   }
 });
+tests.push({
+  name: "§5.9|assets.js ≡ assets.json;schema+場景映射完備性",
+  fn: () => {
+    const assets = require("../data/assets.js");
+    const json = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    if (JSON.stringify(assets) !== JSON.stringify(json)) throw new Error("assets 鏡像漂移");
+    const KINDS = ["bg", "portrait", "card", "prop", "cg", "fx"];
+    const ids = new Set();
+    assets.entries.forEach((e) => {
+      if (ids.has(e.id)) throw new Error("資產 id 重複:" + e.id);
+      ids.add(e.id);
+      if (KINDS.indexOf(e.kind) < 0) throw new Error("kind 非法:" + e.id);
+      if (!("path" in e) || !("firstScreen" in e)) throw new Error("缺 path/firstScreen:" + e.id);
+      (e.layers || []).forEach((L) => {
+        if (typeof L.anchorX !== "number" || typeof L.anchorY !== "number" || typeof L.w !== "number")
+          throw new Error("layers 錨點欄位非數值:" + e.id);
+      });
+    });
+    Object.values(assets.sceneBg).forEach((id) => {
+      if (!ids.has(id)) throw new Error("sceneBg 指向不存在資產:" + id);
+    });
+    Object.values(assets.speakerPortrait).forEach((id) => {
+      if (!ids.has(id)) throw new Error("speakerPortrait 指向不存在資產:" + id);
+    });
+    /* 完備性:scenes.js 每個場景都要有背景槽位(path 可 null,槽位不可缺) */
+    scenes.scenes.forEach((s) => {
+      if (!(s.id in assets.sceneBg)) throw new Error("場景缺背景槽位:" + s.id);
+    });
+    /* 已填 path 的資產,檔案必須實際存在(防 manifest 先行於檔案) */
+    assets.entries.forEach((e) => {
+      if (e.path) {
+        const p = path.join(here, "..", assets.basePath, e.path);
+        try { readFileSync(p); } catch (err) { throw new Error("path 已填但檔案不存在:" + e.id + " → " + e.path); }
+      }
+    });
+  }
+});
+tests.push({
+  name: "§5.7|tokens 生成器:驗證通過+落後檢測(committed css ≡ 再生結果)",
+  fn: async () => {
+    const { validateTokens, generateCss } = await import("../tools/gen_tokens.mjs");
+    const srcReal = path.join(here, "../../art/style/tokens.json");
+    const srcEx = path.join(here, "../data/tokens.example.json");
+    let srcPath = srcEx;
+    try { readFileSync(srcReal); srcPath = srcReal; } catch (e) {}
+    const text = readFileSync(srcPath, "utf-8");
+    const data = JSON.parse(text);
+    data._source = path.basename(srcPath) + (srcPath === srcEx ? "(example)" : "");
+    validateTokens(data);
+    const css = generateCss(data, text);
+    const committed = readFileSync(path.join(here, "../../public/assets/global/tokens.css"), "utf-8");
+    if (committed !== css) throw new Error("tokens.css 落後於來源——請重跑 tools/gen_tokens.mjs");
+    /* 負向:缺必要 token 必敗 */
+    const bad = JSON.parse(text);
+    delete bad.tokens["color-focus"];
+    let threw = false;
+    try { validateTokens(bad); } catch (e) { threw = true; }
+    if (!threw) throw new Error("缺必要 token 未被攔截");
+  }
+});
 
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
-    t.fn();
+    await t.fn();
     pass++;
     console.log("  ✓ " + t.name);
   } catch (e) {

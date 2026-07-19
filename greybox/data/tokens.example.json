@@ -1,0 +1,18 @@
+{
+  "_note": "示例檔:僅供生成器測試與 schema 參照。正式唯一來源=art/style/tokens.json(Sol 編輯,§5.7);該檔存在時本檔即不被讀取。值為灰盒中性佔位,非 Style Bible 定案色。",
+  "tokens": {
+    "color-surface-world": "#f4f0e8",
+    "color-surface-notebook": "#faf7ef",
+    "color-ink-primary": "#2b2b2b",
+    "color-ink-secondary": "#555555",
+    "color-evidence": "#1a3c6e",
+    "color-warning": "#8a5a00",
+    "color-success": "#2e6b3a",
+    "color-chapter-accent": "#6e4a1a",
+    "color-focus": "#1a3c6e",
+    "motion-instant": "120ms",
+    "motion-fast": "200ms",
+    "motion-medium": "500ms",
+    "motion-dramatic": "1000ms"
+  }
+}

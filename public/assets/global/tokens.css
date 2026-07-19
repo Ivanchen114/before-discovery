@@ -1,0 +1,18 @@
+/* tokens.css — 由 tools/gen_tokens.mjs 產生,禁止手改(§5.7)。
+   source: tokens.example.json(example) | source-hash: f3ac521b9d3dab87
+   落後檢測:重跑生成器比對 hash;不符=來源已改而未再生。 */
+:root {
+  --color-surface-world: #f4f0e8;
+  --color-surface-notebook: #faf7ef;
+  --color-ink-primary: #2b2b2b;
+  --color-ink-secondary: #555555;
+  --color-evidence: #1a3c6e;
+  --color-warning: #8a5a00;
+  --color-success: #2e6b3a;
+  --color-chapter-accent: #6e4a1a;
+  --color-focus: #1a3c6e;
+  --motion-instant: 120ms;
+  --motion-fast: 200ms;
+  --motion-medium: 500ms;
+  --motion-dramatic: 1000ms;
+}

@@ -6,6 +6,7 @@
   var SCENES = window.GB.DATA.scenes;
   var PATTERNS = window.GB.DATA.patterns;
   var HIST = window.GB.DATA.histfacts;
+  var ASSETS = window.GB.DATA.assets || null;
   var KEY = "bd_ch1_save";
   var state = null;
   var lastSceneShown = null;
@@ -43,11 +44,50 @@
     save();
   }
 
+  /* ---------- 美術資產掛點(§5.9;path=null 全面 fallback,灰盒不變) ---------- */
+  function assetEntry(id) {
+    if (!ASSETS || !id) return null;
+    var hit = null;
+    ASSETS.entries.forEach(function (e) { if (e.id === id) hit = e; });
+    return (hit && hit.path) ? hit : null;
+  }
+  function assetUrl(e) { return ASSETS.basePath + e.path; }
+  function buildPortrait(e, alt) { /* ART-ADR-001 混合制:base+臉層(母版座標→百分比定位) */
+    if (!e.layers || !e.layers.length) {
+      var img = document.createElement("img");
+      img.src = assetUrl(e); img.alt = alt || e.label || e.id; img.className = "portrait";
+      img.loading = "lazy";
+      return img;
+    }
+    var wrap = document.createElement("span");
+    wrap.className = "composite";
+    wrap.style.position = "relative"; wrap.style.display = "inline-block";
+    var base = document.createElement("img");
+    base.src = assetUrl(e); base.alt = alt || e.label || e.id;
+    base.style.display = "block"; base.style.width = "100%";
+    wrap.appendChild(base);
+    e.layers.forEach(function (L) {
+      if (!L.path) return;
+      var li = document.createElement("img");
+      li.src = ASSETS.basePath + L.path; li.alt = "";
+      li.style.position = "absolute";
+      li.style.left = (100 * L.anchorX / e.w) + "%";
+      li.style.top = (100 * L.anchorY / e.h) + "%";
+      li.style.width = (100 * L.w / e.w) + "%";
+      wrap.appendChild(li);
+    });
+    return wrap;
+  }
+
   /* ---------- 敘事渲染 ---------- */
   function addLine(speaker, text, cls) {
     var div = document.createElement("div");
     div.className = "line " + (cls || "");
     if (speaker && cls !== "stage" && cls !== "system") {
+      if (ASSETS && ASSETS.speakerPortrait) {
+        var pe = assetEntry(ASSETS.speakerPortrait[speaker]);
+        if (pe) div.appendChild(buildPortrait(pe, speaker));
+      }
       var b = document.createElement("span"); b.className = "spk"; b.textContent = speaker + ":";
       div.appendChild(b);
     }
@@ -71,6 +111,16 @@
     div.className = "scene-title";
     div.textContent = "◆ " + sceneId + (sc && sc.title ? "|" + sc.title : "");
     $("log").appendChild(div);
+    if (ASSETS && ASSETS.sceneBg) { /* 場景橫幅:資產落地即顯示 */
+      var bg = assetEntry(ASSETS.sceneBg[sceneId]);
+      if (bg) {
+        var img = document.createElement("img");
+        img.src = assetUrl(bg); img.alt = bg.label || "";
+        img.className = "scene-banner";
+        img.loading = "lazy";
+        $("log").appendChild(img);
+      }
+    }
   }
   function rebuildLog() {
     $("log").innerHTML = "";
