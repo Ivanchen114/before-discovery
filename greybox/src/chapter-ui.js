@@ -119,7 +119,14 @@
     fillSelect("labTimer", Object.keys(PATTERNS.timer), function (t) {
       return t + "(" + PATTERNS.dayCost[t] + " 天/次)";
     }, function (t) { return state.mode === "scholar" || t !== "音格"; });
-    $("labAssertC").style.display = (state.mode === "scholar") ? "" : "none";
+    /* 斷言按鈕可見性改由當前 embed 需求決定(verification A 級):見 renderAll 之 incline 分支 */
+  }
+  function updateAssertButtons(v) { /* 依 embed until 決定,不看模式(E3.c 雙模式必經) */
+    var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
+    var until = (nodeDef && nodeDef.until) || {};
+    var needC = until.e3 === "c";
+    $("labAssertC").style.display = (needC || state.mode === "scholar") ? "" : "none";
+    $("labAssertB").style.display = needC ? "none" : ""; /* C 階段隱藏 B,避免選錯工具 */
   }
   function checkedIds(cls) {
     return Array.prototype.map.call(document.querySelectorAll("." + cls + ":checked"), function (el) {
@@ -372,6 +379,7 @@
           });
         }
       }
+      updateAssertButtons(v);
       renderLabTables();
       renderEmbedGate(v);
       return;

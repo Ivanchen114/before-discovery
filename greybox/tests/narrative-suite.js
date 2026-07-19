@@ -611,6 +611,36 @@
     ok(s.ended, "完章");
   });
 
+  t("verification 補修|E3.c embed 為雙模式節點(UI 按鈕可見性契約)", function () {
+    /* UI 依 _sceneMap 節點之 until 決定斷言按鈕可見性;此測試鎖住資料契約,防止 mode 閘門回歸 */
+    var a23 = Narrative._sceneMap["A2-3"];
+    ok(a23, "A2-3 存在");
+    var e3c = a23.nodes["e3c"], e2 = a23.nodes["e2"];
+    ok(e3c && e3c.type === "embed" && e3c.until && e3c.until.e3 === "c", "e3c:until.e3='c'");
+    ok(!e3c.mode || e3c.mode === "all", "e3c 無模式限制(雙模式必經)");
+    ok(e3c.preset && e3c.preset.incline === "中", "e3c 引導預選中傾角");
+    ok(e2 && e2.until && e2.until.e3 === "b", "e2:until.e3='b'(C 階段以外不需 C 鈕)");
+    /* 兩模式皆可實際完成 c 斷言(引擎層,補 UI 契約之外的行為保證) */
+    ["explore", "scholar"].forEach(function (mode) {
+      var s = toActTwo(mode);
+      var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+      r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+      s = Narrative.embedComplete(s).state;
+      var rr = run(s); s = rr.state;
+      s = pick(s, "a"); rr = run(s); s = rr.state;
+      r = lab(s, "run", { config: CFG_SMALL }); s = r.state;
+      r = lab(s, "judge", { runIds: [2], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+      r = lab(s, "assert", { type: "b", claimIds: [1, 2] }); s = r.state;
+      s = Narrative.embedComplete(s).state;
+      rr = run(s); s = rr.state;
+      eq(rr.view.nodeId, "e3c", mode + ":抵達 e3c");
+      r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "中", timer: "水鐘" } }); s = r.state;
+      r = lab(s, "judge", { runIds: [3], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+      r = lab(s, "assert", { type: "c", claimIds: [1, 3] }); s = r.state;
+      ok(r.result.assertion.ok && s.lab.evidence.e3.c, mode + ":c○→c●");
+    });
+  });
+
   t("B-3/R-SAV-02|loadSave 分類:empty/badjson/schema/cursor 與正常往返", function () {
     ok(Narrative.loadSave(null).empty, "空=empty");
     eq(Narrative.loadSave("{bad").error, "badjson", "壞 JSON");
