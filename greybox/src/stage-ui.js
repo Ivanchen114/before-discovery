@@ -225,6 +225,8 @@
     var showName = item.speaker && !isNarr && !isSys;
     np.style.display = showName ? "" : "none";
     np.textContent = showName ? item.speaker : "";
+    /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
+    np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
     $("dlgText").className = isNarr ? "narr" : (isSys ? "sys" : (item.cls === "player" ? "pl" : ""));
     setBust(item.speaker, item.cls);
     pages = paginate(item.text);
