@@ -35,5 +35,5 @@
 **基線凍結(2026-07-19)**:Sol 第二次 verification 通過(實機全鏈:探索 E3.c→雙歸零→SC-R1→再入→honest→end)——**劇本 v0.2.2 與章規格 v0.1.1 已凍結**;第一章正式美術依 ADR-009 **已解凍量產**(Sol 進行中,production 目錄已開張);**第二章規格/程式/美術仍凍結**(劇本 v0.1 為紙上先行,ADR-010)。改動凍結基線須走正式變更紀錄。
 
 - **Sol**:第一章正式美術分批量產(背景/角色 runtime WebP);兩張器材功能圖(`art/source/production/ch01/props/`)為**場景製作依據,非 runtime 圖,不入遊戲**;每批落地即填 `greybox/data/assets.js/.json` 的 path(接口見 `greybox/docs/asset-request-ch1.md`)。
-- **Claude**:**舞台殼已上線**(stage.html:滿版+底部對話框+逐字演出;總監裁決 2026-07-19,見 01_治理)——Sol 首批三背景兩立繪已自動接入;續補=程式動畫細部(換景/FX)與音訊掛點;**不開始第二章實作**。
+- **Claude**:**第一章正式美術已整合**(Sol 批次 02:21 對話肖像+14 背景+筆記/卡/器材,runtime 4.2MB;scene-aware 三層肖像解析,年代守衛入自動測試)——舞台版 stage.html 即候選正式呈現;續補=換景 FX 與音訊掛點;**不開始第二章實作**。實機三檔驗收(1280×720/844×390/200%)=checklist G3,待總監/Sol 簽核。
 - **總監**:下一節點=完整第一章候選版體驗;其後學生試玩(觀察表已備:`greybox/docs/playtest-protocol.md`)。

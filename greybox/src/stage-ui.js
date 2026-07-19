@@ -36,22 +36,20 @@
       if (L.path) { var i2 = new Image(); i2.src = ASSETS.basePath + L.path; }
     });
   }
-  /* 場景範圍預載:當前+下一場景背景與對話肖像;禁止全 manifest 預載(首屏 3MB 預算) */
+  /* 場景範圍預載:當前+下一場景的背景與該場景對話肖像;禁止全 manifest 預載(首屏 3MB 預算) */
   function preloadScene(sceneId) {
     if (!ASSETS) return;
-    if (ASSETS.sceneBg) {
-      var idx = -1;
-      SCENES.scenes.forEach(function (s, i) { if (s.id === sceneId) idx = i; });
-      var nextId = (idx >= 0 && SCENES.scenes[idx + 1]) ? SCENES.scenes[idx + 1].id : null;
-      [sceneId, nextId].forEach(function (sid) {
-        if (sid) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
-      });
-    }
-    ["speakerDialoguePortrait", "speakerPortrait"].forEach(function (k) {
-      var map = ASSETS[k];
-      if (!map) return;
-      Object.keys(map).forEach(function (sp) { preloadEntry(assetEntry(map[sp])); });
+    var idx = -1;
+    SCENES.scenes.forEach(function (s, i) { if (s.id === sceneId) idx = i; });
+    var nextId = (idx >= 0 && SCENES.scenes[idx + 1]) ? SCENES.scenes[idx + 1].id : null;
+    [sceneId, nextId].forEach(function (sid) {
+      if (!sid) return;
+      if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
+      var m = ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[sid];
+      if (m) Object.keys(m).forEach(function (sp) { preloadEntry(assetEntry(m[sp])); });
     });
+    var def = ASSETS.speakerDialoguePortrait || {};
+    Object.keys(def).forEach(function (sp) { preloadEntry(assetEntry(def[sp])); });
   }
 
   /* ---------- 場景背景 ---------- */
@@ -116,25 +114,45 @@
     });
     return wrap;
   }
-  function setBust(speaker, cls) {
-    var box = $("bust"), dlg = $("dialogue");
-    if (cls === "stage" || cls === "system") return;      /* 旁白/系統:半身像不動 */
-    if (cls === "player") { box.classList.add("dim"); return; } /* 你說話:對方壓暗 */
-    var entry = null, masked = false;
-    if (ASSETS && ASSETS.speakerDialoguePortrait) entry = assetEntry(ASSETS.speakerDialoguePortrait[speaker]);
-    if (!entry && ASSETS && ASSETS.speakerPortrait) {
-      entry = assetEntry(ASSETS.speakerPortrait[speaker]);
-      masked = true; /* 600×600 筆記頭像僅為暫時 fallback:柔邊遮罩,不露方形邊界 */
-    }
-    if (!entry) { dlg.classList.remove("has-bust"); curBustId = null; return; }
+  /* 旅人=玩家第一人稱:預設無肖像,只壓暗當前對手(Sol 建議+任務書驗收 6)。
+     剪影僅供 A/B:網址加 ?travelerBust=1 啟用,拿掉參數即一鍵撤回。 */
+  var TRAVELER = { "旅人": 1, "旅人(你)": 1 };
+  var travelerAB = false;
+  try { travelerAB = /[?&]travelerBust=1/.test(window.location.search); } catch (e) {}
+  function showBustEntry(entry, alt, masked) {
+    var box = $("bust");
     if (curBustId !== entry.id) {
       curBustId = entry.id;
       box.innerHTML = "";
-      box.appendChild(buildBustImg(entry, speaker));
+      box.appendChild(buildBustImg(entry, alt));
     }
-    box.classList.toggle("masked", masked);
+    box.classList.toggle("masked", !!masked);
     box.classList.remove("dim");
-    dlg.classList.add("has-bust");
+    $("dialogue").classList.add("has-bust");
+  }
+  function setBust(speaker, cls) {
+    var box = $("bust"), dlg = $("dialogue");
+    if (cls === "stage" || cls === "system") return;      /* 旁白/系統:不強制換掉當前對手肖像 */
+    if (TRAVELER[speaker] || cls === "player") {          /* 旅人:壓暗對手;A/B 開啟才上剪影 */
+      if (travelerAB) {
+        var se = assetEntry("dialogue_traveler_silhouette");
+        if (se) { showBustEntry(se, "旅人", false); return; }
+      }
+      box.classList.add("dim");
+      return;
+    }
+    /* 三層解析:場景覆寫 → 對話預設 → 舊筆記頭像(遮罩)。年代正確性由場景層保證(測試把關) */
+    var entry = null, masked = false;
+    if (ASSETS && ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[curSceneId])
+      entry = assetEntry(ASSETS.sceneDialoguePortrait[curSceneId][speaker]);
+    if (!entry && ASSETS && ASSETS.speakerDialoguePortrait)
+      entry = assetEntry(ASSETS.speakerDialoguePortrait[speaker]);
+    if (!entry && ASSETS && ASSETS.speakerPortrait) {
+      entry = assetEntry(ASSETS.speakerPortrait[speaker]);
+      masked = !!entry; /* 600×600 筆記頭像僅為暫時 fallback:柔邊遮罩,不露方形邊界 */
+    }
+    if (!entry) { dlg.classList.remove("has-bust"); curBustId = null; return; }
+    showBustEntry(entry, speaker, masked);
   }
 
   /* ---------- 打字機:分頁+標點停頓 ---------- */
@@ -341,8 +359,54 @@
       sheet.style.backgroundPosition = "center";
     }
   }
+  /* 證據卡:card_template/S1/S2 當材質底,標題文字一律 HTML 疊加(E1–E5 物理內容不畫死) */
+  function renderEvidenceCards() {
+    var wrap = $("nbCards");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    var listText = $("evidenceList").textContent || "";
+    if (!listText.trim() || listText.indexOf("尚無") >= 0) return;
+    var tpl = assetEntry("card_template");
+    listText.split("、").forEach(function (item) {
+      item = item.trim();
+      if (!item) return;
+      var code = item.split(" ")[0];
+      var name = item.slice(code.length).trim();
+      var bgE = (code === "S1") ? (assetEntry("card_S1") || tpl)
+              : (code === "S2") ? (assetEntry("card_S2") || tpl)
+              : tpl;
+      var card = document.createElement("div");
+      card.className = "evcard";
+      if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
+      var b = document.createElement("b"); b.textContent = code;
+      var s = document.createElement("span"); s.textContent = name;
+      card.appendChild(b); card.appendChild(s);
+      wrap.appendChild(card);
+    });
+  }
+  /* 器材圖:實驗台上緣裝飾條(水鐘+銅球木槽);辯論面板角落《物理學》評注本——皆裝飾層,aria-hidden */
+  function mountDecor() {
+    var strip = document.createElement("div");
+    strip.id = "labProps"; strip.setAttribute("aria-hidden", "true");
+    [["prop_water_clock", "水鐘"], ["prop_ball_groove", "銅球與木槽"]].forEach(function (p) {
+      var e = assetEntry(p[0]);
+      if (!e) return;
+      var img = document.createElement("img");
+      img.src = assetUrl(e); img.alt = ""; img.loading = "lazy";
+      strip.appendChild(img);
+    });
+    if (strip.children.length) $("lab").insertBefore(strip, $("lab").firstChild);
+    var tome = assetEntry("prop_physics_tome");
+    if (tome) {
+      var t = document.createElement("img");
+      t.id = "tomeDecor"; t.src = assetUrl(tome); t.alt = ""; t.setAttribute("aria-hidden", "true");
+      $("panelWrap").insertBefore(t, $("panelWrap").firstChild);
+    }
+  }
+  mountDecor();
   function openNotebook() {
     snapshotLab();
+    renderEvidenceCards();
     applyNotebookBg();
     $("notebook").hidden = false;
     $("btnDrawer").setAttribute("aria-expanded", "true");

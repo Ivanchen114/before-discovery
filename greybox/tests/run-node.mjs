@@ -172,6 +172,42 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "整合包|scene-aware 肖像:映射完備+年代守衛(1590≠39/72,1603+≠26/58)+旅人無肖像",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const ids = new Set(assets.entries.map((e) => e.id));
+    const sceneIds = new Set(scenes.scenes.map((s) => s.id));
+    const sdp = assets.sceneDialoguePortrait || {};
+    const EARLY = /^(P0-|A1-)/;                 /* 1590:26 歲伽利略/58 歲辛普里奧 */
+    for (const [sc, m] of Object.entries(sdp)) {
+      if (!sceneIds.has(sc)) throw new Error("sceneDialoguePortrait 指向不存在場景:" + sc);
+      for (const [sp, aid] of Object.entries(m)) {
+        if (!ids.has(aid)) throw new Error("肖像映射指向不存在資產:" + sc + "/" + sp + "→" + aid);
+        if (sp === "旅人" || sp === "旅人(你)") throw new Error("旅人不得入對話肖像映射(驗收6):" + sc);
+        if (EARLY.test(sc) && /39|72/.test(aid)) throw new Error("年代錯置:1590 場景用了老年肖像:" + sc + "→" + aid);
+        if (!EARLY.test(sc) && /26|58/.test(aid)) throw new Error("年代錯置:1603+ 場景用了青年肖像:" + sc + "→" + aid);
+      }
+    }
+    /* 每個場景都要有 scene-aware 覆寫列(伽利略/辛普里奧年代安全的前提) */
+    scenes.scenes.forEach((s) => {
+      if (!(s.id in sdp)) throw new Error("場景缺對話肖像覆寫列:" + s.id);
+    });
+    const spd = assets.speakerDialoguePortrait || {};
+    for (const [sp, aid] of Object.entries(spd)) {
+      if (!ids.has(aid)) throw new Error("speakerDialoguePortrait 指向不存在資產:" + sp);
+      if (sp === "伽利略" || sp === "辛普里奧") throw new Error("跨年代角色禁設對話預設(年代安全):" + sp);
+      if (sp === "旅人" || sp === "旅人(你)") throw new Error("旅人不得設對話預設(驗收6)");
+    }
+    /* 解析順序:場景覆寫先於對話預設先於筆記頭像 */
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    const a = sui.indexOf("sceneDialoguePortrait[curSceneId]");
+    const b = sui.indexOf("speakerDialoguePortrait[speaker]");
+    const c = sui.indexOf("speakerPortrait[speaker]");
+    if (!(a >= 0 && b > a && c > b)) throw new Error("肖像三層解析順序錯誤(應:場景→預設→筆記頭像)");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
