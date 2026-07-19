@@ -31,6 +31,8 @@
 
 ## 目前欠單(誰欠什麼)
 
-- **Claude**:第 2 輪回應已交付(05_審核/20260719):規格 v0.1.2+程式 B 級修正+測試 21 項全綠;token/assets 接口計畫已確認,實作待 G1 解凍。
-- **Sol**:對 A-1 修正做 verification pass(僅確認修正,不計輪數、不夾帶新意見)。
-- **總監**:①確認本輪變更並 commit(依指示未 commit);②裁決 P-1~P-4(`decisions.md` 末節,P-1 前置=A-1 已修);③瀏覽器人工簽核(`greybox/docs/browser-checklist.md`);④形成性試玩人選(暑假中,校內管道約九月)。
+**2026-07-19 總監四項裁決已入 decisions.md**:ADR-002 取消 bake-off、greybox 定 trunk(主實作=Claude);ADR-003 重評=連續未修復 A 級才重賽;ADR-004 六門檻=灰盒四問+兩題訪談;P-1 預裁=Sol 確認 A-1 修正即凍結。
+
+- **Sol**:對 A-1 修正做 verification pass(僅確認修正,不計輪數)——**通過即 v0.1.2 凍結生效**;其後依 ADR-001/002 常態分工(程式審查+美術,G1 待灰盒試玩通過)。
+- **Claude**:trunk 主實作;Sol 確認後於規格註記凍結日期;G1 解凍後半天內交 token/assets 接口 proof。
+- **總監**:①瀏覽器人工簽核(`greybox/docs/browser-checklist.md` A/B 節,五分鐘,可併九月試玩);②形成性試玩人選(校內管道約九月)。
