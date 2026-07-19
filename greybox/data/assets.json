@@ -1,7 +1,7 @@
 {
  "version": 1,
  "basePath": "../public/assets/",
- "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。",
+ "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。",
  "sceneBg": {
   "P0-1": "bg_pisa_arcade",
   "P0-2": "bg_study_pisa_day",
@@ -494,6 +494,15 @@
    "label": "旅人剪影(僅章末/筆記/A-B 測試;預設不接對話)",
    "path": "ch01/dialogue/dialogue_traveler_silhouette.webp",
    "firstScreen": false
+  },
+  {
+   "id": "dialogue_traveler_silhouette_right",
+   "kind": "portrait",
+   "label": "旅人剪影・右側槽(朝左;重新構圖非鏡像;無臉無性別)",
+   "path": "ch01/dialogue/dialogue_traveler_silhouette_right.webp",
+   "firstScreen": false,
+   "w": 540,
+   "h": 720
   }
  ],
  "sceneDialoguePortrait": {
@@ -601,5 +610,16 @@
   "助手": "dialogue_assistant_earnest",
   "主持": "dialogue_host_formal",
   "年輕人": "dialogue_galileo26_neutral"
+ },
+ "speakerSide": {
+  "伽利略": "right",
+  "年輕人": "right",
+  "辛普里奧": "left",
+  "助手": "left",
+  "主持": "right"
+ },
+ "travelerSilhouette": {
+  "left": "dialogue_traveler_silhouette",
+  "right": "dialogue_traveler_silhouette_right"
  }
 }

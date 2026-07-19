@@ -12,6 +12,7 @@
   var lastSceneShown = null;
   var lastEmbedKey = null;
   var newConfirm = false;
+  var expandedRuns = {}; /* run 分組展開狀態(UI 記憶,不入存檔;資料保存性與可見密度分離) */
 
   function $(id) { return document.getElementById(id); }
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
@@ -203,18 +204,62 @@
     return keep;
   }
   function renderLabTables() {
+    /* 依配置分組摺疊(Sol 審核 B-2):紀錄不可刪,但可見密度受控——
+       未認證配置預設顯示最新 3 筆;已認證預設摺疊只留最後 1 筆;勾選永遠可見;
+       摺疊=display 隱藏不動 DOM/state,judge/assert 守衛(讀勾選)零影響。 */
     var keepR = snapshotChecked("labRunSel");
     var tb = $("labRunsBody"); tb.innerHTML = "";
+    var certified = {};
+    state.lab.inference.claims.forEach(function (c) { if (c.ok) certified[cfgLabel(c.config)] = true; });
+    var order = [], byCfg = {};
     state.lab.evidence.runs.forEach(function (r) {
-      var tr = document.createElement("tr");
-      var name = "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")";
-      tr.innerHTML = "<td><input type='checkbox' class='labRunSel' data-id='" + r.id + "' aria-label='" + name + "'></td>" +
-        "<td>#" + r.id + "</td><td>" + cfgLabel(r.config) + "</td>" +
-        r.readings.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") +
-        "<td>" + r.day + "</td>";
-      tb.appendChild(tr);
-      tr.querySelector("input").checked = !!keepR[r.id];
+      var k = cfgLabel(r.config);
+      if (!byCfg[k]) { byCfg[k] = []; order.push(k); }
+      byCfg[k].push(r);
     });
+    order.forEach(function (k) {
+      var list = byCfg[k];
+      var isCert = !!certified[k];
+      var open = !!expandedRuns[k];
+      var defVis = isCert ? 1 : 3;
+      var trH = document.createElement("tr");
+      trH.className = "grphead";
+      var td = document.createElement("td");
+      td.colSpan = 8;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "grpToggle";
+      btn.dataset.grp = k;
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = (open ? "▾ " : "▸ ") + k + "|共 " + list.length + " 筆|" +
+        (isCert ? "已認證" : "未認證") +
+        (open ? "|收合" : (list.length > defVis ? "|展開全部 " + list.length + " 筆" : ""));
+      btn.onclick = function () {
+        expandedRuns[k] = !open;
+        renderLabTables();
+        var nb = tbFind(k);
+        if (nb) nb.focus(); /* 重繪後焦點回同組(鍵盤可操作) */
+      };
+      td.appendChild(btn); trH.appendChild(td); tb.appendChild(trH);
+      list.forEach(function (r, i) {
+        var tr = document.createElement("tr");
+        var name = "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")";
+        tr.innerHTML = "<td><input type='checkbox' class='labRunSel' data-id='" + r.id + "' aria-label='" + name + "'></td>" +
+          "<td>#" + r.id + "</td><td>" + cfgLabel(r.config) + "</td>" +
+          r.readings.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") +
+          "<td>" + r.day + "</td>";
+        tr.title = "第 " + r.day + " 天完成";
+        var show = open || (i >= list.length - defVis) || !!keepR[r.id]; /* 勾選永遠可見 */
+        if (!show) tr.style.display = "none";
+        tb.appendChild(tr);
+        tr.querySelector("input").checked = !!keepR[r.id];
+      });
+    });
+    function tbFind(k) {
+      var btns = tb.querySelectorAll("button.grpToggle");
+      for (var i = 0; i < btns.length; i++) if (btns[i].dataset.grp === k) return btns[i];
+      return null;
+    }
     var keepC = snapshotChecked("labClaimSel");
     var tc = $("labClaimsBody"); tc.innerHTML = "";
     state.lab.inference.claims.forEach(function (c) {

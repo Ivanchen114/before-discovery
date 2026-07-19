@@ -50,6 +50,8 @@
     });
     var def = ASSETS.speakerDialoguePortrait || {};
     Object.keys(def).forEach(function (sp) { preloadEntry(assetEntry(def[sp])); });
+    var ts = ASSETS.travelerSilhouette || {};
+    Object.keys(ts).forEach(function (k) { preloadEntry(assetEntry(ts[k])); });
   }
 
   /* ---------- 場景背景 ---------- */
@@ -114,34 +116,60 @@
     });
     return wrap;
   }
-  /* 旅人=玩家第一人稱:預設無肖像,只壓暗當前對手(Sol 建議+任務書驗收 6)。
-     剪影僅供 A/B:網址加 ?travelerBust=1 啟用,拿掉參數即一鍵撤回。 */
+  /* 左右雙肖像槽(Sol 審核 20260720):站位由 assets.speakerSide 決定(依原圖朝向,永不鏡像);
+     旅人=無臉中性剪影,站對手相反側,按側選圖(travelerSilhouette 資料);
+     發言者亮/對方暗;旁白系統=雙暗;預設開啟,?travelerBust=0 一鍵撤回(A/B)。 */
   var TRAVELER = { "旅人": 1, "旅人(你)": 1 };
-  var travelerAB = false;
-  try { travelerAB = /[?&]travelerBust=1/.test(window.location.search); } catch (e) {}
-  function showBustEntry(entry, alt, masked) {
-    var box = $("bust");
-    if (curBustId !== entry.id) {
-      curBustId = entry.id;
+  var travelerOn = true;
+  try { travelerOn = !/[?&]travelerBust=0/.test(window.location.search); } catch (e) {}
+  var SLOT_ID = { left: "bustLeft", right: "bustRight" };
+  var slotEntry = { left: null, right: null };
+  var npcSide = null;
+  function otherSide(s) { return s === "left" ? "right" : "left"; }
+  function sideOf(speaker) {
+    var m = ASSETS && ASSETS.speakerSide;
+    return (m && m[speaker]) || "right";
+  }
+  function fillSlot(side, entry, alt, masked) {
+    var box = $(SLOT_ID[side]);
+    if (slotEntry[side] !== entry.id) {
+      slotEntry[side] = entry.id;
       box.innerHTML = "";
       box.appendChild(buildBustImg(entry, alt));
     }
     box.classList.toggle("masked", !!masked);
-    box.classList.remove("dim");
-    $("dialogue").classList.add("has-bust");
+    $("dialogue").classList.add(side === "left" ? "has-l" : "has-r");
+  }
+  function clearSlot(side) {
+    slotEntry[side] = null;
+    $(SLOT_ID[side]).innerHTML = "";
+    $("dialogue").classList.remove(side === "left" ? "has-l" : "has-r");
+  }
+  function setLit(side) { /* side="left"|"right"|"none":發言側亮,其餘暗 */
+    ["left", "right"].forEach(function (s) {
+      var b = $(SLOT_ID[s]);
+      b.classList.toggle("lit", s === side);
+      b.classList.toggle("dim", s !== side);
+    });
+    $("dialogue").setAttribute("data-active", side);
+  }
+  function ensureTraveler() { /* 旅人剪影站對手相反側;無對手時預設左 */
+    if (!travelerOn) return null;
+    var side = npcSide ? otherSide(npcSide) : "left";
+    var map = ASSETS && ASSETS.travelerSilhouette;
+    var e = map ? assetEntry(map[side]) : null;
+    if (!e) return null;
+    fillSlot(side, e, "旅人", false);
+    return side;
   }
   function setBust(speaker, cls) {
-    var box = $("bust"), dlg = $("dialogue");
-    if (cls === "stage" || cls === "system") return;      /* 旁白/系統:不強制換掉當前對手肖像 */
-    if (TRAVELER[speaker] || cls === "player") {          /* 旅人:壓暗對手;A/B 開啟才上剪影 */
-      if (travelerAB) {
-        var se = assetEntry("dialogue_traveler_silhouette");
-        if (se) { showBustEntry(se, "旅人", false); return; }
-      }
-      box.classList.add("dim");
+    if (cls === "stage" || cls === "system") { setLit("none"); return; } /* 旁白/系統:雙暗,不指定發言者 */
+    if (TRAVELER[speaker] || cls === "player") {
+      var tside = ensureTraveler();
+      setLit(tside || "none"); /* 撤回剪影時=舊行為:對手壓暗 */
       return;
     }
-    /* 三層解析:場景覆寫 → 對話預設 → 舊筆記頭像(遮罩)。年代正確性由場景層保證(測試把關) */
+    /* NPC:三層解析(場景覆寫→對話預設→舊筆記頭像遮罩;年代由場景層+測試保證) */
     var entry = null, masked = false;
     if (ASSETS && ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[curSceneId])
       entry = assetEntry(ASSETS.sceneDialoguePortrait[curSceneId][speaker]);
@@ -149,10 +177,15 @@
       entry = assetEntry(ASSETS.speakerDialoguePortrait[speaker]);
     if (!entry && ASSETS && ASSETS.speakerPortrait) {
       entry = assetEntry(ASSETS.speakerPortrait[speaker]);
-      masked = !!entry; /* 600×600 筆記頭像僅為暫時 fallback:柔邊遮罩,不露方形邊界 */
+      masked = !!entry;
     }
-    if (!entry) { dlg.classList.remove("has-bust"); curBustId = null; return; }
-    showBustEntry(entry, speaker, masked);
+    if (!entry) { setLit("none"); return; } /* 無圖角色:不假裝,雙暗 */
+    var side = sideOf(speaker);
+    if (npcSide && npcSide !== side) clearSlot(npcSide); /* 對手換側:舊側清場 */
+    npcSide = side;
+    fillSlot(side, entry, speaker, masked);
+    if (travelerOn) ensureTraveler(); else clearSlot(otherSide(side));
+    setLit(side);
   }
 
   /* ---------- 打字機:分頁+標點停頓 ---------- */
@@ -305,7 +338,9 @@
     curBustId = null;
     labIntroSeen = false;
     $("labIntro").hidden = true;
-    $("dialogue").classList.remove("has-bust");
+    clearSlot("left"); clearSlot("right");
+    npcSide = null;
+    $("dialogue").setAttribute("data-active", "none");
     $("dlgText").textContent = ""; $("nameplate").style.display = "none";
     closeNotebook(true);
     syncFlags();
@@ -414,6 +449,8 @@
       stripIds(tbl);
       var inputs = tbl.querySelectorAll("input");
       for (var i = 0; i < inputs.length; i++) inputs[i].disabled = true;
+      var btns = tbl.querySelectorAll("button"); /* 快照共用 grouping:凍結摺疊狀態,不再 clone 無限長全表 */
+      for (var j = 0; j < btns.length; j++) btns[j].disabled = true;
       snap.appendChild(head);
       snap.appendChild(tbl);
     });

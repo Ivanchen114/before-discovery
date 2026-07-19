@@ -104,17 +104,21 @@
   body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue,
   body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue { display: none; }
   body.queue-active #dialogue { display: block !important; }
-  #bust { position: absolute; left: 16px; bottom: 0; height: clamp(170px, 26vh, 220px);
-          display: none; pointer-events: none;
-          transition: filter var(--motion-fast) ease; }
-  #dialogue.has-bust #bust { display: block; }
-  #bust img { height: 100%; width: auto; display: block;
-              /* 暫時 fallback:600×600 筆記頭像以柔邊墨暈遮罩呈現,不露方形米底(正式透明 WebP 由 Sol 供應) */ }
-  #bust.masked img { -webkit-mask-image: radial-gradient(105% 105% at 50% 38%, #000 55%, transparent 78%);
-                     mask-image: radial-gradient(105% 105% at 50% 38%, #000 55%, transparent 78%); }
-  #bust.dim { filter: brightness(0.55) saturate(0.7); }
-  #dialogue.has-bust #nameplate { left: 190px; }
-  #dialogue.has-bust #dlgText { margin-left: 180px; }
+  /* 雙肖像槽(Sol 審核 20260720):位置+明暗+名牌文字+色彩=四線索;站位由 speakerSide 資料決定,永不鏡像 */
+  .bslot { position: absolute; bottom: 0; height: clamp(170px, 26vh, 220px);
+           display: none; pointer-events: none;
+           transition: filter var(--motion-fast) ease, opacity var(--motion-fast) ease; }
+  #bustLeft { left: 16px; }
+  #bustRight { right: 16px; }
+  #dialogue.has-l #bustLeft, #dialogue.has-r #bustRight { display: block; }
+  .bslot img { height: 100%; width: auto; display: block; }
+  .bslot.masked img { -webkit-mask-image: radial-gradient(105% 105% at 50% 38%, #000 55%, transparent 78%);
+                      mask-image: radial-gradient(105% 105% at 50% 38%, #000 55%, transparent 78%); }
+  .bslot.dim { filter: brightness(0.4) saturate(0.7); } /* 桌機:未發言者 35–45% 亮度留場 */
+  .bslot.lit { filter: none; }
+  #dialogue.has-l #nameplate { left: 190px; }
+  #dialogue.has-l #dlgText { margin-left: 180px; }
+  #dialogue.has-r #dlgText { margin-right: 180px; }
   #nameplate.np-player { background: var(--color-evidence); }
   #nameplate { position: absolute; top: -14px; left: 16px; background: var(--color-chapter-accent);
                color: #f3e9d5; font-size: clamp(16px, 1.4vw, 20px); padding: 3px 16px;
@@ -182,6 +186,14 @@
   #panelWrap tr:hover td { background: rgba(122, 75, 42, 0.06); }
   #panelWrap tr:has(input:checked) td { background: rgba(122, 75, 42, 0.16); }
   tr.offconfig { opacity: 0.35; } /* 勾選後,非同配置列淡出(視圖聚焦;資料一筆不刪) */
+  tr.grphead td { background: rgba(122, 75, 42, 0.10); border-bottom: 1px solid var(--color-ink-secondary); padding: 0; }
+  #panelWrap .grpToggle, #nbLabSnap .grpToggle { width: 100%; text-align: left; min-height: 36px !important;
+    margin: 0; border: none; background: none; font-family: var(--font-dialogue);
+    font-size: 0.95em; padding: 6px 10px; }
+  #panelWrap .grpToggle:hover { background: rgba(122, 75, 42, 0.14); }
+  @media (max-height: 520px) { /* 手機橫屏:天數收進 row detail(title),四段與選取優先 */
+    #lab table th:nth-child(8), #lab table td:nth-child(8) { display: none; }
+  }
   .tblhint { margin: 2px 0 6px; }
   #btnLabHelp { min-height: 30px !important; min-width: 30px; padding: 2px 10px !important;
     border-radius: 50% !important; margin-left: 8px; font-family: var(--font-dialogue); }
@@ -253,9 +265,16 @@
   @media (max-height: 520px) {
     #dialogue { min-height: 38%; padding: 12px 14px 14px; }
     #dlgText { font-size: clamp(20px, 4.4vh, 24px); }
-    #bust { height: clamp(110px, 30vh, 150px); left: 10px; }
-    #dialogue.has-bust #dlgText { margin-left: 120px; }
-    #dialogue.has-bust #nameplate { left: 130px; }
+    .bslot { height: clamp(110px, 30vh, 150px); }
+    #bustLeft { left: 10px; } #bustRight { right: 10px; }
+    /* 手機橫屏:只留 active portrait,文字不被雙肖像夾窄 */
+    #dialogue[data-active="right"] #bustLeft, #dialogue[data-active="left"] #bustRight,
+    #dialogue[data-active="none"] .bslot { display: none; }
+    #dialogue #dlgText { margin-left: 0; margin-right: 0; }
+    #dialogue[data-active="left"].has-l #dlgText { margin-left: 120px; }
+    #dialogue[data-active="right"].has-r #dlgText { margin-right: 120px; }
+    #dialogue[data-active="left"].has-l #nameplate { left: 130px; }
+    #dialogue[data-active="right"] #nameplate, #dialogue[data-active="none"] #nameplate { left: 16px; }
     #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/說服力 */
     #sceneChip { display: none; }
     body[data-view="choice"] #panelWrap { bottom: 41%; }
@@ -399,8 +418,9 @@
       </div>
     </div>
 
-    <div id="dialogue">
-      <div id="bust" aria-hidden="true"></div>
+    <div id="dialogue" data-active="none">
+      <div id="bustLeft" class="bslot" aria-hidden="true"></div>
+      <div id="bustRight" class="bslot" aria-hidden="true"></div>
       <span id="nameplate" style="display:none"></span>
       <div id="dlgText" aria-hidden="true"></div>
       <span id="dlgCue" style="display:none">▼</span>

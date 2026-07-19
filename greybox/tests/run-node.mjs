@@ -156,9 +156,9 @@ tests.push({
     if (!stageHtml.includes("min-height: 44px")) throw new Error("觸控區 44px 規則缺失");
     if (!/btnDrawer"\)\.focus\(\)/.test(sui)) throw new Error("筆記關閉後焦點未歸還 btnDrawer");
     if (!sui.includes("focusin")) throw new Error("modal 焦點圍欄缺失");
-    /* 二、半身像:接口鏈+遮罩 fallback+禁鏡像 */
-    if (!stageHtml.includes('id="bust"') || !stageHtml.includes("mask-image"))
-      throw new Error("半身像容器或柔邊遮罩 fallback 缺失");
+    /* 二、半身像:左右雙槽+遮罩 fallback+禁鏡像 */
+    if (!stageHtml.includes('id="bustLeft"') || !stageHtml.includes('id="bustRight"') || !stageHtml.includes("mask-image"))
+      throw new Error("雙肖像槽或柔邊遮罩 fallback 缺失");
     if (!sui.includes("speakerDialoguePortrait")) throw new Error("speakerDialoguePortrait 接口鏈缺失");
     if (/scaleX\(\s*-1\s*\)/.test(sui) || /scaleX\(\s*-1\s*\)/.test(stageHtml))
       throw new Error("偵測到 CSS 水平鏡像——角色特徵不可翻面");
@@ -207,6 +207,47 @@ tests.push({
     const b = sui.indexOf("speakerDialoguePortrait[speaker]");
     const c = sui.indexOf("speakerPortrait[speaker]");
     if (!(a >= 0 && b > a && c > b)) throw new Error("肖像三層解析順序錯誤(應:場景→預設→筆記頭像)");
+  }
+});
+
+tests.push({
+  name: "雙槽+資料密度|站位資料驅動/剪影按側/20 筆保留/分組不動守衛(Sol 審核 20260720)",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const ids = new Set(assets.entries.map((e) => e.id));
+    /* 站位=資料來源,值域受控;依原圖朝向:伽利略朝左→站右、辛普里奧朝右→站左 */
+    const side = assets.speakerSide || {};
+    for (const [sp, v] of Object.entries(side))
+      if (v !== "left" && v !== "right") throw new Error("speakerSide 值非法:" + sp + "→" + v);
+    if (side["伽利略"] !== "right" || side["辛普里奧"] !== "left")
+      throw new Error("站位違反原圖朝向資料(伽利略=right/辛普里奧=left)");
+    /* 旅人剪影:兩側各自資產(重新構圖,非鏡像),預設開啟、?travelerBust=0 撤回 */
+    const ts = assets.travelerSilhouette || {};
+    for (const s of ["left", "right"]) {
+      if (!ts[s] || !ids.has(ts[s])) throw new Error("travelerSilhouette 缺 " + s + " 側資產");
+    }
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    if (!sui.includes("speakerSide") || !sui.includes("travelerSilhouette"))
+      throw new Error("stage-ui 未使用資料驅動站位/剪影(疑似硬編碼)");
+    if (!sui.includes("travelerBust=0")) throw new Error("剪影撤回參數(?travelerBust=0)缺失");
+    if (!sui.includes('setLit("none")')) throw new Error("旁白/系統雙暗(setLit none)缺失");
+    if (/scaleX\(\s*-1\s*\)/.test(sui)) throw new Error("偵測到鏡像");
+    /* 引擎:連跑 20 次,state 保留 20 筆且 JSON 往返無損(紀錄不可刪的程式面) */
+    let s = Engine.initialState();
+    const cfg = { ball: "銅大", surface: "打磨", incline: "陡", timer: "水鐘" };
+    for (let i = 0; i < 20; i++) {
+      const r = Engine.runExperiment(s, cfg);
+      s = r.state || r; /* 兼容回傳形狀 */
+    }
+    if (s.evidence.runs.length !== 20) throw new Error("20 次後 runs=" + s.evidence.runs.length);
+    const back = JSON.parse(JSON.stringify(s));
+    if (JSON.stringify(back) !== JSON.stringify(s)) throw new Error("serialize 往返漂移");
+    if (back.evidence.runs.length !== 20) throw new Error("往返後筆數丟失");
+    /* 分組=純 view:chapter-ui 具 grpToggle/aria-expanded/勾選永見;不碰引擎守衛 */
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of ["grpToggle", "aria-expanded", "expandedRuns", "勾選永遠可見"])
+      if (!cui.includes(frag)) throw new Error("chapter-ui 分組要素缺失:" + frag);
+    if (!/style\.display\s*=\s*"none"/.test(cui)) throw new Error("摺疊應為 display 隱藏(不刪 DOM/state)");
   }
 });
 
