@@ -31,8 +31,8 @@
 
 ## 目前欠單(誰欠什麼)
 
-**2026-07-19 總監四項裁決已入 decisions.md**:ADR-002 取消 bake-off、greybox 定 trunk(主實作=Claude);ADR-003 重評=連續未修復 A 級才重賽;ADR-004 六門檻=灰盒四問+兩題訪談;P-1 預裁=Sol 確認 A-1 修正即凍結。
+**裁決狀態(2026-07-19)**:ADR-002 取消 bake-off、greybox=trunk;ADR-003 重評=連續未修復 A 級才重賽;ADR-004 六門檻定義;ADR-005 辛普里奧=老派書面語;**ADR-006 半解凍**=Art Proof 先行(主風格:寫實歷史插畫感)+第一章完整化開工;量產美術與第二章仍凍結至九月試玩。
 
-- **Sol**:對 A-1 修正做 verification pass(僅確認修正,不計輪數)——**通過即 v0.1.2 凍結生效**;其後依 ADR-001/002 常態分工(程式審查+美術,G1 待灰盒試玩通過)。
-- **Claude**:trunk 主實作;Sol 確認後於規格註記凍結日期;G1 解凍後半天內交 token/assets 接口 proof。
-- **總監**:①瀏覽器人工簽核(`greybox/docs/browser-checklist.md` A/B 節,五分鐘,可併九月試玩);②形成性試玩人選(校內管道約九月)。
+- **Sol**:①A-1 verification pass(通過即 v0.1.2 凍結,P-1)②**G1 Art Proof**——任務書+生圖提示詞包:`01_治理/發現之前_Sol任務書_ArtProof_20260719.md`;完成後觸發 P-5 選圖。
+- **Claude**:第一章完整化——劇本 v0.2 修債(A 級 1–3)→ 規格增補(序幕/高塔/P1P2/E4E5/信譽)→ 全章灰盒實作;Style Frame 選定後接差分合成與 token/assets 接口。
+- **總監**:①P-5 Style Frame 選圖(Sol 交件後);②瀏覽器簽核(`greybox/docs/browser-checklist.md`);③九月試玩人選。
