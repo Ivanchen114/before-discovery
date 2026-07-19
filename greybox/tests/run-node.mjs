@@ -10,10 +10,13 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 const patterns = require("../data/patterns.js");
 const debate = require("../data/debate.js");
+const scenes = require("../data/scenes.js");
 const Engine = require("../src/engine.js");
+const Narrative = require("../src/narrative.js");
 const buildSuite = require("./suite.js");
+const buildNarrativeSuite = require("./narrative-suite.js");
 
-const tests = buildSuite(Engine, patterns, debate);
+const tests = buildSuite(Engine, patterns, debate).concat(buildNarrativeSuite(Narrative, scenes));
 
 /* R-DATA-05|鏡像一致性:.js 執行載體 與 .json 規範鏡像 深度相等 */
 tests.push({
@@ -28,6 +31,13 @@ tests.push({
   fn: () => {
     const json = JSON.parse(readFileSync(path.join(here, "../data/debate.json"), "utf-8"));
     if (JSON.stringify(debate) !== JSON.stringify(json)) throw new Error("debate 鏡像漂移");
+  }
+});
+tests.push({
+  name: "R-DATA-06|scenes.js ≡ scenes.json",
+  fn: () => {
+    const json = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    if (JSON.stringify(scenes) !== JSON.stringify(json)) throw new Error("scenes 鏡像漂移");
   }
 });
 

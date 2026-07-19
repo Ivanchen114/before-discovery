@@ -1,0 +1,1008 @@
+/* data/scenes.js — 執行載體(file:// 相容)。規範鏡像:scenes.json(R-DATA-05/06 測試保證一致)
+   內容=劇本 v0.2.1 序幕+第一幕+幕間(M1 範圍);由 tools/gen_scenes.py 產生,兩載體皆為 canonical 資產。 */
+(function (root) {
+  "use strict";
+  var data = {
+ "startScene": "P0-1",
+ "evidenceNames": {
+  "S1": "德爾夫特來的信",
+  "S2": "《論運動》手稿",
+  "E1": "高塔落球紀錄",
+  "E2": "綁縛悖論",
+  "E3": "斜面奇數律",
+  "E4": "介質阻力辨析",
+  "E5": "外推論證鏈"
+ },
+ "scenes": [
+  {
+   "id": "P0-1",
+   "title": "比薩・迴廊(晨)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "白光散去。鐘聲。石板路,遠處一座微微傾斜的塔。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "轉角,一名年輕人單手拋接兩顆鉛球,大小懸殊。他撞上旅人,鉛球落地,兩聲悶響。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "年輕人",
+     "text": "(不撿球,盯著地面)……你聽見了嗎?",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「聽見什麼?」",
+       "next": "na1"
+      },
+      {
+       "id": "b",
+       "text": "「兩聲,幾乎是一聲。」",
+       "next": "nb1"
+      }
+     ]
+    },
+    {
+     "id": "na1",
+     "type": "line",
+     "speaker": "年輕人",
+     "text": "兩聲。幾乎是一聲。(抬頭)大的比小的重八倍。八倍。",
+     "next": "m1"
+    },
+    {
+     "id": "nb1",
+     "type": "line",
+     "speaker": "年輕人",
+     "text": "(重新打量旅人)……你的耳朵比這裡一半的教授都誠實。",
+     "next": "nb2"
+    },
+    {
+     "id": "nb2",
+     "type": "system",
+     "speaker": "system",
+     "text": "信譽 +1。",
+     "effects": [
+      {
+       "rep": 1
+      }
+     ],
+     "next": "m1"
+    },
+    {
+     "id": "m1",
+     "type": "line",
+     "speaker": "年輕人",
+     "text": "伽利略・伽利萊,數學教授——薪水是修辭學教授的十分之一,此事與本章主旨驚人地相關。(把小球拋給旅人)來,陪我走一段。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "P0-2"
+    }
+   ]
+  },
+  {
+   "id": "P0-2",
+   "title": "伽利略的書房",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "書房狹小,紙稿成山。桌上攤著手稿:《論運動》(De Motu)。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把玩兩顆鉛球)亞里斯多德說:十倍重,十倍快。全比薩教了一千九百年。(停頓)可我總覺得哪裡不對。",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「其實——所有東西落得一樣快。」",
+       "next": "nA1"
+      },
+      {
+       "id": "b",
+       "text": "(先聽他說完)",
+       "next": "nB1"
+      }
+     ]
+    },
+    {
+     "id": "nA1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(抬眼,笑)喔?證明給我看。",
+     "next": "nA2"
+    },
+    {
+     "id": "nA2",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "這……是大家都知道的事。",
+     "next": "nA3"
+    },
+    {
+     "id": "nA3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "「大家都知道」正是亞里斯多德最厚的一面牆。他那邊的「大家」,已經知道了一千九百年。(轉回書桌)在比薩,斷言不用錢。證據才值錢。",
+     "next": "nA4"
+    },
+    {
+     "id": "nA4",
+     "type": "system",
+     "speaker": "system",
+     "text": "信譽 −1。",
+     "effects": [
+      {
+       "rep": -1
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "nB1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(說完,斜眼)……你那是什麼眼神?像知道謎底的人,在看一個猜謎的傻子。",
+     "next": "qB"
+    },
+    {
+     "id": "qB",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "b1",
+       "text": "「我想看你自己找到答案。」",
+       "next": "nB2"
+      },
+      {
+       "id": "b2",
+       "text": "「其實所有東西落得一樣快。」",
+       "next": "nA1"
+      }
+     ]
+    },
+    {
+     "id": "nB2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(大笑)好狂。那就陪我找。醜話說前頭——在比薩,斷言不用錢,證據才值錢。包括我的。",
+     "next": "nB3"
+    },
+    {
+     "id": "nB3",
+     "type": "system",
+     "speaker": "system",
+     "text": "信譽 +1。",
+     "effects": [
+      {
+       "rep": 1
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "P0-3"
+    }
+   ]
+  },
+  {
+   "id": "P0-3",
+   "title": "旅人筆記",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "伽利略丟來一本空白冊子。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "送你。想在這座城市開口,先學會把看見的寫下來。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "system",
+     "speaker": "system",
+     "text": "旅人筆記解鎖。首頁浮現一行字:「這個世界只為證據付費。」",
+     "effects": [
+      {
+       "flag": [
+        "notebook",
+        "1"
+       ]
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-1"
+    }
+   ]
+  },
+  {
+   "id": "A1-1",
+   "title": "兩個都錯的理論(書房,夜)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(推過手稿)我的答案:落體快慢不由重量,由密度定。同一種材質,不論大小,落得一樣快。你看,我早把老頭子甩開了。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "……那你在煩什麼?",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "照我的理論,鉛球該從頭到尾領先木球。可我親手放過幾十次——起步那一瞬,輕的反而搶先,然後才被追過。(抓頭髮)我的理論解釋不了起跑,老頭子的理論解釋不了終點。兩個都錯,而我只有蠟燭和失眠。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 S2《論運動》手稿。筆記:「伽利略自己的理論,也卡住了。」",
+     "effects": [
+      {
+       "evidence": "S2"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-2"
+    }
+   ]
+  },
+  {
+   "id": "A1-2",
+   "title": "德爾夫特來的信(數日後)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "布商朋友送來一封輾轉數月的信。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(越讀越快)法蘭德斯……斯泰文,工程師……四年前,德爾夫特,教堂塔樓——兩顆鉛球,一顆是另一顆的十倍重,三十呎落下。信上說,聽起來——像一個聲音。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "和迴廊那天一樣。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "而且人家做在我前頭、寫在我前頭!這世上不是只有我一個人睡不著。(停步)我們也來做。做大的。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 S1 德爾夫特來的信。筆記:「我們不是第一個。這讓他更興奮,不是更沮喪。」",
+     "effects": [
+      {
+       "evidence": "S1"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-3"
+    }
+   ]
+  },
+  {
+   "id": "A1-3",
+   "title": "實驗設計(對話式選單)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "三件事聽你的。",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "其一,丟什麼?",
+     "options": [
+      {
+       "id": "a",
+       "text": "大鉛球+小鉛球(同材質,十倍重)",
+       "next": "q2"
+      },
+      {
+       "id": "b",
+       "text": "鉛球+木球(不同材質)",
+       "next": "nB1",
+       "require": {
+        "flagAbsent": "q1B"
+       }
+      }
+     ]
+    },
+    {
+     "id": "nB1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "城牆快試。木球明顯落後。",
+     "next": "nB2"
+    },
+    {
+     "id": "nB2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "停。這數據不能用。",
+     "next": "nB3"
+    },
+    {
+     "id": "nB3",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "木球比較慢,不正好——",
+     "next": "nB4"
+    },
+    {
+     "id": "nB4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "正好誰都能拿去用。木球又輕、又是別種材質——我們一次動了兩樣東西。辛普里奧會說是重量,我會說是密度,吵到天亮誰也贏不了。(拋還木球)一次,只准動一個。換小鉛球。",
+     "next": "nB5"
+    },
+    {
+     "id": "nB5",
+     "type": "system",
+     "speaker": "system",
+     "text": "筆記:「一次只動一個變因。」",
+     "effects": [
+      {
+       "flag": [
+        "q1B",
+        "1"
+       ]
+      }
+     ],
+     "next": "q1"
+    },
+    {
+     "id": "q2",
+     "type": "choice",
+     "speaker": "system",
+     "text": "其二,在哪丟?",
+     "options": [
+      {
+       "id": "a",
+       "text": "大教堂鐘樓(高,但清晨才清場)",
+       "next": "q3",
+       "effects": [
+        {
+         "flag": [
+          "site",
+          "tower"
+         ]
+        }
+       ]
+      },
+      {
+       "id": "b",
+       "text": "舊城牆(低,隨時能用)",
+       "next": "q3",
+       "effects": [
+        {
+         "flag": [
+          "site",
+          "wall"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "type": "choice",
+     "speaker": "system",
+     "text": "其三,找誰看?",
+     "options": [
+      {
+       "id": "a",
+       "text": "學生貝內代托(嘴快,全城都會知道)",
+       "next": "g1",
+       "effects": [
+        {
+         "flag": [
+          "w",
+          "student"
+         ]
+        }
+       ]
+      },
+      {
+       "id": "b",
+       "text": "知會辛普里奧教授(他只會派助手來冷笑)",
+       "next": "g1",
+       "effects": [
+        {
+         "flag": [
+          "w",
+          "assistant"
+         ]
+        }
+       ]
+      },
+      {
+       "id": "c",
+       "text": "不找人(乾淨,但事後無人作證)",
+       "next": "g1",
+       "effects": [
+        {
+         "flag": [
+          "w",
+          "none"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-4"
+    }
+   ]
+  },
+  {
+   "id": "A1-4",
+   "title": "塔上(黎明)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "鐘樓頂層。風。晨霧裡的比薩。(依你的選擇,見證人在塔下等著。)",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(兩球置於欄杆,手背抵齊)聽好——不是看,是聽。眼睛會眨,耳朵不會。三——二——",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "放手。墜落。兩聲悶響,近乎重疊——凝神細辨,重的那聲,搶先了一線。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(趴在欄杆上往下看,久久)十倍的重量,換不到半個心跳的領先。(轉頭,眼睛亮得嚇人)老頭子說,該領先十倍的路程。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 E1 高塔落球紀錄。筆記:「幾乎同時。『幾乎』二字誠實記下——重的確實早了一線。」",
+     "effects": [
+      {
+       "evidence": "E1"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-5"
+    }
+   ]
+  },
+  {
+   "id": "A1-5",
+   "title": "死路 A:被吸收的反例(大學迴廊)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "午後。辛普里奧,58 歲,臂下夾著一冊磨損的拉丁文《物理學》評注本——書皮翻舊,夾籤層層。學生環繞。你們上前,出示 E1。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "(不怒,反而微笑,翻到一頁夾籤,朝學生展示)諸位都聽見了?這位先生說——「幾乎同時」。(轉向旅人)幾乎。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "十倍的重量,只快了不到——",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "只快了。但快了。(合上書)先落地的,是哪一顆?",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "……重的。",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "重的。(向學生頷首)亞里斯多德告訴我們自然傾向的方向;諸位今晨在塔上,親耳為他作證。至於快多少——比薩的空氣稠密,阻礙了傾向的完全展現——(拍了拍書皮)《物理學》,早有明論。",
+     "next": "n7"
+    },
+    {
+     "id": "n7",
+     "type": "line",
+     "speaker": "助手",
+     "text": "教授,學生也在場,此事屬實。",
+     "next": "n8",
+     "require": {
+      "flag": [
+       "w",
+       "assistant"
+      ]
+     }
+    },
+    {
+     "id": "n8",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "屬實更好——屬實的證詞,證明了老師的話。",
+     "next": "n9",
+     "require": {
+      "flag": [
+       "w",
+       "assistant"
+      ]
+     }
+    },
+    {
+     "id": "n9",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "(語氣轉為長者式的溫和,更難受)年輕人,再送你一句。你丟下兩顆球,就想丟掉《物理學》八卷?那麼——你自己的學說呢?落體究竟怎麼動,你說得出一條規律嗎?",
+     "next": "n10"
+    },
+    {
+     "id": "n10",
+     "type": "line",
+     "speaker": "stage",
+     "text": "(旅人語塞。)",
+     "next": "n11"
+    },
+    {
+     "id": "n11",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "說不出?(把書夾回臂下,轉身)那你手裡的不是反例。是雜耍。",
+     "next": "n12"
+    },
+    {
+     "id": "n12",
+     "type": "system",
+     "speaker": "system",
+     "text": "筆記重重寫下:「他把我們的證據,吃掉了。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-6"
+    }
+   ]
+  },
+  {
+   "id": "A1-6",
+   "title": "撞牆(阿諾河邊,黃昏)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(踢石子)最可恨的是——他說得對。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "他明明在硬拗。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "他在硬拗,而且說得對。兩件事同時成立,這就是我們的處境。(坐下)異例打不倒一座學說。要拆掉一間房子,你得先蓋好另一間——不然人們寧可住在漏水的舊房裡。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "stage",
+     "text": "(河水聲。)",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "所以問題變了。不再是「誰先落地」。(在泥地劃線)是——落體,究竟怎麼落?",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "system",
+     "speaker": "system",
+     "text": "筆記章節頁:「定性的反例不夠。我們需要一條規律。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A1-7"
+    }
+   ]
+  },
+  {
+   "id": "A1-7",
+   "title": "綁縛悖論(書房,雨夜)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(窗外暴雨,忽然轉身)來,陪我做個遊戲。假設老教授是對的:大石落得快,小石落得慢。現在——我用鐵鏈把它們綁在一起丟下去。會怎樣?",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你推論:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「小石拖慢大石——整體比大石單獨落下慢。」",
+       "next": "nA1"
+      },
+      {
+       "id": "b",
+       "text": "「綁起來更重——整體比大石單獨落下快。」",
+       "next": "nB1"
+      }
+     ]
+    },
+    {
+     "id": "nA1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "合理。慢馬拖快馬,馬車慢下來。(逼近一步)那換個角度——綁在一起的整體,比大石一顆,是重還是輕?",
+     "next": "qA2"
+    },
+    {
+     "id": "qA2",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「更重。」",
+       "next": "nA2"
+      }
+     ]
+    },
+    {
+     "id": "nA2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "更重。所以照同一位老頭子——它該比大石更快。",
+     "next": "m1"
+    },
+    {
+     "id": "nB1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "有膽。更重,更快——老頭子會點頭。(逼近一步)那換個角度——小石單獨落下,明明比較慢;綁上去,它難道不拖累大石?",
+     "next": "qB2"
+    },
+    {
+     "id": "qB2",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「……會拖慢。」",
+       "next": "nB2"
+      }
+     ]
+    },
+    {
+     "id": "nB2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "會拖慢。所以照同一位老頭子——它該比大石更慢。",
+     "next": "m1"
+    },
+    {
+     "id": "m1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(盯著自己的手,慢慢張開,開始笑)同一條前提,一次推出更慢,一次推出更快。前提本身,就是矛盾的巢穴!",
+     "next": "m2"
+    },
+    {
+     "id": "m2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "矛盾何時消失?",
+     "next": "qS",
+     "mode": "scholar"
+    },
+    {
+     "id": "qS",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「當快慢與重量無關——綁不綁,一樣快。」",
+       "next": "mS",
+       "mode": "scholar"
+      }
+     ],
+     "mode": "scholar",
+     "next": "m3"
+    },
+    {
+     "id": "mS",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "正是。唯一的活路。",
+     "next": "m3",
+     "mode": "scholar"
+    },
+    {
+     "id": "m3",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 E2 綁縛悖論。筆記:「不用實驗,不用權威。亞里斯多德自己打倒了自己。」",
+     "effects": [
+      {
+       "evidence": "E2"
+      }
+     ],
+     "next": "m4"
+    },
+    {
+     "id": "m4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(笑聲停)但這把刀能拆房子,不能蓋房子。落體不由重量定——那由什麼定?怎麼變快?(望向雨幕,沉默半晌)……還有一件事。父親過世了,家裡的債在我肩上;比薩的合約到期,不會續了。(把兩顆鉛球放進行囊)帕多瓦來了聘書,薪水三倍。(回頭)這個問題,我帶著走。你呢,旅人?",
+     "next": "m5"
+    },
+    {
+     "id": "m5",
+     "type": "system",
+     "speaker": "system",
+     "text": "第一幕終。筆記:「刀有了,房子還沒有。他把問題裝進了行囊。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "INT-1"
+    }
+   ]
+  },
+  {
+   "id": "INT-1",
+   "title": "幕間:十一年",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人翻開筆記想寫點什麼。筆記自己翻了頁——一頁,又一頁,越翻越快,墨跡在眼前乾涸又泛黃。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "system",
+     "speaker": "system",
+     "text": "1592——他到了帕多瓦。教幾何、天文,還有築城術。\n1597——他做了一種軍用羅盤,賣得不錯。學生住滿了他的房子。\n1599——債,還了一半。\n1602——擺、斜面。他又開始半夜起床了。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "筆記停在一頁空白。抬頭——已不是比薩的書房。運河的水光在天花板上晃。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(39 歲,鬢角有了霜色,正在長桌上刨一條木槽,頭也不回)……我就知道你會在這種時候出現。(轉身,上下打量)十一年。你一天都沒老。",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「你看起來倒是老了不少。」",
+       "next": "na"
+      },
+      {
+       "id": "b",
+       "text": "「那個問題,你帶到了?」",
+       "next": "nb"
+      }
+     ]
+    },
+    {
+     "id": "na",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(大笑)帕多瓦的伙食好,債主的信也多。",
+     "next": "m1"
+    },
+    {
+     "id": "nb",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(拍了拍長桌上的木槽)就在這。",
+     "next": "nb2"
+    },
+    {
+     "id": "nb2",
+     "type": "system",
+     "speaker": "system",
+     "text": "信譽 +1。",
+     "effects": [
+      {
+       "rep": 1
+      }
+     ],
+     "next": "m1"
+    },
+    {
+     "id": "m1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "十一年,我教書、賣羅盤、還債。可每個安靜的夜裡,那兩顆鉛球都在我腦子裡往下掉。(把刨好的木槽舉起,對著光看直不直)現在,債清了。",
+     "next": "m2"
+    },
+    {
+     "id": "m2",
+     "type": "system",
+     "speaker": "system",
+     "text": "筆記章節頁:「1603,帕多瓦。問題等了十一年,沒有走。」",
+     "next": "m3"
+    },
+    {
+     "id": "m3",
+     "type": "system",
+     "speaker": "system",
+     "text": "——M1 里程碑終點——\n第二幕(斜面實驗)於 M2 接上。你已取得:S2《論運動》手稿、S1 德爾夫特來的信、E1 高塔落球紀錄、E2 綁縛悖論。",
+     "next": "end"
+    },
+    {
+     "id": "end",
+     "type": "end"
+    }
+   ]
+  }
+ ],
+ "lint": {
+  "bannedWords": [
+   "平方",
+   "1:3:5:7",
+   "奇數",
+   "與重量無關",
+   "一樣快"
+  ],
+  "whitelist": [
+   {
+    "scene": "A1-1",
+    "node": "n1",
+    "class": "pre-discovery",
+    "reason": "密度理論=伽利略自己的死路(同材質等速),為史實立場之呈現,非本作結論(與重量/材質無關之普遍律)之揭曉。R-NAR-05 修訂建議已呈審。"
+   }
+  ]
+ }
+};
+  if (typeof module === "object" && module.exports) { module.exports = data; }
+  else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.scenes = data; }
+})(typeof self !== "undefined" ? self : this);

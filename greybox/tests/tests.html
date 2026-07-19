@@ -16,11 +16,15 @@
 <script src="../data/patterns.js"></script>
 <script src="../data/debate.js"></script>
 <script src="../src/engine.js"></script>
+<script src="../data/scenes.js"></script>
+<script src="../src/narrative.js"></script>
 <script src="suite.js"></script>
+<script src="narrative-suite.js"></script>
 <script>
 (function () {
   "use strict";
-  var tests = window.GB.buildSuite(window.GB.Engine, window.GB.DATA.patterns, window.GB.DATA.debate);
+  var tests = window.GB.buildSuite(window.GB.Engine, window.GB.DATA.patterns, window.GB.DATA.debate)
+    .concat(window.GB.buildNarrativeSuite(window.GB.Narrative, window.GB.DATA.scenes));
   var ul = document.getElementById("results");
   var pass = 0, fail = 0;
   tests.forEach(function (t) {
