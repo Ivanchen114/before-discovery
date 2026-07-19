@@ -969,18 +969,740 @@
      "type": "system",
      "speaker": "system",
      "text": "筆記章節頁:「1603,帕多瓦。問題等了十一年,沒有走。」",
-     "next": "m3"
+     "next": "g2"
     },
     {
-     "id": "m3",
+     "id": "g2",
+     "type": "goto",
+     "scene": "A2-1"
+    }
+   ]
+  },
+  {
+   "id": "A2-1",
+   "title": "稀釋重力(工作室)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "難處在這:塔頂落地,三次心跳。水鐘才流幾滴,脈搏才跳三下。我量不了一個三心跳的過程。",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你提議:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「那就找更高的地方丟。」",
+       "next": "na"
+      },
+      {
+       "id": "b",
+       "text": "「那就讓它……落慢一點?」",
+       "next": "nb"
+      }
+     ]
+    },
+    {
+     "id": "na",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "更高?加高到月亮上嗎?五次心跳一樣量不準。方向錯了。",
+     "next": "q1"
+    },
+    {
+     "id": "nb",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(停住)落慢一點。(重複一遍。目光落在傾斜的桌面上——一顆銅珠正緩緩滾向桌緣。他伸手接住,不動了。)",
+     "next": "nb2"
+    },
+    {
+     "id": "nb2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(極輕)斜面。(把桌面壓斜,珠子滾快;放平,滾慢)把「向下」攤平。重力還在——只是被稀釋了。慢到水鐘量得動、脈搏數得清。滾多久、滾多遠,全寫在木槽上。",
+     "next": "nb3"
+    },
+    {
+     "id": "nb3",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "所以你這十一年刨的木槽——",
+     "next": "nb4"
+    },
+    {
+     "id": "nb4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "全是為了今天。(抓起外套)來,選傢伙。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
      "type": "system",
      "speaker": "system",
-     "text": "——M1 里程碑終點——\n第二幕(斜面實驗)於 M2 接上。你已取得:S2《論運動》手稿、S1 德爾夫特來的信、E1 高塔落球紀錄、E2 綁縛悖論。",
+     "text": "筆記:「量不了太快的,就把它變慢——但不能改變它的本性。這句話的後半,還欠著證明。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A2-2"
+    }
+   ]
+  },
+  {
+   "id": "A2-2",
+   "title": "斜面實驗(工作室,連日)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "長木槽、銅球、水鐘——高壺、細流、收集桶、天平。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "工具都在這了。球、槽面、傾角、計時——怎麼配,你決定。每次執行都要花上工夫(天數),量出能讓我們敢說話的數據。",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "incline",
+     "until": {
+      "e3": "a"
+     },
+     "hint": "在實驗台取得一筆「成立」的主張(勾選同配置 run→預測第五段→認證規律),劇情才會繼續。",
+     "next": "c1"
+    },
+    {
+     "id": "c1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(看著前幾張作廢的紀錄)記下來——實驗失敗最常見的樣子,不是得到錯的答案,是什麼答案都得不到。",
+     "next": "n3",
+     "require": {
+      "flag": [
+       "hadFailure",
+       "1"
+      ]
+     }
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(盯著主張紀錄上的數字很久,手指微微發抖)一、三、五、七、九……老天用奇數寫字。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "換句話說——距離,跟著時間的平方走。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "system",
+     "speaker": "system",
+     "text": "E3.a 已入筆記。「但這行字下面,伽利略畫了一個問號。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A2-3"
+    }
+   ]
+  },
+  {
+   "id": "A2-3",
+   "title": "換我當辛普里奧(工作室)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(忽然清清喉嚨,壓低嗓子,捧起一本想像的大部頭,翻到想像的夾籤頁)——「妙哉,妙哉。然此乃銅大球之規律。焉知非銅大球獨有之渴望?」",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "你學得真像。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(放下「書」)十四年了,他的聲音還住在我耳朵裡。(正色)他會這樣咬。這一口,你怎麼擋?",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「換一顆球,重測。」",
+       "next": "n4"
+      },
+      {
+       "id": "b",
+       "text": "「跟他吵渴望不存在。」",
+       "next": "nb"
+      }
+     ]
+    },
+    {
+     "id": "nb",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "吵贏了嘴,輸掉台下每一雙耳朵。證據才值錢,忘了?",
+     "next": "q1"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把銅小球拋過來)接好。",
+     "next": "e2"
+    },
+    {
+     "id": "e2",
+     "type": "embed",
+     "system": "incline",
+     "until": {
+      "e3": "b"
+     },
+     "preset": {
+      "ball": "銅小"
+     },
+     "hint": "用「僅球不同」的兩筆成立主張(銅大×銅小,槽面/傾角/計時全同),執行斷言「與球重無關」。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(靠上椅背,長長吐氣)大球如此,小球如此。落體不聽重量的話,旅人。它聽時間的話。",
+     "next": "sch1"
+    },
+    {
+     "id": "sch1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "還有一口他能咬:「緩坡之律,焉知陡坡亦然?」要不要先堵上?(選做)",
+     "next": "qsch",
+     "mode": "scholar"
+    },
+    {
+     "id": "qsch",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你決定:",
+     "options": [
+      {
+       "id": "yes",
+       "text": "「換傾角,再驗一手。」",
+       "next": "e3c",
+       "mode": "scholar"
+      },
+      {
+       "id": "no",
+       "text": "「這口留給講堂上再堵。」",
+       "next": "n6",
+       "mode": "scholar"
+      }
+     ],
+     "mode": "scholar",
+     "next": "n6"
+    },
+    {
+     "id": "e3c",
+     "type": "embed",
+     "system": "incline",
+     "mode": "scholar",
+     "until": {
+      "e3": "c"
+     },
+     "hint": "用「僅傾角不同」的兩筆成立主張,執行斷言「隨傾角形式不變」。",
+     "next": "nsch"
+    },
+    {
+     "id": "nsch",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "三種坡,同一副骨架。",
+     "next": "n6",
+     "mode": "scholar"
+    },
+    {
+     "id": "n6",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 E3 斜面奇數律(規律成立+換球複驗)。筆記大字:「等時距位移 1:3:5:7,與球重無關。問號,劃掉了。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A2-4"
+    }
+   ]
+  },
+  {
+   "id": "A2-4",
+   "title": "羽毛的辯護(工作室,支線)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "還剩一個洞。他一定問:那羽毛呢?鐵球和木屑,稚子皆見。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "問得好,所以我們先替他問。(從桌上抓起一張寫壞的稿紙)",
+     "next": "qP"
+    },
+    {
+     "id": "qP",
+     "type": "choice",
+     "speaker": "system",
+     "text": "實驗一:同一張紙——你要做什麼?",
+     "options": [
+      {
+       "id": "flat",
+       "text": "攤平,放手",
+       "next": "rP1",
+       "require": {
+        "flagAbsent": "p_flat"
+       }
+      },
+      {
+       "id": "crum",
+       "text": "揉成一團,放手",
+       "next": "rP2",
+       "require": {
+        "flagAbsent": "p_crum"
+       }
+      },
+      {
+       "id": "scale",
+       "text": "揉之前、揉之後,上天平比對",
+       "next": "rP3",
+       "require": {
+        "flagAbsent": "p_scale"
+       }
+      },
+      {
+       "id": "done",
+       "text": "(你得出結論)",
+       "next": "qPc",
+       "require": {
+        "flags": [
+         [
+          "p_flat",
+          "1"
+         ],
+         [
+          "p_crum",
+          "1"
+         ],
+         [
+          "p_scale",
+          "1"
+         ]
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "rP1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "紙左搖右晃,飄了半天才落。",
+     "next": "bP1"
+    },
+    {
+     "id": "bP1",
+     "type": "system",
+     "speaker": "system",
+     "text": "(紀錄:攤平=慢)",
+     "effects": [
+      {
+       "flag": [
+        "p_flat",
+        "1"
+       ]
+      }
+     ],
+     "next": "qP"
+    },
+    {
+     "id": "rP2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "同一張紙揉成一團——直墜落地。",
+     "next": "bP2"
+    },
+    {
+     "id": "bP2",
+     "type": "system",
+     "speaker": "system",
+     "text": "(紀錄:揉團=快)",
+     "effects": [
+      {
+       "flag": [
+        "p_crum",
+        "1"
+       ]
+      }
+     ],
+     "next": "qP"
+    },
+    {
+     "id": "rP3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把紙團放上天平)揉之前、揉之後——重量,一錢未變。",
+     "next": "bP3"
+    },
+    {
+     "id": "bP3",
+     "type": "system",
+     "speaker": "system",
+     "text": "(紀錄:重量未變)",
+     "effects": [
+      {
+       "flag": [
+        "p_scale",
+        "1"
+       ]
+      }
+     ],
+     "next": "qP"
+    },
+    {
+     "id": "qPc",
+     "type": "choice",
+     "speaker": "system",
+     "text": "同一張紙,快慢變了。變的是——",
+     "options": [
+      {
+       "id": "a",
+       "text": "「形狀。」",
+       "next": "nPok"
+      },
+      {
+       "id": "b",
+       "text": "「重量。」",
+       "next": "nPno"
+      }
+     ]
+    },
+    {
+     "id": "nPno",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把天平推過來)秤自己看。一錢未變。",
+     "next": "qPc"
+    },
+    {
+     "id": "nPok",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "重量沒變,快慢變了——變的是形狀。記下來。",
+     "next": "nB0"
+    },
+    {
+     "id": "nB0",
+     "type": "line",
+     "speaker": "stage",
+     "text": "水缸。銅大、銅小。",
+     "next": "qB"
+    },
+    {
+     "id": "qB",
+     "type": "choice",
+     "speaker": "system",
+     "text": "實驗二:同一組球——你要做什麼?",
+     "options": [
+      {
+       "id": "air",
+       "text": "空氣中,同時放手",
+       "next": "rB1",
+       "require": {
+        "flagAbsent": "b_air"
+       }
+      },
+      {
+       "id": "water",
+       "text": "沉入水中,同時放手",
+       "next": "rB2",
+       "require": {
+        "flagAbsent": "b_water"
+       }
+      },
+      {
+       "id": "done",
+       "text": "(你得出結論)",
+       "next": "qBc",
+       "require": {
+        "flags": [
+         [
+          "b_air",
+          "1"
+         ],
+         [
+          "b_water",
+          "1"
+         ]
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "rB1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "近乎同落,不分先後。",
+     "next": "bB1"
+    },
+    {
+     "id": "bB1",
+     "type": "system",
+     "speaker": "system",
+     "text": "(紀錄:空氣中=不分先後)",
+     "effects": [
+      {
+       "flag": [
+        "b_air",
+        "1"
+       ]
+      }
+     ],
+     "next": "qB"
+    },
+    {
+     "id": "rB2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "兩顆都慢了——而且,分出了先後。",
+     "next": "bB2"
+    },
+    {
+     "id": "bB2",
+     "type": "system",
+     "speaker": "system",
+     "text": "(紀錄:水中=差距拉開)",
+     "effects": [
+      {
+       "flag": [
+        "b_water",
+        "1"
+       ]
+      }
+     ],
+     "next": "qB"
+    },
+    {
+     "id": "qBc",
+     "type": "choice",
+     "speaker": "system",
+     "text": "球沒有變。變的是——",
+     "options": [
+      {
+       "id": "a",
+       "text": "「介質。」",
+       "next": "nBok"
+      },
+      {
+       "id": "b",
+       "text": "「球。」",
+       "next": "nBno"
+      }
+     ]
+    },
+    {
+     "id": "nBno",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "同樣兩顆球,你親手放的。球,一顆都沒換。",
+     "next": "qBc"
+    },
+    {
+     "id": "nBok",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "球沒有變——介質變了。(俯身看缸底)介質越稠,差異越大。那反過來,介質越稀——",
+     "next": "nB1"
+    },
+    {
+     "id": "nB1",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "差異越小。",
+     "next": "nB2"
+    },
+    {
+     "id": "nB2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "小到哪裡去?(直起身)在沒有介質的地方——一切同落。(笑)可惜,沒人能把「沒有空氣的地方」裝進瓶子帶上辯論台。總有一天會有的。",
+     "next": "n9"
+    },
+    {
+     "id": "n9",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 E4 介質阻力辨析(紙:只動形狀/球:只動介質)。筆記:「羽毛之慢,慢在形狀迎風、介質稠密——不在它的輕。」",
+     "effects": [
+      {
+       "evidence": "E4"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A2-5"
+    }
+   ]
+  },
+  {
+   "id": "A2-5",
+   "title": "舊人的消息(工作室,深夜)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "深夜。伽利略擦拭銅球,少見地安靜。桌上一封信。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "比薩的老同事來信。辛普里奧教授受邀,下月到帕多瓦講學。(把球舉到燭光前)他在信裡附了一句話,指名給我——",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "system",
+     "speaker": "system",
+     "text": "「十四年前那位『幾乎』先生,學說可曾說出一條了?」",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把信折好,眼睛在燭光裡發亮)他還記得。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "你打算?",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "回帖。公開論辯,大學講堂。(轉頭)十四年前他要一條規律。現在——我們有了。",
+     "next": "n7"
+    },
+    {
+     "id": "n7",
+     "type": "system",
+     "speaker": "system",
+     "text": "第二幕終。證據齊備:E1/E2/E3/E4(+S1/S2)。筆記章節頁:「異例、矛盾、規律、辯護——四樣都在了。去蓋新房子。」",
+     "next": "n8"
+    },
+    {
+     "id": "n8",
+     "type": "system",
+     "speaker": "system",
+     "text": "——M2 里程碑終點——\n第三幕(公開辯論)於 M3 接上。",
      "next": "end"
     },
     {
      "id": "end",
      "type": "end"
+    }
+   ]
+  },
+  {
+   "id": "SC-R1",
+   "title": "修復:用證據道歉",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "(關鍵人物暫時拒絕與你交談。)伽利略把一張空白數據表拍在旅人面前。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "在這座城市,道歉不用嘴。(指實驗台)用一次乾淨的紀錄。挑一組配置,做完,拿來。",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "incline",
+     "until": {
+      "repairRun": true
+     },
+     "hint": "完成任意一次實驗,把紀錄帶回,劇情繼續。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "system",
+     "speaker": "system",
+     "text": "信譽回復至 1。筆記:「話說錯了可以收回;數據不會。所以他們只信數據。」",
+     "effects": [
+      {
+       "rep": 1
+      },
+      {
+       "flagClear": "repLocked"
+      }
+     ],
+     "next": "r1"
+    },
+    {
+     "id": "r1",
+     "type": "return"
     }
    ]
   }
@@ -999,6 +1721,20 @@
     "node": "n1",
     "class": "pre-discovery",
     "reason": "密度理論=伽利略自己的死路(同材質等速),為史實立場之呈現,非本作結論(與重量/材質無關之普遍律)之揭曉。R-NAR-05 修訂建議已呈審。"
+   },
+   {
+    "scene": "A2-2",
+    "node": "n3",
+    "class": "post-reveal",
+    "afterPlayerNode": "e1",
+    "reason": "「奇數」出現於玩家已在實驗台親自預測命中(E3.a,embed e1)之後,屬覆述非揭曉。"
+   },
+   {
+    "scene": "A2-3",
+    "node": "n6",
+    "class": "post-reveal",
+    "afterPlayerNode": "e2",
+    "reason": "「1:3:5:7」為玩家完成換球斷言(embed e2)後之筆記覆述。"
    }
   ]
  }

@@ -13,12 +13,12 @@
     if (ja !== jb) throw new Error((m || "") + " 期望 " + jb + " 實得 " + ja);
   }
 
-  /* 便利:自動前進至下一個 choice/end;回傳所有經過節點 */
+  /* 便利:自動前進至下一個 choice/embed/end;回傳所有經過節點 */
   function run(state) {
     var passed = [];
     for (var i = 0; i < 500; i++) {
       var v = Narrative.view(state);
-      if (v.type === "choice" || v.type === "end") return { state: state, view: v, passed: passed };
+      if (v.type === "choice" || v.type === "end" || v.type === "embed") return { state: state, view: v, passed: passed };
       var r = Narrative.advance(state);
       if (r.error) throw new Error(r.error);
       passed.push(r.node);
@@ -45,8 +45,8 @@
         });
       });
     });
-    /* 可達性:自 startScene 沿全部邊 BFS(忽略守衛) */
-    var reach = {}, queue = [SCENES.startScene];
+    /* 可達性:自 startScene 沿全部邊 BFS(忽略守衛);SC-R1 由引擎 redirectIfLocked 導入(R-REP-02),列為額外入口 */
+    var reach = {}, queue = [SCENES.startScene, "SC-R1"];
     while (queue.length) {
       var sid = queue.shift();
       if (reach[sid]) continue;
@@ -76,12 +76,21 @@
       });
     });
     eq(violations, [], "lint 違規");
-    /* 白名單條目必須真實存在且附 reason */
+    /* 白名單條目必須真實存在且附 reason;post-reveal 類須位於對應玩家操作節點之後(GB-ADR-006) */
     SCENES.lint.whitelist.forEach(function (w) {
       var sc = SCENES.scenes.filter(function (s) { return s.id === w.scene; })[0];
       ok(sc, "白名單場景缺:" + w.scene);
-      ok(sc.nodes.filter(function (n) { return n.id === w.node; }).length === 1, "白名單節點缺:" + w.scene + "/" + w.node);
+      var idx = -1, after = -1;
+      sc.nodes.forEach(function (n, i) {
+        if (n.id === w.node) idx = i;
+        if (w.afterPlayerNode && n.id === w.afterPlayerNode) after = i;
+      });
+      ok(idx >= 0, "白名單節點缺:" + w.scene + "/" + w.node);
       ok(w.reason && w["class"], "白名單須附 class 與 reason:" + w.scene + "/" + w.node);
+      if (w["class"] === "post-reveal") {
+        ok(after >= 0, "post-reveal 須指定存在的 afterPlayerNode:" + w.scene + "/" + w.node);
+        ok(idx > after, "post-reveal 節點須位於玩家操作節點之後:" + w.scene + "/" + w.node);
+      }
     });
   });
 
@@ -109,9 +118,9 @@
     s = pick(s, "a"); r = run(s); s = r.state;      /* 綁縛 a 支 */
     s = pick(s, "a"); r = run(s); s = r.state;      /* 更重 → 匯流;探索模式跳過學者加問 → INT-1 q1 */
     eq(r.view.scene, "INT-1");
-    s = pick(s, "b"); r = run(s); s = r.state;      /* +1 */
+    s = pick(s, "b"); r = run(s); s = r.state;      /* +1 → 幕間收束,接第二幕 */
     eq(s.rep, 4, "INT-1.b 信譽+1");
-    ok(s.ended || r.view.type === "end", "抵達 M1 終點");
+    eq(r.view.scene, "A2-1", "幕間接第二幕(M2)");
     eq([!!s.evidence.S2, !!s.evidence.S1, !!s.evidence.E1, !!s.evidence.E2], [true, true, true, true], "四證據入袋");
   });
 
@@ -136,7 +145,155 @@
     eq(r.view.scene, "INT-1");
     s = pick(s, "a"); r = run(s); s = r.state;       /* 玩笑選項,無效果 */
     eq(s.rep, 4, "INT-1.a 無信譽變動");
-    ok(s.ended || r.view.type === "end", "抵達終點");
+    eq(r.view.scene, "A2-1", "幕間接第二幕");
+  });
+
+  /* ===== M2:第二幕 ===== */
+
+  function toActTwo(mode) { /* 快轉:序幕+第一幕 → A2-2 embed e1 */
+    var s = Narrative.initialState(mode || "explore");
+    var r = run(s); s = pick(r.state, "a");
+    r = run(s); s = pick(r.state, "a");              /* P0-2.a(−1) */
+    r = run(s); s = pick(r.state, "a");              /* A1-3 q1=a */
+    r = run(s); s = pick(r.state, "a");              /* q2 */
+    r = run(s); s = pick(r.state, "c");              /* q3 w=none */
+    r = run(s); s = pick(r.state, "a");              /* A1-7 a */
+    r = run(s); s = pick(r.state, "a");              /* qA2 */
+    r = run(s); s = r.state;
+    if (Narrative.view(s).nodeId === "qS") { s = pick(s, "a"); r = run(s); s = r.state; } /* 學者加問 */
+    s = pick(s, "a"); r = run(s); s = r.state;       /* INT-1.a */
+    /* A2-1:先走錯的「更高」再走對的 */
+    eq(r.view.scene, "A2-1", "抵達 A2-1");
+    s = pick(s, "a"); r = run(s); s = r.state;       /* 駁回,回選單 */
+    eq(r.view.nodeId, "q1", "A2-1.a 駁回重選");
+    s = pick(s, "b"); r = run(s); s = r.state;       /* → A2-2 embed */
+    eq(r.view.type, "embed", "抵達實驗台 embed");
+    eq(r.view.scene, "A2-2");
+    return s;
+  }
+  function lab(s, action, args) {
+    var r = Narrative.labAction(s, action, args);
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  var CFG_BIG = { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" };
+  var CFG_SMALL = { ball: "銅小", surface: "打磨", incline: "緩", timer: "水鐘" };
+
+  t("M2|嵌入門檻:條件未達時 advance/embedComplete 皆擋", function () {
+    var s = toActTwo("explore");
+    ok(Narrative.advance(s).error, "embed 不可 advance");
+    ok(Narrative.embedComplete(s).error, "條件未達不可收束");
+    ok(!Narrative.embedReady(s), "ready=false");
+  });
+
+  t("M2|黃金路徑(探索):E3.a→換球 E3.b→E4 兩實驗→A2-5 終點;天數與證據同步", function () {
+    var s = toActTwo("explore");
+    var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    var run1 = r.result.run;
+    r = lab(s, "judge", { runIds: [run1.id], prediction: 9 * run1.readings[0] }); s = r.state;
+    ok(r.result.claim.ok, "主張成立");
+    ok(Narrative.embedReady(s), "E3.a 達標");
+    var c = Narrative.embedComplete(s); s = c.state;
+    var rr = run(s); s = rr.state;                    /* c1 被跳過(無 hadFailure)→ n3~n5 → A2-3 q1 */
+    var texts = rr.passed.map(function (n) { return n.text; }).join("|");
+    ok(texts.indexOf("作廢的紀錄") < 0, "無失敗時不出現死路B回述");
+    eq(rr.view.scene, "A2-3");
+    s = pick(s, "b"); rr = run(s); s = rr.state;      /* 吵渴望 → 駁回 */
+    eq(rr.view.nodeId, "q1", "A2-3.b 駁回");
+    s = pick(s, "a"); rr = run(s); s = rr.state;      /* 換球 → embed e2 */
+    eq(rr.view.type, "embed");
+    eq(rr.view.preset && rr.view.preset.ball, "銅小", "R-HOOK-01 預選銅小");
+    r = lab(s, "run", { config: CFG_SMALL }); s = r.state;
+    var run2 = r.result.run;
+    r = lab(s, "judge", { runIds: [run2.id], prediction: 9 * run2.readings[0] }); s = r.state;
+    ok(r.result.claim.ok, "銅小主張成立");
+    ok(!Narrative.embedReady(s), "尚未斷言,b 未亮");
+    r = lab(s, "assert", { type: "b", claimIds: [1, 2] }); s = r.state;
+    ok(r.result.assertion.ok, "斷言 b 成立");
+    ok(s.evidence.E3, "章節證據 E3 同步(a∧b)");
+    c = Narrative.embedComplete(s); s = c.state;
+    rr = run(s); s = rr.state;                        /* n5→(探索跳過學者支線)→n6→A2-4 qP */
+    eq(rr.view.scene, "A2-4");
+    eq(rr.view.nodeId, "qP");
+    ["flat", "crum", "scale"].forEach(function (op) {
+      s = pick(s, op); var x = run(s); s = x.state;
+      eq(x.view.nodeId, "qP", "操作後回 hub:" + op);
+    });
+    s = pick(s, "done"); rr = run(s); s = rr.state;
+    s = pick(s, "b"); rr = run(s); s = rr.state;      /* 錯誤結論:重量 → 駁回 */
+    eq(rr.view.nodeId, "qPc", "天平駁回後重選");
+    s = pick(s, "a"); rr = run(s); s = rr.state;      /* 形狀 ✓ → 球 hub */
+    eq(rr.view.nodeId, "qB");
+    ["air", "water"].forEach(function (op) {
+      s = pick(s, op); var x = run(s); s = x.state;
+    });
+    s = pick(s, "done"); rr = run(s); s = rr.state;
+    s = pick(s, "a"); rr = run(s); s = rr.state;      /* 介質 ✓ → E4 → A2-5 → 終點 */
+    ok(s.evidence.E4, "E4 入袋");
+    eq(rr.view.scene, "A2-5");
+    ok(s.ended || rr.view.type === "end", "M2 終點");
+    eq(s.lab.days, 4, "天數:水鐘×2=4(R-EXP-01 同步)");
+  });
+
+  t("M2|hadFailure:失敗判定觸發旗標,死路B回述於 embed 後出現", function () {
+    var s = toActTwo("explore");
+    var r = lab(s, "run", { config: { ball: "銅大", surface: "原木", incline: "緩", timer: "水鐘" } }); s = r.state;
+    r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    ok(!r.result.claim.ok, "原木配置不可判定");
+    eq(s.flags.hadFailure, "1", "hadFailure 旗標");
+    r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    r = lab(s, "judge", { runIds: [2], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    ok(r.result.claim.ok);
+    var c = Narrative.embedComplete(s); s = c.state;
+    var rr = run(s); s = rr.state;
+    var texts = rr.passed.map(function (n) { return n.text; }).join("|");
+    ok(texts.indexOf("作廢的紀錄") >= 0, "死路B回述出現(c1)");
+  });
+
+  t("M2|學者支線:qsch 選 yes→E3.c 埋入→變傾角斷言後收束", function () {
+    var s = toActTwo("scholar");
+    var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    var rr = run(s); s = rr.state;
+    s = pick(s, "a"); rr = run(s); s = rr.state;      /* 換球 → e2 */
+    r = lab(s, "run", { config: CFG_SMALL }); s = r.state;
+    r = lab(s, "judge", { runIds: [2], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    r = lab(s, "assert", { type: "b", claimIds: [1, 2] }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    eq(rr.view.nodeId, "qsch", "學者加問出現");
+    s = pick(s, "yes"); rr = run(s); s = rr.state;
+    eq(rr.view.type, "embed", "E3.c embed");
+    r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "中", timer: "水鐘" } }); s = r.state;
+    r = lab(s, "judge", { runIds: [3], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    ok(r.result.claim.ok, "中傾角主張成立");
+    r = lab(s, "assert", { type: "c", claimIds: [1, 3] }); s = r.state;
+    ok(r.result.assertion.ok, "斷言 c 成立");
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    eq(rr.view.scene, "A2-4", "續接 E4");
+  });
+
+  t("SC-R1|信譽歸零→導入修復→做一次實驗→信譽1→返回原游標", function () {
+    var s = toActTwo("explore");
+    var origin = JSON.parse(JSON.stringify(s.cursor));
+    s.rep = 0; s.flags.repLocked = "1";               /* 注入:歸零狀態(M3 前無自然觸發點) */
+    var rd = Narrative.redirectIfLocked(s);
+    ok(rd.redirected, "應導入修復");
+    s = rd.state;
+    eq(s.cursor.scene, "SC-R1");
+    var rr = run(s); s = rr.state;                    /* n1,n2 → e1 embed */
+    eq(rr.view.type, "embed");
+    ok(!Narrative.embedReady(s), "尚未做實驗");
+    var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    ok(Narrative.embedReady(s), "已做一次實驗");
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;                        /* n3(rep+1,解鎖)→ return → 回原點 */
+    eq(s.rep, 1, "信譽回復至 1");
+    ok(!("repLocked" in s.flags), "解除鎖定");
+    ok(!("returnScene" in s.flags), "返回游標已清");
+    eq(s.cursor, origin, "回到原游標(A2-2 embed)");
   });
 
   t("R-MODE|學者加問於探索模式不可見(node+option 雙層過濾)", function () {

@@ -2,14 +2,14 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>《發現之前》第一章:重物的渴望(M1 灰盒)</title>
+<title>《發現之前》第一章:重物的渴望(M2 灰盒)</title>
 <style>
   /* R-ENV-04 灰盒紀律 */
-  body { font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif; margin: 16px auto; max-width: 780px; line-height: 1.7; padding: 0 12px; }
+  body { font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif; margin: 16px auto; max-width: 860px; line-height: 1.7; padding: 0 12px; }
   h1 { font-size: 1.2em; }
-  #statusbar { border: 1px solid #666; padding: 6px 10px; margin-bottom: 10px; display: flex; gap: 18px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  #statusbar { border: 1px solid #666; padding: 6px 10px; margin-bottom: 10px; display: flex; gap: 16px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
   #title-screen, #game-screen { border: 1px solid #ccc; padding: 14px 18px; }
-  #log { min-height: 200px; }
+  #log { min-height: 160px; }
   .line { margin: 10px 0; }
   .line .spk { font-weight: bold; margin-right: 6px; }
   .line.stage { color: #555; font-style: italic; }
@@ -21,11 +21,19 @@
   #evidence { border: 1px dashed #666; padding: 6px 10px; margin-top: 12px; }
   .hint { color: #444; font-size: 0.92em; }
   button:focus-visible { outline: 3px solid #1a3c6e; }
+  /* 實驗台(embed) */
+  #lab { border: 2px solid #333; padding: 10px 14px; margin-top: 12px; }
+  #lab h3 { margin: 8px 0 4px; font-size: 1em; border-bottom: 1px solid #aaa; }
+  #lab table { border-collapse: collapse; margin: 6px 0; }
+  #lab th, #lab td { border: 1px solid #999; padding: 2px 7px; text-align: right; font-variant-numeric: tabular-nums; }
+  #lab th:first-child, #lab td:first-child { text-align: left; }
+  .labmsg { border: 1px dashed #666; padding: 4px 8px; margin: 6px 0; min-height: 1.2em; }
+  #embedGate { margin-top: 10px; font-weight: bold; }
 </style>
 </head>
 <body>
 <h1>《發現之前》第一章:重物的渴望</h1>
-<p class="hint">M1 灰盒(序幕+第一幕)——文字與互動為正式內容,視覺為佔位。斜面實驗(第二幕)於 M2 接上;既有切片可由 <a href="index.html">index.html</a> 遊玩。</p>
+<p class="hint">M2 灰盒(序幕→第二幕)——文字與互動為正式內容,視覺為佔位。第三幕辯論於 M3 接上;切片版另存 <a href="index.html">index.html</a>。</p>
 
 <section id="title-screen" aria-label="標題畫面">
   <h2>標題</h2>
@@ -33,9 +41,9 @@
     <button id="btnContinue">繼續上次進度</button>
   </div>
   <fieldset style="margin-top:10px">
-    <legend>新遊戲——選擇模式(R-MODE-01,中途不可換)</legend>
+    <legend>新遊戲——選擇模式(中途不可換)</legend>
     <label><input type="radio" name="mode" value="explore" checked>探索模式(國中基準:引導較多)</label><br>
-    <label><input type="radio" name="mode" value="scholar">學者模式(高中以上:加開追問與進階操作)</label><br>
+    <label><input type="radio" name="mode" value="scholar">學者模式(高中以上:加開追問、音格計時與進階斷言)</label><br>
     <button id="btnNew" style="margin-top:8px">開始新遊戲</button>
     <p class="hint" id="newWarn" style="display:none">注意:開始新遊戲將覆蓋既有存檔。再按一次確認。</p>
   </fieldset>
@@ -44,15 +52,47 @@
 <section id="game-screen" style="display:none" aria-label="遊戲畫面">
   <div id="statusbar">
     <span>信譽:<b id="repVal">3</b>/5</span>
+    <span>天數:<b id="dayVal">0</b></span>
+    <span id="e3Val"></span>
     <span id="modeVal"></span>
     <span id="sceneVal"></span>
   </div>
   <div id="log" aria-live="polite"></div>
+
+  <div id="lab" style="display:none" aria-label="實驗台">
+    <h3>實驗台</h3>
+    <p class="hint" id="labHint"></p>
+    <label>球:<select id="labBall"></select></label>
+    <label>槽面:<select id="labSurface"></select></label>
+    <label>傾角:<select id="labIncline"></select></label>
+    <label>計時:<select id="labTimer"></select></label>
+    <button id="labRun">執行實驗</button>
+    <div class="labmsg" id="labMsg" role="status" aria-live="polite">尚未執行實驗。</div>
+
+    <h3>run 紀錄(勾選 1–3 筆同配置 → 預測第五段 → 認證)</h3>
+    <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>Δ1</th><th>Δ2</th><th>Δ3</th><th>Δ4</th><th>天</th></tr></thead>
+      <tbody id="labRunsBody"></tbody></table>
+    <label>第五段增量預測值:<input type="number" id="labPred" step="0.1" style="width:90px"></label>
+    <button id="labJudge">認證規律</button>
+    <div class="labmsg" id="judgeMsg" role="status" aria-live="polite"></div>
+
+    <h3>主張紀錄(勾選兩筆 → 斷言)</h3>
+    <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>天</th></tr></thead>
+      <tbody id="labClaimsBody"></tbody></table>
+    <button id="labAssertB">斷言:與球重無關</button>
+    <button id="labAssertC" style="display:none">斷言:隨傾角形式不變</button>
+    <div class="labmsg" id="assertMsg" role="status" aria-live="polite"></div>
+    <div id="embedGate"></div>
+  </div>
+
   <div id="controls"></div>
   <div id="evidence"><b>旅人筆記(證據)</b>:<span id="evidenceList">(尚無)</span></div>
   <p class="hint"><button id="btnBackTitle">回標題(進度已自動存檔)</button></p>
 </section>
 
+<script src="data/patterns.js"></script>
+<script src="data/debate.js"></script>
+<script src="src/engine.js"></script>
 <script src="data/scenes.js"></script>
 <script src="src/narrative.js"></script>
 <script src="src/chapter-ui.js"></script>
