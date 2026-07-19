@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>《發現之前》灰盒切片 v0.1.1 — 斜面實驗+P3 論辯</title>
+<title>《發現之前》灰盒切片 v0.1.2 — 斜面實驗+P3 論辯</title>
 <style>
   /* R-ENV-04 灰盒紀律:系統字體、原生控件、純文字、無裝飾 */
   body { font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif; margin: 16px; max-width: 1080px; line-height: 1.5; }
@@ -12,7 +12,7 @@
   th:first-child, td:first-child { text-align: left; }
   #statusbar { border: 1px solid #666; padding: 6px 10px; margin-bottom: 10px; display: flex; gap: 18px; flex-wrap: wrap; }
   .tabbtn { margin-right: 6px; }
-  .tabbtn.active { font-weight: bold; text-decoration: underline; }
+  .tabbtn[aria-selected="true"] { font-weight: bold; text-decoration: underline; }
   section.panel { display: none; border: 1px solid #ccc; padding: 10px 14px; }
   section.panel.active { display: block; }
   .msg { border: 1px dashed #666; padding: 6px 10px; margin: 6px 0; min-height: 1.2em; white-space: pre-wrap; }
@@ -24,7 +24,7 @@
 </style>
 </head>
 <body>
-<h1>《發現之前》灰盒切片 — 斜面實驗+一場論辯(v0.1.1)</h1>
+<h1>《發現之前》灰盒切片 — 斜面實驗+一場論辯(v0.1.2)</h1>
 <p class="hint">目標:實驗台產出數據 → 筆記中親自認證規律、完成斷言(E3)→ 辯論廳擊破辛普里奧的支柱 P3。系統只記帳,不會替你看見規律。</p>
 
 <div id="statusbar">
@@ -34,51 +34,42 @@
   <span id="p3Status"></span>
 </div>
 
-<div>
-  <button class="tabbtn active" data-panel="lab">實驗台</button>
-  <button class="tabbtn" data-panel="notebook">旅人筆記</button>
-  <button class="tabbtn" data-panel="debate">辯論廳</button>
+<div role="tablist" aria-label="遊戲面板">
+  <button class="tabbtn" id="tab-lab" role="tab" aria-selected="true" aria-controls="panel-lab" data-panel="lab">實驗台</button>
+  <button class="tabbtn" id="tab-notebook" role="tab" aria-selected="false" aria-controls="panel-notebook" data-panel="notebook">旅人筆記</button>
+  <button class="tabbtn" id="tab-debate" role="tab" aria-selected="false" aria-controls="panel-debate" data-panel="debate">辯論廳</button>
 </div>
 
-<section class="panel active" id="panel-lab">
+<section class="panel active" id="panel-lab" role="tabpanel" aria-labelledby="tab-lab">
   <h2>實驗配置</h2>
-  <label>球:
-    <select id="selBall"><option>銅大</option><option>銅小</option><option>木球</option></select>
-  </label>
-  <label>槽面:
-    <select id="selSurface"><option>打磨</option><option>原木</option></select>
-  </label>
-  <label>傾角:
-    <select id="selIncline"><option>緩</option><option>中</option><option>陡</option></select>
-  </label>
-  <label>計時:
-    <select id="selTimer">
-      <option value="水鐘">水鐘(2 天/次)</option>
-      <option value="脈搏">脈搏(1 天/次)</option>
-      <option value="音格">音格(3 天/次)</option>
-    </select>
-  </label>
+  <label>球:<select id="selBall"></select></label>
+  <label>槽面:<select id="selSurface"></select></label>
+  <label>傾角:<select id="selIncline"></select></label>
+  <label>計時:<select id="selTimer"></select></label>
   <button id="btnRun">執行實驗</button>
-  <div class="msg" id="labMsg">尚未執行任何實驗。</div>
+  <div class="msg" id="labMsg" role="status" aria-live="polite">尚未執行任何實驗。</div>
   <div id="lastRun"></div>
 </section>
 
-<section class="panel" id="panel-notebook">
+<section class="panel" id="panel-notebook" role="tabpanel" aria-labelledby="tab-notebook">
   <h2>實驗紀錄(run)</h2>
-  <label><input type="radio" name="viewMode" value="inc" checked>增量視圖</label>
-  <label><input type="radio" name="viewMode" value="cum">累計視圖</label>
+  <fieldset style="border:none;padding:0;margin:0">
+    <legend class="hint" style="padding:0">視圖切換(不影響已勾選的判定選集)</legend>
+    <label><input type="radio" name="viewMode" value="inc" checked>增量視圖</label>
+    <label><input type="radio" name="viewMode" value="cum">累計視圖</label>
+  </fieldset>
   <button id="btnCompare">比較選取的兩筆 run</button>
   <table id="runsTable">
     <thead><tr><th>選</th><th>#</th><th>配置</th><th>Δ1</th><th>Δ2</th><th>Δ3</th><th>Δ4</th><th>天</th></tr></thead>
     <tbody id="runsBody"></tbody>
   </table>
-  <div class="msg" id="compareMsg">尚無比較。</div>
+  <div class="msg" id="compareMsg" role="status" aria-live="polite">尚無比較。</div>
 
   <h2>規律認證(判定選集=勾選 1–3 筆 run)</h2>
   <p class="hint">若你看出了什麼,預測下一段:第五段等時距的增量會是多少刻度?</p>
   <label>第五段增量預測值:<input type="number" id="prediction" step="0.1" style="width:90px"></label>
   <button id="btnJudge">認證規律</button>
-  <div class="msg" id="judgeMsg">尚無主張。</div>
+  <div class="msg" id="judgeMsg" role="status" aria-live="polite">尚無主張。</div>
 
   <h2>主張紀錄(claim)</h2>
   <table id="claimsTable">
@@ -87,10 +78,10 @@
   </table>
   <button id="btnAssertB">斷言:與球重無關(勾選兩筆主張)</button>
   <button id="btnAssertC">斷言:隨傾角形式不變(選做)</button>
-  <div class="msg" id="assertMsg"></div>
+  <div class="msg" id="assertMsg" role="status" aria-live="polite"></div>
 </section>
 
-<section class="panel" id="panel-debate">
+<section class="panel" id="panel-debate" role="tabpanel" aria-labelledby="tab-debate">
   <h2>辛普里奧・支柱 P3</h2>
   <div id="statements"></div>
   <h2>出示證據</h2>
@@ -114,8 +105,8 @@
   <button id="btnPresent">出示</button>
   <button id="btnReenter" style="display:none">再入辯論</button>
   <h2>辯論紀錄</h2>
-  <div id="debateLog"></div>
-  <div id="victory" style="display:none"></div>
+  <div id="debateLog" role="log" aria-live="polite" aria-label="辯論紀錄"></div>
+  <div id="victory" style="display:none" role="status"></div>
 </section>
 
 <script src="data/patterns.js"></script>

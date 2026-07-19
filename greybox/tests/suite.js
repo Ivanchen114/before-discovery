@@ -218,5 +218,91 @@
     eq(JSON.stringify(s0), frozen, "原狀態不變");
   });
 
+  /* ===== 第 2 輪審查新增(程式審查 B-3/B-4) ===== */
+
+  t("B-3|assertE3 拒絕非 b/c 型別:不改 state、不記 assertion、不點亮 E3", function () {
+    var s = Engine.initialState();
+    var r1 = Engine.runExperiment(s, { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" }); s = r1.state;
+    var r2 = Engine.runExperiment(s, { ball: "銅大", surface: "打磨", incline: "中", timer: "水鐘" }); s = r2.state;
+    var c1 = Engine.judge(s, [r1.run.id], 9 * r1.run.readings[0]); s = c1.state;
+    var c2 = Engine.judge(s, [r2.run.id], 9 * r2.run.readings[0]); s = c2.state;
+    ok(c1.claim.ok && c2.claim.ok, "前置:兩主張成立");
+    var frozen = JSON.stringify(s);
+    ["x", "a", "", null].forEach(function (badType) {
+      var res = Engine.assertE3(s, badType, [c1.claim.id, c2.claim.id]);
+      ok(!res.assertion.ok, "型別 " + badType + " 應拒絕");
+      ok(res.assertion.reason.indexOf("型別") >= 0, "理由含型別說明");
+      eq(JSON.stringify(res.state), frozen, "state 不變");
+      eq(res.state.inference.assertions.length, 0, "不記 assertion");
+      ok(!res.state.evidence.e3.b && !res.state.evidence.e3.c, "E3.b/c 不點亮");
+    });
+    /* 對照:合法型別 c 於同一資料上成立 */
+    var good = Engine.assertE3(s, "c", [c1.claim.id, c2.claim.id]);
+    ok(good.assertion.ok && good.state.evidence.e3.c, "對照組:c 合法且點亮");
+  });
+
+  t("R-JUD-01 邊界|0 筆/4 筆/重複 ID/不存在 ID 皆拒且不記 claim", function () {
+    var s = Engine.initialState(), ids = [];
+    for (var i = 0; i < 4; i++) { var r = Engine.runExperiment(s, { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" }); s = r.state; ids.push(r.run.id); }
+    ok(Engine.judge(s, [], 100).rejected, "0 筆應拒");
+    ok(Engine.judge(s, ids, 100).rejected, "4 筆應拒");
+    var dup = Engine.judge(s, [ids[0], ids[0]], 100);
+    ok(dup.rejected && dup.rejected.reason.indexOf("重複") >= 0, "重複 ID 應拒且說明");
+    ok(Engine.judge(s, [999], 100).rejected, "不存在 ID 應拒");
+    eq(s.inference.claims.length, 0, "claims 不追加");
+  });
+
+  t("R-JUD-03 邊界|預測容差為含入(≤12%):線內命中、線外未中", function () {
+    /* 浮點限制:12% 恰等值無法以十進位輸入精確落在二進位表示上;
+       以相對距離 1e-9(內側)與 1e-4(外側)鎖住「≤ 含入」語義。 */
+    var x = nthRunState({ ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" }, 1);
+    var target = 9 * x.lastRun.readings[0];
+    var inEdge = Engine.judge(x.state, [x.lastRun.id], target * (1 + Engine.TOL) - target * 1e-9);
+    ok(inEdge.claim.predHit, "容差內側應命中");
+    var outEdge = Engine.judge(x.state, [x.lastRun.id], target * (1 + Engine.TOL) + target * 1e-4);
+    ok(!outEdge.claim.predHit, "容差外側應未中");
+  });
+
+  t("R-DEB-06 全表|15 種三元組 × 3 種 E3 狀態之判定完全符合規格", function () {
+    var combos = [];
+    ["a", "b", "c"].forEach(function (sub) { ["s1", "s2", "s3"].forEach(function (tg) { combos.push({ evidence: "E3", subitem: sub, target: tg }); }); });
+    ["E1", "S1"].forEach(function (ev) { ["s1", "s2", "s3"].forEach(function (tg) { combos.push({ evidence: ev, subitem: null, target: tg }); }); });
+    eq(combos.length, 15, "組合數");
+    function expected(p, e3) {
+      if (p.evidence === "E3" && p.subitem === "b" && p.target === "s2" && e3.b) return "correct";
+      if (p.evidence === "E3" && p.subitem === "a" && p.target === "s2" && e3.a && !e3.b) return "insufficient";
+      return "wrong";
+    }
+    /* 引擎為純函式,狀態即輸入定義域:直接注入 E3 旗標枚舉三種證據狀態 */
+    [{ a: false, b: false }, { a: true, b: false }, { a: true, b: true }].forEach(function (flags) {
+      combos.forEach(function (p) {
+        var s = Engine.initialState();
+        s.evidence.e3.a = flags.a; s.evidence.e3.b = flags.b;
+        var res = Engine.present(s, p);
+        var want = expected(p, flags);
+        ok(res.outcome === want,
+          JSON.stringify(p) + " @E3=" + JSON.stringify(flags) + " 期望 " + want + " 實得 " + res.outcome);
+        if (want === "wrong") eq(res.state.belief.P3.persuasion, 4, "錯誤出示 −1");
+        if (want === "insufficient") eq(res.state.belief.P3.persuasion, 5, "不足不扣量表");
+      });
+    });
+  });
+
+  t("R-DEB-07 深度|中止→再入:evidence/inference 全樹相等,僅量表與狀態重置", function () {
+    var s = Engine.initialState();
+    var r = Engine.runExperiment(s, { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" }); s = r.state;
+    var c = Engine.judge(s, [r.run.id], 9 * r.run.readings[0]); s = c.state;
+    var a = Engine.assertE3(s, "b", [c.claim.id, c.claim.id]); s = a.state; /* 失敗 assertion 也須保留 */
+    for (var i = 0; i < 5; i++) { s = Engine.present(s, { evidence: "S1", subitem: null, target: "s1" }).state; }
+    eq(s.belief.P3.status, "suspended", "前置:已中止");
+    var evBefore = JSON.stringify(s.evidence), infBefore = JSON.stringify(s.inference), stBefore = JSON.stringify(s.belief.P3.statements);
+    var re = Engine.reenterDebate(s); s = re.state;
+    eq(JSON.stringify(s.evidence), evBefore, "evidenceState 深度相等");
+    eq(JSON.stringify(s.inference), infBefore, "inferenceState 深度相等(含失敗 assertion)");
+    eq(JSON.stringify(s.belief.P3.statements), stBefore, "證詞狀態保留");
+    eq(s.belief.P3.persuasion, 5, "量表重置");
+    eq(s.belief.P3.status, "pending", "狀態重置");
+  });
+
   return tests;
 });

@@ -77,8 +77,11 @@
     });
   }
 
-  /* R-JUD-01:選集守衛——四維配置指紋(球/槽面/傾角/計時)全同 */
+  /* R-JUD-01:選集守衛——四維配置指紋(球/槽面/傾角/計時)全同;拒絕重複與無效 ID */
   function checkSelection(state, runIds) {
+    var seen = {}, hasDup = false;
+    runIds.forEach(function (id) { if (seen[id]) hasDup = true; seen[id] = 1; });
+    if (hasDup) return { ok: false, reason: "選集含重複 run", diff: [] };
     var runs = runIds.map(function (id) {
       return state.evidence.runs.filter(function (r) { return r.id === id; })[0];
     }).filter(Boolean);
@@ -133,8 +136,16 @@
     return { state: state, claim: claim };
   }
 
-  /* R-JUD-05:斷言。b=僅球相異(銅大/銅小)、c=僅傾角相異;其餘三維全同且兩主張皆成立 */
+  /* R-JUD-05:斷言。b=僅球相異(銅大/銅小)、c=僅傾角相異;其餘三維全同且兩主張皆成立。
+     入口守衛:僅接受 b/c;其他型別回傳錯誤且不改 state、不記 assertion(程式審查 B-3)。 */
   function assertE3(state0, type, claimIds) {
+    if (type !== "b" && type !== "c") {
+      return {
+        state: state0,
+        assertion: { id: null, type: type, claimIds: claimIds.slice(), ok: false, reason: "未知斷言型別(僅接受 b/c)", diff: [] },
+        invalidType: true
+      };
+    }
     var state = clone(state0);
     var cs = claimIds.map(function (id) {
       return state.inference.claims.filter(function (c) { return c.id === id; })[0];

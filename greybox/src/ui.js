@@ -1,8 +1,10 @@
-/* src/ui.js — 表現層。所有狀態變更一律經由 Engine 純函式;本檔僅負責讀取輸入與渲染。 */
+/* src/ui.js — 表現層。所有狀態變更一律經由 Engine 純函式;本檔僅負責讀取輸入與渲染。
+   v0.1.2:選單改由資料生成(審查 B-5)、重繪保留勾選(B-2)、可存取名稱與頁籤狀態(B-1)。 */
 (function () {
   "use strict";
   var Engine = window.GB.Engine;
   var DEBATE = window.GB.DATA.debate;
+  var PATTERNS = window.GB.DATA.patterns;
   var state = Engine.initialState();
   var viewMode = "inc";
 
@@ -10,15 +12,43 @@
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); } /* 顯示至 0.1;內部保持精確值 */
   function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
 
-  /* ---------- 面板切換 ---------- */
+  /* ---------- 選單由資料生成(B-5:新增計時工具僅需改 data 層與測試期望集) ---------- */
+  function fillSelect(id, keys, labelFn) {
+    var sel = $(id);
+    sel.innerHTML = "";
+    keys.forEach(function (k) {
+      var o = document.createElement("option");
+      o.value = k;
+      o.textContent = labelFn ? labelFn(k) : k;
+      sel.appendChild(o);
+    });
+  }
+  fillSelect("selBall", Object.keys(PATTERNS.ball));
+  fillSelect("selSurface", Object.keys(PATTERNS.surface));
+  fillSelect("selIncline", Object.keys(PATTERNS.base));
+  fillSelect("selTimer", Object.keys(PATTERNS.timer), function (t) {
+    return t + "(" + PATTERNS.dayCost[t] + " 天/次)";
+  });
+
+  /* ---------- 面板切換(B-1:aria-selected 與視覺同步) ---------- */
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function (btn) {
     btn.onclick = function () {
-      Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function (b) { b.classList.remove("active"); });
+      Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function (b) {
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+      });
       Array.prototype.forEach.call(document.querySelectorAll("section.panel"), function (p) { p.classList.remove("active"); });
-      btn.classList.add("active");
       $("panel-" + btn.dataset.panel).classList.add("active");
     };
   });
+
+  /* ---------- 勾選保留工具(B-2:重繪不得改變玩家的選取狀態) ---------- */
+  function snapshotChecked(cls) {
+    var keep = {};
+    Array.prototype.forEach.call(document.querySelectorAll("." + cls), function (el) {
+      if (el.checked) keep[el.dataset.id] = true;
+    });
+    return keep;
+  }
 
   /* ---------- 共用渲染 ---------- */
   function renderHeader() {
@@ -31,28 +61,34 @@
   }
 
   function renderRuns() {
+    var keep = snapshotChecked("runSel");
     var tbody = $("runsBody");
     tbody.innerHTML = "";
     state.evidence.runs.forEach(function (r) {
       var vals = viewMode === "inc" ? r.readings : Engine.cumulative(r.readings);
       var tr = document.createElement("tr");
-      tr.innerHTML = "<td><input type='checkbox' class='runSel' data-id='" + r.id + "'></td>" +
+      var name = "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")";
+      tr.innerHTML = "<td><input type='checkbox' class='runSel' data-id='" + r.id + "' aria-label='" + name + "'></td>" +
         "<td>#" + r.id + "</td><td>" + cfgLabel(r.config) + "</td>" +
         vals.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") +
         "<td>" + r.day + "</td>";
       tbody.appendChild(tr);
+      tr.querySelector("input").checked = !!keep[r.id];
     });
   }
 
   function renderClaims() {
+    var keep = snapshotChecked("claimSel");
     var tbody = $("claimsBody");
     tbody.innerHTML = "";
     state.inference.claims.forEach(function (c) {
       var tr = document.createElement("tr");
-      tr.innerHTML = "<td><input type='checkbox' class='claimSel' data-id='" + c.id + "'></td>" +
+      var name = "選取主張 #" + c.id + "(" + cfgLabel(c.config) + "," + (c.ok ? "成立" : "不成立") + ")";
+      tr.innerHTML = "<td><input type='checkbox' class='claimSel' data-id='" + c.id + "' aria-label='" + name + "'></td>" +
         "<td>#" + c.id + "</td><td>" + cfgLabel(c.config) + "</td>" +
         "<td>" + fmt(c.prediction) + "</td><td>" + (c.ok ? "成立" : "不成立") + "</td><td>" + c.day + "</td>";
       tbody.appendChild(tr);
+      tr.querySelector("input").checked = !!keep[c.id];
     });
   }
 
@@ -65,7 +101,7 @@
       var extra = (st.id === "s2" && state.belief.P3.s2NeedFlag && stateTag !== "broken")
         ? "<div class='hint'>(證詞追加)" + st.insufficient.reply + "</div>" : "";
       div.innerHTML = "<p class='" + (stateTag === "broken" ? "broken" : "") + "'><b>" + st.id + "</b> " + st.text +
-        " <button class='pressBtn' data-id='" + st.id + "'>追問</button></p>" + extra;
+        " <button class='pressBtn' data-id='" + st.id + "' aria-label='追問證詞 " + st.id + "'>追問</button></p>" + extra;
       box.appendChild(div);
     });
     Array.prototype.forEach.call(document.querySelectorAll(".pressBtn"), function (b) {
@@ -81,8 +117,8 @@
       $("victory").style.display = "";
       $("victory").innerHTML = "<p>" + DEBATE.texts.victory + "</p>" +
         "<p><b>支柱 P3 破裂——本切片結束。總耗天數:" + state.days + " 天。</b></p>" +
-        "<p>你改了什麼讓數據變好?<br><textarea id='q1' rows='2'></textarea></p>" +
-        "<p>這組證據還不能證明什麼?<br><textarea id='q2' rows='2'></textarea></p>" +
+        "<p><label>你改了什麼讓數據變好?<br><textarea id='q1' rows='2'></textarea></label></p>" +
+        "<p><label>這組證據還不能證明什麼?<br><textarea id='q2' rows='2'></textarea></label></p>" +
         "<p class='hint'>(自由作答,僅存於本次記憶體,不評分——供形成性試玩之因果回述觀察)</p>";
       $("q1").onchange = function () { state.review.q1 = this.value; };
       $("q2").onchange = function () { state.review.q2 = this.value; };
@@ -119,7 +155,7 @@
 
   /* ---------- 筆記 ---------- */
   Array.prototype.forEach.call(document.querySelectorAll("input[name=viewMode]"), function (radio) {
-    radio.onchange = function () { viewMode = this.value; renderRuns(); };
+    radio.onchange = function () { viewMode = this.value; renderRuns(); }; /* renderRuns 內建勾選保留(B-2) */
   });
 
   $("btnCompare").onclick = function () {
