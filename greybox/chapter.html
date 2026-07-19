@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>《發現之前》第一章:重物的渴望(M2 灰盒)</title>
+<title>《發現之前》第一章:重物的渴望(M3 灰盒・完整章)</title>
 <style>
   /* R-ENV-04 灰盒紀律 */
   body { font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif; margin: 16px auto; max-width: 860px; line-height: 1.7; padding: 0 12px; }
@@ -33,7 +33,7 @@
 </head>
 <body>
 <h1>《發現之前》第一章:重物的渴望</h1>
-<p class="hint">M2 灰盒(序幕→第二幕)——文字與互動為正式內容,視覺為佔位。第三幕辯論於 M3 接上;切片版另存 <a href="index.html">index.html</a>。</p>
+<p class="hint">完整第一章灰盒(M3):序幕→第一幕→幕間→第二幕→辯論→尾聲。文字與互動為正式內容,視覺為佔位(正式美術由 Sol 整合中)。切片版另存 <a href="index.html">index.html</a>。</p>
 
 <section id="title-screen" aria-label="標題畫面">
   <h2>標題</h2>
@@ -54,6 +54,7 @@
     <span>信譽:<b id="repVal">3</b>/5</span>
     <span>天數:<b id="dayVal">0</b></span>
     <span id="e3Val"></span>
+    <span id="perVal"></span>
     <span id="modeVal"></span>
     <span id="sceneVal"></span>
   </div>
@@ -92,6 +93,7 @@
 
 <script src="data/patterns.js"></script>
 <script src="data/debate.js"></script>
+<script src="data/histfacts.js"></script>
 <script src="src/engine.js"></script>
 <script src="data/scenes.js"></script>
 <script src="src/narrative.js"></script>

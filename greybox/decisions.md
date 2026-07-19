@@ -42,6 +42,11 @@
 **裁決**:①新增節點型別 `embed`(內嵌實驗台,`until` 條件門:e3.a/b/c/established、repairRun)與 `return`(SC-R1 返回原游標);②切片引擎全狀態內嵌為 `state.lab`——章節與實驗台合為單一可序列化物件,存檔 schema 升 2(M1 存檔不相容,由 R-SAV-02 容錯處理,pre-release 可接受);③`labAction` 為唯一 lab 變更通道,負責同步:E3 確立(a∧b)→章節證據 E3、失敗判定→`hadFailure` 旗標(死路 B 回述之觸發條件——失敗回述僅於玩家真的失敗過才出現,不預先教學);④SC-R1 由 `redirectIfLocked` 引擎導入(非 goto 邊),可達性測試將其列為引擎入口。
 **劇本實作偏差(呈 Sol 劇本審稿)**:劇本 A2-2 之「指認選項(1:3:5:7/平方數)」由實驗台**預測制**實現,不重複做成敘事選項——同一認知動作不做兩次,刪台詞測試由 lint+預測制雙重把關;A2-2 死路 B 診斷對話改為條件式回述(hadFailure),避免預先標籤化失敗(憲章五防消毒條款)。
 
+## GB-ADR-008|M3 辯論層架構(2026-07-19)
+
+**裁決**:①全章辯論資料入 `debate.json` 新欄位 `chapter`(legacy 欄位與切片測試原封不動,R-DATA-04);②辯論引擎入 narrative.js(debatePress/PressChoice/Present/Fr/ExitSuspended),辯論為 `embed(system:"debate", until:{debateWon})`,中止經 `suspendNext` 出口至 A3-F(自由補實驗、無門檻)再經 `{"debate":"reenter"}` 效果重返——量表重置、已破支柱與 FR 進度保留(R-DEB-13);③trap 說謊之 rep−1 與修復迴路(SC-R1)自然互通:辯論中歸零→修復→返回辯論,零特例碼;④review(R-UI-02 兩題)與 histfacts(R-END-02 資料驅動)為新節點型別;⑤存檔 schema 升 3。
+**與劇本之對齊註**:P2 追問 2-3 之「憑誰立論」選項、E1「又是幾乎」特殊回應、FR 兩步引導/三槽組鏈/干擾項、trap 雙重代價與強制轉誠實、判定場「夾數據紙」全數入資料;辛普里奧台詞=老派書面語(ADR-005)、道具=評注本(ADR-008 專案級)。
+
 ## GB-ADR-005|文件版次治理
 
 **背景**:規格 v0.1 引用不存在於資產庫的「架構 v0.3.1」;資料夾平鋪三版架構書。

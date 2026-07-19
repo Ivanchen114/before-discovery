@@ -34,6 +34,14 @@ tests.push({
   }
 });
 tests.push({
+  name: "R-END-02|histfacts.js ≡ histfacts.json",
+  fn: () => {
+    const hf = require("../data/histfacts.js");
+    const json = JSON.parse(readFileSync(path.join(here, "../data/histfacts.json"), "utf-8"));
+    if (JSON.stringify(hf) !== JSON.stringify(json)) throw new Error("histfacts 鏡像漂移");
+  }
+});
+tests.push({
   name: "R-DATA-06|scenes.js ≡ scenes.json",
   fn: () => {
     const json = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));

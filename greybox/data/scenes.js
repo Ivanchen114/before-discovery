@@ -1642,13 +1642,295 @@
      "type": "system",
      "speaker": "system",
      "text": "第二幕終。證據齊備:E1/E2/E3/E4(+S1/S2)。筆記章節頁:「異例、矛盾、規律、辯護——四樣都在了。去蓋新房子。」",
+     "next": "g2"
+    },
+    {
+     "id": "g2",
+     "type": "goto",
+     "scene": "A3-1"
+    }
+   ]
+  },
+  {
+   "id": "A3-1",
+   "title": "重逢(帕多瓦大學大講堂,1604)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "座無虛席。校方長老主持。辛普里奧,72 歲,一襲黑袍,銀鬚整肅,臂彎裡仍夾著那一冊《物理學》——書皮又舊了一輪,夾籤更厚了。他打過的辯論,比伽利略讀過的書還多;而他讀得最熟的那一本,始終在臂彎裡。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "主持",
+     "text": "今日論題:論落體之自然運動。辛普里奧教授立論;伽利萊教授與其同伴質詢。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "(目光越過人群,落在旅人身上,微微一頓)……十四年。老夫的學生都做了教授。(把書往講台上端端一放)而你,一天都沒老。看來為了今日,連光陰都肯替你作弊。(不等回答,轉向講堂)無妨。道理不怕等,也不怕客。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "system",
+     "speaker": "system",
+     "text": "說服力量表:5。錯誤出示 −1;歸零則辯論中止(可補證後再入)。",
+     "effects": [
+      {
+       "debate": "init"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A3-D"
+    }
+   ]
+  },
+  {
+   "id": "A3-D",
+   "title": "論辯",
+   "nodes": [
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "debate",
+     "until": {
+      "debateWon": true
+     },
+     "suspendNext": "gF",
+     "hint": "追問找線索,出示(證據×目標證詞)擊破支柱;三柱皆破後迎接最後反撲。",
+     "next": "gW"
+    },
+    {
+     "id": "gF",
+     "type": "goto",
+     "scene": "A3-F"
+    },
+    {
+     "id": "gW",
+     "type": "goto",
+     "scene": "A3-6"
+    }
+   ]
+  },
+  {
+   "id": "A3-F",
+   "title": "辯論中止",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "主持",
+     "text": "今日論辯,質詢方失序,到此為止。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(走出講堂,不惱)聽著,輸掉一場辯論死不了人。帶著不夠的證據上台才會。回去,補。",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "incline",
+     "until": {},
+     "hint": "自由補實驗與主張;證據與已破支柱完整保留。準備好了就重返辯論會。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "system",
+     "speaker": "system",
+     "text": "(再入辯論——說服力重置;已破的支柱,不必重打。)",
+     "effects": [
+      {
+       "debate": "reenter"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "A3-D"
+    }
+   ]
+  },
+  {
+   "id": "A3-6",
+   "title": "判定",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "辛普里奧立於原地,望著滿板的數字。然後,他做了無人料到的事——坐下,把那冊翻舊的《物理學》端端正正放在案上。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "……本席,仍信亞里斯多德。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "(學生席一片嘆息。)",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "但。(抬眼,直視伽利略)老夫執教四十年,今日頭一回,在辯論裡輸給了一組數字。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "stage",
+     "text": "起身,整袍。然後他伸出手——把旅人那頁數據紙從案上拿起,對著窗光,看了很久。",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "line",
+     "speaker": "stage",
+     "text": "他沒有還。他翻開《物理學》,把那頁紙,端端正正地夾了進去。合上。",
+     "next": "n7"
+    },
+    {
+     "id": "n7",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "回去把你們的數字寫下來。寫清楚——量到哪裡,沒量到哪裡,都寫清楚。(把書抱回臂彎)老夫,會讀。",
      "next": "n8"
     },
     {
      "id": "n8",
+     "type": "line",
+     "speaker": "stage",
+     "text": "他離場。背影挺直。臂彎裡的《物理學》,厚了一頁。無人喝采——但每個學生,都在往前傾。",
+     "next": "n9"
+    },
+    {
+     "id": "n9",
      "type": "system",
      "speaker": "system",
-     "text": "——M2 里程碑終點——\n第三幕(公開辯論)於 M3 接上。",
+     "text": "辯論勝利。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E-1"
+    }
+   ]
+  },
+  {
+   "id": "E-1",
+   "title": "運河邊(黃昏)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "帕多瓦,黃昏。橋影橫過水面。學生追著伽利略問個不停,他一一作答,聲音飄遠。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(回頭,對旅人)你知道今晚讓我睡不著的是什麼嗎?不是落下。(拾起石子,拋出——石子劃出一道弧,落進運河)是拋出去的東西。它往前,又往下——兩件事,同時發生。(盯著漣漪)……同時發生。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "他快步離去,邊走邊在袖口上寫字。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "system",
+     "speaker": "system",
+     "text": "第二章鉤子:拋體運動。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E-2"
+    }
+   ]
+  },
+  {
+   "id": "E-2",
+   "title": "旅人筆記・末頁",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人獨坐橋頭,翻至筆記末頁。頁面透出微光——浮現一幅不屬於這個時代的影像:",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "灰色的塵原。黑色的天。一個穿臃腫白甲的人,左手一柄鎚,右手一根羽毛。同時放手——",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "鎚與羽,並肩落地。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "system",
+     "speaker": "system",
+     "text": "三百六十七年後・月球・亞平寧山麓\n那裡沒有空氣。他做這個實驗,是為了向一位比薩人致敬。",
+     "next": "rv"
+    },
+    {
+     "id": "rv",
+     "type": "review",
+     "next": "hf",
+     "prompts": [
+      "為什麼重的不會掉比較快?",
+      "為什麼伽利略要用斜面?"
+     ]
+    },
+    {
+     "id": "hf",
+     "type": "histfacts",
+     "next": "fin"
+    },
+    {
+     "id": "fin",
+     "type": "system",
+     "speaker": "system",
+     "text": "——第一章 終——\n感謝遊玩完整第一章(M3 灰盒)。總耗天數與你的筆記已存檔。",
      "next": "end"
     },
     {

@@ -1,11 +1,11 @@
-/* src/chapter-ui.js — 章節表現層(M2:含實驗台 embed)。
-   狀態變更一律經 Narrative/labAction 純函式;本檔只管輸入與渲染。
-   存檔:localStorage 鍵 bd_ch1_save(schema 2);每步自動存;信譽歸零由 redirectIfLocked 導入 SC-R1。 */
+/* src/chapter-ui.js — 章節表現層(M3:實驗台+辯論廳+章末回顧+史實頁)。
+   狀態變更一律經 Narrative 純函式;本檔只管輸入與渲染。存檔鍵 bd_ch1_save(schema 3)。 */
 (function () {
   "use strict";
   var N = window.GB.Narrative;
   var SCENES = window.GB.DATA.scenes;
   var PATTERNS = window.GB.DATA.patterns;
+  var HIST = window.GB.DATA.histfacts;
   var KEY = "bd_ch1_save";
   var state = null;
   var lastSceneShown = null;
@@ -17,9 +17,7 @@
   function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
 
   /* ---------- 存檔 ---------- */
-  function save() {
-    try { localStorage.setItem(KEY, N.serialize(state)); } catch (e) {}
-  }
+  function save() { try { localStorage.setItem(KEY, N.serialize(state)); } catch (e) {} }
   function tryLoad() {
     var text = null;
     try { text = localStorage.getItem(KEY); } catch (e) { return null; }
@@ -30,14 +28,13 @@
       return null;
     }
   }
-
-  /* ---------- 中央狀態更新(含 R-REP-02 導流) ---------- */
   function setState(s) {
     state = s;
     var rd = N.redirectIfLocked(state);
     if (rd.redirected) {
       state = rd.state;
       addLine("system", "(信譽歸零——關鍵人物暫時拒絕與你交談。)", "system");
+      lastSceneShown = null;
     }
     save();
   }
@@ -79,11 +76,19 @@
       addLine(e.speaker, e.text, classFor(e.speaker));
     });
   }
+  function syncNewTranscript(prevLen) {
+    for (var i = prevLen; i < state.transcript.length; i++) {
+      var e = state.transcript[i];
+      sceneHeading(e.scene);
+      addLine(e.speaker, e.text, classFor(e.speaker));
+    }
+  }
   function renderStatus() {
     $("repVal").textContent = state.rep;
     $("dayVal").textContent = state.lab.days;
     var e3 = state.lab.evidence.e3;
     $("e3Val").textContent = "E3:a" + (e3.a ? "●" : "○") + "b" + (e3.b ? "●" : "○") + "c" + (e3.c ? "●" : "○");
+    $("perVal").textContent = state.debate ? ("說服力:" + state.debate.persuasion + "/5") : "";
     $("modeVal").textContent = "模式:" + (state.mode === "scholar" ? "學者" : "探索");
     $("sceneVal").textContent = "場景:" + state.cursor.scene;
     var names = SCENES.evidenceNames || {};
@@ -93,7 +98,7 @@
       : "(尚無)";
   }
 
-  /* ---------- 實驗台(embed)渲染 ---------- */
+  /* ---------- 實驗台 ---------- */
   function fillSelect(id, keys, labelFn, filterFn) {
     var sel = $(id);
     sel.innerHTML = "";
@@ -109,10 +114,7 @@
     fillSelect("labIncline", Object.keys(PATTERNS.base));
     fillSelect("labTimer", Object.keys(PATTERNS.timer), function (t) {
       return t + "(" + PATTERNS.dayCost[t] + " 天/次)";
-    }, function (t) {
-      /* R-MODE-02:音格=學者模式限定,探索模式不出現於選單 */
-      return state.mode === "scholar" || t !== "音格";
-    });
+    }, function (t) { return state.mode === "scholar" || t !== "音格"; });
     $("labAssertC").style.display = (state.mode === "scholar") ? "" : "none";
   }
   function checkedIds(cls) {
@@ -163,7 +165,7 @@
       var r = N.embedComplete(state);
       if (r.error) { $("labMsg").textContent = r.error; return; }
       setState(r.state);
-      addLine("system", "(實驗台段落完成)", "system");
+      addLine("system", "(互動段落完成)", "system");
       renderAll();
     };
     gate.appendChild(btn);
@@ -175,8 +177,8 @@
     if (okMsg) $(msgEl).textContent = okMsg(r.result);
     renderStatus(); renderLabTables();
     var v = N.view(state);
-    if (v.type === "embed") renderEmbedGate(v);
-    else renderAll(); /* SC-R1 導流等情形 */
+    if (v.type === "embed" && v.system === "incline") renderEmbedGate(v);
+    else renderAll();
     return r.result;
   }
   function bindLabButtons() {
@@ -215,6 +217,135 @@
     $("labAssertC").onclick = function () { doAssert("c"); };
   }
 
+  /* ---------- 辯論廳 ---------- */
+  function doDebate(fn, args) {
+    var prevLen = state.transcript.length;
+    var r = N[fn].apply(null, [state].concat(args));
+    if (r.error) { addLine("system", "(" + r.error + ")", "system"); return; }
+    setState(r.state);
+    syncNewTranscript(prevLen);
+    renderAll();
+  }
+  function mkBtn(box, text, onclick, disabled) {
+    var b = document.createElement("button");
+    b.textContent = text;
+    if (disabled) b.disabled = true;
+    b.onclick = onclick;
+    box.appendChild(b);
+    return b;
+  }
+  function renderDebate(v, box) {
+    var d = v.debate;
+    if (!d) { box.textContent = "(辯論尚未初始化)"; return; }
+    var head = document.createElement("p");
+    head.textContent = "支柱:" + d.pillarSummary.map(function (p) {
+      return p.id + (p.broken ? "✕(已破)" : "○");
+    }).join(" ") + "|說服力:" + "●".repeat(d.persuasion) + "○".repeat(Math.max(0, 5 - d.persuasion));
+    box.appendChild(head);
+
+    if (d.status === "suspended") {
+      var pS = document.createElement("p");
+      pS.textContent = "辯論已中止——證據與已破支柱保留。";
+      box.appendChild(pS);
+      mkBtn(box, "離場(回實驗室補證據)", function () { doDebate("debateExitSuspended", []); });
+      return;
+    }
+    if (d.status === "won" || d.phase === "won") {
+      var pW = document.createElement("p");
+      pW.textContent = "支柱盡破,最後反撲已破——收束辯論。";
+      box.appendChild(pW);
+      mkBtn(box, "▶ 繼續劇情(判定)", function () {
+        var r = N.embedComplete(state);
+        if (r.error) { addLine("system", r.error, "system"); return; }
+        setState(r.state);
+        renderAll();
+      });
+      return;
+    }
+    if (d.phase === "pillars") {
+      var pT = document.createElement("p");
+      pT.textContent = "當前:" + d.pillar.title;
+      box.appendChild(pT);
+      d.statements.forEach(function (st) {
+        var row = document.createElement("div");
+        row.className = "line" + (st.status === "broken" ? " broken" : "");
+        var span = document.createElement("span");
+        span.textContent = st.id + " " + st.text + " ";
+        row.appendChild(span);
+        if (st.status !== "broken" && !d.pressChoice) {
+          mkBtn(row, "追問", function () { doDebate("debatePress", [st.id]); });
+        }
+        box.appendChild(row);
+      });
+      if (d.pressChoice) {
+        var pc = document.createElement("p");
+        pc.textContent = d.pressChoice.prompt;
+        box.appendChild(pc);
+        d.pressChoice.options.forEach(function (o) {
+          mkBtn(box, o.text, function () { doDebate("debatePressChoice", [o.id]); });
+        });
+        return;
+      }
+      /* 出示表單 */
+      var form = document.createElement("p");
+      form.appendChild(document.createTextNode("出示:"));
+      var evSel = document.createElement("select");
+      ["E1", "E2", "E3", "E4", "S1", "S2"].forEach(function (ev) {
+        if (ev === "E3" || state.evidence[ev]) {
+          var o = document.createElement("option"); o.value = ev; o.textContent = ev; evSel.appendChild(o);
+        }
+      });
+      evSel.setAttribute("aria-label", "選擇證據");
+      var subSel = document.createElement("select");
+      [["a", "a 規律成立"], ["b", "b 與球重無關"], ["c", "c 隨傾角形式不變"]].forEach(function (p) {
+        var o = document.createElement("option"); o.value = p[0]; o.textContent = p[1]; subSel.appendChild(o);
+      });
+      subSel.setAttribute("aria-label", "E3 子項");
+      subSel.style.display = "";
+      evSel.onchange = function () { subSel.style.display = (evSel.value === "E3") ? "" : "none"; };
+      var tgSel = document.createElement("select");
+      d.statements.forEach(function (st) {
+        if (st.status !== "broken") {
+          var o = document.createElement("option"); o.value = st.id; o.textContent = "→ " + st.id; tgSel.appendChild(o);
+        }
+      });
+      tgSel.setAttribute("aria-label", "目標證詞");
+      form.appendChild(evSel); form.appendChild(subSel); form.appendChild(tgSel);
+      box.appendChild(form);
+      mkBtn(box, "出示", function () {
+        var sub = (evSel.value === "E3") ? subSel.value : null;
+        doDebate("debatePresent", [{ evidence: evSel.value, subitem: sub, target: tgSel.value }]);
+      });
+      return;
+    }
+    if (d.phase === "trap") {
+      var pTr = document.createElement("p");
+      pTr.textContent = d.trap.prompt;
+      box.appendChild(pTr);
+      d.trap.options.forEach(function (o) {
+        mkBtn(box, o.text, function () { doDebate("debateFr", [o.id]); });
+      });
+      return;
+    }
+    if (d.phase === "fr") {
+      var pF = document.createElement("p");
+      pF.textContent = d.fr.prompt;
+      box.appendChild(pF);
+      if (d.fr.kind === "explore") {
+        d.fr.options.forEach(function (o) {
+          mkBtn(box, o.text, function () { doDebate("debateFr", [o.id]); });
+        });
+      } else {
+        var slotP = document.createElement("p");
+        slotP.textContent = "已組:" + (d.fr.slots.length ? d.fr.slots.join(" → ") : "(空)") + "/3";
+        box.appendChild(slotP);
+        d.fr.pool.forEach(function (o) {
+          mkBtn(box, o.text, function () { doDebate("debateFr", [o.id]); }, d.fr.slots.indexOf(o.id) >= 0);
+        });
+      }
+    }
+  }
+
   /* ---------- 主渲染 ---------- */
   function renderAll() {
     renderStatus();
@@ -222,11 +353,11 @@
     sceneHeading(v.scene);
     var box = $("controls");
     box.innerHTML = "";
-    if (v.type === "embed") {
+    if (v.type === "embed" && v.system === "incline") {
       $("lab").style.display = "";
       $("labHint").textContent = v.hint || "";
       var ek = v.scene + "/" + v.nodeId;
-      if (ek !== lastEmbedKey) { /* R-HOOK-01 預選(僅入場時,不鎖自由度) */
+      if (ek !== lastEmbedKey) {
         lastEmbedKey = ek;
         if (v.preset) {
           Object.keys(v.preset).forEach(function (k) {
@@ -240,38 +371,84 @@
       return;
     }
     $("lab").style.display = "none";
+    if (v.type === "embed" && v.system === "debate") {
+      renderDebate(v, box);
+      return;
+    }
+    if (v.type === "review") {
+      var p = document.createElement("p");
+      p.textContent = "旅人筆記・回顧(自由作答,只存檔,不評分):";
+      box.appendChild(p);
+      var tas = v.prompts.map(function (q) {
+        var lab = document.createElement("label");
+        lab.style.display = "block";
+        lab.appendChild(document.createTextNode(q));
+        var ta = document.createElement("textarea");
+        ta.rows = 2; ta.style.width = "95%";
+        lab.appendChild(document.createElement("br"));
+        lab.appendChild(ta);
+        box.appendChild(lab);
+        return ta;
+      });
+      mkBtn(box, "寫入筆記", function () {
+        var r = N.setReview(state, tas[0].value, tas[1].value);
+        if (r.error) { addLine("system", r.error, "system"); return; }
+        setState(r.state);
+        addLine("system", "旅人在筆記上寫下自己的答案。", "system");
+        renderAll();
+      });
+      return;
+    }
+    if (v.type === "histfacts") {
+      var h = document.createElement("p");
+      h.innerHTML = "<b>" + HIST.title + "</b>(透明揭露:哪些是史實、哪些是傳說或改編)";
+      box.appendChild(h);
+      var tbl = document.createElement("table");
+      HIST.rows.forEach(function (row) {
+        var tr = document.createElement("tr");
+        row.forEach(function (cell) {
+          var td = document.createElement("td");
+          td.style.textAlign = "left";
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbl.appendChild(tr);
+      });
+      box.appendChild(tbl);
+      mkBtn(box, "▶ 繼續", function () {
+        var r = N.advance(state);
+        if (r.error) { addLine("system", r.error, "system"); return; }
+        setState(r.state);
+        renderAll();
+      });
+      return;
+    }
     if (v.type === "end" || state.ended) {
-      addLine("system", "——本段落結束(M2:第二幕終)。第三幕辯論於 M3 接上;進度已存。", "system");
+      addLine("system", "——第一章 終——感謝遊玩完整第一章灰盒。總耗天數:" + state.lab.days + " 天。進度已存。", "system");
       save();
       return;
     }
     if (v.type === "choice") {
-      var p = document.createElement("p");
-      p.textContent = v.prompt;
-      box.appendChild(p);
+      var pc = document.createElement("p");
+      pc.textContent = v.prompt;
+      box.appendChild(pc);
       v.options.forEach(function (o) {
-        var b = document.createElement("button");
-        b.textContent = o.text;
-        b.onclick = function () {
+        mkBtn(box, o.text, function () {
           var r = N.choose(state, o.id);
           if (r.error) { addLine("system", r.error, "system"); return; }
           setState(r.state);
           addLine("旅人(你)", o.text, "player");
           renderAll();
-        };
-        box.appendChild(b);
+        });
       });
     } else {
-      var btn = document.createElement("button");
-      btn.textContent = "▶ 繼續";
-      btn.onclick = function () {
+      var btn = mkBtn(box, "▶ 繼續", function () {
         var r = N.advance(state);
         if (r.error) { addLine("system", r.error, "system"); return; }
         setState(r.state);
         if (r.node) addLine(r.node.speaker, r.node.text, classFor(r.node.speaker));
         renderAll();
-      };
-      box.appendChild(btn);
+      });
       btn.focus();
     }
   }
@@ -289,7 +466,6 @@
     renderAll();
   }
 
-  /* ---------- 標題畫面 ---------- */
   function initTitle() {
     var loaded = tryLoad();
     $("continueWrap").style.display = loaded ? "" : "none";

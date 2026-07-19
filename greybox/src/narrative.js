@@ -1,21 +1,22 @@
 /* src/narrative.js — 章節敘事引擎(純函式,R-STA-05 語意)
-   法源:第一章功能規格 v0.1(R-NAR/R-REP/R-SAV/R-HOOK);資料:data/scenes.js;內嵌:src/engine.js(斜面實驗台)。
-   無 DOM、無亂數、無副作用;每個轉移:給定狀態+事件 → 唯一後繼狀態。
-   M2:embed/return 節點、state.lab(切片引擎狀態)、labAction 包裝、SC-R1 修復迴路。存檔 schema=2。 */
+   法源:第一章功能規格 v0.1;資料:data/scenes.js、data/debate.js(chapter);內嵌:src/engine.js。
+   M3:全章辯論(R-DEB-09~13:P1/P2/P3 支柱序列+追問內嵌選項+FR 組鏈+trap+中止再入)、
+   review 兩題(R-UI-02)、histfacts(R-END-02)。存檔 schema=3。 */
 (function (root, factory) {
   "use strict";
   if (typeof module === "object" && module.exports) {
-    module.exports = factory(require("../data/scenes.js"), require("./engine.js"));
+    module.exports = factory(require("../data/scenes.js"), require("./engine.js"), require("../data/debate.js"));
   } else {
     root.GB = root.GB || {};
-    root.GB.Narrative = factory(root.GB.DATA.scenes, root.GB.Engine);
+    root.GB.Narrative = factory(root.GB.DATA.scenes, root.GB.Engine, root.GB.DATA.debate);
   }
-})(typeof self !== "undefined" ? self : this, function (SCENES, Engine) {
+})(typeof self !== "undefined" ? self : this, function (SCENES, Engine, DEBATE) {
   "use strict";
 
-  var SAVE_SCHEMA = 2;
+  var SAVE_SCHEMA = 3;
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = "SC-R1";
+  var CH = DEBATE.chapter;
 
   var sceneMap = {};
   SCENES.scenes.forEach(function (s) {
@@ -29,14 +30,16 @@
   function initialState(mode) {
     return {
       schemaVersion: SAVE_SCHEMA,
-      mode: mode === "scholar" ? "scholar" : "explore", /* R-MODE-01 */
-      rep: 3,                                            /* R-REP-01 */
+      mode: mode === "scholar" ? "scholar" : "explore",
+      rep: 3,
       flags: {},
       evidence: {},
-      lab: Engine.initialState(),                        /* 切片引擎全狀態(runs/claims/E3/辯論) */
+      lab: Engine.initialState(),
+      debate: null,                     /* A3-1 之 {"debate":"init"} 建立 */
+      review: { q1: "", q2: "" },
       cursor: { scene: SCENES.startScene, node: firstNodeId(SCENES.startScene) },
       transcript: [],
-      eventLog: [],                                      /* R-NAR-06 */
+      eventLog: [],
       ended: false
     };
   }
@@ -46,8 +49,11 @@
     var sc = sceneMap[state.cursor.scene];
     return sc ? sc.nodes[state.cursor.node] : null;
   }
+  function say(state, speaker, text) {
+    state.transcript.push({ scene: state.cursor.scene, node: state.cursor.node, speaker: speaker, text: text });
+  }
 
-  /* 守衛(R-NAR-03):flag/flagAbsent/evidence/flags(全部符合) */
+  /* ---------- 守衛與效果 ---------- */
   function passRequire(state, req) {
     if (!req) return true;
     if (req.flag) return state.flags[req.flag[0]] === req.flag[1];
@@ -56,41 +62,35 @@
     if (req.flags) return req.flags.every(function (p) { return state.flags[p[0]] === p[1]; });
     return true;
   }
-  function passMode(state, node) {
-    return !node.mode || node.mode === "all" || node.mode === state.mode;
-  }
+  function passMode(state, node) { return !node.mode || node.mode === "all" || node.mode === state.mode; }
   function visible(state, x) { return passMode(state, x) && passRequire(state, x.require); }
 
-  /* 效果原語(R-NAR-02)+R-REP-02 歸零掛鎖 */
+  function applyRep(state, delta, sourceId) {
+    var before = state.rep;
+    state.rep = Math.min(REP_MAX, Math.max(REP_MIN, state.rep + delta));
+    state.eventLog.push({ t: "rep", d: delta, from: before, to: state.rep, at: sourceId });
+    if (state.rep === 0 && delta < 0) {
+      state.flags.repLocked = "1";
+      state.eventLog.push({ t: "repLock", at: sourceId });
+    }
+  }
+  function grantEvidence(state, id, at) {
+    if (!state.evidence[id]) {
+      state.evidence[id] = true;
+      state.eventLog.push({ t: "evidence", id: id, at: at });
+    }
+  }
   function applyEffects(state, effects, sourceId) {
     (effects || []).forEach(function (e) {
-      if ("rep" in e) {
-        var before = state.rep;
-        state.rep = Math.min(REP_MAX, Math.max(REP_MIN, state.rep + e.rep));
-        state.eventLog.push({ t: "rep", d: e.rep, from: before, to: state.rep, at: sourceId });
-        if (state.rep === 0 && e.rep < 0) {
-          state.flags.repLocked = "1";
-          state.eventLog.push({ t: "repLock", at: sourceId });
-        }
-      }
-      if (e.evidence) {
-        state.evidence[e.evidence] = true;
-        state.eventLog.push({ t: "evidence", id: e.evidence, at: sourceId });
-      }
-      if (e.flag) {
-        state.flags[e.flag[0]] = e.flag[1];
-        state.eventLog.push({ t: "flag", k: e.flag[0], v: e.flag[1], at: sourceId });
-      }
-      if (e.flagClear) {
-        delete state.flags[e.flagClear];
-        state.eventLog.push({ t: "flagClear", k: e.flagClear, at: sourceId });
-      }
+      if ("rep" in e) applyRep(state, e.rep, sourceId);
+      if (e.evidence) grantEvidence(state, e.evidence, sourceId);
+      if (e.flag) { state.flags[e.flag[0]] = e.flag[1]; state.eventLog.push({ t: "flag", k: e.flag[0], v: e.flag[1], at: sourceId }); }
+      if (e.flagClear) { delete state.flags[e.flagClear]; state.eventLog.push({ t: "flagClear", k: e.flagClear, at: sourceId }); }
+      if (e.debate === "init") debateInit(state);
+      if (e.debate === "reenter") debateReenter(state);
     });
   }
 
-  function record(state, node) {
-    state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: node.speaker || "", text: node.text || "" });
-  }
   function moveTo(state, sceneId, nodeId) {
     state.cursor = { scene: sceneId, node: nodeId || firstNodeId(sceneId) };
   }
@@ -102,7 +102,7 @@
       var node = getNode(state);
       if (!node) throw new Error("節點不存在:" + state.cursor.scene + "/" + state.cursor.node);
       if (node.type === "goto") { moveTo(state, node.scene); continue; }
-      if (node.type === "return") { /* SC-R1 收尾:跳回進場前游標 */
+      if (node.type === "return") {
         var rs = state.flags.returnScene, rn = state.flags.returnNode;
         if (!rs) throw new Error("return 節點無返回游標");
         delete state.flags.returnScene; delete state.flags.returnNode; delete state.flags.scr1_baseline;
@@ -119,7 +119,253 @@
     }
   }
 
-  /* embed 完成條件(章規格 R-HOOK/R-REP-03) */
+  /* ---------- 辯論引擎(R-DEB-09~13) ---------- */
+  function pillarDef(pid) { return CH.pillars[pid]; }
+  function pillarStatements(pid) {
+    if (pillarDef(pid).useLegacy) return DEBATE.statements;
+    return pillarDef(pid).statements;
+  }
+  function debateInit(state) {
+    var pillars = {};
+    ["P1", "P2", "P3"].forEach(function (pid) {
+      var st = {};
+      pillarStatements(pid).forEach(function (s) { st[s.id] = "intact"; });
+      pillars[pid] = { broken: false, s: st };
+    });
+    state.debate = {
+      persuasion: DEBATE.persuasion, idx: 0, pillars: pillars,
+      p3NeedFlag: false, pressChoice: null,
+      fr: { opened: false, step: 0, slots: [], trapPending: false, resolved: false },
+      status: "pending"
+    };
+    state.eventLog.push({ t: "debateInit" });
+  }
+  function debateReenter(state) {
+    if (!state.debate) return;
+    state.debate.persuasion = DEBATE.persuasion;
+    if (state.debate.status === "suspended") state.debate.status = "pending";
+    state.eventLog.push({ t: "debateReenter" });
+  }
+  function curPillarId(d) { return CH.order[d.idx]; }
+  function debatePersuasion(state, delta, at) {
+    var d = state.debate;
+    d.persuasion = Math.max(0, d.persuasion + delta);
+    state.eventLog.push({ t: "persuasion", d: delta, to: d.persuasion, at: at });
+    if (d.persuasion === 0) {
+      d.status = "suspended";
+      say(state, "system", CH.texts.suspend);
+      state.eventLog.push({ t: "debateSuspend", at: at });
+    }
+  }
+  function findStmt(pid, sid) {
+    var hit = null;
+    pillarStatements(pid).forEach(function (s) { if (s.id === sid) hit = s; });
+    return hit;
+  }
+  function guardDebate(state) {
+    var d = state.debate;
+    if (!d) return "辯論尚未開始";
+    if (d.status !== "pending") return "辯論非進行狀態";
+    return null;
+  }
+
+  function debatePress(state0, sid) {
+    var state = clone(state0);
+    var d = state.debate;
+    var g = guardDebate(state); if (g) return { state: state0, error: g };
+    if (d.pressChoice) return { state: state0, error: "先回應教授的反問" };
+    if (d.idx >= 3) return { state: state0, error: "支柱已盡,面對最後反撲" };
+    var stmt = findStmt(curPillarId(d), sid);
+    if (!stmt) return { state: state0, error: "無此證詞" };
+    say(state, "旅人(你)", "【追問】" + stmt.text);
+    say(state, "辛普里奧", stmt.press || "(不答。)");
+    if (stmt.pressChoice) {
+      d.pressChoice = { sid: sid };
+      return { state: state, choice: stmt.pressChoice };
+    }
+    return { state: state };
+  }
+
+  function debatePressChoice(state0, optionId) {
+    var state = clone(state0);
+    var d = state.debate;
+    if (!d || !d.pressChoice) return { state: state0, error: "目前無反問待答" };
+    var stmt = findStmt(curPillarId(d), d.pressChoice.sid);
+    var opt = null;
+    stmt.pressChoice.options.forEach(function (o) { if (o.id === optionId) opt = o; });
+    if (!opt) return { state: state0, error: "選項不存在" };
+    say(state, "旅人(你)", opt.text);
+    say(state, "辛普里奧", opt.reply || "");
+    if (opt.penalty) {
+      if (opt.penalty.rep) applyRep(state, opt.penalty.rep, "debate.pressChoice");
+      if (opt.penalty.persuasion) debatePersuasion(state, opt.penalty.persuasion, "debate.pressChoice");
+    }
+    if (!opt.retry) d.pressChoice = null;
+    return { state: state };
+  }
+
+  function debatePresent(state0, p) {
+    var state = clone(state0);
+    var d = state.debate;
+    var g = guardDebate(state); if (g) return { state: state0, error: g };
+    if (d.pressChoice) return { state: state0, error: "先回應教授的反問" };
+    if (d.idx >= 3) return { state: state0, error: "支柱已盡——用論證回應最後反撲" };
+    var pid = curPillarId(d);
+    var stmt = findStmt(pid, p.target);
+    if (!stmt) return { state: state0, error: "無此證詞" };
+    say(state, "旅人(你)", "【出示】" + p.evidence + (p.subitem ? "." + p.subitem : "") + " → " + stmt.text.slice(0, 12) + "…");
+    var e3 = state.lab.evidence.e3;
+    var outcome;
+    /* 特殊回應表(R-DEB-10) */
+    var special = null;
+    (stmt.special || []).forEach(function (sp) { if (sp.evidence === p.evidence) special = sp; });
+    var weak = stmt.weakTo;
+    var isCorrect = weak && weak.evidence === p.evidence &&
+      (p.evidence !== "E3" || (p.subitem === (weak.subitem || "b") && e3.b));
+    var isInsufficientP3 = pid === "P3" && p.evidence === "E3" && p.subitem === "a" &&
+      p.target === "s2" && e3.a && !e3.b;
+    if (isCorrect) {
+      say(state, "旅人(你)", pillarDef(pid).playerCorrect);
+      say(state, "辛普里奧", pillarDef(pid).breakReply);
+      d.pillars[pid].s[p.target] = "broken";
+      d.pillars[pid].broken = true;
+      d.idx += 1;
+      outcome = "correct";
+      state.eventLog.push({ t: "pillarBroken", pid: pid });
+      if (d.idx === 3) {
+        d.fr.opened = true;
+        say(state, "system", CH.texts.frUnlocked);
+        say(state, "辛普里奧", CH.fr.open);
+      }
+    } else if (isInsufficientP3) {
+      d.p3NeedFlag = true;
+      say(state, "辛普里奧", DEBATE.statements[1].insufficient.reply);
+      outcome = "insufficient";
+    } else if (special) {
+      say(state, "辛普里奧", special.reply);
+      if (special.note) say(state, "system", special.note);
+      outcome = "special";
+    } else {
+      say(state, "辛普里奧", CH.texts.wrong);
+      debatePersuasion(state, -1, "debate.present");
+      outcome = d.status === "suspended" ? "suspended" : "wrong";
+    }
+    return { state: state, outcome: outcome };
+  }
+
+  function frChainDone(state) {
+    var d = state.debate;
+    say(state, "旅人(你)", CH.fr.assertion);
+    say(state, "辛普里奧", CH.fr.trap.prompt);
+    d.fr.trapPending = true;
+  }
+  function frResolveHonest(state) {
+    var d = state.debate;
+    say(state, "旅人(你)", CH.fr.trap.honestText);
+    say(state, "辛普里奧", CH.fr.trap.closeReply);
+    d.fr.trapPending = false;
+    d.fr.resolved = true;
+    d.status = "won";
+    grantEvidence(state, "E5", "debate.fr");
+    state.eventLog.push({ t: "debateWon" });
+  }
+
+  function debateFr(state0, optionId) {
+    var state = clone(state0);
+    var d = state.debate;
+    var g = guardDebate(state); if (g) return { state: state0, error: g };
+    if (!d.fr.opened || d.fr.resolved) return { state: state0, error: "尚未進入最後反撲" };
+    if (d.fr.trapPending) {
+      var t = null;
+      CH.fr.trap.options.forEach(function (o) { if (o.id === optionId) t = o; });
+      if (!t) return { state: state0, error: "選項不存在" };
+      say(state, "旅人(你)", t.text);
+      if (t.id === "lied") {
+        say(state, "辛普里奧", t.reply);
+        if (t.penalty.rep) applyRep(state, t.penalty.rep, "debate.trap");
+        if (t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.trap");
+        if (d.status === "pending") frResolveHonest(state); /* 強制轉誠實 */
+        return { state: state, outcome: d.status === "won" ? "resolvedAfterLie" : "suspended" };
+      }
+      frResolveHonest(state);
+      return { state: state, outcome: "resolved" };
+    }
+    if (state.mode === "explore") {
+      var step = CH.fr.explore.steps[d.fr.step];
+      var opt = null;
+      step.options.forEach(function (o) { if (o.id === optionId) opt = o; });
+      if (!opt) return { state: state0, error: "選項不存在" };
+      say(state, "旅人(你)", opt.text);
+      if (!opt.correct) { say(state, "system", opt.reply); return { state: state, outcome: "retry" }; }
+      d.fr.step += 1;
+      if (d.fr.step >= CH.fr.explore.steps.length) frChainDone(state);
+      return { state: state, outcome: "step" };
+    }
+    /* 學者:三槽組鏈 */
+    var sch = CH.fr.scholar;
+    var pickCorrect = null, pickDistract = null;
+    sch.correct.forEach(function (o) { if (o.id === optionId) pickCorrect = o; });
+    sch.distractors.forEach(function (o) { if (o.id === optionId) pickDistract = o; });
+    if (!pickCorrect && !pickDistract) return { state: state0, error: "選項不存在" };
+    if (pickDistract) {
+      say(state, "旅人(你)", pickDistract.text);
+      say(state, "system", sch.distractorReply);
+      debatePersuasion(state, -1, "debate.fr.distractor");
+      return { state: state, outcome: d.status === "suspended" ? "suspended" : "distractor" };
+    }
+    if (d.fr.slots.indexOf(optionId) >= 0) return { state: state0, error: "此環已入鏈" };
+    var expect = sch.correct[d.fr.slots.length].id;
+    if (optionId !== expect) { say(state, "system", sch.wrongOrderReply); return { state: state, outcome: "wrongOrder" }; }
+    d.fr.slots.push(optionId);
+    say(state, "旅人(你)", "【論證第 " + d.fr.slots.length + " 環】" + pickCorrect.text);
+    if (d.fr.slots.length === sch.correct.length) frChainDone(state);
+    return { state: state, outcome: "slot" };
+  }
+
+  function debateExitSuspended(state0) {
+    var state = clone(state0);
+    var node = skipInvisible(state);
+    if (node.type !== "embed" || node.system !== "debate") return { state: state0, error: "非辯論節點" };
+    if (!state.debate || state.debate.status !== "suspended") return { state: state0, error: "辯論未中止" };
+    if (!node.suspendNext) return { state: state0, error: "辯論節點缺 suspendNext" };
+    state.cursor.node = node.suspendNext;
+    return { state: state };
+  }
+
+  function debateView(state) {
+    var d = state.debate;
+    if (!d) return null;
+    var v = { persuasion: d.persuasion, status: d.status, pressChoice: null, phase: null };
+    v.pillarSummary = ["P1", "P2", "P3"].map(function (pid) {
+      return { id: pid, title: pillarDef(pid).title, broken: d.pillars[pid].broken };
+    });
+    if (d.idx < 3) {
+      var pid = curPillarId(d);
+      v.phase = "pillars";
+      v.pillar = { id: pid, title: pillarDef(pid).title };
+      v.statements = pillarStatements(pid).map(function (s) {
+        return { id: s.id, text: s.text, status: d.pillars[pid].s[s.id] };
+      });
+      if (d.pressChoice) {
+        var stmt = findStmt(pid, d.pressChoice.sid);
+        v.pressChoice = { prompt: stmt.pressChoice.prompt, options: stmt.pressChoice.options.map(function (o) { return { id: o.id, text: o.text }; }) };
+      }
+    } else if (!d.fr.resolved) {
+      v.phase = d.fr.trapPending ? "trap" : "fr";
+      if (v.phase === "trap") {
+        v.trap = { prompt: CH.fr.trap.prompt, options: CH.fr.trap.options.map(function (o) { return { id: o.id, text: o.text }; }) };
+      } else if (state.mode === "explore") {
+        var st = CH.fr.explore.steps[d.fr.step];
+        v.fr = { kind: "explore", prompt: st.prompt, options: st.options.map(function (o) { return { id: o.id, text: o.text }; }) };
+      } else {
+        v.fr = { kind: "scholar", prompt: CH.fr.scholar.slotPrompt, slots: d.fr.slots.slice(),
+                 pool: CH.fr.scholar.correct.concat(CH.fr.scholar.distractors).map(function (o) { return { id: o.id, text: o.text }; }) };
+      }
+    } else { v.phase = "won"; }
+    return v;
+  }
+
+  /* ---------- embed 完成條件 ---------- */
   function untilMet(state, until) {
     if (!until) return true;
     if (until.e3) {
@@ -131,22 +377,26 @@
       var base = parseInt(state.flags.scr1_baseline || "0", 10);
       return state.lab.evidence.runs.length > base;
     }
+    if (until.debateWon) return !!(state.debate && state.debate.status === "won");
     return true;
   }
 
+  /* ---------- 核心流程 ---------- */
   function view(state0) {
     var state = clone(state0);
     var node = skipInvisible(state);
     var v = { scene: state.cursor.scene, sceneTitle: sceneMap[state.cursor.scene].def.title || "", nodeId: node.id, type: node.type };
-    if (node.type === "line" || node.type === "system") {
-      v.speaker = node.speaker; v.text = node.text;
-    } else if (node.type === "choice") {
+    if (node.type === "line" || node.type === "system") { v.speaker = node.speaker; v.text = node.text; }
+    else if (node.type === "choice") {
       v.prompt = node.text;
       v.options = node.options.filter(function (o) { return visible(state, o); })
         .map(function (o) { return { id: o.id, text: o.text }; });
     } else if (node.type === "embed") {
       v.system = node.system; v.hint = node.hint || ""; v.preset = node.preset || null;
       v.ready = untilMet(state, node.until);
+      if (node.system === "debate") v.debate = debateView(state);
+    } else if (node.type === "review") {
+      v.prompts = node.prompts;
     }
     return v;
   }
@@ -156,8 +406,16 @@
     var node = skipInvisible(state);
     if (node.type === "end") { state.ended = true; return { state: state, done: true }; }
     if (node.type === "choice") return { state: state0, error: "此節點需要選擇" };
-    if (node.type === "embed") return { state: state0, error: "此節點為實驗台,請以 embedComplete 收束" };
-    record(state, node);
+    if (node.type === "embed") return { state: state0, error: "此節點為互動段落,請以 embedComplete 收束" };
+    if (node.type === "review") return { state: state0, error: "此節點需要 setReview" };
+    if (node.type === "histfacts") {
+      state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: "system", text: "(史實與虛構頁——見資料表)" });
+      state.cursor.node = node.next;
+      var n2 = skipInvisible(state);
+      if (n2.type === "end") state.ended = true;
+      return { state: state, node: node };
+    }
+    state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: node.speaker || "", text: node.text || "" });
     if (node.type === "system") applyEffects(state, node.effects, state.cursor.scene + "/" + node.id);
     state.cursor.node = node.next;
     var nxt = skipInvisible(state);
@@ -179,7 +437,17 @@
     return { state: state, option: opt };
   }
 
-  /* ---- 實驗台包裝(R-HOOK):所有 lab 變更經此,同步章節證據與事件log ---- */
+  function setReview(state0, q1, q2) {
+    var state = clone(state0);
+    var node = skipInvisible(state);
+    if (node.type !== "review") return { state: state0, error: "此節點非章末回顧" };
+    state.review = { q1: q1 || "", q2: q2 || "" };
+    say(state, "system", "旅人在筆記上寫下自己的答案。(已存檔,不評分)");
+    state.eventLog.push({ t: "review" });
+    state.cursor.node = node.next;
+    return { state: state };
+  }
+
   function labAction(state0, action, args) {
     var state = clone(state0);
     var r;
@@ -189,36 +457,29 @@
     else if (action === "compare") r = Engine.compareRuns(state.lab, args.runIds);
     else return { state: state0, error: "未知實驗台動作:" + action };
     state.lab = r.state;
-    /* 同步:E3 確立(a∧b)→ 章節證據 E3;失敗主張→hadFailure 旗標(死路B 回述掛點) */
     var e3 = state.lab.evidence.e3;
-    if (e3.a && e3.b && !state.evidence.E3) {
-      state.evidence.E3 = true;
-      state.eventLog.push({ t: "evidence", id: "E3", at: "lab" });
-    }
-    if (action === "judge" && r.claim && !r.claim.ok) state.flags.hadFailure = "1";
-    if (action === "judge" && r.rejected) state.flags.hadFailure = "1";
+    if (e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
+    if (action === "judge" && ((r.claim && !r.claim.ok) || r.rejected)) state.flags.hadFailure = "1";
     state.eventLog.push({ t: "lab", action: action, at: state.cursor.scene + "/" + state.cursor.node });
     return { state: state, result: r };
   }
 
   function embedReady(state) {
-    var node = getNode(state) || {};
-    if (node.type !== "embed") { var s2 = clone(state); node = skipInvisible(s2); }
+    var s2 = clone(state);
+    var node = skipInvisible(s2);
     return node.type === "embed" ? untilMet(state, node.until) : false;
   }
-
   function embedComplete(state0) {
     var state = clone(state0);
     var node = skipInvisible(state);
-    if (node.type !== "embed") return { state: state0, error: "目前節點非實驗台" };
+    if (node.type !== "embed") return { state: state0, error: "目前節點非互動段落" };
     if (!untilMet(state, node.until)) return { state: state0, error: "完成條件未達:" + (node.hint || "") };
-    state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: "system", text: "(實驗台段落完成)" });
+    state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: "system", text: "(互動段落完成)" });
     state.eventLog.push({ t: "embedDone", at: state.cursor.scene + "/" + node.id });
     state.cursor.node = node.next;
     return { state: state };
   }
 
-  /* R-REP-02/03:信譽歸零→導入修復事件;由 UI 於每次狀態變更後呼叫 */
   function redirectIfLocked(state0) {
     if (!state0.flags || state0.flags.repLocked !== "1") return { state: state0, redirected: false };
     if (state0.cursor.scene === REPAIR_SCENE) return { state: state0, redirected: false };
@@ -231,7 +492,6 @@
     return { state: state, redirected: true };
   }
 
-  /* R-SAV */
   function serialize(state) { return JSON.stringify(state); }
   function deserialize(text) {
     var s = JSON.parse(text);
@@ -242,16 +502,13 @@
 
   return {
     initialState: initialState,
-    view: view,
-    advance: advance,
-    choose: choose,
-    labAction: labAction,
-    embedReady: embedReady,
-    embedComplete: embedComplete,
+    view: view, advance: advance, choose: choose, setReview: setReview,
+    labAction: labAction, embedReady: embedReady, embedComplete: embedComplete,
+    debatePress: debatePress, debatePressChoice: debatePressChoice,
+    debatePresent: debatePresent, debateFr: debateFr,
+    debateExitSuspended: debateExitSuspended, debateView: debateView,
     redirectIfLocked: redirectIfLocked,
-    serialize: serialize,
-    deserialize: deserialize,
-    SAVE_SCHEMA: SAVE_SCHEMA,
-    _sceneMap: sceneMap
+    serialize: serialize, deserialize: deserialize,
+    SAVE_SCHEMA: SAVE_SCHEMA, _sceneMap: sceneMap
   };
 });
