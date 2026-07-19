@@ -53,6 +53,13 @@
     <button id="btnNew" style="margin-top:8px">開始新遊戲</button>
     <p class="hint" id="newWarn" style="display:none">注意:開始新遊戲將覆蓋既有存檔。再按一次確認。</p>
   </fieldset>
+  <fieldset style="margin-top:10px">
+    <legend>旅人書信碼(跨機續玩,R-SAV-05)</legend>
+    <button id="btnExport" style="display:none">匯出書信碼(複製+下載)</button>
+    <textarea id="letterCode" rows="3" style="width:95%" aria-label="書信碼" placeholder="把書信碼貼在這裡……"></textarea><br>
+    <button id="btnImport">貼碼續玩</button>
+    <p class="hint" id="letterMsg">在任何機器貼入書信碼即可接續。注意:貼碼續玩會覆蓋本機現有進度;共機環境請先各自匯出。</p>
+  </fieldset>
 </section>
 
 <section id="game-screen" style="display:none" aria-label="遊戲畫面">

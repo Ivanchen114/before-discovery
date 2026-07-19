@@ -560,6 +560,41 @@
       save();
     };
     $("btnBackTitle").onclick = function () { save(); location.reload(); };
+
+    /* R-SAV-05 書信碼(CR-001):匯出=serialize 原文;匯入唯一入口=loadSave 四分類 */
+    $("btnExport").style.display = loaded ? "" : "none";
+    $("btnExport").onclick = function () {
+      var text = null;
+      try { text = localStorage.getItem(KEY); } catch (e) {}
+      if (!text) { $("letterMsg").textContent = "沒有可匯出的進度。"; return; }
+      var ta = $("letterCode");
+      ta.value = text;
+      ta.focus(); ta.select();
+      var copied = false;
+      try { copied = document.execCommand("copy"); } catch (e) {}
+      try { /* 下載 .txt(file:// 可用;失敗不阻斷) */
+        var blob = new Blob([text], { type: "application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "發現之前_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      } catch (e2) {}
+      $("letterMsg").textContent = copied
+        ? "書信碼已複製並下載為檔案——到任何機器貼入「貼碼續玩」即可接續。"
+        : "書信碼已填入欄位並下載為檔案——請手動複製保存。";
+    };
+    $("btnImport").onclick = function () {
+      var text = ($("letterCode").value || "").trim();
+      if (!text) { $("letterMsg").textContent = "請先把書信碼貼進欄位。"; return; }
+      var r = N.loadSave(text);
+      if (r.empty) { $("letterMsg").textContent = "書信碼是空的。"; return; }
+      if (r.error) {
+        $("letterMsg").textContent = "書信碼無法讀取(" + (r.error === "schema" ? "版本不符" : "格式損壞") + ")——本機既有進度未受影響。";
+        return;
+      }
+      startGame(r.state);
+      save();
+    };
   }
 
   initTitle();

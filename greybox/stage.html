@@ -169,6 +169,9 @@
   #continueWrap button { width: 100%; font-size: 1.05em; }
   .hint { font-size: 0.85em; color: rgba(230,215,189,0.75); }
   #titleCard label { display: block; margin: 4px 0; }
+  #titleCard textarea { width: 95%; background: rgba(230,215,189,0.12); color: #e6d7bd;
+                        border: 1px solid rgba(230,215,189,0.35); border-radius: 4px;
+                        padding: 6px; font-size: 12px; margin: 6px 0; }
 </style>
 </head>
 <body data-view="title">
@@ -249,6 +252,13 @@
         <label><input type="radio" name="mode" value="scholar">學者模式(高中以上:加開追問、音格計時與進階斷言)</label>
         <button id="btnNew">開始新遊戲</button>
         <p class="hint" id="newWarn" style="display:none">注意:開始新遊戲將覆蓋既有存檔。再按一次確認。</p>
+      </fieldset>
+      <fieldset>
+        <legend>旅人書信碼(跨機續玩)</legend>
+        <button id="btnExport" style="display:none">匯出書信碼(複製+下載)</button>
+        <textarea id="letterCode" rows="2" aria-label="書信碼" placeholder="把書信碼貼在這裡……"></textarea>
+        <button id="btnImport">貼碼續玩</button>
+        <p class="hint" id="letterMsg">貼碼續玩會覆蓋本機現有進度;共機環境請先各自匯出。</p>
       </fieldset>
       <p class="hint">灰盒對照版:<a href="chapter.html" style="color:#cfa96b">chapter.html</a>(同一份存檔,兩版互通)</p>
     </div>
