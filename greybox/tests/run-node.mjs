@@ -114,6 +114,33 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "舞台殼|stage.html DOM 契約:chapter-ui 引用之 id 全數存在;stage-ui 純表現層",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const ids = [...new Set([...ui.matchAll(/\$\("([A-Za-z-]+)"\)/g)].map((m) => m[1]))];
+    if (ids.length < 25) throw new Error("id 萃取異常(僅 " + ids.length + " 個)——正規式或檔案結構變動");
+    for (const page of ["stage.html", "chapter.html"]) {
+      const html = readFileSync(path.join(here, "..", page), "utf-8");
+      const missing = ids.filter((id) => !html.includes('id="' + id + '"'));
+      if (missing.length) throw new Error(page + " 缺 id:" + missing.join("、"));
+      if (!html.includes('name="mode"')) throw new Error(page + " 缺模式選擇 radio(name=mode)");
+    }
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    if (!(stageHtml.indexOf("src/chapter-ui.js") < stageHtml.indexOf("src/stage-ui.js")))
+      throw new Error("stage.html 載入順序錯誤:chapter-ui.js 必須先於 stage-ui.js");
+    /* stage-ui = 純表現層:禁碰引擎與存檔(事件單向訂閱) */
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    if (/GB\.Narrative|GB\.Engine|localStorage/.test(sui))
+      throw new Error("stage-ui.js 越權:出現引擎或存檔存取——表現層只准訂閱 bd:* 事件");
+    /* chapter-ui 掛點存在(stage 依賴的事件名) */
+    for (const evName of ["bd:line", "bd:scene", "bd:view", "bd:start"]) {
+      if (!ui.includes('"' + evName + '"')) throw new Error("chapter-ui.js 缺事件掛點:" + evName);
+      if (!sui.includes('"' + evName + '"')) throw new Error("stage-ui.js 未訂閱:" + evName);
+    }
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {

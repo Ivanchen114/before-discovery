@@ -16,7 +16,7 @@
 | `04_劇本/` | 章節完整劇本 | 第一章 **v0.2.2 🔒已凍結**|第二章 v0.1(紙上先行,ADR-010) |
 | `05_審核/` | 審核報告、審稿紀錄、驗算附件 | Sol 第 2 輪已交付;Claude 回應 20260719 已交付 |
 | `art/` | 美術來源母版、Art Proof、提示詞與生成審核紀錄 | 第一章寫實歷史插畫 G1 Art Proof v0.2（P-5 Style Lock） |
-| `greybox/` | **可玩遊戲**+引擎+測試+實作級 GB-ADR | **完整第一章**:雙擊 `greybox/chapter.html`(M3:序幕→辯論→尾聲→史實頁)|切片:`index.html` |
+| `greybox/` | **可玩遊戲**+引擎+測試+實作級 GB-ADR | **舞台版(候選正式呈現)**:雙擊 `greybox/stage.html`(滿版+對話框+逐字演出)|灰盒對照:`chapter.html`|切片:`index.html`|兩版同一存檔 |
 | `archive/` | 被取代的舊版文件 | 勿引用 |
 
 ## 新協作者(Sol)從這裡開始
@@ -35,5 +35,5 @@
 **基線凍結(2026-07-19)**:Sol 第二次 verification 通過(實機全鏈:探索 E3.c→雙歸零→SC-R1→再入→honest→end)——**劇本 v0.2.2 與章規格 v0.1.1 已凍結**;第一章正式美術依 ADR-009 **已解凍量產**(Sol 進行中,production 目錄已開張);**第二章規格/程式/美術仍凍結**(劇本 v0.1 為紙上先行,ADR-010)。改動凍結基線須走正式變更紀錄。
 
 - **Sol**:第一章正式美術分批量產(背景/角色 runtime WebP);兩張器材功能圖(`art/source/production/ch01/props/`)為**場景製作依據,非 runtime 圖,不入遊戲**;每批落地即填 `greybox/data/assets.js/.json` 的 path(接口見 `greybox/docs/asset-request-ch1.md`)。
-- **Claude**:整合接口已就緒(tokens 管線/assets 槽位/視覺掛點,測試把關);續建=載入介面與程式動畫框架(等 tokens.json 與首批 runtime 圖);**不開始第二章實作**。
+- **Claude**:**舞台殼已上線**(stage.html:滿版+底部對話框+逐字演出;總監裁決 2026-07-19,見 01_治理)——Sol 首批三背景兩立繪已自動接入;續補=程式動畫細部(換景/FX)與音訊掛點;**不開始第二章實作**。
 - **總監**:下一節點=完整第一章候選版體驗;其後學生試玩(觀察表已備:`greybox/docs/playtest-protocol.md`)。

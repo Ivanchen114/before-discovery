@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>《發現之前》第一章:重物的渴望(舞台版)</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../public/assets/global/tokens.css">
+<style>
+  /* stage.html — 滿版舞台殼(總監裁決 2026-07-19:逆轉裁判式呈現;對話逐字、旁白淡入)。
+     引擎/資料/存檔與 chapter.html 完全共用;本檔只換表現層。灰盒版仍在 chapter.html。 */
+  html, body { height: 100%; margin: 0; }
+  body { background: #14100c; overflow: hidden; color: var(--color-ink-primary);
+         font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif;
+         -webkit-user-select: none; user-select: none; }
+  #stage { position: absolute; inset: 0; margin: auto;
+           width: min(100vw, calc(100vh * 16 / 9)); height: min(100vh, calc(100vw * 9 / 16));
+           overflow: hidden; background: #241b16; }
+
+  /* --- 背景層 --- */
+  #bgImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+           opacity: 0; transition: opacity var(--motion-medium) ease; }
+  #bgFallback { position: absolute; inset: 0; background: #2a211a;
+                display: flex; align-items: center; justify-content: center; }
+  #bgFallback.off { display: none; }
+  #fbTitle { color: rgba(230, 215, 189, 0.28); font-size: clamp(20px, 4vw, 44px);
+             font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif; letter-spacing: 0.2em; }
+  #vignette { position: absolute; inset: 0; pointer-events: none;
+              box-shadow: inset 0 0 12vmin rgba(0,0,0,0.55); }
+
+  /* --- 立繪層 --- */
+  #portraitBox { position: absolute; right: 4%; bottom: 24%; height: 64%; aspect-ratio: 3 / 4;
+                 display: flex; align-items: flex-end; justify-content: center;
+                 transition: filter var(--motion-fast) ease, opacity var(--motion-fast) ease; opacity: 0; }
+  #portraitBox.on { opacity: 1; }
+  #portraitBox.dim { filter: brightness(0.55) saturate(0.7); }
+  #portraitBox img { max-height: 100%; max-width: 100%; display: block; }
+  #portraitBox .composite { position: relative; display: inline-block; }
+  #portraitBox .composite img.layer { position: absolute; }
+  body[data-view="lab"] #portraitBox, body[data-view="review"] #portraitBox,
+  body[data-view="histfacts"] #portraitBox { display: none; }
+
+  /* --- HUD --- */
+  #hud { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 6px; align-items: center;
+         padding: 8px 10px; flex-wrap: wrap; z-index: 30; font-size: 12px; }
+  #hud .chip { background: rgba(20, 14, 10, 0.72); color: #e6d7bd; padding: 3px 10px;
+               border: 1px solid rgba(230, 215, 189, 0.25); border-radius: 3px;
+               font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #hud .chip b { color: #fff; font-weight: 600; }
+  #hud button { background: rgba(20, 14, 10, 0.72); color: #e6d7bd; border: 1px solid rgba(230,215,189,0.4);
+                border-radius: 3px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  #hud button:hover { background: rgba(122, 75, 42, 0.8); }
+  #hud .spacer { flex: 1; }
+  #sceneChip { position: absolute; top: 38px; left: 10px; z-index: 29; font-size: 11px;
+               color: rgba(230, 215, 189, 0.55); background: rgba(20,14,10,0.45); padding: 2px 8px; border-radius: 3px; }
+
+  /* --- 中央面板(實驗台/辯論/回顧/史實) --- */
+  #panelWrap { position: absolute; z-index: 20; display: none; overflow-y: auto;
+               background: var(--color-surface-notebook); color: var(--color-ink-primary);
+               border: 2px solid var(--color-chapter-accent); border-radius: 6px;
+               box-shadow: 0 8px 30px rgba(0,0,0,0.5); padding: 14px 18px; line-height: 1.65; }
+  body[data-view="lab"] #panelWrap { display: block; left: 4%; right: 4%; top: 9%; bottom: 6%; }
+  body[data-view="review"] #panelWrap, body[data-view="histfacts"] #panelWrap {
+    display: block; left: 10%; right: 10%; top: 10%; bottom: 8%; }
+  body[data-view="debate"] #panelWrap { display: block; left: 3%; right: 36%; top: 9%; bottom: 27%;
+    background: rgba(247, 240, 223, 0.96); }
+  body[data-view="choice"] #panelWrap { display: block; left: auto; right: 3%; top: auto; bottom: 27%;
+    max-width: 62%; background: none; border: none; box-shadow: none; padding: 0; overflow: visible; }
+  body.held #panelWrap { visibility: hidden; }
+
+  #panelWrap h3 { margin: 6px 0 4px; font-size: 1em; border-bottom: 1px solid var(--color-ink-secondary); }
+  #panelWrap table { border-collapse: collapse; margin: 6px 0; font-size: 0.92em; }
+  #panelWrap th, #panelWrap td { border: 1px solid var(--color-ink-secondary); padding: 2px 7px;
+    text-align: right; font-variant-numeric: tabular-nums; }
+  #panelWrap th:first-child, #panelWrap td:first-child { text-align: left; }
+  .labmsg { border: 1px dashed var(--color-ink-secondary); padding: 4px 8px; margin: 6px 0; min-height: 1.2em; }
+  #embedGate { margin-top: 10px; font-weight: bold; }
+  #lab button, #controls button, #panelWrap button {
+    background: var(--color-surface-world); color: var(--color-ink-primary);
+    border: 1px solid var(--color-chapter-accent); border-radius: 4px;
+    padding: 6px 14px; margin: 4px 4px 4px 0; cursor: pointer; font-size: 0.95em; }
+  #lab button:hover, #controls button:hover { background: #d9c39a; }
+  #lab button:disabled, #controls button:disabled { opacity: 0.45; cursor: default; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--color-focus); }
+  #lab select, #lab input, #controls select { font-size: 0.95em; padding: 2px 4px; }
+
+  /* 選項(choice)呈 VN 疊卡 */
+  body[data-view="choice"] #controls button { display: block; margin: 8px 0 0 auto;
+    background: rgba(20, 14, 10, 0.88); color: #e6d7bd; border: 1px solid rgba(230,215,189,0.5);
+    padding: 9px 16px; border-radius: 4px; max-width: 100%; text-align: left;
+    font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif; }
+  body[data-view="choice"] #controls button:hover { background: rgba(122, 75, 42, 0.92); color: #fff; }
+  body[data-view="choice"] #controls > p { text-align: right; color: rgba(230,215,189,0.8);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8); margin: 0; }
+
+  /* 敘事(narration/end):繼續鈕縮成對話框角落的小膠囊 */
+  body[data-view="narration"] #panelWrap, body[data-view="end"] #panelWrap {
+    display: block; left: auto; right: 3.5%; top: auto; bottom: 3.5%; z-index: 26;
+    background: none; border: none; box-shadow: none; padding: 0; overflow: visible; }
+  body[data-view="narration"] #controls button, body[data-view="end"] #controls button {
+    background: rgba(122, 75, 42, 0.9); color: #f3e9d5; border: 1px solid rgba(230,215,189,0.5);
+    border-radius: 999px; padding: 4px 14px; font-size: 0.85em; }
+
+  /* --- 對話框 --- */
+  #dialogue { position: absolute; z-index: 25; left: 3%; right: 3%; bottom: 3%;
+              min-height: 21%; background: rgba(16, 11, 8, 0.88);
+              border: 1px solid rgba(230, 215, 189, 0.35); border-top: 2px solid var(--color-chapter-accent);
+              border-radius: 6px; padding: 14px 18px 16px; box-sizing: border-box; }
+  body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue,
+  body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue { display: none; }
+  body.queue-active #dialogue { display: block !important; }
+  #nameplate { position: absolute; top: -13px; left: 14px; background: var(--color-chapter-accent);
+               color: #f3e9d5; font-size: 13px; padding: 2px 14px; border-radius: 3px; letter-spacing: 0.08em; }
+  #dlgText { color: #ece3d0; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.85;
+             font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif; min-height: 2.6em;
+             max-height: 17vh; overflow-y: auto; white-space: pre-wrap; }
+  #dlgText.narr { color: #c8bba2; font-style: italic; animation: bdFade var(--motion-fast) ease; }
+  #dlgText.sys { color: #b7c4cf; font-size: 0.92em; animation: bdFade var(--motion-fast) ease; }
+  #dlgText.pl { color: #d9e4f0; }
+  @keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
+  #dlgCue { position: absolute; right: 14px; bottom: 8px; color: #cfa96b; font-size: 13px;
+            animation: bdBlink 1.1s step-end infinite; }
+  @keyframes bdBlink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    #bgImg, #portraitBox { transition: none; }
+    #dlgText.narr, #dlgText.sys { animation: none; }
+    #dlgCue { animation: none; }
+  }
+
+  /* --- 旅人筆記抽屜(回顧+證據) --- */
+  #drawer { position: absolute; z-index: 40; top: 0; right: 0; bottom: 0; width: min(480px, 88%);
+            background: var(--color-surface-notebook); color: var(--color-ink-primary);
+            border-left: 3px solid var(--color-chapter-accent); padding: 12px 16px; box-sizing: border-box;
+            transform: translateX(102%); transition: transform var(--motion-fast) ease;
+            display: flex; flex-direction: column; -webkit-user-select: text; user-select: text; }
+  body.drawer-open #drawer { transform: none; }
+  #drawer h2 { font-size: 1.05em; margin: 4px 0 8px; }
+  #evidence { border: 1px dashed var(--color-ink-secondary); padding: 6px 10px; margin-bottom: 8px; font-size: 0.92em; }
+  #log { flex: 1; overflow-y: auto; font-size: 0.92em; line-height: 1.7; padding-right: 6px; }
+  #log .line { margin: 8px 0; }
+  #log .line .spk { font-weight: bold; margin-right: 6px; }
+  #log .line.stage { color: var(--color-ink-secondary); font-style: italic; }
+  #log .line.system { border-left: 3px solid var(--color-ink-secondary); padding-left: 8px; white-space: pre-wrap; }
+  #log .line.player { color: var(--color-evidence); }
+  #log .scene-title { border-bottom: 1px solid var(--color-ink-secondary); margin: 14px 0 6px;
+                      padding-bottom: 2px; font-weight: bold; }
+  #log .scene-banner { display: block; max-width: 100%; max-height: 140px; margin: 4px 0;
+                       border: 1px solid var(--color-ink-secondary); }
+  #log .portrait { width: 36px; height: 36px; object-fit: cover; vertical-align: middle;
+                   margin-right: 6px; border: 1px solid var(--color-ink-secondary); }
+  #log .composite { width: 36px; vertical-align: middle; margin-right: 6px; }
+  #btnDrawerClose { align-self: flex-end; }
+
+  /* --- 標題畫面 --- */
+  #title-screen { position: absolute; inset: 0; z-index: 50; background: #1d1610;
+                  display: flex; align-items: center; justify-content: center; }
+  #titleCard { text-align: center; color: #e6d7bd; max-width: 520px; padding: 24px;
+               -webkit-user-select: text; user-select: text; }
+  #titleCard .t1 { font-family: Georgia, "Songti TC", "Noto Serif CJK TC", serif;
+                   font-size: clamp(34px, 6vw, 56px); letter-spacing: 0.3em; margin: 0 0 4px; }
+  #titleCard .t2 { color: #cfa96b; font-size: clamp(14px, 2vw, 18px); letter-spacing: 0.15em; margin: 0 0 28px; }
+  #titleCard fieldset { border: 1px solid rgba(230,215,189,0.35); border-radius: 4px;
+                        text-align: left; padding: 12px 16px; margin-top: 14px; }
+  #titleCard legend { padding: 0 6px; color: #cfa96b; }
+  #titleCard button { background: var(--color-chapter-accent); color: #f3e9d5;
+                      border: 1px solid rgba(230,215,189,0.5); border-radius: 4px;
+                      padding: 8px 22px; font-size: 1em; cursor: pointer; margin-top: 8px; }
+  #titleCard button:hover { background: #935c35; }
+  #continueWrap button { width: 100%; font-size: 1.05em; }
+  .hint { font-size: 0.85em; color: rgba(230,215,189,0.75); }
+  #titleCard label { display: block; margin: 4px 0; }
+</style>
+</head>
+<body data-view="title">
+<div id="stage" aria-label="遊戲舞台">
+
+  <img id="bgImg" alt="">
+  <div id="bgFallback"><span id="fbTitle">發現之前</span></div>
+  <div id="vignette"></div>
+  <div id="portraitBox" aria-hidden="true"></div>
+  <div id="sceneChip"></div>
+
+  <section id="game-screen" style="display:none" aria-label="遊戲畫面">
+    <div id="hud">
+      <span class="chip">信譽 <b id="repVal">3</b>/5</span>
+      <span class="chip">第 <b id="dayVal">0</b> 天</span>
+      <span class="chip" id="e3Val"></span>
+      <span class="chip" id="perVal"></span>
+      <span class="chip" id="modeVal"></span>
+      <span class="chip" id="sceneVal" style="display:none"></span>
+      <span class="spacer"></span>
+      <button id="btnDrawer" type="button" aria-controls="drawer" aria-expanded="false">旅人筆記</button>
+      <button id="btnBackTitle">回標題</button>
+    </div>
+
+    <div id="panelWrap">
+      <div id="lab" style="display:none" aria-label="實驗台">
+        <h3>實驗台</h3>
+        <p class="hint" id="labHint" style="color:var(--color-ink-secondary)"></p>
+        <label>球:<select id="labBall"></select></label>
+        <label>槽面:<select id="labSurface"></select></label>
+        <label>傾角:<select id="labIncline"></select></label>
+        <label>計時:<select id="labTimer"></select></label>
+        <button id="labRun">執行實驗</button>
+        <div class="labmsg" id="labMsg" role="status" aria-live="polite">尚未執行實驗。</div>
+
+        <h3>run 紀錄(勾選 1–3 筆同配置 → 預測第五段 → 認證)</h3>
+        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>Δ1</th><th>Δ2</th><th>Δ3</th><th>Δ4</th><th>天</th></tr></thead>
+          <tbody id="labRunsBody"></tbody></table>
+        <label>第五段增量預測值:<input type="number" id="labPred" step="0.1" style="width:90px"></label>
+        <button id="labJudge">認證規律</button>
+        <div class="labmsg" id="judgeMsg" role="status" aria-live="polite"></div>
+
+        <h3>主張紀錄(勾選兩筆 → 斷言)</h3>
+        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>天</th></tr></thead>
+          <tbody id="labClaimsBody"></tbody></table>
+        <button id="labAssertB">斷言:與球重無關</button>
+        <button id="labAssertC" style="display:none">斷言:隨傾角形式不變</button>
+        <div class="labmsg" id="assertMsg" role="status" aria-live="polite"></div>
+        <div id="embedGate"></div>
+      </div>
+      <div id="controls"></div>
+    </div>
+
+    <div id="dialogue">
+      <span id="nameplate" style="display:none"></span>
+      <div id="dlgText" aria-hidden="true"></div>
+      <span id="dlgCue" style="display:none">▼</span>
+    </div>
+
+    <aside id="drawer" aria-label="旅人筆記:證據與完整紀錄">
+      <button id="btnDrawerClose" type="button">關閉 ✕</button>
+      <h2>旅人筆記</h2>
+      <div id="evidence"><b>證據</b>:<span id="evidenceList">(尚無)</span></div>
+      <div id="log" aria-live="polite"></div>
+    </aside>
+  </section>
+
+  <section id="title-screen" aria-label="標題畫面">
+    <div id="titleCard">
+      <p class="t1">發現之前</p>
+      <p class="t2">第一章:重物的渴望</p>
+      <div id="continueWrap" style="display:none">
+        <button id="btnContinue">繼續上次進度</button>
+      </div>
+      <fieldset>
+        <legend>新遊戲——選擇模式(中途不可換)</legend>
+        <label><input type="radio" name="mode" value="explore" checked>探索模式(國中基準:引導較多)</label>
+        <label><input type="radio" name="mode" value="scholar">學者模式(高中以上:加開追問、音格計時與進階斷言)</label>
+        <button id="btnNew">開始新遊戲</button>
+        <p class="hint" id="newWarn" style="display:none">注意:開始新遊戲將覆蓋既有存檔。再按一次確認。</p>
+      </fieldset>
+      <p class="hint">灰盒對照版:<a href="chapter.html" style="color:#cfa96b">chapter.html</a>(同一份存檔,兩版互通)</p>
+    </div>
+  </section>
+
+</div>
+
+<script src="data/patterns.js"></script>
+<script src="data/debate.js"></script>
+<script src="data/histfacts.js"></script>
+<script src="data/assets.js"></script>
+<script src="src/engine.js"></script>
+<script src="data/scenes.js"></script>
+<script src="src/narrative.js"></script>
+<script src="src/chapter-ui.js"></script>
+<script src="src/stage-ui.js"></script>
+</body>
+</html>

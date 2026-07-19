@@ -17,6 +17,14 @@
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
   function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
 
+  /* ---------- 表現層事件掛點(§5.9 延伸:純發佈,無監聽者時零行為差異) ----------
+     stage.html 的舞台殼(stage-ui.js)訂閱這些事件做打字機/背景/立繪;
+     chapter.html 無訂閱者,灰盒行為不變。 */
+  var replaying = false;
+  function emit(name, detail) {
+    try { document.dispatchEvent(new CustomEvent(name, { detail: detail })); } catch (e) {}
+  }
+
   /* ---------- 存檔 ---------- */
   function save() { try { localStorage.setItem(KEY, N.serialize(state)); } catch (e) {} }
   function tryLoad() { /* B-3/R-SAV-02:壞檔備份+一次性非阻塞提示 */
@@ -95,6 +103,7 @@
     div.appendChild(t);
     $("log").appendChild(div);
     div.scrollIntoView({ block: "nearest" });
+    emit("bd:line", { speaker: speaker || null, text: text, cls: cls || "", replay: replaying });
   }
   function classFor(speaker) {
     if (speaker === "stage") return "stage";
@@ -103,6 +112,7 @@
     return "";
   }
   function sceneHeading(sceneId) {
+    emit("bd:scene", { sceneId: sceneId });
     if (sceneId === lastSceneShown) return;
     lastSceneShown = sceneId;
     var sc = null;
@@ -125,10 +135,12 @@
   function rebuildLog() {
     $("log").innerHTML = "";
     lastSceneShown = null;
+    replaying = true;
     state.transcript.forEach(function (e) {
       sceneHeading(e.scene);
       addLine(e.speaker, e.text, classFor(e.speaker));
     });
+    replaying = false;
   }
   function syncNewTranscript(prevLen) {
     for (var i = prevLen; i < state.transcript.length; i++) {
@@ -414,6 +426,7 @@
     renderStatus();
     var v = N.view(state);
     sceneHeading(v.scene);
+    emit("bd:view", { type: v.type, system: v.system || null, scene: v.scene, ended: !!state.ended });
     var box = $("controls");
     box.innerHTML = "";
     if (v.type === "embed" && v.system === "incline") {
@@ -528,6 +541,7 @@
     lastEmbedKey = null;
     var rd = N.redirectIfLocked(state);
     if (rd.redirected) { state = rd.state; save(); }
+    emit("bd:start", { mode: state.mode });
     renderAll();
   }
 
