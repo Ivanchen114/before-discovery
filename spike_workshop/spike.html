@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>工坊研究切片(可丟棄)——非正式章節內容</title>
+<style>
+  /* 灰盒紀律:系統字體、原生控件、無正式美術;三種誤差=形狀+位置+文字多線索,不靠單一色碼 */
+  body { font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif; margin: 16px auto; max-width: 980px; line-height: 1.6; }
+  h1 { font-size: 1.15em; } h2 { font-size: 1em; border-bottom: 1px solid #999; padding-bottom: 2px; }
+  .banner { border: 2px dashed #900; color: #900; padding: 6px 10px; font-weight: bold; }
+  .cols { display: flex; gap: 18px; flex-wrap: wrap; }
+  .col { flex: 1 1 300px; }
+  button { margin: 3px 4px 3px 0; padding: 6px 12px; min-height: 38px; }
+  button[aria-pressed="true"] { font-weight: bold; text-decoration: underline; }
+  .slot { border: 1px solid #666; padding: 4px 8px; margin: 4px 0; display: flex; justify-content: space-between; gap: 8px; }
+  .slot b.empty { color: #999; font-weight: normal; font-style: italic; }
+  .msg { border: 1px dashed #666; padding: 6px 10px; margin: 8px 0; min-height: 1.2em; white-space: pre-wrap; }
+  table { border-collapse: collapse; margin: 6px 0; }
+  th, td { border: 1px solid #999; padding: 2px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  #noteList { border-left: 3px solid #666; padding-left: 10px; }
+  #noteList p { margin: 4px 0; }
+  svg { border: 1px solid #ccc; display: block; margin: 6px 0; }
+  .hint { color: #444; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<p class="banner">研究切片(可丟棄)——驗證「受控自由+裝置診斷+16→4 profile」;不接章節、不含劇情、無正式美術;API 非相容承諾。</p>
+<h1>工坊切片:自己把斜面裝置組出來</h1>
+<p class="hint">三種自由:①釋放與計時各有兩種零件可選 ②想先裝哪一槽都行 ③要不要校準、何時校準,你決定。目標:讓數據貼著參考形狀(12・36・60・84)走——或者,搞清楚它為什麼不貼。</p>
+
+<div class="cols">
+  <div class="col">
+    <h2>零件貨架(點一下=裝上)</h2>
+    <div id="shelf"></div>
+    <h2>工作桌(裝置常駐——這是你的作品)</h2>
+    <div id="slots"></div>
+    <h2>校準(用標準件對照;自由決定做不做)</h2>
+    <button id="calZero">校準計時零點</button>
+    <button id="calScale">校對標尺刻度</button>
+    <div class="msg" id="calMsg">尚未校準。</div>
+    <button id="reset">整台拆掉重來(丟棄式研究,不心疼)</button>
+  </div>
+  <div class="col">
+    <h2>試驗</h2>
+    <button id="runBtn">執行試驗</button>
+    <label><input type="checkbox" id="ghostTgl" checked>顯示參考形狀(虛線)</label>
+    <div class="msg" id="runMsg">裝置未完成。</div>
+    <svg id="chart" viewBox="0 0 440 250" width="100%" aria-label="讀值圖"></svg>
+    <table><thead><tr><th>#</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th></tr></thead>
+      <tbody id="trialBody"></tbody></table>
+  </div>
+</div>
+
+<h2>旅人筆記(中性觀察——只記看見的,不下判決)</h2>
+<label><input type="radio" name="md" value="explore" checked>探索(觀察自動入簿)</label>
+<label><input type="radio" name="md" value="scholar">學者(自己按才給)</label>
+<button id="askNote">索取觀察</button>
+<div id="noteList"><p class="hint">(尚無紀錄)</p></div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+  "use strict";
+  var S = window.SPIKE;
+  var state = S.init();
+  var seenNotes = {};
+  function $(id) { return document.getElementById(id); }
+  var SLOT_LABEL = { groove: "槽體", release: "釋放機構", timer: "計時器", gauge: "讀值標尺" };
+
+  function shelf() {
+    var box = $("shelf"); box.innerHTML = "";
+    Object.keys(S.PARTS).forEach(function (pid) {
+      var p = S.PARTS[pid];
+      var b = document.createElement("button");
+      b.textContent = p.label;
+      b.setAttribute("aria-pressed", state.slots[p.slot] === pid ? "true" : "false");
+      b.onclick = function () {
+        var r = S.place(state, p.slot, pid);
+        if (r.error) { $("runMsg").textContent = r.error; return; }
+        state = r.state; render("裝上了:" + p.label + "(槽位:" + SLOT_LABEL[p.slot] + ")");
+      };
+      box.appendChild(b);
+    });
+  }
+  function slots() {
+    var box = $("slots"); box.innerHTML = "";
+    S.SLOTS.forEach(function (k) {
+      var d = document.createElement("div"); d.className = "slot";
+      var name = document.createElement("span"); name.textContent = SLOT_LABEL[k];
+      var val = document.createElement("b");
+      if (state.slots[k]) { val.textContent = S.PARTS[state.slots[k]].label; }
+      else { val.textContent = "(空——空槽不會偷偷跑出爛數據)"; val.className = "empty"; }
+      d.appendChild(name); d.appendChild(val); box.appendChild(d);
+    });
+  }
+  function chart() {
+    var svg = $("chart"); var X = [70, 170, 270, 370];
+    function y(v) { return 235 - v * 2.2; }
+    var out = [];
+    out.push('<text x="8" y="16" font-size="11" fill="#444">增量(格)</text>');
+    [0, 20, 40, 60, 80].forEach(function (g) {
+      out.push('<line x1="40" y1="' + y(g) + '" x2="430" y2="' + y(g) + '" stroke="#eee"/>' +
+               '<text x="10" y="' + (y(g) + 4) + '" font-size="10" fill="#888">' + g + "</text>");
+    });
+    X.forEach(function (x, i) { out.push('<text x="' + x + '" y="248" font-size="11" text-anchor="middle" fill="#444">第' + (i + 1) + "段</text>"); });
+    if ($("ghostTgl").checked) {
+      out.push('<polyline fill="none" stroke="#888" stroke-dasharray="5 4" stroke-width="1.5" points="' +
+        S.REFERENCE.map(function (v, i) { return X[i] + "," + y(v); }).join(" ") + '"/>' +
+        '<text x="392" y="' + (y(84) - 8) + '" font-size="10" fill="#888">參考形狀</text>');
+    }
+    var n = state.trials.length;
+    state.trials.forEach(function (t, ti) {
+      var last = ti === n - 1;
+      var op = last ? 1 : 0.3;
+      t.readings.forEach(function (v, i) {
+        if (Array.isArray(v)) { /* 尾段模糊:霧帶+雙候選空心點+開口括號 */
+          if (last) out.push('<rect x="' + (X[i] - 16) + '" y="' + y(Math.max(v[0], v[1]) + 3) + '" width="32" height="' +
+            (y(Math.min(v[0], v[1]) - 3) - y(Math.max(v[0], v[1]) + 3)) + '" fill="#999" opacity="0.18"/>');
+          v.forEach(function (c) {
+            out.push('<circle cx="' + X[i] + '" cy="' + y(c) + '" r="5" fill="none" stroke="#333" opacity="' + op + '"/>');
+            if (last) out.push('<text x="' + (X[i] + 10) + '" y="' + (y(c) + 4) + '" font-size="10" opacity="' + op + '">' + c + "?</text>");
+          });
+        } else {
+          out.push('<circle cx="' + X[i] + '" cy="' + y(v) + '" r="4" fill="#333" opacity="' + op + '"/>');
+          if (t.profile === "jitter" && last) /* 抖動:短鬚線 */
+            out.push('<line x1="' + X[i] + '" y1="' + (y(v) - 9) + '" x2="' + X[i] + '" y2="' + (y(v) + 9) + '" stroke="#333" opacity="0.55"/>');
+        }
+      });
+      if (t.profile === "systematic" && last) { /* 系統偏移:平行位移箭頭+說明 */
+        var v1 = t.readings[0];
+        out.push('<line x1="' + X[0] + '" y1="' + y(S.REFERENCE[0]) + '" x2="' + X[0] + '" y2="' + (y(v1) + 5) + '" stroke="#333" stroke-width="1.5"/>' +
+          '<path d="M ' + (X[0] - 4) + " " + (y(v1) + 9) + " L " + X[0] + " " + (y(v1) + 3) + " L " + (X[0] + 4) + " " + (y(v1) + 9) + '" fill="#333"/>' +
+          '<text x="' + (X[0] + 8) + '" y="' + ((y(v1) + y(S.REFERENCE[0])) / 2) + '" font-size="10">整群同方向偏移</text>');
+      }
+    });
+    svg.innerHTML = out.join("");
+  }
+  function trials() {
+    var tb = $("trialBody"); tb.innerHTML = "";
+    state.trials.forEach(function (t) {
+      var tr = document.createElement("tr");
+      var cells = ["#" + t.n].concat(t.readings.map(function (v) {
+        return Array.isArray(v) ? (v[0] + "?/" + v[1] + "?") : v.toFixed(1);
+      }));
+      cells.forEach(function (c) { var td = document.createElement("td"); td.textContent = c; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+  }
+  function pushNotes(force) {
+    var mode = document.querySelector("input[name=md]:checked").value;
+    if (mode === "scholar" && !force) return;
+    var list = S.notes(state);
+    list.forEach(function (n) {
+      if (seenNotes[n]) return;
+      seenNotes[n] = true;
+      if ($("noteList").querySelector(".hint")) $("noteList").innerHTML = "";
+      var p = document.createElement("p"); p.textContent = "・" + n;
+      $("noteList").appendChild(p);
+    });
+    if (force && !list.length) {
+      var p2 = document.createElement("p"); p2.className = "hint";
+      p2.textContent = "(目前沒有新的可觀察特徵——多跑幾次,或換個做法。)";
+      $("noteList").appendChild(p2);
+    }
+  }
+  function render(msg) {
+    shelf(); slots(); chart(); trials();
+    if (msg) $("runMsg").textContent = msg;
+  }
+  $("runBtn").onclick = function () {
+    var r = S.run(state);
+    if (r.error) { $("runMsg").textContent = r.error; return; }
+    state = r.state;
+    render("第 " + state.trials.length + " 次試驗完成。看圖:它貼著參考形狀嗎?");
+    pushNotes(false);
+  };
+  $("calZero").onclick = function () {
+    var r = S.calibrate(state, "zero");
+    if (r.error) { $("calMsg").textContent = r.error; return; }
+    state = r.state;
+    $("calMsg").textContent = "標準件對照:校準前讀值多出約 " + r.ghost.offsetBefore + " 格;歸零完成。之後的試驗,自己看有沒有跟著變。";
+    render();
+  };
+  $("calScale").onclick = function () {
+    var r = S.calibrate(state, "scale");
+    if (r.error) { $("calMsg").textContent = r.error; return; }
+    state = r.state;
+    $("calMsg").textContent = "標尺對齊:對照標準長度,刻度偏了約 " + r.ghost.offsetBefore + " 格;已重新對齊。";
+    render();
+  };
+  $("askNote").onclick = function () { pushNotes(true); };
+  $("ghostTgl").onchange = function () { chart(); };
+  $("reset").onclick = function () { state = S.init(); seenNotes = {}; $("noteList").innerHTML = '<p class="hint">(尚無紀錄)</p>'; $("calMsg").textContent = "尚未校準。"; render("整台拆掉了。重新開始。"); };
+  render();
+})();
+</script>
+</body>
+</html>
