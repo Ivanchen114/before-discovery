@@ -59,40 +59,86 @@
     SCENES.scenes.forEach(function (s) { ok(reach[s.id], "場景不可達:" + s.id); });
   });
 
-  t("R-NAR-05|結論詞彙 lint:禁詞僅得出現於白名單之 NPC 節點;玩家選項豁免", function () {
-    var banned = SCENES.lint.bannedWords;
+  /* R-NAR-05 驗證器(章規格 v0.1.1:class 封閉列舉;未知 class 必敗;
+     character-hypothesis 須 reason+refutedBy(指向可達之玩家互動節點,且不得用於 system/stage);
+     post-reveal 須 afterPlayerNode 存在且位於前方)。lint=防回歸工具,不取代人工語義審稿。 */
+  var LEGAL_CLASSES = ["character-hypothesis", "post-reveal"];
+  function validateLint(data) {
+    var banned = data.lint.bannedWords;
+    var classes = data.lint.classes || [];
+    classes.forEach(function (c) {
+      if (LEGAL_CLASSES.indexOf(c) < 0) throw new Error("lint.classes 含非法類別:" + c);
+    });
     var wl = {};
-    SCENES.lint.whitelist.forEach(function (w) { wl[w.scene + "/" + w.node] = w; });
-    var violations = [];
-    SCENES.scenes.forEach(function (s) {
+    data.lint.whitelist.forEach(function (w) { wl[w.scene + "/" + w.node] = w; });
+    var sceneIdx = {};
+    data.scenes.forEach(function (s) { sceneIdx[s.id] = s; });
+    data.scenes.forEach(function (s) {
       s.nodes.forEach(function (n) {
         if (n.type !== "line" && n.type !== "system") return; /* choice 選項=玩家認知,豁免 */
-        if (n.speaker === "旅人") return; /* 玩家台詞豁免(其結論性另由劇本審稿把關) */
+        if (n.speaker === "旅人") return;
         var text = n.text || "";
         banned.forEach(function (w) {
           if (text.indexOf(w) >= 0 && !wl[s.id + "/" + n.id]) {
-            violations.push(s.id + "/" + n.id + " 含禁詞「" + w + "」且不在白名單");
+            throw new Error(s.id + "/" + n.id + " 含禁詞「" + w + "」且不在白名單");
           }
         });
       });
     });
-    eq(violations, [], "lint 違規");
-    /* 白名單條目必須真實存在且附 reason;post-reveal 類須位於對應玩家操作節點之後(GB-ADR-006) */
-    SCENES.lint.whitelist.forEach(function (w) {
-      var sc = SCENES.scenes.filter(function (s) { return s.id === w.scene; })[0];
-      ok(sc, "白名單場景缺:" + w.scene);
-      var idx = -1, after = -1;
+    data.lint.whitelist.forEach(function (w) {
+      if (classes.indexOf(w["class"]) < 0) throw new Error("白名單 class 非封閉列舉成員:" + w.scene + "/" + w.node + " class=" + w["class"]);
+      if (!w.reason) throw new Error("白名單缺 reason:" + w.scene + "/" + w.node);
+      var sc = sceneIdx[w.scene];
+      if (!sc) throw new Error("白名單場景缺:" + w.scene);
+      var idx = -1, after = -1, target = null;
       sc.nodes.forEach(function (n, i) {
-        if (n.id === w.node) idx = i;
+        if (n.id === w.node) { idx = i; target = n; }
         if (w.afterPlayerNode && n.id === w.afterPlayerNode) after = i;
       });
-      ok(idx >= 0, "白名單節點缺:" + w.scene + "/" + w.node);
-      ok(w.reason && w["class"], "白名單須附 class 與 reason:" + w.scene + "/" + w.node);
+      if (idx < 0) throw new Error("白名單節點缺:" + w.scene + "/" + w.node);
       if (w["class"] === "post-reveal") {
-        ok(after >= 0, "post-reveal 須指定存在的 afterPlayerNode:" + w.scene + "/" + w.node);
-        ok(idx > after, "post-reveal 節點須位於玩家操作節點之後:" + w.scene + "/" + w.node);
+        if (after < 0) throw new Error("post-reveal 須指定存在的 afterPlayerNode:" + w.scene + "/" + w.node);
+        if (idx <= after) throw new Error("post-reveal 節點須位於玩家操作節點之後:" + w.scene + "/" + w.node);
+      }
+      if (w["class"] === "character-hypothesis") {
+        if (target && (target.speaker === "system" || target.speaker === "stage")) {
+          throw new Error("character-hypothesis 不得用於 system/stage 正典結論:" + w.scene + "/" + w.node);
+        }
+        var rb = w.refutedBy;
+        if (!rb || !rb.scene || !rb.node) throw new Error("character-hypothesis 缺 refutedBy:" + w.scene + "/" + w.node);
+        var rsc = sceneIdx[rb.scene];
+        if (!rsc) throw new Error("refutedBy 場景缺:" + rb.scene);
+        var rnode = null;
+        rsc.nodes.forEach(function (n) { if (n.id === rb.node) rnode = n; });
+        if (!rnode) throw new Error("refutedBy 節點缺:" + rb.scene + "/" + rb.node);
+        if (rnode.type !== "embed" && rnode.type !== "choice") {
+          throw new Error("refutedBy 須指向玩家互動節點(embed/choice):" + rb.scene + "/" + rb.node);
+        }
       }
     });
+    return true;
+  }
+
+  t("R-NAR-05|結論詞彙 lint:真實資料通過封閉列舉驗證器", function () {
+    ok(validateLint(SCENES) === true);
+  });
+
+  t("A-2 負向|未知 class/缺 refutedBy/無效 refutedBy/缺 afterPlayerNode 皆必敗", function () {
+    function mutated(fn) {
+      var copy = JSON.parse(JSON.stringify(SCENES));
+      fn(copy);
+      var threw = false;
+      try { validateLint(copy); } catch (e) { threw = true; }
+      return threw;
+    }
+    ok(mutated(function (c) { c.lint.whitelist[0]["class"] = "pre-discovery"; }), "舊類別名必敗");
+    ok(mutated(function (c) { c.lint.whitelist[0]["class"] = "post-revea1"; }), "錯字 class 必敗");
+    ok(mutated(function (c) { c.lint.classes.push("free-pass"); }), "擅增類別必敗");
+    ok(mutated(function (c) { delete c.lint.whitelist[0].refutedBy; }), "character-hypothesis 缺 refutedBy 必敗");
+    ok(mutated(function (c) { c.lint.whitelist[0].refutedBy = { scene: "A2-2", node: "沒這節點" }; }), "refutedBy 無效節點必敗");
+    ok(mutated(function (c) { c.lint.whitelist[0].refutedBy = { scene: "A1-1", node: "n2" }; }), "refutedBy 指向非互動節點必敗");
+    ok(mutated(function (c) { delete c.lint.whitelist[1].afterPlayerNode; }), "post-reveal 缺 afterPlayerNode 必敗");
+    ok(mutated(function (c) { c.lint.whitelist[1].afterPlayerNode = "n5"; }), "afterPlayerNode 在後方必敗");
   });
 
   t("主線通關|路徑A(探索):P0→INT-1 終點;證據 S2/S1/E1/E2 齊;信譽帳正確", function () {
@@ -109,8 +155,7 @@
     eq(r.view.nodeId, "q1");
     var optIds = r.view.options.map(function (o) { return o.id; });
     eq(optIds, ["a"], "R-TWR-02:勸阻後 B 隱藏");
-    s = pick(s, "a"); r = run(s); s = r.state;      /* q2 */
-    s = pick(s, "a"); r = run(s); s = r.state;      /* q3 */
+    s = pick(s, "a"); r = run(s); s = r.state;      /* q1=a → q3(場地由敘事決定,q2 已刪) */
     s = pick(s, "b"); r = run(s); s = r.state;      /* w=assistant → 塔 → A1-5(含助手插入) */
     ok(s.flags.w === "assistant", "w 旗標");
     var texts = r.passed.map(function (n) { return n.text; }).join("|");
@@ -134,8 +179,7 @@
     s = pick(s, "b1"); r = run(s); s = r.state;      /* +1=4 */
     eq(s.rep, 4, "b1 信譽+1");
     s = pick(s, "a"); r = run(s); s = r.state;       /* q1=a 直走 */
-    s = pick(s, "b"); r = run(s); s = r.state;       /* q2=b */
-    s = pick(s, "c"); r = run(s); s = r.state;       /* w=none */
+    s = pick(s, "c"); r = run(s); s = r.state;       /* q3:w=none(q2 已刪) */
     var texts = r.passed.map(function (n) { return n.text; }).join("|");
     ok(texts.indexOf("屬實更好") < 0, "w=none 不出現助手台詞");
     eq(r.view.scene, "A1-7");
@@ -156,8 +200,7 @@
     var r = run(s); s = pick(r.state, "a");
     r = run(s); s = pick(r.state, "a");              /* P0-2.a(−1) */
     r = run(s); s = pick(r.state, "a");              /* A1-3 q1=a */
-    r = run(s); s = pick(r.state, "a");              /* q2 */
-    r = run(s); s = pick(r.state, "c");              /* q3 w=none */
+    r = run(s); s = pick(r.state, "c");              /* q3 w=none(q2 已刪) */
     r = run(s); s = pick(r.state, "a");              /* A1-7 a */
     r = run(s); s = pick(r.state, "a");              /* qA2 */
     r = run(s); s = r.state;
@@ -213,7 +256,16 @@
     ok(r.result.assertion.ok, "斷言 b 成立");
     ok(s.evidence.E3, "章節證據 E3 同步(a∧b)");
     c = Narrative.embedComplete(s); s = c.state;
-    rr = run(s); s = rr.state;                        /* n5→(探索跳過學者支線)→n6→A2-4 qP */
+    rr = run(s); s = rr.state;                        /* n5→c0→e3c(變傾角必經,雙模式) */
+    eq(rr.view.nodeId, "e3c", "E3.c 必經 embed");
+    ok(rr.view.preset && rr.view.preset.incline === "中", "引導預選中傾角");
+    r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "中", timer: "水鐘" } }); s = r.state;
+    r = lab(s, "judge", { runIds: [3], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    r = lab(s, "assert", { type: "c", claimIds: [1, 3] }); s = r.state;
+    ok(r.result.assertion.ok, "斷言 c 成立");
+    ok(s.lab.evidence.e3.c, "E3.c 點亮(探索模式必經)");
+    c = Narrative.embedComplete(s); s = c.state;
+    rr = run(s); s = rr.state;                        /* nsch→n6→A2-4 qP */
     eq(rr.view.scene, "A2-4");
     eq(rr.view.nodeId, "qP");
     ["flat", "crum", "scale"].forEach(function (op) {
@@ -234,7 +286,7 @@
     eq(rr.view.scene, "A3-D", "第二幕收束後進辯論");
     eq(rr.view.system, "debate", "辯論 embed");
     ok(s.debate && s.debate.status === "pending", "辯論已初始化");
-    eq(s.lab.days, 4, "天數:水鐘×2=4(R-EXP-01 同步)");
+    eq(s.lab.days, 6, "天數:水鐘×3=6(R-EXP-01 同步;含 E3.c 必經複驗)");
   });
 
   t("M2|hadFailure:失敗判定觸發旗標,死路B回述於 embed 後出現", function () {
@@ -252,7 +304,7 @@
     ok(texts.indexOf("作廢的紀錄") >= 0, "死路B回述出現(c1)");
   });
 
-  t("M2|學者支線:qsch 選 yes→E3.c 埋入→變傾角斷言後收束", function () {
+  t("M2|E3.c 雙模式必經:學者模式同走 e3c(可自由改配置)", function () {
     var s = toActTwo("scholar");
     var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
     r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
@@ -264,145 +316,19 @@
     r = lab(s, "assert", { type: "b", claimIds: [1, 2] }); s = r.state;
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;
-    eq(rr.view.nodeId, "qsch", "學者加問出現");
-    s = pick(s, "yes"); rr = run(s); s = rr.state;
-    eq(rr.view.type, "embed", "E3.c embed");
-    r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "中", timer: "水鐘" } }); s = r.state;
+    eq(rr.view.nodeId, "e3c", "學者亦必經 e3c");
+    /* 學者自由配置:改用音格對(緩×陡),僅傾角相異 */
+    r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "緩", timer: "音格" } }); s = r.state;
     r = lab(s, "judge", { runIds: [3], prediction: 9 * r.result.run.readings[0] }); s = r.state;
-    ok(r.result.claim.ok, "中傾角主張成立");
-    r = lab(s, "assert", { type: "c", claimIds: [1, 3] }); s = r.state;
-    ok(r.result.assertion.ok, "斷言 c 成立");
+    ok(r.result.claim.ok, "緩+音格可判定");
+    r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "陡", timer: "音格" } }); s = r.state;
+    r = lab(s, "judge", { runIds: [4], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    ok(r.result.claim.ok, "陡+音格可判定(學者限定工具)");
+    r = lab(s, "assert", { type: "c", claimIds: [3, 4] }); s = r.state;
+    ok(r.result.assertion.ok && s.lab.evidence.e3.c, "自由配置完成 E3.c(僅傾角相異)");
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;
     eq(rr.view.scene, "A2-4", "續接 E4");
-  });
-
-  /* ===== M3:第三幕辯論+尾聲 ===== */
-
-  function toDebate(mode) { /* 快轉至 A3-D 辯論 embed */
-    var s = toActTwo(mode);
-    var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
-    r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
-    s = Narrative.embedComplete(s).state;
-    var rr = run(s); s = rr.state;
-    s = pick(s, "a"); rr = run(s); s = rr.state;
-    r = lab(s, "run", { config: CFG_SMALL }); s = r.state;
-    r = lab(s, "judge", { runIds: [2], prediction: 9 * r.result.run.readings[0] }); s = r.state;
-    r = lab(s, "assert", { type: "b", claimIds: [1, 2] }); s = r.state;
-    s = Narrative.embedComplete(s).state;
-    rr = run(s); s = rr.state;
-    if (rr.view.nodeId === "qsch") { s = pick(s, "no"); rr = run(s); s = rr.state; } /* 學者:略過 E3.c */
-    ["flat", "crum", "scale"].forEach(function (op) { s = pick(s, op); s = run(s).state; });
-    s = pick(s, "done"); s = run(s).state;
-    s = pick(s, "a"); s = run(s).state;
-    ["air", "water"].forEach(function (op) { s = pick(s, op); s = run(s).state; });
-    s = pick(s, "done"); s = run(s).state;
-    s = pick(s, "a"); rr = run(s); s = rr.state;
-    eq(rr.view.scene, "A3-D"); eq(rr.view.system, "debate");
-    return s;
-  }
-  function deb(s, fn, args) {
-    var r = Narrative[fn].apply(null, [s].concat(args));
-    if (r.error) throw new Error(fn + ":" + r.error);
-    return r;
-  }
-
-  t("M3|辯論黃金路徑(探索):E1 特殊回應→三支柱→反問選項→FR→trap 說謊代價→勝利→尾聲兩題→史實頁→終", function () {
-    var s = toDebate("explore");
-    /* P1:追問免費;E1=特殊回應(不扣分);E4 正解 */
-    var r = deb(s, "debatePress", ["p1s2"]); s = r.state;
-    eq(s.debate.persuasion, 5, "追問不扣量表");
-    r = deb(s, "debatePresent", [{ evidence: "E1", subitem: null, target: "p1s2" }]); s = r.state;
-    eq(r.outcome, "special", "E1 又是幾乎——不扣分");
-    eq(s.debate.persuasion, 5);
-    r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
-    eq(r.outcome, "correct"); ok(s.debate.pillars.P1.broken, "P1 破");
-    /* P2:追問 p2s3 → 反問選項 A(雙罰,可重選)→ B → E2 正解 */
-    r = deb(s, "debatePress", ["p2s3"]); s = r.state;
-    ok(r.choice, "反問選項出現");
-    r = deb(s, "debatePressChoice", ["a"]); s = r.state;
-    eq(s.debate.persuasion, 4, "住在明天:說服力−1");
-    eq(s.rep, 1, "信譽−1(2→1)");
-    r = deb(s, "debatePressChoice", ["b"]); s = r.state;      /* retry 後改選 B */
-    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
-    eq(r.outcome, "correct"); ok(s.debate.pillars.P2.broken, "P2 破");
-    /* P3:不足(E3.a)→ 正解(E3.b) */
-    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "a", target: "s2" }]); s = r.state;
-    eq(r.outcome, "wrong", "E3 確立後 a 出示=其餘三元組(依規格)");
-    eq(s.debate.persuasion, 3);
-    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
-    eq(r.outcome, "correct"); ok(s.debate.fr.opened, "三柱皆破→FR");
-    /* FR 探索:錯選重試→兩步→trap 說謊(−2,−1;強制轉誠實)→勝 */
-    r = deb(s, "debateFr", ["b"]); s = r.state; eq(r.outcome, "retry", "引導步答錯僅重選");
-    r = deb(s, "debateFr", ["a"]); s = r.state;
-    r = deb(s, "debateFr", ["a"]); s = r.state;
-    ok(s.debate.fr.trapPending, "trap 抉擇");
-    r = deb(s, "debateFr", ["lied"]); s = r.state;
-    eq(r.outcome, "resolvedAfterLie", "說謊被戳破後強制轉誠實");
-    eq(s.debate.persuasion, 1, "3−2=1");
-    eq(s.rep, 0, "信譽 1−1=0(觸發修復鎖)");
-    ok(s.evidence.E5, "E5 入袋");
-    eq(s.debate.status, "won", "辯論勝利");
-    /* 信譽歸零:先修復,再收辯論 */
-    var rd = Narrative.redirectIfLocked(s);
-    ok(rd.redirected, "歸零導入 SC-R1"); s = rd.state;
-    var rr = run(s); s = rr.state;
-    r = lab(s, "run", { config: CFG_BIG }); s = r.state;
-    s = Narrative.embedComplete(s).state;
-    rr = run(s); s = rr.state;                                  /* rep=1,返回 A3-D embed */
-    eq(s.rep, 1); eq(rr.view.scene, "A3-D");
-    ok(Narrative.embedReady(s), "debateWon → embed 可收束");
-    s = Narrative.embedComplete(s).state;
-    rr = run(s); s = rr.state;                                  /* A3-6 判定 → E-1 → E-2 → review */
-    eq(rr.view.type, "review", "章末兩題");
-    var texts = rr.passed.map(function (n) { return n.text; }).join("|");
-    ok(texts.indexOf("厚了一頁") >= 0, "判定場:數據紙夾進《物理學》");
-    r = deb(s, "setReview", ["因為快慢與重量無關", "把太快的過程拉長到量得到"]); s = r.state;
-    rr = run(s); s = rr.state;                                  /* histfacts → fin → end */
-    eq(s.review.q1, "因為快慢與重量無關", "回顧已存");
-    ok(s.ended, "第一章完");
-  });
-
-  t("M3|中止與再入:錯誤出示×5→中止→離場→補實驗→再入(量表重置,已破支柱保留)", function () {
-    var s = toDebate("explore");
-    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state; /* P1 破 */
-    for (var i = 0; i < 5; i++) {
-      r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p2s1" }]); s = r.state;   /* 錯誤出示 */
-    }
-    eq(s.debate.status, "suspended", "歸零中止");
-    ok(!Narrative.embedReady(s), "中止時不可收束");
-    r = deb(s, "debateExitSuspended", []); s = r.state;
-    var rr = run(s); s = rr.state;
-    eq(rr.view.scene, "A3-F"); eq(rr.view.system, "incline", "回實驗台自由補證");
-    ok(Narrative.embedReady(s), "A3-F 無門檻,隨時可重返");
-    var l = lab(s, "run", { config: CFG_BIG }); s = l.state;    /* 補一筆(自由) */
-    s = Narrative.embedComplete(s).state;
-    rr = run(s); s = rr.state;                                  /* reenter 效果 → 回 A3-D */
-    eq(rr.view.scene, "A3-D");
-    eq(s.debate.status, "pending"); eq(s.debate.persuasion, 5, "量表重置");
-    ok(s.debate.pillars.P1.broken, "已破支柱保留");
-    eq(s.debate.idx, 1, "從第二柱續戰");
-  });
-
-  t("M3|學者 FR:干擾項−1、亂序不罰、三環組鏈→trap 誠實(零代價)→勝", function () {
-    var s = toDebate("scholar");
-    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
-    ok(s.debate.fr.opened);
-    r = deb(s, "debateFr", ["d2"]); s = r.state;
-    eq(r.outcome, "distractor"); eq(s.debate.persuasion, 4, "干擾項−1");
-    r = deb(s, "debateFr", ["c2"]); s = r.state;
-    eq(r.outcome, "wrongOrder", "亂序不罰"); eq(s.debate.persuasion, 4);
-    ["c1", "c2", "c3"].forEach(function (cid) { r = deb(s, "debateFr", [cid]); s = r.state; });
-    ok(s.debate.fr.trapPending);
-    var repBefore = s.rep, perBefore = s.debate.persuasion;
-    r = deb(s, "debateFr", ["honest"]); s = r.state;
-    eq(r.outcome, "resolved");
-    eq(s.rep, repBefore, "誠實零信譽代價");
-    eq(s.debate.persuasion, perBefore, "誠實零量表代價");
-    eq(s.debate.status, "won");
-    ok(s.evidence.E5);
   });
 
   t("SC-R1|信譽歸零→導入修復→做一次實驗→信譽1→返回原游標", function () {
@@ -480,6 +406,221 @@
     s = pick(s, "b1"); r = run(s); s = r.state; /* 進第一幕取證 */
     var hasEvidence = s.eventLog.some(function (e) { return e.t === "evidence" && e.id === "S2"; });
     ok(hasEvidence, "evidence 事件在log");
+  });
+
+  /* ===== M3:第三幕辯論+尾聲 ===== */
+
+  function toDebate(mode) { /* 快轉至 A3-D 辯論 embed(含 E3.c 必經) */
+    var s = toActTwo(mode);
+    var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    var rr = run(s); s = rr.state;
+    s = pick(s, "a"); rr = run(s); s = rr.state;
+    r = lab(s, "run", { config: CFG_SMALL }); s = r.state;
+    r = lab(s, "judge", { runIds: [2], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    r = lab(s, "assert", { type: "b", claimIds: [1, 2] }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;                       /* e3c:變傾角必經(雙模式) */
+    r = lab(s, "run", { config: { ball: "銅大", surface: "打磨", incline: "中", timer: "水鐘" } }); s = r.state;
+    r = lab(s, "judge", { runIds: [3], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    r = lab(s, "assert", { type: "c", claimIds: [1, 3] }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    ok(s.lab.evidence.e3.c === true, "必補測試1:入辯論前 E3.c=true");
+    ["flat", "crum", "scale"].forEach(function (op) { s = pick(s, op); s = run(s).state; });
+    s = pick(s, "done"); s = run(s).state;
+    s = pick(s, "a"); s = run(s).state;
+    ["air", "water"].forEach(function (op) { s = pick(s, op); s = run(s).state; });
+    s = pick(s, "done"); s = run(s).state;
+    s = pick(s, "a"); rr = run(s); s = rr.state;
+    eq(rr.view.scene, "A3-D"); eq(rr.view.system, "debate");
+    return s;
+  }
+  function deb(s, fn, args) {
+    var r = Narrative[fn].apply(null, [s].concat(args));
+    if (r.error) throw new Error(fn + ":" + r.error);
+    return r;
+  }
+
+  t("M3|辯論黃金路徑(探索):E1 特殊回應→三支柱→反問選項→FR→trap 說謊代價→勝利→尾聲兩題→史實頁→終", function () {
+    var s = toDebate("explore");
+    var r = deb(s, "debatePress", ["p1s2"]); s = r.state;
+    eq(s.debate.persuasion, 5, "追問不扣量表");
+    r = deb(s, "debatePresent", [{ evidence: "E1", subitem: null, target: "p1s2" }]); s = r.state;
+    eq(r.outcome, "special", "E1 又是幾乎——不扣分");
+    eq(s.debate.persuasion, 5);
+    r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    eq(r.outcome, "correct"); ok(s.debate.pillars.P1.broken, "P1 破");
+    r = deb(s, "debatePress", ["p2s3"]); s = r.state;
+    ok(r.choice, "反問選項出現");
+    r = deb(s, "debatePressChoice", ["a"]); s = r.state;
+    eq(s.debate.persuasion, 4, "住在明天:說服力−1");
+    eq(s.rep, 1, "信譽−1(2→1)");
+    r = deb(s, "debatePressChoice", ["b"]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    eq(r.outcome, "correct"); ok(s.debate.pillars.P2.broken, "P2 破");
+    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "a", target: "s2" }]); s = r.state;
+    eq(r.outcome, "wrong", "E3 確立後 a 出示=其餘三元組(依規格)");
+    eq(s.debate.persuasion, 3);
+    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    eq(r.outcome, "correct"); ok(s.debate.fr.opened, "三柱皆破→FR");
+    r = deb(s, "debateFr", ["b"]); s = r.state; eq(r.outcome, "retry", "引導步答錯僅重選");
+    r = deb(s, "debateFr", ["a"]); s = r.state;
+    r = deb(s, "debateFr", ["a"]); s = r.state;
+    ok(s.debate.fr.trapPending, "trap 抉擇");
+    r = deb(s, "debateFr", ["lied"]); s = r.state;
+    eq(r.outcome, "resolvedAfterLie", "說謊被戳破後強制轉誠實");
+    eq(s.debate.persuasion, 1, "3−2=1");
+    eq(s.rep, 0, "信譽 1−1=0(觸發修復鎖)");
+    ok(s.evidence.E5, "E5 入袋");
+    eq(s.debate.status, "won", "辯論勝利");
+    var rd = Narrative.redirectIfLocked(s);
+    ok(rd.redirected, "歸零導入 SC-R1"); s = rd.state;
+    var rr = run(s); s = rr.state;
+    r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    eq(s.rep, 1); eq(rr.view.scene, "A3-D");
+    ok(Narrative.embedReady(s), "debateWon → embed 可收束");
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    eq(rr.view.type, "review", "章末兩題");
+    var texts = rr.passed.map(function (n) { return n.text; }).join("|");
+    ok(texts.indexOf("厚了一頁") >= 0, "判定場:數據紙夾進《物理學》");
+    r = deb(s, "setReview", ["因為快慢與重量無關", "把太快的過程拉長到量得到"]); s = r.state;
+    rr = run(s); s = rr.state;
+    eq(s.review.q1, "因為快慢與重量無關", "回顧已存");
+    ok(s.ended, "第一章完");
+  });
+
+  t("M3|中止與再入:錯誤出示×5→中止→離場→補實驗→再入(量表重置,已破支柱保留)", function () {
+    var s = toDebate("explore");
+    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    for (var i = 0; i < 5; i++) {
+      r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p2s1" }]); s = r.state;
+    }
+    eq(s.debate.status, "suspended", "歸零中止");
+    ok(!Narrative.embedReady(s), "中止時不可收束");
+    r = deb(s, "debateExitSuspended", []); s = r.state;
+    var rr = run(s); s = rr.state;
+    eq(rr.view.scene, "A3-F"); eq(rr.view.system, "incline", "回實驗台自由補證");
+    ok(Narrative.embedReady(s), "A3-F 無門檻,隨時可重返");
+    var l = lab(s, "run", { config: CFG_BIG }); s = l.state;
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    eq(rr.view.scene, "A3-D");
+    eq(s.debate.status, "pending"); eq(s.debate.persuasion, 5, "量表重置");
+    ok(s.debate.pillars.P1.broken, "已破支柱保留");
+    eq(s.debate.idx, 1, "從第二柱續戰");
+  });
+
+  t("M3|學者 FR:干擾項−1、亂序不罰、三環組鏈→trap 誠實(零代價)→勝", function () {
+    var s = toDebate("scholar");
+    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    ok(s.debate.fr.opened);
+    r = deb(s, "debateFr", ["d2"]); s = r.state;
+    eq(r.outcome, "distractor"); eq(s.debate.persuasion, 4, "干擾項−1");
+    r = deb(s, "debateFr", ["c2"]); s = r.state;
+    eq(r.outcome, "wrongOrder", "亂序不罰"); eq(s.debate.persuasion, 4);
+    ["c1", "c2", "c3"].forEach(function (cid) { r = deb(s, "debateFr", [cid]); s = r.state; });
+    ok(s.debate.fr.trapPending);
+    var repBefore = s.rep, perBefore = s.debate.persuasion;
+    r = deb(s, "debateFr", ["honest"]); s = r.state;
+    eq(r.outcome, "resolved");
+    eq(s.rep, repBefore, "誠實零信譽代價");
+    eq(s.debate.persuasion, perBefore, "誠實零量表代價");
+    eq(s.debate.status, "won");
+    ok(s.evidence.E5);
+  });
+
+  /* ===== M3 外科修正:必補負向測試(修正包 2/4/5/6) ===== */
+
+  t("A-1 負向|E3.c=false 不得推進 FR;state 不變", function () {
+    var s = toDebate("explore");
+    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    ok(s.debate.fr.opened, "FR 已開");
+    var s2 = JSON.parse(JSON.stringify(s));
+    s2.lab.evidence.e3.c = false;                     /* 竄改:移除 E3.c */
+    var frozen = JSON.stringify(s2);
+    var rr = Narrative.debateFr(s2, "a");
+    ok(rr.error && rr.error.indexOf("E3.c") >= 0, "缺 E3.c 必拒");
+    eq(JSON.stringify(rr.state), frozen, "state 不變");
+  });
+
+  t("B-1 負向|未持有證據不得出示(E4 遭刪/E3 子項未亮),state 不變", function () {
+    var s = toDebate("explore");
+    var s2 = JSON.parse(JSON.stringify(s));
+    delete s2.evidence.E4;                            /* 竄改:移除 E4 */
+    var frozen = JSON.stringify(s2);
+    var r = Narrative.debatePresent(s2, { evidence: "E4", subitem: null, target: "p1s2" });
+    ok(r.error && r.error.indexOf("未持有") >= 0, "E4 未持有必拒");
+    eq(JSON.stringify(r.state), frozen, "state 不變");
+    var s3 = JSON.parse(JSON.stringify(s));
+    s3.lab.evidence.e3.b = false;                     /* 竄改:E3.b 未亮 */
+    var frozen3 = JSON.stringify(s3);
+    var r3 = Narrative.debatePresent(s3, { evidence: "E3", subitem: "b", target: "p1s2" });
+    ok(r3.error && r3.error.indexOf("未持有") >= 0, "E3.b 未亮必拒");
+    eq(JSON.stringify(r3.state), frozen3, "state 不變");
+    ok(Narrative.ownsEvidence(s, "E4") === true && Narrative.ownsEvidence(s3, "E3", "b") === false, "ownsEvidence 單一語義");
+  });
+
+  t("B-5|trap 雙歸零:lied→中止+修復→再入 FR→honest→完章", function () {
+    var s = toDebate("explore");
+    /* 壓量表:P1 期間錯誤出示×3(5→2) */
+    var r;
+    for (var i = 0; i < 3; i++) { r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p1s1" }]); s = r.state; }
+    eq(s.debate.persuasion, 2);
+    r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    r = deb(s, "debatePress", ["p2s3"]); s = r.state;
+    r = deb(s, "debatePressChoice", ["a"]); s = r.state;   /* 說服力 2→1;信譽 2→1 */
+    eq(s.debate.persuasion, 1); eq(s.rep, 1);
+    r = deb(s, "debatePressChoice", ["b"]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    r = deb(s, "debateFr", ["a"]); s = r.state;
+    r = deb(s, "debateFr", ["a"]); s = r.state;
+    ok(s.debate.fr.trapPending, "trap 就位(說服力1/信譽1)");
+    r = deb(s, "debateFr", ["lied"]); s = r.state;         /* −2/−1:雙歸零 */
+    eq(s.debate.status, "suspended", "辯論中止");
+    eq(s.rep, 0, "信譽歸零");
+    ok(s.debate.fr.trapPending, "trap 狀態保留");
+    var rd = Narrative.redirectIfLocked(s); ok(rd.redirected); s = rd.state;
+    var rr = run(s); s = rr.state;                          /* SC-R1 → e1 */
+    r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;                              /* rep=1,回 A3-D(仍中止) */
+    eq(s.rep, 1); eq(rr.view.scene, "A3-D");
+    r = deb(s, "debateExitSuspended", []); s = r.state;
+    rr = run(s); s = rr.state;                              /* A3-F 補實驗 embed */
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;                              /* reenter → A3-D */
+    eq(s.debate.status, "pending"); eq(s.debate.persuasion, 5, "量表重置");
+    ok(s.debate.fr.trapPending, "再入後仍停在 FR trap");
+    r = deb(s, "debateFr", ["honest"]); s = r.state;
+    eq(s.debate.status, "won", "誠實完成");
+    s = Narrative.embedComplete(s).state;
+    rr = run(s); s = rr.state;
+    eq(rr.view.type, "review");
+    r = deb(s, "setReview", ["答一", "答二"]); s = r.state;
+    rr = run(s); s = rr.state;
+    ok(s.ended, "完章");
+  });
+
+  t("B-3/R-SAV-02|loadSave 分類:empty/badjson/schema/cursor 與正常往返", function () {
+    ok(Narrative.loadSave(null).empty, "空=empty");
+    eq(Narrative.loadSave("{bad").error, "badjson", "壞 JSON");
+    var s = Narrative.initialState("explore");
+    var old = JSON.parse(Narrative.serialize(s)); old.schemaVersion = 2;
+    eq(Narrative.loadSave(JSON.stringify(old)).error, "schema", "舊 schema");
+    var bad = JSON.parse(Narrative.serialize(s)); bad.cursor = { scene: "沒這場", node: "n1" };
+    eq(Narrative.loadSave(JSON.stringify(bad)).error, "cursor", "壞游標");
+    var okr = Narrative.loadSave(Narrative.serialize(s));
+    eq(okr.state, s, "正常載入相等");
   });
 
   return tests;

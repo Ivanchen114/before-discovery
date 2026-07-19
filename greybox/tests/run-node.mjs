@@ -34,11 +34,16 @@ tests.push({
   }
 });
 tests.push({
-  name: "R-END-02|histfacts.js ≡ histfacts.json",
+  name: "R-END-02|histfacts.js ≡ histfacts.json;每列 label ∈ 宣告 enum",
   fn: () => {
     const hf = require("../data/histfacts.js");
     const json = JSON.parse(readFileSync(path.join(here, "../data/histfacts.json"), "utf-8"));
     if (JSON.stringify(hf) !== JSON.stringify(json)) throw new Error("histfacts 鏡像漂移");
+    if (!Array.isArray(hf.labels) || !hf.labels.length) throw new Error("histfacts 缺 labels enum");
+    hf.rows.forEach((r) => {
+      if (!r.item || !r.label) throw new Error("histfacts 列缺 item/label");
+      if (hf.labels.indexOf(r.label) < 0) throw new Error("label 不在 enum:" + r.label);
+    });
   }
 });
 tests.push({

@@ -18,15 +18,19 @@
 
   /* ---------- 存檔 ---------- */
   function save() { try { localStorage.setItem(KEY, N.serialize(state)); } catch (e) {} }
-  function tryLoad() {
+  function tryLoad() { /* B-3/R-SAV-02:壞檔備份+一次性非阻塞提示 */
     var text = null;
     try { text = localStorage.getItem(KEY); } catch (e) { return null; }
-    if (!text) return null;
-    try { return N.deserialize(text); }
-    catch (e) {
+    var r = N.loadSave(text);
+    if (r.empty) return null;
+    if (r.error) {
       try { localStorage.setItem(KEY + "_corrupt", text); localStorage.removeItem(KEY); } catch (e2) {}
+      var warn = $("newWarn");
+      warn.style.display = "";
+      warn.textContent = "偵測到無法讀取的舊進度(" + (r.error === "schema" ? "版本不符" : "檔案損壞") + "),已備份;請開新遊戲。";
       return null;
     }
+    return r.state;
   }
   function setState(s) {
     state = s;
@@ -297,7 +301,9 @@
       });
       evSel.setAttribute("aria-label", "選擇證據");
       var subSel = document.createElement("select");
+      var e3lit = state.lab.evidence.e3; /* A-1:只列已取得子項(所有權=引擎 ownsEvidence 同語義) */
       [["a", "a 規律成立"], ["b", "b 與球重無關"], ["c", "c 隨傾角形式不變"]].forEach(function (p) {
+        if (!e3lit[p[0]]) return;
         var o = document.createElement("option"); o.value = p[0]; o.textContent = p[1]; subSel.appendChild(o);
       });
       subSel.setAttribute("aria-label", "E3 子項");
@@ -404,11 +410,12 @@
       h.innerHTML = "<b>" + HIST.title + "</b>(透明揭露:哪些是史實、哪些是傳說或改編)";
       box.appendChild(h);
       var tbl = document.createElement("table");
-      HIST.rows.forEach(function (row) {
+      HIST.rows.forEach(function (row) { /* R-END-02:{item,label,note},label ∈ enum */
         var tr = document.createElement("tr");
-        row.forEach(function (cell) {
+        [row.label, row.item, row.note || ""].forEach(function (cell, ci) {
           var td = document.createElement("td");
           td.style.textAlign = "left";
+          if (ci === 0) td.style.fontWeight = "bold";
           td.textContent = cell;
           tr.appendChild(td);
         });
@@ -423,8 +430,8 @@
       });
       return;
     }
-    if (v.type === "end" || state.ended) {
-      addLine("system", "——第一章 終——感謝遊玩完整第一章灰盒。總耗天數:" + state.lab.days + " 天。進度已存。", "system");
+    if (v.type === "end" || state.ended) { /* B-4:終幕文字由 scenes 資料單一來源輸出,UI 僅補狀態行 */
+      addLine("system", "(進度已存。總耗天數:" + state.lab.days + " 天。)", "system");
       save();
       return;
     }

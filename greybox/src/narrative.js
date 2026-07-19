@@ -169,6 +169,15 @@
     return null;
   }
 
+  /* B-1:證據所有權單一語義——引擎與 UI 共用(E3 依子項查 lab;其餘查章節證據) */
+  function ownsEvidence(state, evidence, subitem) {
+    if (evidence === "E3") {
+      if (!subitem) return false;
+      return !!state.lab.evidence.e3[subitem];
+    }
+    return !!state.evidence[evidence];
+  }
+
   function debatePress(state0, sid) {
     var state = clone(state0);
     var d = state.debate;
@@ -213,6 +222,9 @@
     var pid = curPillarId(d);
     var stmt = findStmt(pid, p.target);
     if (!stmt) return { state: state0, error: "無此證詞" };
+    if (!ownsEvidence(state, p.evidence, p.subitem)) {
+      return { state: state0, error: "未持有之證據不得出示:" + p.evidence + (p.subitem ? "." + p.subitem : "") };
+    }
     say(state, "旅人(你)", "【出示】" + p.evidence + (p.subitem ? "." + p.subitem : "") + " → " + stmt.text.slice(0, 12) + "…");
     var e3 = state.lab.evidence.e3;
     var outcome;
@@ -275,6 +287,10 @@
     var d = state.debate;
     var g = guardDebate(state); if (g) return { state: state0, error: g };
     if (!d.fr.opened || d.fr.resolved) return { state: state0, error: "尚未進入最後反撲" };
+    /* A-1:外推論證之前提=玩家親手驗過「隨傾角形式不變」(E3.c);未持有不得組鏈 */
+    if (!state.lab.evidence.e3.c) {
+      return { state: state0, error: "缺 E3.c(隨傾角形式不變)——沒親手驗過變傾角,這條鏈不能組" };
+    }
     if (d.fr.trapPending) {
       var t = null;
       CH.fr.trap.options.forEach(function (o) { if (o.id === optionId) t = o; });
@@ -499,6 +515,15 @@
     if (!sceneMap[s.cursor.scene] || !sceneMap[s.cursor.scene].nodes[s.cursor.node]) throw new Error("存檔游標無效");
     return s;
   }
+  /* B-3/R-SAV-02:載入結果分類(純函式;備份與提示由 UI 執行) */
+  function loadSave(text) {
+    if (!text) return { empty: true };
+    var s;
+    try { s = JSON.parse(text); } catch (e) { return { error: "badjson" }; }
+    if (!s || s.schemaVersion !== SAVE_SCHEMA) return { error: "schema" };
+    if (!sceneMap[s.cursor.scene] || !sceneMap[s.cursor.scene].nodes[s.cursor.node]) return { error: "cursor" };
+    return { state: s };
+  }
 
   return {
     initialState: initialState,
@@ -507,8 +532,9 @@
     debatePress: debatePress, debatePressChoice: debatePressChoice,
     debatePresent: debatePresent, debateFr: debateFr,
     debateExitSuspended: debateExitSuspended, debateView: debateView,
+    ownsEvidence: ownsEvidence,
     redirectIfLocked: redirectIfLocked,
-    serialize: serialize, deserialize: deserialize,
+    serialize: serialize, deserialize: deserialize, loadSave: loadSave,
     SAVE_SCHEMA: SAVE_SCHEMA, _sceneMap: sceneMap
   };
 });
