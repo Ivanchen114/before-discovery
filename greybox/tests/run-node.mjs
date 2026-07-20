@@ -434,6 +434,9 @@ tests.push({
       throw new Error("器材主視覺的防溢位/紙面融合缺失");
     for (const frag of ["unlockAudioOnce", "visibilitychange", 'addEventListener("pointerdown", unlockAudioOnce)', 'addEventListener("keydown", unlockAudioOnce)'])
       if (!sui.includes(frag)) throw new Error("音訊可靠性缺失:" + frag);
+    /* 進實驗台確認閘:敘事→embed 須經玩家確認(讀完再走) */
+    if (!stageHtml.includes('id="btnEmbark"') || !sui.includes("embarkGate"))
+      throw new Error("進實驗台確認閘缺失");
   }
 });
 

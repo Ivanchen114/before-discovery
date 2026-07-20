@@ -348,14 +348,28 @@
         if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
       }, 0);
     }
-    if (view === "lab" && !labIntroSeen) { /* 首次上實驗台:先給備忘卡,緩住「跳太快」 */
-      labIntroSeen = true;
+    /* 進實驗台確認閘:從敘事/選項流進 embed 時,先停在對話,玩家按「前往」才換場(讀完再走) */
+    if (view === "lab" && prevView !== "lab" && (prevView === "narration" || prevView === "choice")) {
+      body.classList.add("embarkGate");
+      $("btnEmbark").hidden = false;
+      setTimeout(function () { if (!body.classList.contains("held")) $("btnEmbark").focus(); }, 30);
+    } else if (view === "lab" && !labIntroSeen && !body.classList.contains("embarkGate")) {
+      labIntroSeen = true; /* 非閘道路徑(讀檔直落實驗台):照舊直接給備忘卡 */
       setTimeout(showLabIntro, 0);
     }
+    if (view !== "lab") { body.classList.remove("embarkGate"); $("btnEmbark").hidden = true; }
     if (view === "debate" && !debIntroSeen) { /* 首次進辯論廳:說服力與規則在這裡自我介紹(just-in-time) */
       debIntroSeen = true;
       setTimeout(function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }, 0);
     }
+    prevView = view;
+  });
+  var prevView = null;
+  $("btnEmbark").addEventListener("click", function () {
+    body.classList.remove("embarkGate");
+    $("btnEmbark").hidden = true;
+    if (!labIntroSeen) { labIntroSeen = true; showLabIntro(); }
+    else { var b = $("labRun"); if (b) b.focus(); }
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false;

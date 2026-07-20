@@ -253,6 +253,17 @@
     .mzplate { transition: none; } /* 減少動態:立即換板 */
     #mzCaption, #mzTitleLines p { animation: none; opacity: 1; }
   }
+  /* --- 進實驗台確認閘(總監:對話沒讀完就被跳走)--- */
+  body.embarkGate #panelWrap { display: none !important; }
+  body.embarkGate #dialogue { display: block !important; }
+  #btnEmbark { position: absolute; z-index: 27; right: 3.5%; bottom: 26%;
+    background: rgba(122, 75, 42, 0.92); color: #f3e9d5; border: 1px solid rgba(230, 215, 189, 0.55);
+    border-radius: 999px; min-height: 44px; padding: 8px 26px;
+    font-size: clamp(15px, 1.4vw, 18px); letter-spacing: 0.14em; cursor: pointer;
+    font-family: var(--font-dialogue); animation: bdFade var(--motion-medium) ease; }
+  #btnEmbark:hover { background: #935c35; }
+  #btnEmbark[hidden] { display: none; }
+  body.held #btnEmbark { visibility: hidden; } /* 台詞還在演:先讀完 */
   /* --- 信譽首動提示+辯論備忘卡 --- */
   #hud .chip[title] { cursor: pointer; }
   #hud .chip:focus-visible { outline: 3px solid var(--color-focus); }
@@ -636,6 +647,8 @@
         <button id="btnLabIntroGo" type="button">開始動手</button>
       </div>
     </div>
+
+    <button id="btnEmbark" hidden>▸ 前往實驗台</button>
 
     <div id="dialogue" data-active="none">
       <div id="bustLeft" class="bslot" aria-hidden="true"></div>
