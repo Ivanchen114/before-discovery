@@ -795,12 +795,12 @@
  },
  "audioBasePath": "../public/assets/audio/",
  "bgmFiles": {
-  "pisa": null,
-  "study": null,
-  "rain": null,
-  "workshop": null,
-  "hall": null,
-  "dusk": null,
+  "pisa": "Piazza_at_Dawn.mp3",
+  "study": "Sun_Through_Lattice.mp3",
+  "rain": "Midnight_at_the_Casement.mp3",
+  "workshop": "Beneath_the_Chisel.mp3",
+  "hall": "Counsel_of_Strings.mp3",
+  "dusk": "Where_The_Sun_Rests.mp3",
   "storm": null
  }
 }

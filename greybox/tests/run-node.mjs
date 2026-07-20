@@ -357,6 +357,13 @@ tests.push({
     });
     for (const frag of ["sceneBgm", "BGM.refresh", 'play("storm")'])
       if (!sui.includes(frag)) throw new Error("BGM 要素缺失:" + frag);
+    /* 真音樂檔:填了就必須存在;storm 恆 null(現代=合成器,1590=真曲,音色即穿越) */
+    for (const [mood, f] of Object.entries(assets.bgmFiles || {})) {
+      if (f === null) continue;
+      try { readFileSync(path.join(here, "..", assets.audioBasePath, f)); }
+      catch (e) { throw new Error("bgmFiles 檔案不存在:" + mood + "→" + f); }
+    }
+    if ((assets.bgmFiles || {}).storm !== null) throw new Error("storm 應維持合成(null)");
     if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
       throw new Error("FX 樣式/容器缺失");
   }
