@@ -201,12 +201,26 @@ tests.push({
       if (sp === "伽利略" || sp === "辛普里奧") throw new Error("跨年代角色禁設對話預設(年代安全):" + sp);
       if (sp === "旅人" || sp === "旅人(你)") throw new Error("旅人不得設對話預設(驗收6)");
     }
-    /* 解析順序:場景覆寫先於對話預設先於筆記頭像 */
+    /* 解析順序:台詞覆寫→場景覆寫→對話預設→筆記頭像 */
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    const a0 = sui.indexOf("lineOverride(speaker, text)");
     const a = sui.indexOf("sceneDialoguePortrait[curSceneId]");
     const b = sui.indexOf("speakerDialoguePortrait[speaker]");
     const c = sui.indexOf("speakerPortrait[speaker]");
-    if (!(a >= 0 && b > a && c > b)) throw new Error("肖像三層解析順序錯誤(應:場景→預設→筆記頭像)");
+    if (!(a0 >= 0 && a > a0 && b > a && c > b)) throw new Error("肖像四層解析順序錯誤(應:台詞→場景→預設→筆記頭像)");
+    /* 台詞級覆寫:目標存在+match 真的出現在該場景/辯論文本+年代守衛 */
+    const ldp = assets.lineDialoguePortrait || [];
+    const scenesText = readFileSync(path.join(here, "../data/scenes.json"), "utf-8");
+    const debateText = readFileSync(path.join(here, "../data/debate.json"), "utf-8");
+    for (const r of ldp) {
+      if (!ids.has(r.asset)) throw new Error("台詞覆寫指向不存在資產:" + r.asset);
+      if (!sceneIds.has(r.scene)) throw new Error("台詞覆寫指向不存在場景:" + r.scene);
+      if (!r.match || (!scenesText.includes(r.match) && !debateText.includes(r.match)))
+        throw new Error("台詞覆寫 match 字串不存在於任何文本:" + r.match);
+      if (EARLY.test(r.scene) && /39|72/.test(r.asset)) throw new Error("台詞覆寫年代錯置:" + r.scene);
+      if (!EARLY.test(r.scene) && /26|58/.test(r.asset)) throw new Error("台詞覆寫年代錯置:" + r.scene);
+      if (r.speaker === "旅人" || r.speaker === "旅人(你)") throw new Error("旅人不得入台詞覆寫");
+    }
   }
 });
 

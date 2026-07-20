@@ -162,16 +162,26 @@
     fillSlot(side, e, "旅人", false);
     return side;
   }
-  function setBust(speaker, cls) {
+  function lineOverride(speaker, text) { /* 台詞級表情覆寫(資料驅動;Sol:用未上場表情,不重複生圖) */
+    var rules = ASSETS && ASSETS.lineDialoguePortrait;
+    if (!rules || !text) return null;
+    for (var i = 0; i < rules.length; i++) {
+      var r = rules[i];
+      if (r.scene === curSceneId && r.speaker === speaker && text.indexOf(r.match) >= 0)
+        return assetEntry(r.asset);
+    }
+    return null;
+  }
+  function setBust(speaker, cls, text) {
     if (cls === "stage" || cls === "system") { setLit("none"); return; } /* 旁白/系統:雙暗,不指定發言者 */
     if (TRAVELER[speaker] || cls === "player") {
       var tside = ensureTraveler();
       setLit(tside || "none"); /* 撤回剪影時=舊行為:對手壓暗 */
       return;
     }
-    /* NPC:三層解析(場景覆寫→對話預設→舊筆記頭像遮罩;年代由場景層+測試保證) */
-    var entry = null, masked = false;
-    if (ASSETS && ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[curSceneId])
+    /* NPC:四層解析(台詞覆寫→場景覆寫→對話預設→舊筆記頭像遮罩;年代由資料層+測試保證) */
+    var entry = lineOverride(speaker, text), masked = false;
+    if (!entry && ASSETS && ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[curSceneId])
       entry = assetEntry(ASSETS.sceneDialoguePortrait[curSceneId][speaker]);
     if (!entry && ASSETS && ASSETS.speakerDialoguePortrait)
       entry = assetEntry(ASSETS.speakerDialoguePortrait[speaker]);
@@ -263,7 +273,7 @@
     $("dlgText").className = isNarr ? "narr"
       : (isSys ? ("sys" + (/^(取得證據|旅人筆記解鎖|E\d)/.test(item.text) ? " gain" : ""))
       : (item.cls === "player" ? "pl" : ""));
-    setBust(item.speaker, item.cls);
+    setBust(item.speaker, item.cls, item.text);
     pages = paginate(item.text);
     curInstantMode = isNarr || isSys; /* 旁白/系統:整頁淡入不逐字 */
     if (instant) { pageIdx = pages.length - 1; startPage(true); return; } /* 讀檔即顯:直接停最後一頁 */

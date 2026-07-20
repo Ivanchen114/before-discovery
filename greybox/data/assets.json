@@ -1,7 +1,7 @@
 {
  "version": 1,
  "basePath": "../public/assets/",
- "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 四連板(拍 0-3→板1/4-5→板2/6→板3/7-8→板4;交叉淡化,reduced-motion 立即換)。",
+ "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 四連板(拍 0-3→板1/4-5→板2/6→板3/7-8→板4;交叉淡化,reduced-motion 立即換)。 lineDialoguePortrait[{scene,speaker,match,asset}]→台詞級表情覆寫(最高優先;子字串比對;年代守衛測試把關)。",
  "sceneBg": {
   "P0-1": "bg_pisa_arcade",
   "P0-2": "bg_study_pisa_day",
@@ -663,5 +663,28 @@
   "2": "p0_0_plate02_aurora_intrusion",
   "3": "p0_0_plate03_reach_glass",
   "4": "p0_0_plate04_whitefall"
- }
+ },
+ "lineDialoguePortrait": [
+  {
+   "scene": "A3-D",
+   "speaker": "辛普里奧",
+   "match": "夾籤留在了外面",
+   "asset": "dialogue_simplicio72_caught_off_guard",
+   "note": "P2 綁縛悖論破防:合上書,夾籤留在外面"
+  },
+  {
+   "scene": "A3-D",
+   "speaker": "辛普里奧",
+   "match": "反而更難駁",
+   "asset": "dialogue_simplicio72_solemn_respect",
+   "note": "trap 誠實收束:一輩子頭一回"
+  },
+  {
+   "scene": "A2-2",
+   "speaker": "伽利略",
+   "match": "實驗失敗最常見的樣子",
+   "asset": "dialogue_galileo39_frustrated",
+   "note": "作廢紀錄前的苦笑"
+  }
+ ]
 }
