@@ -5,7 +5,7 @@
   var data = {
  "version": 1,
  "basePath": "../public/assets/",
- "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 v03 六板(文字直生於圖;拍映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;程式僅交叉淡化+字幕+題詞+無障礙文字;v01/v02 廢案禁引)。 lineDialoguePortrait[{scene,speaker,match,asset}]→台詞級表情覆寫(最高優先;子字串比對;年代守衛測試把關)。 sceneFx[場景]→進場特效(timejump=三板 3.4s 溶接偽影片+年份四里程碑 HTML 淡換;僅活戲;無資產=單紙淡入 fallback)。 sceneBgm[場景]→程序化環境音樂 mood(pisa/study/rain/workshop/hall/dusk;storm=序幕專用;Web Audio 合成零資產,聲音鈕總開關)。 bgmFiles[mood]→真音樂檔(mp3/ogg,放 public/assets/audio/ 填檔名即播,交叉淡入;null=回退程序化合成;storm 建議留合成=現代場景用合成器,1590 用真琴,音色本身就是穿越)。授權紀錄=public/assets/audio/README.md。",
+ "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 v03 六板(文字直生於圖;拍映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;程式僅交叉淡化+字幕+題詞+無障礙文字;v01/v02 廢案禁引)。 lineDialoguePortrait[{scene,speaker,match,asset}]→台詞級表情覆寫(最高優先;子字串比對;年代守衛測試把關)。 sceneFx[場景]→進場特效(timejump=三板 3.4s 溶接偽影片+年份四里程碑 HTML 淡換;僅活戲;無資產=單紙淡入 fallback)。 sceneBgm[場景]→程序化環境音樂 mood(pisa/study/rain/workshop/hall/dusk;storm=序幕專用;Web Audio 合成零資產,聲音鈕總開關)。 bgmFiles[mood]→真音樂檔(mp3/ogg,放 public/assets/audio/ 填檔名即播,交叉淡入;null=回退程序化合成;storm 建議留合成=現代場景用合成器,1590 用真琴,音色本身就是穿越)。授權紀錄=public/assets/audio/README.md。 Batch03:title_background/histfacts_banner/card_E1·E3·E4·E5 專圖(card_E2 恆 null=程式 SVG);證據卡解析=card_<code> 優先,缺圖回退 template。",
  "sceneBg": {
   "P0-1": "bg_pisa_arcade",
   "P0-2": "bg_study_pisa_day",
@@ -193,7 +193,7 @@
    "id": "card_E1",
    "kind": "card",
    "label": "高塔落球紀錄",
-   "path": null,
+   "path": "ch01/cards/card_E1.webp",
    "firstScreen": false,
    "sourceMaster": "新繪或以 prop 特寫合成",
    "w": 800,
@@ -213,7 +213,7 @@
    "id": "card_E3",
    "kind": "card",
    "label": "斜面奇數律(數據紙)",
-   "path": null,
+   "path": "ch01/cards/card_E3.webp",
    "firstScreen": false,
    "sourceMaster": "",
    "w": 800,
@@ -223,7 +223,7 @@
    "id": "card_E4",
    "kind": "card",
    "label": "介質阻力辨析",
-   "path": null,
+   "path": "ch01/cards/card_E4.webp",
    "firstScreen": false,
    "sourceMaster": "",
    "w": 800,
@@ -233,7 +233,7 @@
    "id": "card_E5",
    "kind": "card",
    "label": "外推論證鏈",
-   "path": null,
+   "path": "ch01/cards/card_E5.webp",
    "firstScreen": false,
    "sourceMaster": "",
    "w": 800,
@@ -588,6 +588,24 @@
    "firstScreen": false,
    "w": 1920,
    "h": 1080
+  },
+  {
+   "id": "title_background",
+   "kind": "bg",
+   "label": "標題背景・帕多瓦黎明工作室(中央 34% 暗部安全區)",
+   "path": "ch01/ui/title_background.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080
+  },
+  {
+   "id": "histfacts_banner",
+   "kind": "bg",
+   "label": "史實頁橫幅・傳說→查證→實驗",
+   "path": "ch01/ui/histfacts_banner.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 420
   }
  ],
  "sceneDialoguePortrait": {

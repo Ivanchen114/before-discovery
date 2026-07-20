@@ -333,8 +333,32 @@
   @media (prefers-reduced-motion: reduce) {
     #panelWrap.fx-shake, #dialogue.fx-gain { animation: none; }
   }
-  #labProps { float: right; display: flex; gap: 8px; margin: 0 0 6px 10px; }
-  #labProps img { height: 72px; width: auto; opacity: 0.92; }
+  /* 工作桌+實驗簿雙區(Sol 巡查 B-2:器材=舞台構件不是郵票;漸進揭露;內部語法不外洩) */
+  #lab { display: grid; grid-template-columns: minmax(0, 44%) minmax(0, 1fr); gap: 20px; align-items: start; }
+  #benchProps { display: flex; gap: 16px; justify-content: center; align-items: flex-end;
+    background: rgba(122, 75, 42, 0.08); border: 1px solid rgba(90, 70, 56, 0.35);
+    border-radius: 6px; padding: 12px; min-height: 130px; }
+  #benchProps img { height: clamp(150px, 22vh, 250px); width: auto; }
+  #labProps { display: flex; gap: 16px; }
+  #labProps img { height: clamp(150px, 22vh, 250px); width: auto; }
+  #labConfig { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin: 10px 0; }
+  #labConfig label { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    background: #efe4c9; border: 1px solid var(--color-ink-secondary); border-radius: 4px; padding: 6px 10px; }
+  #labRun { width: 100%; font-weight: 600; letter-spacing: 0.12em; font-family: var(--font-dialogue); }
+  #labBook { border-left: 2px solid rgba(90, 70, 56, 0.3); padding-left: 18px; }
+  #secRuns:has(#labRunsBody:empty), #secClaims:has(#labClaimsBody:empty) { display: none; } /* 空表不上桌 */
+  @media (max-height: 520px) {
+    #lab { grid-template-columns: 1fr; }
+    #labBook { border-left: none; padding-left: 0; }
+    #benchProps img, #labProps img { height: 110px; }
+  }
+  /* 標題主視覺+史實頁橫幅(Batch 03) */
+  #title-screen.title-art { background-size: cover; background-position: center; }
+  #title-screen.title-art #titleCard { background: rgba(16, 11, 7, 0.62); border-radius: 12px;
+    padding: 22px 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+  #histBanner { display: none; width: 100%; height: auto; border-radius: 4px; margin: 0 0 10px; }
+  body[data-view="histfacts"] #histBanner { display: block; }
+  @media (max-height: 520px) { body[data-view="histfacts"] #histBanner { max-height: 110px; object-fit: cover; } }
   #tomeDecor { display: none; }
   body[data-view="debate"] #tomeDecor { display: block; float: right; height: 96px; width: auto;
     margin: 0 0 8px 12px; opacity: 0.92; }
@@ -453,11 +477,13 @@
   </div>
 
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">
+    <div id="srLine" class="srOnly" role="log" aria-live="polite"></div>
     <div id="hud">
       <span class="chip" tabindex="0" title="信譽 0–5:空口斷言、被抓到說謊會扣;歸零時關鍵人物暫時拒談,需經修復事件贖回——沒有 game over,只有代價。">信譽 <b id="repVal">3</b>/5</span>
       <span class="chip" tabindex="0" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
       <span class="chip" tabindex="0" id="e3Val"></span>
       <span class="chip" tabindex="0" id="perVal" title="說服力:辯論中的氣勢量表;錯誤出示會扣,歸零=辯論中止(可補證據再入)。"></span>
+      <span class="chip" id="saveWarn" hidden style="border-color:var(--color-warning);color:#f0c27a">⚠ 目前無法儲存——請先匯出書信碼</span>
       <span class="chip" id="modeVal"></span>
       <span class="chip" id="sceneVal" style="display:none"></span>
       <span class="spacer"></span>
@@ -468,30 +494,40 @@
 
     <div id="panelWrap">
       <div id="lab" style="display:none" aria-label="實驗台">
-        <h3>實驗台</h3>
-        <p class="hint" id="labHint" style="color:var(--color-ink-secondary)"></p>
-        <label>球:<select id="labBall"></select></label>
-        <label>槽面:<select id="labSurface"></select></label>
-        <label>傾角:<select id="labIncline"></select></label>
-        <label>計時:<select id="labTimer"></select></label>
-        <button id="labRun">執行實驗</button>
-        <div class="labmsg" id="labMsg" role="status" aria-live="polite">尚未執行實驗。</div>
-
-        <h3>實驗紀錄簿(勾選 1–3 筆同配置 → 預測第五段 → 認證)<button id="btnLabHelp" type="button" aria-label="重看實驗備忘">?</button></h3>
-        <p class="hint tblhint">「段」=水鐘滴下等量水的<b>等時距</b>;數字=該段滾過的刻度格數。每列是一次完整實驗;筆記簿以墨水書寫,<b>紀錄不可刪</b>——勾選你要引用的紀錄即可。</p>
-        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th><th>第幾天</th></tr></thead>
-          <tbody id="labRunsBody"></tbody></table>
-        <label>第五段增量預測值:<input type="number" id="labPred" step="0.1" style="width:90px"></label>
-        <button id="labJudge">認證規律</button>
-        <div class="labmsg" id="judgeMsg" role="status" aria-live="polite"></div>
-
-        <h3>主張紀錄(勾選兩筆 → 斷言)</h3>
-        <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>第幾天</th></tr></thead>
-          <tbody id="labClaimsBody"></tbody></table>
-        <button id="labAssertB">斷言:與球重無關</button>
-        <button id="labAssertC" style="display:none">斷言:隨傾角形式不變</button>
-        <div class="labmsg" id="assertMsg" role="status" aria-live="polite"></div>
-        <div id="embedGate"></div>
+        <div id="labBench" aria-label="工作桌">
+          <h3>工作桌</h3>
+          <div id="benchProps" aria-hidden="true"></div>
+          <p class="hint" id="labHint" style="color:var(--color-ink-secondary)"></p>
+          <div id="labConfig">
+            <label>球:<select id="labBall"></select></label>
+            <label>槽面:<select id="labSurface"></select></label>
+            <label>傾角:<select id="labIncline"></select></label>
+            <label>計時:<select id="labTimer"></select></label>
+          </div>
+          <button id="labRun">放球——執行實驗</button>
+          <div id="labAnimSlot"></div>
+          <div class="labmsg" id="labMsg" role="status" aria-live="polite">槽已刨直,水鐘已備。選好配置,放球。</div>
+        </div>
+        <div id="labBook" aria-label="旅人實驗簿">
+          <h3>旅人實驗簿<button id="btnLabHelp" type="button" aria-label="重看實驗備忘">?</button></h3>
+          <p class="hint tblhint">「段」=水鐘滴下等量水的<b>等時距</b>;數字=該段滾過的刻度格數。墨水書寫,<b>紀錄不可刪</b>——勾選你要引用的紀錄。</p>
+          <section id="secRuns">
+            <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th><th>第幾天</th></tr></thead>
+              <tbody id="labRunsBody"></tbody></table>
+            <p id="judgeRow"><label>若你看出了規律——押第五段會滾幾格:<input type="number" id="labPred" step="0.1" style="width:90px"></label>
+            <button id="labJudge">認證規律</button></p>
+            <div class="labmsg" id="judgeMsg" role="status" aria-live="polite"></div>
+          </section>
+          <section id="secClaims">
+            <h3>主張(勾選兩筆 → 斷言)</h3>
+            <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>第幾天</th></tr></thead>
+              <tbody id="labClaimsBody"></tbody></table>
+            <button id="labAssertB">斷言:與球重無關</button>
+            <button id="labAssertC" style="display:none">斷言:隨傾角形式不變</button>
+            <div class="labmsg" id="assertMsg" role="status" aria-live="polite"></div>
+          </section>
+          <div id="embedGate"></div>
+        </div>
       </div>
       <div id="controls"></div>
     </div>
@@ -614,6 +650,7 @@
 <script src="data/debate.js"></script>
 <script src="data/histfacts.js"></script>
 <script src="data/assets.js"></script>
+<script src="src/sanitize.js"></script>
 <script src="src/engine.js"></script>
 <script src="data/scenes.js"></script>
 <script src="src/narrative.js"></script>

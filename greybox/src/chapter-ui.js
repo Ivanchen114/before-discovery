@@ -26,8 +26,16 @@
     try { document.dispatchEvent(new CustomEvent(name, { detail: detail })); } catch (e) {}
   }
 
-  /* ---------- 存檔 ---------- */
-  function save() { try { localStorage.setItem(KEY, N.serialize(state)); } catch (e) {} }
+  /* ---------- 存檔(B-4:失敗不得靜默——持續警示,提示改用書信碼) ---------- */
+  function save() {
+    var warn = $("saveWarn");
+    try {
+      localStorage.setItem(KEY, N.serialize(state));
+      if (warn) warn.hidden = true;
+    } catch (e) {
+      if (warn) warn.hidden = false;
+    }
+  }
   function tryLoad() { /* B-3/R-SAV-02:壞檔備份+一次性非阻塞提示 */
     var text = null;
     try { text = localStorage.getItem(KEY); } catch (e) { return null; }
@@ -247,12 +255,20 @@
       };
       td.appendChild(btn); trH.appendChild(td); tb.appendChild(trH);
       list.forEach(function (r, i) {
+        /* A-1:動態列一律 createElement+textContent,禁字串拼 innerHTML(匯入值不可信) */
         var tr = document.createElement("tr");
-        var name = "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")";
-        tr.innerHTML = "<td><input type='checkbox' class='labRunSel' data-id='" + r.id + "' aria-label='" + name + "'></td>" +
-          "<td>#" + r.id + "</td><td>" + cfgLabel(r.config) + "</td>" +
-          r.readings.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") +
-          "<td>" + r.day + "</td>";
+        var tdSel = document.createElement("td");
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.className = "labRunSel";
+        cb.dataset.id = String(r.id);
+        cb.setAttribute("aria-label", "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")");
+        tdSel.appendChild(cb); tr.appendChild(tdSel);
+        [("#" + r.id), cfgLabel(r.config)].concat(r.readings.map(fmt)).concat([String(r.day)])
+          .forEach(function (cell) {
+            var td = document.createElement("td");
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
         tr.title = "第 " + r.day + " 天完成";
         var show = open || (i >= list.length - defVis) || !!keepR[r.id]; /* 勾選永遠可見 */
         if (!show) tr.style.display = "none";
@@ -269,10 +285,18 @@
     var tc = $("labClaimsBody"); tc.innerHTML = "";
     state.lab.inference.claims.forEach(function (c) {
       var tr = document.createElement("tr");
-      var name = "選取主張 #" + c.id + "(" + cfgLabel(c.config) + "," + (c.ok ? "成立" : "不成立") + ")";
-      tr.innerHTML = "<td><input type='checkbox' class='labClaimSel' data-id='" + c.id + "' aria-label='" + name + "'></td>" +
-        "<td>#" + c.id + "</td><td>" + cfgLabel(c.config) + "</td>" +
-        "<td>" + fmt(c.prediction) + "</td><td>" + (c.ok ? "成立" : "不成立") + "</td><td>" + c.day + "</td>";
+      var tdSel = document.createElement("td");
+      var cb = document.createElement("input");
+      cb.type = "checkbox"; cb.className = "labClaimSel";
+      cb.dataset.id = String(c.id);
+      cb.setAttribute("aria-label", "選取主張 #" + c.id + "(" + cfgLabel(c.config) + "," + (c.ok ? "成立" : "不成立") + ")");
+      tdSel.appendChild(cb); tr.appendChild(tdSel);
+      ["#" + c.id, cfgLabel(c.config), fmt(c.prediction), (c.ok ? "成立" : "不成立"), String(c.day)]
+        .forEach(function (cell) {
+          var td = document.createElement("td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
       tc.appendChild(tr);
       tr.querySelector("input").checked = !!keepC[c.id];
     });
@@ -533,7 +557,10 @@
     }
     if (v.type === "histfacts") {
       var h = document.createElement("p");
-      h.innerHTML = "<b>" + HIST.title + "</b>(透明揭露:哪些是史實、哪些是傳說或改編)";
+      var hb = document.createElement("b");
+      hb.textContent = HIST.title;
+      h.appendChild(hb);
+      h.appendChild(document.createTextNode("(透明揭露:哪些是史實、哪些是傳說或改編)"));
       box.appendChild(h);
       var tbl = document.createElement("table");
       HIST.rows.forEach(function (row) { /* R-END-02:{item,label,note},label ∈ enum */
@@ -633,6 +660,7 @@
         a.href = URL.createObjectURL(blob);
         a.download = "發現之前_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e3) {} }, 3000); /* C-1 */
       } catch (e2) {}
       $("letterMsg").textContent = copied
         ? "書信碼已複製並下載為檔案——到任何機器貼入「貼碼續玩」即可接續。"
@@ -647,7 +675,13 @@
         $("letterMsg").textContent = "書信碼無法讀取(" + (r.error === "schema" ? "版本不符" : "格式損壞") + ")——本機既有進度未受影響。";
         return;
       }
-      startGame(r.state);
+      /* A-1 匯入閘:跨機貼入必經深層白名單;違規=整包拒絕,本機存檔不動(Sanitize 雙載體,測試涵蓋負向) */
+      var chk = window.GB.Sanitize.sanitizeImport(r.state, PATTERNS, SCENES);
+      if (!chk.ok) {
+        $("letterMsg").textContent = "書信碼含非法內容(" + chk.reason + "),已拒絕——本機既有進度未受影響。";
+        return;
+      }
+      startGame(chk.state);
       save();
     };
   }

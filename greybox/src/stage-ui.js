@@ -328,6 +328,9 @@
   document.addEventListener("bd:line", function (ev) {
     var d = ev.detail;
     if (d.replay) { lastReplay = d; return; } /* 回放進筆記(chapter-ui 寫入 #log),不重演 */
+    /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
+    $("srLine").textContent =
+      (d.speaker && d.cls !== "stage" && d.cls !== "system" ? d.speaker + ":" : "") + d.text;
     enqueue(d);
   });
   var needKickoff = false;
@@ -380,9 +383,9 @@
     }
   });
 
-  /* ---------- 序幕 P0-0「螢幕前」(A 案 cinematic;劇本草案 04_劇本/…P0-0…20260720,總監核) ----------
-     真實時鐘=玩家系統時間;裝置感知:滑鼠=游標自移/觸控=頁面自捲;點擊或 Enter/Space=下一拍;
-     「跳過 ▸」與 Esc=整段跳過(原則 #19 演出永遠可跳);地磁風暴=系列電磁線環形伏筆,可神祕者為異常增幅非成因。 */
+  /* ---------- 序幕 P0-0「螢幕前」(v03 六板,文字直生於圖;00:49 固定入圖,程式不疊可見 UI) ----------
+     點擊或 Enter/Space=下一拍;「跳過 ▸」與 Esc=整段跳過(原則 #19);
+     地磁風暴=系列電磁線環形伏筆,可神祕者為異常增幅非成因。 */
   var mzBeat = -1, mzTimers = [];
   /* v03 六板(Sol 20260720,文字直生於圖):拍→板映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;
      程式僅交叉淡化+字幕+題詞+無障礙文字——禁再疊可見文章/新聞/通知/游標/動態時鐘(00:49 已入圖) */
@@ -646,9 +649,7 @@
       if (!item) return;
       var code = item.split(" ")[0];
       var name = item.slice(code.length).trim();
-      var bgE = (code === "S1") ? (assetEntry("card_S1") || tpl)
-              : (code === "S2") ? (assetEntry("card_S2") || tpl)
-              : tpl;
+      var bgE = assetEntry("card_" + code) || tpl; /* Batch03:card_<code> 優先,缺圖回退共用底(E2 恆回退+SVG) */
       var card = document.createElement("div");
       card.className = "evcard";
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
@@ -683,12 +684,27 @@
       img.src = assetUrl(e); img.alt = ""; img.loading = "lazy";
       strip.appendChild(img);
     });
-    if (strip.children.length) $("lab").insertBefore(strip, $("lab").firstChild);
+    if (strip.children.length) {
+      var host = $("benchProps") || $("lab"); /* 工作桌構件區(B-2:器材上主舞台) */
+      host.appendChild(strip);
+    }
     var tome = assetEntry("prop_physics_tome");
     if (tome) {
       var t = document.createElement("img");
       t.id = "tomeDecor"; t.src = assetUrl(tome); t.alt = ""; t.setAttribute("aria-hidden", "true");
       $("panelWrap").insertBefore(t, $("panelWrap").firstChild);
+    }
+    var hb = assetEntry("histfacts_banner"); /* Batch03:史實頁橫幅(傳說→查證→實驗) */
+    if (hb) {
+      var bimg = document.createElement("img");
+      bimg.id = "histBanner"; bimg.src = assetUrl(hb); bimg.alt = ""; bimg.setAttribute("aria-hidden", "true");
+      $("panelWrap").insertBefore(bimg, $("panelWrap").firstChild);
+    }
+    var tbg = assetEntry("title_background"); /* Batch03:標題主視覺(中央 34% 暗部留給 titleCard) */
+    if (tbg) {
+      var ts = $("title-screen");
+      ts.classList.add("title-art");
+      ts.style.backgroundImage = "url(" + assetUrl(tbg) + ")";
     }
   }
   mountDecor();
@@ -925,11 +941,17 @@
     if (on) BGM.refresh(); else BGM.stop(false);
   });
   syncSfxBtn();
-  document.addEventListener("click", function unlockAudio() { /* 首次手勢:解鎖 AudioContext,補播當前 mood */
-    document.removeEventListener("click", unlockAudio);
+  function unlockAudioOnce() { /* 首次手勢(滑鼠或鍵盤皆可,B-3):解鎖 AudioContext,補播當前 mood */
+    document.removeEventListener("pointerdown", unlockAudioOnce);
+    document.removeEventListener("keydown", unlockAudioOnce);
     var c = SFX.ctx();
     try { if (c && c.state === "suspended") c.resume(); } catch (e) {}
     BGM.refresh();
+  }
+  document.addEventListener("pointerdown", unlockAudioOnce);
+  document.addEventListener("keydown", unlockAudioOnce);
+  document.addEventListener("visibilitychange", function () { /* 背景頁暫停/回前景恢復 */
+    if (document.hidden) BGM.stop(false); else BGM.refresh();
   });
   document.addEventListener("bd:scene", function (ev) { /* 場景→mood(資料驅動),同 mood 不重啟 */
     var map = ASSETS && ASSETS.sceneBgm;
@@ -947,7 +969,8 @@
     el.setAttribute("role", "img");
     el.setAttribute("aria-label", "斜面滾球重播動畫(數據以紀錄簿為準)");
     el.title = "點擊跳過重播";
-    $("lab").insertBefore(el, $("labMsg"));
+    var slot = $("labAnimSlot");
+    if (slot) slot.appendChild(el); else $("lab").insertBefore(el, $("labMsg"));
     el.addEventListener("click", function () { if (animSkip) animSkip(); });
     return el;
   }

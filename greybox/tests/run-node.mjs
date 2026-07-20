@@ -362,6 +362,71 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "竣工修正|A1 匯入淨化+DOM-safe+A2 讀屏主線+Batch03+工作桌+可靠性(Sol 巡查 20260720)",
+  fn: () => {
+    const S = require("../src/sanitize.js");
+    const N2 = require("../src/narrative.js");
+    /* 合法往返必過 */
+    const good = JSON.parse(N2.serialize(N2.initialState("scholar")));
+    if (!S.sanitizeImport(good, patterns, scenes).ok) throw new Error("合法 state 被誤拒");
+    /* 惡意/畸形必拒(A-1 負向) */
+    const cases = [
+      (s) => { s.lab.evidence.runs = [{ id: 1, day: 1, seq: 1, config: { ball: "<img src=x onerror=alert(1)>", surface: "打磨", incline: "陡", timer: "水鐘" }, readings: [1, 2, 3, 4] }]; },
+      (s) => { s.lab.evidence.runs = [{ id: "x' autofocus onfocus='alert(1)", day: 1, seq: 1, config: { ball: "銅大", surface: "打磨", incline: "陡", timer: "水鐘" }, readings: [1, 2, 3, 4] }]; },
+      (s) => { s.lab.evidence.runs = new Array(301).fill({ id: 1, day: 1, seq: 1, config: { ball: "銅大", surface: "打磨", incline: "陡", timer: "水鐘" }, readings: [1, 2, 3, 4] }); },
+      (s) => { s.lab.evidence.runs = [{ id: 1, day: 1, seq: 1, config: { ball: "銅大", surface: "打磨", incline: "陡", timer: "水鐘" }, readings: [NaN, 2, 3, 4] }]; },
+      (s) => { s.mode = "admin"; },
+      (s) => { s.rep = 99; },
+      (s) => { s.cursor.scene = "Z9-9"; },
+      (s) => { s.transcript = [{ scene: "P0-1", speaker: "x".repeat(50), text: "hi" }]; },
+      (s) => { JSON.parse('{"__proto__":{"polluted":1}}'); Object.defineProperty(s, "x", { value: 1 }); s.transcript = JSON.parse('[{"scene":"P0-1","text":"a","__proto__":{"p":1}}]'); },
+    ];
+    for (let i = 0; i < cases.length; i++) {
+      const s = JSON.parse(N2.serialize(N2.initialState("explore")));
+      cases[i](s);
+      const r = S.sanitizeImport(s, patterns, scenes);
+      if (i === 8) { /* __proto__ 於 JSON.parse 成為普通鍵仍須拒 */
+        if (r.ok) throw new Error("原型污染鍵未被拒");
+      } else if (r.ok) throw new Error("惡意案例 #" + i + " 未被拒");
+    }
+    /* 匯入閘接線+DOM-safe:chapter-ui 禁 innerHTML 串接;Sanitize 在 startGame 之前 */
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const concat = (cui.match(/\.innerHTML\s*=\s*[^;]+;/g) || []).filter((l) => !/=\s*"";/.test(l));
+    if (concat.length) throw new Error("chapter-ui 仍有 innerHTML 串接:" + concat[0]);
+    if (!(cui.indexOf("Sanitize.sanitizeImport") >= 0 && cui.indexOf("Sanitize.sanitizeImport") < cui.indexOf("startGame(chk.state)")))
+      throw new Error("匯入閘未接在 startGame 之前");
+    if (!cui.includes("saveWarn")) throw new Error("存檔失敗警示缺失(B-4)");
+    if (!cui.includes("revokeObjectURL")) throw new Error("匯出 URL 未回收(C-1)");
+    /* A-2:永不隱藏的讀屏 log;兩殼載入 sanitize */
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const chapterHtml = readFileSync(path.join(here, "../chapter.html"), "utf-8");
+    if (!/id="srLine" class="srOnly" role="log" aria-live="polite"/.test(stageHtml))
+      throw new Error("srLine 讀屏主線缺失");
+    for (const h of [stageHtml, chapterHtml])
+      if (!h.includes("src/sanitize.js")) throw new Error("殼未載入 sanitize.js");
+    /* Batch03:四卡專圖+標題/史實橫幅;E2 恆 null(程式 SVG) */
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const byId = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
+    for (const cid of ["card_E1", "card_E3", "card_E4", "card_E5"]) {
+      const e = byId[cid];
+      if (!e || !e.path || e.w !== 800 || e.h !== 500) throw new Error("Batch03 卡片缺失/尺寸錯:" + cid);
+    }
+    if (byId["card_E2"].path !== null) throw new Error("card_E2 應維持 null(程式 SVG)");
+    if (!byId["title_background"] || !byId["histfacts_banner"]) throw new Error("標題/史實橫幅 entry 缺失");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    for (const frag of ['assetEntry("card_" + code)', "title_background", "histfacts_banner"])
+      if (!sui.includes(frag)) throw new Error("Batch03 接線缺失:" + frag);
+    /* 工作桌重排+可靠性 */
+    for (const frag of ['id="labBench"', 'id="labBook"', 'id="benchProps"', 'id="labAnimSlot"',
+      'id="secRuns"', 'id="secClaims"', 'id="saveWarn"'])
+      if (!stageHtml.includes(frag)) throw new Error("工作桌重排要素缺失:" + frag);
+    if (!stageHtml.includes(":has(#labRunsBody:empty)")) throw new Error("漸進揭露缺失");
+    for (const frag of ["unlockAudioOnce", "visibilitychange", 'addEventListener("pointerdown", unlockAudioOnce)', 'addEventListener("keydown", unlockAudioOnce)'])
+      if (!sui.includes(frag)) throw new Error("音訊可靠性缺失:" + frag);
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
