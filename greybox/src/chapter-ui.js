@@ -359,6 +359,17 @@
     if (until.repairRun) return "我要重新做一次乾淨的實驗，把新紀錄帶回去。";
     return "翻翻我的實驗簿，想想下一步。";
   }
+  function judgeAskText(v) { /* 押注三問(總監裁決 20260720):三次預測不是重複勞動,是三個不同的問題——
+       a=看見規律的證明;b=賭「換球數字不變」=與球重無關的押注;c=用同一形式算新數字=遷移。
+       機制不動(每筆主張仍先押後看),只讓提問顯形。 */
+    var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
+    var until = (nodeDef && nodeDef.until) || {};
+    if (until.e3 === "a") return "若你看出了規律——押第五段會滾幾格:";
+    if (until.e3 === "b") return "換了球。你賭:第五段還是同一個數字嗎?押幾格:";
+    if (until.e3 === "c") return "傾角變了,數字全新——用同一條規律,算出新的第五段:";
+    if (until.repairRun) return "乾淨地做一次,像第一次那樣——押第五段:";
+    return "若你看出了規律——押第五段會滾幾格:";
+  }
   function lastFailedClaim() {
     var cs = state.lab.inference.claims;
     for (var i = cs.length - 1; i >= 0; i--) if (!cs[i].ok) return cs[i];
@@ -747,6 +758,7 @@
     if (v.type === "embed" && v.system === "incline") {
       $("lab").style.display = "";
       $("labHint").textContent = friendlyLabGoal(v);
+      $("judgeAsk").textContent = judgeAskText(v);
       var ek = v.scene + "/" + v.nodeId;
       if (ek !== lastEmbedKey) {
         lastEmbedKey = ek;

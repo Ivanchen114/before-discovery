@@ -554,6 +554,12 @@ tests.push({
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     if (!cui.includes("N.assertStage(")) throw new Error("chapter-ui 未使用 assertStage 單一事實源");
     if (/updateAssertButtons[\s\S]{0,400}until\.e3/.test(cui)) throw new Error("chapter-ui 殘留平行分段邏輯");
+    /* 押注三問(總監裁決 20260720):機制不動,提問跟劇情階段顯形 */
+    for (const frag of ["judgeAskText", "換了球。你賭", "用同一條規律"])
+      if (!cui.includes(frag)) throw new Error("押注三問缺失:" + frag);
+    for (const page of ["stage.html", "chapter.html"])
+      if (!readFileSync(path.join(here, "../" + page), "utf-8").includes('id="judgeAsk"'))
+        throw new Error(page + " 缺 judgeAsk 掛點");
   }
 });
 
