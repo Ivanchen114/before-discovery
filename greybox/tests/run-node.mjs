@@ -509,6 +509,13 @@ tests.push({
     if (!rv.prompts[0].includes("愈重愈快") || !rv.prompts[1].includes("垂直"))
       throw new Error("回顧題未更新為 GB-ADR-010 版");
     if (!cui.includes("封存第一章") || !cui.includes("reviewHead")) throw new Error("回顧末頁措辭缺失");
+    /* GB-ADR-012 奇數錨定與平方橋(總監 20260720):鑰匙句+累加拍不得被誤刪 */
+    const a22 = scenesJson.scenes.find((s) => s.id === "A2-2");
+    if (!a22.nodes.find((n) => n.id === "n3" && n.text.includes("把第一段當作一個單位")))
+      throw new Error("奇數錨定鑰匙句缺失(A2-2 n3)");
+    const n3b = a22.nodes.find((n) => n.id === "n3b");
+    if (!n3b || !n3b.text.includes("一、四、九、十六") || n3b.next !== "n4")
+      throw new Error("平方橋累加拍缺失或斷鏈(A2-2 n3b)");
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["statementCard { background-image", "gapBadge", "evSummary", 'body[data-view="review"] #panelWrap'])
       if (!stageHtml.includes(frag)) throw new Error("復古化/末頁樣式缺失:" + frag);
