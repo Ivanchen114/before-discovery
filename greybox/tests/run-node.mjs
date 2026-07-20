@@ -702,6 +702,7 @@ tests.push({
     for (const frag of [
       "@media (max-width: 900px)",
       '#dialogue[data-active="right"] #bustLeft',
+      '#dialogue.has-l #dlgText, #dialogue.has-r #dlgText { margin-left: 0; margin-right: 0; }',
       '#dialogue[data-active="right"].has-r #dlgText { margin-right: 118px; }'
     ]) if (!stageHtml.includes(frag)) throw new Error("窄舞台 CSS 契約缺失:" + frag);
     for (const html of [stageHtml, chapterHtml]) {

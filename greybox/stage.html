@@ -897,7 +897,7 @@
     /* 手機橫屏:只留 active portrait,文字不被雙肖像夾窄 */
     #dialogue[data-active="right"] #bustLeft, #dialogue[data-active="left"] #bustRight,
     #dialogue[data-active="none"] .bslot { display: none; }
-    #dialogue #dlgText { margin-left: 0; margin-right: 0; }
+    #dialogue.has-l #dlgText, #dialogue.has-r #dlgText { margin-left: 0; margin-right: 0; }
     #dialogue[data-active="left"].has-l #dlgText { margin-left: 120px; }
     #dialogue[data-active="right"].has-r #dlgText { margin-right: 120px; }
     #dialogue[data-active="left"].has-l #nameplate { left: 130px; }
@@ -926,7 +926,7 @@
     #dialogue[data-active="right"] #bustLeft,
     #dialogue[data-active="left"] #bustRight,
     #dialogue[data-active="none"] .bslot { display: none; }
-    #dialogue #dlgText { margin-left: 0; margin-right: 0; }
+    #dialogue.has-l #dlgText, #dialogue.has-r #dlgText { margin-left: 0; margin-right: 0; }
     #dialogue[data-active="left"].has-l #dlgText { margin-left: 118px; }
     #dialogue[data-active="right"].has-r #dlgText { margin-right: 118px; }
     #dialogue[data-active="left"].has-l #nameplate { left: 128px; }
