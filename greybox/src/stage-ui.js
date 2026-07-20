@@ -620,12 +620,13 @@
     });
     if (!any) snap.innerHTML = '<p class="hint" style="color:var(--color-ink-secondary)">(尚無實驗紀錄)</p>';
   }
-  function applyNotebookBg() { /* notebookBackground 資產掛點:Sol 交底圖(id=bg_notebook)即生效 */
+  function applyNotebookBg() { /* 筆記本底圖:鎖 16:9 貼齊,內容排進紙面安全區(nb-art) */
     var e = assetEntry("bg_notebook");
     if (e) {
       var sheet = $("nbSheet");
+      sheet.classList.add("nb-art");
       sheet.style.backgroundImage = "url(" + assetUrl(e) + ")";
-      sheet.style.backgroundSize = "cover";
+      sheet.style.backgroundSize = "100% 100%";
       sheet.style.backgroundPosition = "center";
     }
   }
