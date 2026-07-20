@@ -2,7 +2,7 @@
 
 物理史穿越解謎網頁遊戲:玩家與歷史上的科學家並肩卡關——你早就知道答案,但沒有人相信說出口的謎底;讓答案在四百年前重新被發現,親手推進物理史。
 
-**▶ 線上試玩**:https://ivanchen114.github.io/before-discovery/(GitHub Pages;或下載本倉庫雙擊 `greybox/stage.html`,離線可玩)
+**▶ 線上試玩**:https://before-discovery.vercel.app/(唯一正式網址;或下載本倉庫雙擊 `greybox/stage.html`,離線可玩。進度存在瀏覽器內,換裝置請用遊戲內「書信碼」搬家)
 **⚠ 給玩家的提醒**:本倉庫含完整劇本與**謎底**(治理文件所需)——想保留解謎樂趣,請直接玩,別翻 `04_劇本/` 與 `greybox/decisions.md`。
 **授權**:程式=MIT(LICENSE)|劇本與內容=CC BY-NC-SA 4.0|字型=OFL|AI 生成資產條款見 LICENSE-CONTENT.md
 
