@@ -1121,7 +1121,13 @@
     }, 3400));
   }
   $("fxJump").addEventListener("click", endSceneFx); /* 點擊快轉(原則 #19:演出永遠可跳) */
-  document.addEventListener("bd:scene", function (ev) { playSceneFx(ev.detail.sceneId); });
+  var lastFxScene = null; /* 蒙太奇只在「場景切換」那一刻放一次——bd:scene 每句都廣播,不去重會逐句重播 */
+  document.addEventListener("bd:scene", function (ev) {
+    var sid = ev.detail.sceneId;
+    if (sid === lastFxScene) return;
+    lastFxScene = sid;
+    playSceneFx(sid);
+  });
 
   /* ---------- 支柱破裂(bd:debate 差分) ---------- */
   var prevBroken = {};
