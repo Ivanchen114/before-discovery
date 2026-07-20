@@ -348,22 +348,40 @@ tests.push({
     /* 滾球重播:吃真實讀值+可跳過+reduced 直出;破裂 FX;E2 SVG */
     for (const frag of ["labAnim", "run.readings", "animSkip", "fx-shake", 'code === "E2"'])
       if (!sui.includes(frag)) throw new Error("體感層要素缺失:" + frag);
-    /* 程序化 BGM:mood 值域受控+23 場景全覆蓋+場景驅動+總開關 */
-    const BGM_MOODS = ["pisa", "study", "rain", "workshop", "hall", "dusk"];
+    /* BGM v2:cue 值域受控+23 場景全覆蓋+場景驅動+總開關 */
+    const BGM_MOODS = ["pisa", "study", "rain", "workshop", "hall", "dusk",
+      "timePassage", "challenge", "debrief", "travelerMoon", "silence"];
     const bgm = assets.sceneBgm || {};
     scenes.scenes.forEach((s) => {
       if (!(s.id in bgm)) throw new Error("場景缺 BGM mood:" + s.id);
       if (!BGM_MOODS.includes(bgm[s.id])) throw new Error("未知 mood:" + s.id + "→" + bgm[s.id]);
     });
-    for (const frag of ["sceneBgm", "BGM.refresh", 'play("storm")'])
+    for (const frag of ["sceneBgm", "BGM.refresh", 'play("storm")', 'play("travelerTitle")'])
       if (!sui.includes(frag)) throw new Error("BGM 要素缺失:" + frag);
-    /* 真音樂檔:填了就必須存在;storm 恆 null(現代=合成器,1590=真曲,音色即穿越) */
-    for (const [mood, f] of Object.entries(assets.bgmFiles || {})) {
-      if (f === null) continue;
-      try { readFileSync(path.join(here, "..", assets.audioBasePath, f)); }
-      catch (e) { throw new Error("bgmFiles 檔案不存在:" + mood + "→" + f); }
+    /* 真音樂檔:once/milestone schema+實檔存在;storm 恆 null;30 秒素材禁止硬循環 */
+    if (assets.bgmVersion !== 2) throw new Error("BGM schema 應為 v2");
+    for (const [mood, raw] of Object.entries(assets.bgmFiles || {})) {
+      if (raw === null) continue;
+      const spec = typeof raw === "string" ? { mode: "once", clips: [raw] } : raw;
+      if (!["once", "milestone", "silence"].includes(spec.mode))
+        throw new Error("bgmFiles mode 非法:" + mood + "→" + spec.mode);
+      if (!Array.isArray(spec.clips)) throw new Error("bgmFiles clips 非陣列:" + mood);
+      if (spec.mode === "silence" && spec.clips.length) throw new Error("silence 不得掛音樂檔");
+      for (const f of spec.clips) {
+        try { readFileSync(path.join(here, "..", assets.audioBasePath, f)); }
+        catch (e) { throw new Error("bgmFiles 檔案不存在:" + mood + "→" + f); }
+      }
     }
     if ((assets.bgmFiles || {}).storm !== null) throw new Error("storm 應維持合成(null)");
+    if ((assets.bgmFiles.workshop.clips || []).length !== 3 || assets.bgmFiles.workshop.mode !== "milestone")
+      throw new Error("workshop 應為 A/B/C 三段 milestone");
+    if ((assets.bgmFiles.hall.clips || []).length !== 3 || assets.bgmFiles.hall.mode !== "milestone")
+      throw new Error("hall 應為 A/B/C 三段 milestone");
+    if (!sui.includes("a.loop = false") || sui.includes("a.loop = true"))
+      throw new Error("Gemini 30 秒素材不得無限硬循環");
+    for (const frag of ['d.scene === "A2-2"', 'd.scene === "A2-3"', 'd.scene === "A2-4"',
+      'd.phase === "fr"', "BGM.variant(1)", "BGM.variant(2)"])
+      if (!sui.includes(frag)) throw new Error("BGM milestone 掛點缺失:" + frag);
     if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
       throw new Error("FX 樣式/容器缺失");
   }

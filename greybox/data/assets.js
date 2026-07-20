@@ -776,35 +776,86 @@
   "P0-1": "pisa",
   "A1-2": "pisa",
   "A1-3": "pisa",
-  "A1-4": "pisa",
-  "A1-5": "pisa",
+  "A1-4": "silence",
+  "A1-5": "silence",
   "P0-2": "study",
   "P0-3": "study",
   "A1-1": "rain",
   "A1-7": "rain",
-  "A1-6": "dusk",
-  "INT-1": "workshop",
+  "A1-6": "study",
+  "INT-1": "timePassage",
   "A2-1": "workshop",
   "A2-2": "workshop",
   "A2-3": "workshop",
   "A2-4": "workshop",
-  "A2-5": "workshop",
-  "A3-F": "workshop",
+  "A2-5": "challenge",
+  "A3-F": "debrief",
   "SC-R1": "workshop",
   "A3-1": "hall",
   "A3-D": "hall",
-  "A3-6": "hall",
+  "A3-6": "silence",
   "E-1": "dusk",
-  "E-2": "dusk"
+  "E-2": "travelerMoon"
  },
  "audioBasePath": "../public/assets/audio/",
+ "bgmVersion": 2,
  "bgmFiles": {
-  "pisa": "Piazza_at_Dawn.mp3",
-  "study": "Sun_Through_Lattice.mp3",
-  "rain": "Midnight_at_the_Casement.mp3",
-  "workshop": "Beneath_the_Chisel.mp3",
-  "hall": "Counsel_of_Strings.mp3",
-  "dusk": "Where_The_Sun_Rests.mp3",
+  "travelerTitle": {
+   "mode": "once",
+   "clips": ["Traveler_Theme_Title_A.mp3"]
+  },
+  "travelerMoon": {
+   "mode": "once",
+   "clips": ["Traveler_Theme_Moon_B.mp3"]
+  },
+  "pisa": {
+   "mode": "once",
+   "ambient": "pisa",
+   "clips": ["Piazza_at_Dawn.mp3"]
+  },
+  "study": {
+   "mode": "once",
+   "ambient": "study",
+   "clips": ["Sun_Through_Lattice.mp3"]
+  },
+  "rain": {
+   "mode": "once",
+   "ambient": "rain",
+   "clips": ["Midnight_at_the_Casement.mp3"]
+  },
+  "timePassage": {
+   "mode": "once",
+   "clips": ["Eleven_Years_Time_Passage.mp3"]
+  },
+  "workshop": {
+   "mode": "milestone",
+   "ambient": "workshop",
+   "clips": ["Workshop_Inquiry_A.mp3", "Workshop_Inquiry_B.mp3", "Workshop_Inquiry_C.mp3"]
+  },
+  "challenge": {
+   "mode": "once",
+   "ambient": "workshop",
+   "clips": ["Debate_Hall_A.mp3"]
+  },
+  "hall": {
+   "mode": "milestone",
+   "ambient": "hall",
+   "clips": ["Debate_Hall_A.mp3", "Debate_Hall_B.mp3", "Debate_Hall_C.mp3"]
+  },
+  "debrief": {
+   "mode": "once",
+   "ambient": "study",
+   "clips": ["Debate_Debrief.mp3"]
+  },
+  "dusk": {
+   "mode": "once",
+   "ambient": "dusk",
+   "clips": ["Where_The_Sun_Rests.mp3"]
+  },
+  "silence": {
+   "mode": "silence",
+   "clips": []
+  },
   "storm": null
  },
  "evidenceSummary": {

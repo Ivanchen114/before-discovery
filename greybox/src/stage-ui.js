@@ -857,7 +857,8 @@
      音訊分工裁決(總監 20260720):v1=程式合成;真實錄音/生成音樂=未來選項(掛點相容)。
      每個 mood=低音 drone+調式撥弦(隨機稀疏)+環境噪音層;場景切換交叉淡入;非確定性=氛圍非 fixture。 */
   var BGM = (function () {
-    var cur = null, master = null, layers = [], timers = [];
+    var cur = null, curVariant = 0, curFinished = false;
+    var master = null, layers = [], timers = [];
     /* 撥弦層已停用(總監試玩:合成撥弦=丁丁丁風鈴,出戲)——只留鋪底 drone+環境噪音+辯論脈搏;
        真音樂(Gemini 生成/bgmFiles)落地即整組讓位。pluckMs:null=不排撥弦。 */
     var MOODS = {
@@ -896,40 +897,48 @@
         o.start(); o.stop(c.currentTime + 1.2);
       });
     }
-    /* 真音樂檔模式:bgmFiles[mood] 有檔名→HTMLAudio 循環+交叉淡入;無檔→程序化合成 fallback */
+    /* BGM v2(Gemini 30 秒素材):once=播一次回環境音;milestone=A/B/C 依玩法進度換段;
+       silence=刻意留白。舊 string schema 仍視為 once,舊存檔/舊資產可回退。 */
     var fileCur = null, fileTimer = null;
+    function cueSpec(mood) {
+      var files = ASSETS && ASSETS.bgmFiles;
+      var raw = files && files[mood];
+      if (raw === null || typeof raw === "undefined") return null;
+      if (typeof raw === "string") return { mode: "once", ambient: mood, clips: [raw] };
+      return raw;
+    }
     function stopFile(fast) {
       if (fileTimer) { clearInterval(fileTimer); fileTimer = null; }
       if (!fileCur) return;
       var a = fileCur; fileCur = null;
       var t = setInterval(function () {
-        a.volume = Math.max(0, a.volume - (fast ? 0.08 : 0.02));
+        a.volume = Math.max(0, a.volume - (fast ? 0.08 : 0.008));
         if (a.volume <= 0.01) { clearInterval(t); a.pause(); }
       }, 60);
     }
-    function playFile(url) {
+    function playFile(url, done) {
       stopAll(false); stopFile(false);
       var a = new Audio(url);
-      a.loop = true; a.volume = 0;
+      a.loop = false; a.volume = 0;
+      a.addEventListener("ended", function () {
+        if (fileCur !== a) return;
+        fileCur = null; curFinished = true;
+        if (done) done();
+      });
       var p = a.play();
       if (p && p.catch) p.catch(function () {}); /* 手勢前被擋:unlockAudio 會 refresh 補播 */
       fileCur = a;
       fileTimer = setInterval(function () {
         if (!fileCur) return;
-        fileCur.volume = Math.min(0.24, fileCur.volume + 0.015);
+        fileCur.volume = Math.min(0.24, fileCur.volume + 0.008);
         if (fileCur.volume >= 0.24) { clearInterval(fileTimer); fileTimer = null; }
       }, 60);
     }
-    function play(mood) {
-      cur = mood;
-      if (!SFX.isOn()) return;
-      var files = ASSETS && ASSETS.bgmFiles;
-      if (files && files[mood]) { playFile(ASSETS.audioBasePath + files[mood]); return; }
+    function playSynth(mood) {
       stopFile(false);
       var c = SFX.ctx(); if (!c) return;
       try { if (c.state === "suspended") c.resume(); } catch (e) {}
       stopAll(true);
-      cur = mood;
       var M = MOODS[mood]; if (!M) return;
       master = c.createGain();
       master.gain.setValueAtTime(0.0001, c.currentTime);
@@ -979,11 +988,45 @@
         }, M.pluckMs[0] + Math.random() * (M.pluckMs[1] - M.pluckMs[0])));
       })();
     }
+    function settle(spec) {
+      if (spec && spec.ambient) playSynth(spec.ambient);
+      else stopAll(true);
+    }
+    function play(mood, variant) {
+      cur = mood;
+      curVariant = typeof variant === "number" ? variant : 0;
+      curFinished = false;
+      if (!SFX.isOn()) return;
+      var spec = cueSpec(mood);
+      if (spec && spec.mode === "silence") {
+        stopAll(true); stopFile(true); curFinished = true; return;
+      }
+      if (spec && spec.clips && spec.clips.length) {
+        curVariant = Math.max(0, Math.min(curVariant, spec.clips.length - 1));
+        playFile(ASSETS.audioBasePath + spec.clips[curVariant], function () { settle(spec); });
+        return;
+      }
+      playSynth(mood); /* storm/null 或無實檔 cue → 程序化聲景 */
+    }
+    function variant(index) {
+      var spec = cueSpec(cur);
+      if (!spec || spec.mode !== "milestone" || !spec.clips || !spec.clips.length) return;
+      var next = Math.max(0, Math.min(index, spec.clips.length - 1));
+      if (next === curVariant) return; /* 同一節點重繪不得把已播完的 30 秒段落重新叫回來 */
+      play(cur, next);
+    }
     return {
       play: play,
+      variant: variant,
       stop: function (fade) { stopAll(fade); stopFile(true); },
       current: function () { return cur; },
-      refresh: function () { if (cur) play(cur); }
+      currentVariant: function () { return curVariant; },
+      refresh: function () {
+        if (!cur) return;
+        var spec = cueSpec(cur);
+        if (curFinished) { if (spec && spec.ambient) playSynth(spec.ambient); return; }
+        play(cur, curVariant);
+      }
     };
   })();
   function syncSfxBtn() {
@@ -996,6 +1039,7 @@
     if (on) BGM.refresh(); else BGM.stop(false);
   });
   syncSfxBtn();
+  BGM.play("travelerTitle"); /* autoplay 被擋時只記 cue;第一次手勢由 unlockAudioOnce 補播 */
   function unlockAudioOnce() { /* 首次手勢(滑鼠或鍵盤皆可,B-3):解鎖 AudioContext,補播當前 mood */
     document.removeEventListener("pointerdown", unlockAudioOnce);
     document.removeEventListener("keydown", unlockAudioOnce);
@@ -1012,6 +1056,20 @@
     var map = ASSETS && ASSETS.sceneBgm;
     var mood = map && map[ev.detail.sceneId];
     if (mood && mood !== BGM.current()) BGM.play(mood);
+  });
+  document.addEventListener("bd:view", function (ev) { /* 工坊 A/B/C:依認知里程碑,不按時間輪播 */
+    var d = ev.detail || {};
+    if (BGM.current() !== "workshop") return;
+    if (d.scene === "A2-2" && (d.nodeId === "c1" || d.nodeId === "n3")) BGM.variant(1);
+    else if (d.scene === "A2-3" && d.nodeId !== "nsch" && d.nodeId !== "n6") BGM.variant(1);
+    else if ((d.scene === "A2-3" && (d.nodeId === "nsch" || d.nodeId === "n6")) || d.scene === "A2-4") BGM.variant(2);
+  });
+  document.addEventListener("bd:debate", function (ev) { /* 辯論 A/B/C:開庭→第二柱→最後反撲 */
+    if (BGM.current() !== "hall") return;
+    var d = ev.detail || {}, n = (d.broken || []).length;
+    if (d.phase === "fr" || d.phase === "trap" || d.phase === "won") BGM.variant(2);
+    else if (n >= 2) BGM.variant(1);
+    else BGM.variant(0);
   });
 
   /* ---------- 斜面滾球重播(bd:run) ---------- */
