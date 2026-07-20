@@ -564,6 +564,7 @@
 
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
+    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己的快轉 */
     if (!$("notebook").hidden) return;
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("labIntro").hidden) return;
@@ -574,6 +575,7 @@
   });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
+    if (!$("fxJump").hidden) { ev.preventDefault(); ev.stopPropagation(); endSceneFx(); return; } /* 蒙太奇:鍵盤也能跳 */
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
     if (!$("prologueCard").hidden) { /* 序幕:Enter/Space=下一拍;焦點在跳過鈕時交還原生 */
       if (ev.target && ev.target.closest && ev.target.closest("button")) return;
@@ -712,6 +714,7 @@
   $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== "Escape") return;
+    if (!$("fxJump").hidden) { ev.preventDefault(); endSceneFx(); return; }
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); return; }
@@ -759,6 +762,15 @@
       blip: function () { tone(660, 0.05, "square", 0.03); },
       chime: function () { tone(880, 0.22, "sine", 0.06); setTimeout(function () { tone(1318, 0.3, "sine", 0.05); }, 90); },
       thud: function () { tone(88, 0.35, "sine", 0.2); tone(55, 0.5, "sine", 0.12); },
+      paper: function () { /* 紙頁掠過/落定:一次短促帶通噪音 */
+        if (!on) return;
+        var c = ac(); if (!c) return;
+        var b = c.createBuffer(1, c.sampleRate * 0.16, c.sampleRate), d = b.getChannelData(0);
+        for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) * 0.3;
+        var s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+        f.type = "bandpass"; f.frequency.value = 2600; g.gain.value = 0.1;
+        s.buffer = b; s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+      },
       whoosh: function () {
         if (!on) return;
         var c = ac(); if (!c) return;
@@ -865,41 +877,75 @@
   /* ---------- 時間跳躍(sceneFx,僅活戲) ---------- */
   var liveStarted = false;
   document.addEventListener("bd:start", function () { liveStarted = true; });
-  var fxDone = null;
-  function endSceneFx() {
-    if (!fxDone) return;
-    var fn = fxDone; fxDone = null;
-    fn();
+  /* 三板偽影片(Sol 交接 §2 節奏表):0-0.65 板1/0.65-1.2 溶板2/停/1.8-2.55 溶板3/停穩/3.15-3.4 收。
+     年份=四個劇情里程碑 HTML 淡換(1592/1597/1602/1603),不逐年計數。
+     音三拍:板2 現身=紙頁掠過;兩地溶接=低沉氣流;板3 落定=柔和紙面聲。 */
+  var fxTimers = [], fxClosing = false;
+  function fxYearShow(y) {
+    var el = $("fxYear");
+    el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
+    el.textContent = String(y);
+  }
+  function fxPlateShow(slot, entryId) {
+    var e = assetEntry(entryId);
+    if (!e) return false;
+    var showEl = $(slot === "A" ? "fxPlateA" : "fxPlateB");
+    var hideEl = $(slot === "A" ? "fxPlateB" : "fxPlateA");
+    showEl.src = assetUrl(e);
+    showEl.classList.add("on");
+    hideEl.classList.remove("on");
+    return true;
+  }
+  function fxClear() {
+    fxTimers.forEach(clearTimeout); fxTimers = [];
+    $("fxPlateA").classList.remove("on"); $("fxPlateB").classList.remove("on");
+    fxClosing = false;
+  }
+  function endSceneFx() { /* 跳過=直達板3+1603,短停後離開(單次完成,同既有跳過規則) */
+    if ($("fxJump").hidden || fxClosing) return;
+    fxClosing = true;
+    fxTimers.forEach(clearTimeout); fxTimers = [];
+    var fx = ASSETS.sceneFx["INT-1"];
+    var years = (fx && fx.years) || [];
+    var plates = (fx && fx.plates) || [];
+    if (plates.length) fxPlateShow("A", plates[plates.length - 1]);
+    if (years.length) fxYearShow(years[years.length - 1]);
+    fxTimers.push(setTimeout(function () {
+      $("fxJump").hidden = true;
+      fxClear();
+      resumeTyping();
+    }, 700));
   }
   function playSceneFx(sceneId) {
     var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[sceneId];
     if (!fx || fx.fx !== "timejump" || !liveStarted || !$("prologueCard").hidden) return;
-    var box = $("fxJump"), yr = $("fxYear");
+    var box = $("fxJump");
+    var years = fx.years || [], plates = fx.plates || [];
+    (plates || []).forEach(function (id) { preloadEntry(assetEntry(id)); });
     box.hidden = false;
+    fxClear();
     pauseTyping(); /* 蒙太奇播放時,台詞停一拍——動畫管情緒,台詞管答案 */
-    SFX.whoosh();
-    var closed = false;
-    fxDone = function () {
-      if (closed) return;
-      closed = true;
-      yr.textContent = String(fx.to);
-      setTimeout(function () { box.hidden = true; resumeTyping(); }, reduced ? 500 : 700);
-    };
-    if (reduced) {
-      yr.textContent = String(fx.to);
-      setTimeout(endSceneFx, 700);
+    var hasArt = plates.length === 3 && !!assetEntry(plates[0]);
+    if (reduced || !hasArt) { /* 減少動態或無資產:落頁板(或素底)+末年份,約 700ms */
+      if (hasArt) fxPlateShow("A", plates[2]);
+      if (years.length) fxYearShow(years[years.length - 1]);
+      fxTimers.push(setTimeout(function () {
+        $("fxJump").hidden = true; fxClear(); resumeTyping();
+      }, 900));
       return;
     }
-    var from = fx.from, to = fx.to, span = Math.max(1, to - from), t0 = null;
-    function tick(ts) {
-      if (fxDone === null || closed) return;
-      if (t0 === null) t0 = ts;
-      var k = Math.min((ts - t0) / 2600, 1);
-      yr.textContent = String(Math.round(from + span * k));
-      if (k < 1) requestAnimationFrame(tick);
-      else endSceneFx();
-    }
-    requestAnimationFrame(tick);
+    fxPlateShow("A", plates[0]); fxYearShow(years[0]);                     /* 0s 板1・1592 */
+    fxTimers.push(setTimeout(function () {
+      fxPlateShow("B", plates[1]); fxYearShow(years[1]); SFX.paper();     /* 0.65s 溶板2・1597・紙頁掠過 */
+    }, 650));
+    fxTimers.push(setTimeout(function () { fxYearShow(years[2]); }, 1200)); /* 1.2s 板2 停留・1602 */
+    fxTimers.push(setTimeout(function () {
+      fxPlateShow("A", plates[2]); fxYearShow(years[3]); SFX.whoosh();    /* 1.8s 溶板3・1603・低沉氣流 */
+    }, 1800));
+    fxTimers.push(setTimeout(function () { SFX.paper(); }, 2550));         /* 2.55s 板3 落定・紙面聲 */
+    fxTimers.push(setTimeout(function () {
+      $("fxJump").hidden = true; fxClear(); resumeTyping();                /* 3.15-3.4s 收,露出帕多瓦 */
+    }, 3400));
   }
   $("fxJump").addEventListener("click", endSceneFx); /* 點擊快轉(原則 #19:演出永遠可跳) */
   document.addEventListener("bd:scene", function (ev) { playSceneFx(ev.detail.sceneId); });

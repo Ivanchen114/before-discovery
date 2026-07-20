@@ -314,14 +314,33 @@ tests.push({
       if (!cui.includes('"' + evName + '"')) throw new Error("chapter-ui 缺掛點:" + evName);
       if (!sui.includes('"' + evName + '"')) throw new Error("stage-ui 未訂閱:" + evName);
     }
-    /* sceneFx 資料驅動:場景存在+fx 值域受控 */
+    /* sceneFx 三板偽影片(Sol 交接 20260720):場景存在/三板資產齊/尺寸 1920×1080/四里程碑年份 */
     const sceneIds = new Set(scenes.scenes.map((s) => s.id));
+    const entryById = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
     for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
       if (!sceneIds.has(sc)) throw new Error("sceneFx 指向不存在場景:" + sc);
       if (fx.fx !== "timejump") throw new Error("sceneFx 未知效果:" + fx.fx);
-      if (typeof fx.from !== "number" || typeof fx.to !== "number") throw new Error("timejump 缺年份");
+      if (!Array.isArray(fx.years) || !fx.years.every((y) => typeof y === "number"))
+        throw new Error("timejump 年份里程碑非法");
+      if (!Array.isArray(fx.plates) || fx.plates.length !== 3) throw new Error("timejump 需三板");
+      for (const pid of fx.plates) {
+        const e = entryById[pid];
+        if (!e) throw new Error("板圖不存在:" + pid);
+        if (e.w !== 1920 || e.h !== 1080) throw new Error("板圖尺寸非 1920×1080:" + pid);
+      }
     }
-    if (!(assets.sceneFx && assets.sceneFx["INT-1"])) throw new Error("INT-1 十一年跳躍未註冊");
+    const int1 = assets.sceneFx && assets.sceneFx["INT-1"];
+    if (!int1) throw new Error("INT-1 十一年跳躍未註冊");
+    if (JSON.stringify(int1.years) !== JSON.stringify([1592, 1597, 1602, 1603]))
+      throw new Error("INT-1 年份應為四里程碑 1592/1597/1602/1603(不逐年計數)");
+    /* 禁四頁 CSS 假翻頁與逐年計數回歸 */
+    if (stageHtml.includes("fxPages") || stageHtml.includes("bdFlip"))
+      throw new Error("四頁 CSS 假翻頁應已退場");
+    if (sui.includes("Math.round(from + span")) throw new Error("逐年計數應已移除");
+    for (const frag of ['id="fxPlateA"', 'id="fxPlateB"'])
+      if (!stageHtml.includes(frag)) throw new Error("三板溶接槽缺失:" + frag);
+    for (const frag of ["SFX.paper", "endSceneFx", "fx.years"])
+      if (!sui.includes(frag)) throw new Error("蒙太奇要素缺失:" + frag);
     /* 音效=合成零資產;偏好走 sessionStorage(存檔純度不破);HUD 有開關 */
     if (!sui.includes("AudioContext")) throw new Error("音效合成器缺失");
     if (!sui.includes("sessionStorage")) throw new Error("音效偏好未持久化(sessionStorage)");

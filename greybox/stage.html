@@ -311,26 +311,18 @@
     display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center;
     cursor: pointer; }
   #fxJump[hidden] { display: none; }
-  #fxYear { font-family: var(--font-dialogue); color: #cfa96b; letter-spacing: 0.3em;
-    font-size: clamp(40px, 7vw, 84px); font-variant-numeric: tabular-nums; }
-  /* 筆記翻頁蒙太奇:紙頁飛過,墨色由深轉黃(n1「筆記自己翻了頁…墨跡乾涸又泛黃」的視覺化) */
-  #fxPages { position: relative; width: min(300px, 50vw); height: min(190px, 30vh); }
-  #fxPages i { position: absolute; inset: 0; background: #e6d7bd; border: 1px solid #b7a888;
-    border-radius: 3px 10px 10px 3px; transform-origin: left center; opacity: 0;
-    background-image: repeating-linear-gradient(#e6d7bd 0 22px, rgba(90, 70, 56, 0.28) 22px 23px); }
-  /* 每頁只翻一次,慢而柔(止血版;Sol 幕間板圖到位後整組換偽影片式連圖) */
-  #fxJump:not([hidden]) #fxPages i { animation: bdFlip 2.4s ease-in-out both; }
-  #fxPages i:nth-child(2) { animation-delay: 0.55s !important; background-color: #e2d0ad; }
-  #fxPages i:nth-child(3) { animation-delay: 1.1s !important; background-color: #dcc79e; }
-  #fxPages i:nth-child(4) { animation-delay: 1.65s !important; background-color: #d5bd90; }
-  @keyframes bdFlip {
-    0% { opacity: 0; transform: perspective(900px) rotateY(0deg); }
-    18% { opacity: 0.95; }
-    70% { opacity: 0.95; transform: perspective(900px) rotateY(-115deg); }
-    100% { opacity: 0; transform: perspective(900px) rotateY(-150deg); }
-  }
+  #fxYear { position: relative; z-index: 2; font-family: var(--font-dialogue); color: #f0e2c4;
+    letter-spacing: 0.3em; font-size: clamp(40px, 7vw, 84px); font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 10px rgba(10, 7, 5, 0.85), 0 0 30px rgba(10, 7, 5, 0.5);
+    animation: bdFade var(--motion-medium) ease; }
+  /* 三板偽影片(Sol 交接 §2):溶接 550ms+極小鏡頭推進;禁 rotateY 假翻頁 */
+  .fxplate { position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center; opacity: 0;
+    transition: opacity 550ms ease, transform 3.4s linear; transform: scale(1.01); }
+  .fxplate.on { opacity: 1; transform: scale(1.035); }
   @media (prefers-reduced-motion: reduce) {
-    #fxJump:not([hidden]) #fxPages i { animation: none; opacity: 0.6; transform: none; }
+    .fxplate { transition: none; transform: none; }
+    #fxYear { animation: none; }
   }
   @keyframes bdShake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 2px); }
     40% { transform: translate(5px, -3px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(3px, 2px); } }
@@ -455,7 +447,8 @@
   <div id="vignette"></div>
   <div id="sceneChip"></div>
   <div id="fxJump" aria-hidden="true" hidden>
-    <div id="fxPages"><i></i><i></i><i></i><i></i></div>
+    <img id="fxPlateA" class="fxplate" alt="">
+    <img id="fxPlateB" class="fxplate" alt="">
     <span id="fxYear"></span>
   </div>
 
