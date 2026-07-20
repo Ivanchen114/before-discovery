@@ -1,7 +1,7 @@
 {
  "version": 1,
  "basePath": "../public/assets/",
- "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。",
+ "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 四連板(拍 0-3→板1/4-5→板2/6→板3/7-8→板4;交叉淡化,reduced-motion 立即換)。",
  "sceneBg": {
   "P0-1": "bg_pisa_arcade",
   "P0-2": "bg_study_pisa_day",
@@ -503,6 +503,42 @@
    "firstScreen": false,
    "w": 540,
    "h": 720
+  },
+  {
+   "id": "p0_0_plate01_dark_room",
+   "kind": "bg",
+   "label": "序幕板01・現實基準(深夜螢幕前)",
+   "path": "ch01/prologue/p0_0_plate01_dark_room.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080
+  },
+  {
+   "id": "p0_0_plate02_aurora_intrusion",
+   "kind": "bg",
+   "label": "序幕板02・極光侵入",
+   "path": "ch01/prologue/p0_0_plate02_aurora_intrusion.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080
+  },
+  {
+   "id": "p0_0_plate03_reach_glass",
+   "kind": "bg",
+   "label": "序幕板03・觸碰玻璃(中性暗袖手臂)",
+   "path": "ch01/prologue/p0_0_plate03_reach_glass.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080
+  },
+  {
+   "id": "p0_0_plate04_whitefall",
+   "kind": "bg",
+   "label": "序幕板04・白光墜落(遠方鐘樓初現)",
+   "path": "ch01/prologue/p0_0_plate04_whitefall.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080
   }
  ],
  "sceneDialoguePortrait": {
@@ -621,5 +657,11 @@
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
   "right": "dialogue_traveler_silhouette_right"
+ },
+ "prologuePlates": {
+  "1": "p0_0_plate01_dark_room",
+  "2": "p0_0_plate02_aurora_intrusion",
+  "3": "p0_0_plate03_reach_glass",
+  "4": "p0_0_plate04_whitefall"
  }
 }

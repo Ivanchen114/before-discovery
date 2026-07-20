@@ -363,6 +363,23 @@
   var mzCoarse = false;
   try { mzCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches; } catch (e) {}
   function mzClass(c, on) { $("prologueCard").classList.toggle(c, on); }
+  /* 四連板(Sol 20260720):拍→板映射;交叉淡化雙 img;無資產=退純 CSS 景(灰盒 fallback) */
+  var MZ_PLATE = [1, 1, 1, 1, 2, 2, 3, 4, 4];
+  var mzPlateActive = "B", mzPlateCur = 0; /* 首板落 A 槽 */
+  function mzSetPlate(n) {
+    if (n === mzPlateCur) return;
+    mzPlateCur = n;
+    var map = ASSETS && ASSETS.prologuePlates;
+    var e = map ? assetEntry(map[String(n)]) : null;
+    var showEl = $("mzPlate" + (mzPlateActive === "A" ? "B" : "A"));
+    var hideEl = $("mzPlate" + mzPlateActive);
+    if (!e) { showEl.classList.remove("on"); hideEl.classList.remove("on"); return; }
+    showEl.src = assetUrl(e);
+    showEl.classList.add("on");
+    hideEl.classList.remove("on");
+    mzPlateActive = (mzPlateActive === "A" ? "B" : "A");
+  }
+  function mzSay(t) { $("mzSr").textContent = t; } /* 單一隱藏 live region:只播關鍵內容,通知不逐條搶讀 */
   function mzCap(t) {
     var el = $("mzCaption");
     el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
@@ -371,7 +388,10 @@
   function mzReset() {
     mzBeat = -1;
     mzTimers.forEach(clearTimeout); mzTimers = [];
-    ["aurora", "reach", "whiteout", "cursorMove", "scrolled"].forEach(function (c) { mzClass(c, false); });
+    ["aurora", "reach", "whiteout", "cursorMove", "scrolled", "bare"].forEach(function (c) { mzClass(c, false); });
+    mzPlateCur = 0; mzPlateActive = "B";
+    $("mzPlateA").classList.remove("on"); $("mzPlateB").classList.remove("on");
+    $("mzSr").textContent = "";
     $("mzPush").hidden = true;
     $("mzCursor").hidden = true;
     $("mzNotifs").innerHTML = "";
@@ -383,8 +403,15 @@
   }
   var MZ = [
     function () { mzCap("深夜。房間裡只有螢幕的光。"); },
-    function () { mzCap("你在讀一篇文章,停在那座斜塔的插圖上。"); },
-    function () { $("mzPush").hidden = false; mzCap("一則突發推播,跳了出來。"); },
+    function () {
+      mzCap("你在讀一篇文章,停在那座斜塔的插圖上。");
+      mzSay("文章標題:比薩斜塔上,他真的丟過那兩顆球嗎?內文:通俗故事常這樣開場——亞里斯多德錯了一千九百年,直到伽利略登上斜塔。可那兩顆球,真的落下過嗎?");
+    },
+    function () {
+      $("mzPush").hidden = false;
+      mzCap("一則突發推播,跳了出來。");
+      mzSay("突發推播:罕見強烈地磁風暴抵達地球——低緯度地區出現極光,多地通訊異常。監測單位表示:本次強度遠超預報,異常增幅原因待查。");
+    },
     function () {
       if (mzCoarse) { mzClass("scrolled", true); mzCap("頁面自己,往下捲了一行。又一行。像有誰替你讀。"); }
       else { $("mzCursor").hidden = false; setTimeout(function () { mzClass("cursorMove", true); }, 60);
@@ -401,7 +428,7 @@
         }, 180 * (i + 1)));
       });
     },
-    function () { mzClass("reach", true); mzCap("你伸手去關螢幕。指尖碰到玻璃的瞬間——玻璃,不見了。"); },
+    function () { mzClass("bare", true); mzCap("你伸手去關螢幕。指尖碰到玻璃的瞬間——玻璃,不見了。"); },
     function () { mzClass("whiteout", true); mzCap("白光。墜落感。風裡有鐘聲,和一句聽不懂的話——像是,義大利語。"); },
     function () { mzCap(""); $("mzTitleLines").hidden = false; $("btnPrologueGo").textContent = "啟程"; }
   ];
@@ -409,9 +436,15 @@
     mzBeat++;
     if (mzBeat >= MZ.length) { dismissPrologue(); return; }
     MZ[mzBeat]();
+    mzSetPlate(MZ_PLATE[mzBeat]);
   }
   function mzShow() {
     mzReset();
+    if (ASSETS && ASSETS.prologuePlates) { /* 四板先暖 */
+      Object.keys(ASSETS.prologuePlates).forEach(function (k) {
+        preloadEntry(assetEntry(ASSETS.prologuePlates[k]));
+      });
+    }
     $("prologueCard").hidden = false;
     mzNext();
     setTimeout(function () { $("prologueCard").focus(); }, 30);
@@ -424,6 +457,11 @@
       needKickoff = false;
       var btns = $("controls").querySelectorAll("button");
       if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
+    } else { /* 焦點交回舞台可操作控制 */
+      setTimeout(function () {
+        var b = $("controls").querySelector("button");
+        if (b) b.focus(); else $("btnDrawer").focus();
+      }, 0);
     }
   }
   $("btnPrologueGo").addEventListener("click", dismissPrologue);
@@ -609,9 +647,11 @@
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); }
   });
-  document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal */
+  document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal(筆記+序幕皆圍欄) */
     var nb = $("notebook");
-    if (!nb.hidden && !nb.contains(ev.target)) $("btnDrawerClose").focus();
+    if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
+    var pc = $("prologueCard");
+    if (!pc.hidden && !pc.contains(ev.target)) pc.focus();
   });
   function selectTab(which) {
     $("notebook").setAttribute("data-tab", which);

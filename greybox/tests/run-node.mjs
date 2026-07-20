@@ -251,6 +251,33 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "序幕四連板|拍板映射+可及性關鍵文字+焦點圍欄+科學措辭(Sol 過目 20260720)",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const ids = new Set(assets.entries.map((e) => e.id));
+    const pp = assets.prologuePlates || {};
+    for (const k of ["1", "2", "3", "4"])
+      if (!pp[k] || !ids.has(pp[k])) throw new Error("prologuePlates 缺板 " + k);
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    /* 科學措辭:地磁風暴(NASA/NOAA 用語);神祕的是異常增幅,不是成因;斜塔=通俗故事(Museo Galileo) */
+    for (const frag of ["地磁風暴", "異常增幅原因待查", "通俗故事常這樣開場",
+      'id="mzPlateA"', 'id="mzPlateB"', 'id="mzSr"', 'aria-live="polite"'])
+      if (!stageHtml.includes(frag)) throw new Error("序幕要素缺失:" + frag);
+    for (const banned of ["電磁風暴", "成因尚不清楚"])
+      if (stageHtml.includes(banned)) throw new Error("違反科學措辭修正:" + banned);
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    /* 拍→板映射固定(0-3→1/4-5→2/6→3/7-8→4);可及性發聲;序幕焦點圍欄 */
+    if (!sui.includes("MZ_PLATE = [1, 1, 1, 1, 2, 2, 3, 4, 4]")) throw new Error("拍板映射不符 Sol 規格");
+    if (!sui.includes("mzSay(")) throw new Error("可及性關鍵文字(mzSay)缺失");
+    if (!/mzSay\("文章標題:/.test(sui) || !/mzSay\("突發推播:/.test(sui))
+      throw new Error("文章/推播關鍵內容未經可及性文字送出");
+    if (!/pc\.hidden && !pc\.contains\(ev\.target\)/.test(sui)) throw new Error("序幕焦點圍欄缺失");
+    if (!sui.includes('mzClass("bare", true)')) throw new Error("板03 應撤 HTML 螢幕框(bare)");
+    if (!/whiteout #mzWhite \{ opacity: 0\.4/.test(stageHtml)) throw new Error("板04 不得被全不透明白層蓋掉");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
