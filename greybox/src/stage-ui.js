@@ -201,8 +201,12 @@
   /* ---------- 打字機:分頁+標點停頓 ---------- */
   var queue = [], pages = [], pageIdx = 0, curPage = "", pos = 0;
   var typing = false, waiting = false, timer = null, paused = false;
+  /* 收隊確認:在對話框會讓位的視圖(辯論/實驗台等),最後一句演完先亮 ▼ 等玩家點掉——
+     打字完成≠讀完(總監實玩)。narration 視圖對話框常駐,不需確認。 */
+  var ackPending = false;
+  var YIELD_VIEWS = { debate: 1, lab: 1, review: 1, histfacts: 1 };
   function syncFlags() {
-    var active = typing || waiting || queue.length > 0;
+    var active = typing || waiting || queue.length > 0 || ackPending;
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
     /* 對話真正播完才把鍵盤焦點交給轉場鈕；不得只在進場瞬間猜一次時機。 */
@@ -243,6 +247,9 @@
     typing = false;
     if (pageIdx < pages.length - 1) { waiting = true; showCue(true); }
     else if (queue.length) { waiting = true; showCue(true); }
+    else if (YIELD_VIEWS[body.getAttribute("data-view")]) {
+      waiting = false; ackPending = true; showCue(true); /* 讀完自己點,對話框才讓位 */
+    }
     else { waiting = false; showCue(false); }
     syncFlags();
   }
@@ -314,6 +321,12 @@
       if (pageIdx < pages.length - 1) { pageIdx++; startPage(false); }
       else if (queue.length) { next(); }
       else { syncFlags(); }
+      return true;
+    }
+    if (ackPending) { /* 收隊確認:點掉最後一句,對話框讓位給面板 */
+      ackPending = false;
+      showCue(false);
+      syncFlags();
       return true;
     }
     return false;
@@ -393,7 +406,7 @@
     else { var b = $("labRun"); if (b) b.focus(); }
   });
   document.addEventListener("bd:start", function () {
-    queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false;
+    queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false; ackPending = false;
     if (timer) clearTimeout(timer);
     curBustId = null;
     labIntroSeen = false;
@@ -625,7 +638,7 @@
     }
     if (!$("labIntro").hidden) return; /* 備忘卡開啟:交還原生(按鈕 Enter 即關閉) */
     if (!$("debIntro").hidden) return;
-    if (typing || waiting) {           /* 演出未完:先消化演出,不觸底層按鈕 */
+    if (typing || waiting || ackPending) { /* 演出未完/待收隊:先消化演出,不觸底層按鈕 */
       ev.preventDefault(); ev.stopPropagation();
       advanceIntent();
       return;
