@@ -8,6 +8,7 @@
   var HIST = window.GB.DATA.histfacts;
   var ASSETS = window.GB.DATA.assets || null;
   var DEBATE = window.GB.DATA.debate || {};
+  var TEXT = window.GB.TextFormat || null;
   var KEY = "bd_ch1_save";
   var state = null;
   var lastSceneShown = null;
@@ -28,6 +29,7 @@
   var COMPACT_LAB_QUERY = "(max-height: 520px) and (min-width: 701px)";
 
   function $(id) { return document.getElementById(id); }
+  function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
   function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
 
@@ -111,6 +113,7 @@
 
   /* ---------- 敘事渲染 ---------- */
   function addLine(speaker, text, cls) {
+    var shownText = displayText(text);
     var div = document.createElement("div");
     div.className = "line " + (cls || "");
     if (speaker && cls !== "stage" && cls !== "system") {
@@ -118,14 +121,14 @@
         var pe = assetEntry(ASSETS.speakerPortrait[speaker]);
         if (pe) div.appendChild(buildPortrait(pe, speaker));
       }
-      var b = document.createElement("span"); b.className = "spk"; b.textContent = speaker + ":";
+      var b = document.createElement("span"); b.className = "spk"; b.textContent = displayText(speaker) + "：";
       div.appendChild(b);
     }
-    var t = document.createElement("span"); t.textContent = text;
+    var t = document.createElement("span"); t.textContent = shownText;
     div.appendChild(t);
     $("log").appendChild(div);
     div.scrollIntoView({ block: "nearest" });
-    emit("bd:line", { speaker: speaker || null, text: text, cls: cls || "", replay: replaying });
+    emit("bd:line", { speaker: speaker || null, text: shownText, cls: cls || "", replay: replaying });
   }
   function classFor(speaker) {
     if (speaker === "stage") return "stage";
@@ -141,7 +144,7 @@
     SCENES.scenes.forEach(function (s) { if (s.id === sceneId) sc = s; });
     var div = document.createElement("div");
     div.className = "scene-title";
-    div.textContent = "◆ " + sceneId + (sc && sc.title ? "|" + sc.title : "");
+    div.textContent = "◆ " + sceneId + (sc && sc.title ? "｜" + sc.title : "");
     $("log").appendChild(div);
     if (ASSETS && ASSETS.sceneBg) { /* 場景橫幅:資產落地即顯示 */
       var bg = assetEntry(ASSETS.sceneBg[sceneId]);
@@ -178,12 +181,12 @@
     /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
     var e3Started = state.lab.evidence.runs.length > 0 || e3.a || e3.b || e3.c;
     $("e3Val").textContent = e3Started
-      ? "斜面主張:規律" + (e3.a ? "●" : "○") + " 重量" + (e3.b ? "●" : "○") + " 傾角" + (e3.c ? "●" : "○")
+      ? "斜面主張：規律" + (e3.a ? "●" : "○") + " 重量" + (e3.b ? "●" : "○") + " 傾角" + (e3.c ? "●" : "○")
       : "";
     $("e3Val").title = "你要在斜面上親手立起的三個主張:規律成立/與球重無關/隨傾角形式不變。●=已認證——三顆全亮,終辯才有火力。";
-    $("perVal").textContent = state.debate ? ("說服力:" + state.debate.persuasion + "/5") : "";
-    $("modeVal").textContent = "模式:" + (state.mode === "scholar" ? "學者" : "探索");
-    $("sceneVal").textContent = "場景:" + state.cursor.scene;
+    $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
+    $("modeVal").textContent = "模式：" + (state.mode === "scholar" ? "學者" : "探索");
+    $("sceneVal").textContent = "場景：" + state.cursor.scene;
     var names = SCENES.evidenceNames || {};
     var got = Object.keys(state.evidence).filter(function (k) { return state.evidence[k]; });
     $("evidenceList").textContent = got.length
@@ -523,7 +526,7 @@
   }
   function mkBtn(box, text, onclick, disabled) {
     var b = document.createElement("button");
-    b.textContent = text;
+    b.textContent = displayText(text);
     if (disabled) b.disabled = true;
     b.onclick = onclick;
     box.appendChild(b);
@@ -611,7 +614,7 @@
     if (d.phase === "pillars") {
       var pT = document.createElement("h3");
       pT.className = "debateCurrent";
-      pT.textContent = d.pillar.title;
+      pT.textContent = displayText(d.pillar.title);
       box.appendChild(pT);
       var stmtGrid = document.createElement("div");
       stmtGrid.className = "statementGrid";
@@ -621,12 +624,12 @@
         var row = document.createElement("article");
         row.className = "statementCard" + (st.pressed ? " isPressed" : "");
         var quote = document.createElement("blockquote");
-        quote.textContent = "「" + st.text + "」";
+        quote.textContent = "「" + displayText(st.text) + "」";
         row.appendChild(quote);
         if (st.insight) {
           var insight = document.createElement("p");
           insight.className = "statementInsight";
-          insight.textContent = "問清之後｜" + st.insight;
+          insight.textContent = "問清之後｜" + displayText(st.insight);
           row.appendChild(insight);
         }
         if (state.mode === "explore" && st.pressed && st.status !== "broken" && stmtHasGap(st.id)) {
@@ -654,7 +657,7 @@
       if (d.pressChoice) {
         var pc = document.createElement("section");
         pc.className = "pressChoice";
-        pc.textContent = d.pressChoice.prompt;
+        pc.textContent = displayText(d.pressChoice.prompt);
         box.appendChild(pc);
         d.pressChoice.options.forEach(function (o) {
           mkBtn(box, o.text, function () { doDebate("debatePressChoice", [o.id]); });
@@ -677,7 +680,7 @@
         if (sum) { /* 白話摘要:說清楚這張牌「證明了什麼」,不標正解(Sol 第一優先) */
           var sm = document.createElement("span");
           sm.className = "evSummary";
-          sm.textContent = sum;
+          sm.textContent = displayText(sum);
           card.appendChild(sm);
         }
         card.onclick = function () {
@@ -701,13 +704,13 @@
           preview.disabled = true; preview.textContent = "先選一句證詞與一張證據"; return;
         }
         preview.disabled = false;
-        preview.textContent = "出示「" + selectedEvidence.label + "」——反駁「" + selectedTarget.text + "」";
+        preview.textContent = displayText("出示「" + selectedEvidence.label + "」——反駁「" + selectedTarget.text + "」");
       }
       return;
     }
     if (d.phase === "trap") {
       var pTr = document.createElement("p");
-      pTr.textContent = d.trap.prompt;
+      pTr.textContent = displayText(d.trap.prompt);
       box.appendChild(pTr);
       d.trap.options.forEach(function (o) {
         mkBtn(box, o.text, function () { doDebate("debateFr", [o.id]); });
@@ -716,7 +719,7 @@
     }
     if (d.phase === "fr") {
       var pF = document.createElement("p");
-      pF.textContent = d.fr.prompt;
+      pF.textContent = displayText(d.fr.prompt);
       box.appendChild(pF);
       if (d.fr.kind === "explore") {
         d.fr.options.forEach(function (o) {
@@ -784,8 +787,8 @@
     box.className = "";
     if (v.type === "embed" && v.system === "incline") {
       $("lab").style.display = "";
-      $("labHint").textContent = friendlyLabGoal(v);
-      $("judgeAsk").textContent = judgeAskText(v);
+      $("labHint").textContent = displayText(friendlyLabGoal(v));
+      $("judgeAsk").textContent = displayText(judgeAskText(v));
       var ek = v.scene + "/" + v.nodeId;
       if (ek !== lastEmbedKey) {
         lastEmbedKey = ek;
@@ -824,7 +827,7 @@
       var tas = v.prompts.map(function (q) {
         var lab = document.createElement("label");
         lab.style.display = "block";
-        lab.appendChild(document.createTextNode(q));
+        lab.appendChild(document.createTextNode(displayText(q)));
         var ta = document.createElement("textarea");
         ta.rows = 2; ta.style.width = "95%";
         lab.appendChild(document.createElement("br"));
@@ -855,7 +858,7 @@
           var td = document.createElement("td");
           td.style.textAlign = "left";
           if (ci === 0) td.style.fontWeight = "bold";
-          td.textContent = cell;
+          td.textContent = displayText(cell);
           tr.appendChild(td);
         });
         tbl.appendChild(tr);
@@ -876,7 +879,7 @@
     }
     if (v.type === "choice") {
       var pc = document.createElement("p");
-      pc.textContent = v.prompt;
+      pc.textContent = displayText(v.prompt);
       box.appendChild(pc);
       v.options.forEach(function (o) {
         mkBtn(box, o.text, function () {
@@ -914,6 +917,7 @@
   }
 
   function initTitle() {
+    if (TEXT) TEXT.normalizeTextNodes(document.getElementById("stage"));
     var loaded = tryLoad();
     $("continueWrap").style.display = loaded ? "" : "none";
     if (loaded) $("btnContinue").onclick = function () { startGame(loaded); };

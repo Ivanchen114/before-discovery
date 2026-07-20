@@ -13,10 +13,24 @@ const debate = require("../data/debate.js");
 const scenes = require("../data/scenes.js");
 const Engine = require("../src/engine.js");
 const Narrative = require("../src/narrative.js");
+const TextFormat = require("../src/text-format.js");
 const buildSuite = require("./suite.js");
 const buildNarrativeSuite = require("./narrative-suite.js");
 
 const tests = buildSuite(Engine, patterns, debate).concat(buildNarrativeSuite(Narrative, scenes));
+
+tests.push({
+  name: "中文顯示標點|中文語境全形化，數字比例／拉丁文／代碼保持原樣",
+  fn: () => {
+    const sample = "(把玩兩顆鉛球)亞里斯多德說:十倍重,十倍快!";
+    const shown = TextFormat.normalizeZhPunctuation(sample);
+    if (shown !== "（把玩兩顆鉛球）亞里斯多德說：十倍重，十倍快！")
+      throw new Error("中文標點正規化失敗:" + shown);
+    const technical = "等時距 1:3:5:7；E3.a；(De Motu)";
+    if (TextFormat.normalizeZhPunctuation(technical) !== technical)
+      throw new Error("技術字串遭誤改");
+  }
+});
 
 /* R-DATA-05|鏡像一致性:.js 執行載體 與 .json 規範鏡像 深度相等 */
 tests.push({
@@ -676,6 +690,27 @@ tests.push({
     ]) if (!stageHtml.includes(frag)) throw new Error("手機橫屏修正缺失:" + frag);
     for (const frag of ["COMPACT_LAB_QUERY", "timerOptionLabel", "syncLabTimerLabels", 'timer + "・" + PATTERNS.dayCost[timer] + "天"'])
       if (!cui.includes(frag)) throw new Error("手機計時器短名契約缺失:" + frag);
+  }
+});
+
+tests.push({
+  name: "窄舞台縮放回歸|900px 以下收斂為單一發言肖像，兩殼共用中文標點層",
+  fn: () => {
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const chapterHtml = readFileSync(path.join(here, "../chapter.html"), "utf-8");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    for (const frag of [
+      "@media (max-width: 900px)",
+      '#dialogue[data-active="right"] #bustLeft',
+      '#dialogue[data-active="right"].has-r #dlgText { margin-right: 118px; }'
+    ]) if (!stageHtml.includes(frag)) throw new Error("窄舞台 CSS 契約缺失:" + frag);
+    for (const html of [stageHtml, chapterHtml]) {
+      const tf = html.indexOf('src/text-format.js');
+      const ui = html.indexOf('src/chapter-ui.js');
+      if (tf < 0 || ui < 0 || tf > ui) throw new Error("text-format 必須先於 chapter-ui 載入");
+    }
+    if (!sui.includes('SHORT_P = "、，,；;：:·—"') || !sui.includes('LONG_P = "。．.？！?!…"'))
+      throw new Error("逐字演出未識別全形中文標點");
   }
 });
 

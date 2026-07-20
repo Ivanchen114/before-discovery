@@ -915,6 +915,28 @@
     #notebook[data-tab="log"] #nbLeft { display: none; }
   }
 
+  /* 窄視窗／瀏覽器縮放：viewport 可能很高，但 16:9 舞台實寬已不足以容納雙肖像。
+     以寬度收斂對話，而非誤用手機高度條件；正常桌機寬度完全不變。 */
+  @media (max-width: 900px) {
+    #dialogue { min-height: 38%; padding: 12px 14px 14px; }
+    #dlgText { font-size: clamp(19px, 3vw, 24px); }
+    .bslot { height: clamp(105px, 18vw, 145px); }
+    #bustLeft { left: 10px; }
+    #bustRight { right: 10px; }
+    #dialogue[data-active="right"] #bustLeft,
+    #dialogue[data-active="left"] #bustRight,
+    #dialogue[data-active="none"] .bslot { display: none; }
+    #dialogue #dlgText { margin-left: 0; margin-right: 0; }
+    #dialogue[data-active="left"].has-l #dlgText { margin-left: 118px; }
+    #dialogue[data-active="right"].has-r #dlgText { margin-right: 118px; }
+    #dialogue[data-active="left"].has-l #nameplate { left: 128px; }
+    #dialogue[data-active="right"] #nameplate,
+    #dialogue[data-active="none"] #nameplate { left: 16px; }
+    #hud #modeVal, #hud #e3Val { display: none; }
+    #sceneChip { display: none; }
+    body[data-view="choice"] #panelWrap { bottom: 41%; }
+  }
+
   /* --- 手機橫屏真機修正包（844×390／932×430）---
      僅在低高度橫屏生效；桌機排版與字級不變。 */
   @media (max-height: 520px) and (min-width: 701px) {
@@ -1244,6 +1266,7 @@
 <script src="data/histfacts.js"></script>
 <script src="data/assets.js"></script>
 <script src="src/sanitize.js"></script>
+<script src="src/text-format.js"></script>
 <script src="src/engine.js"></script>
 <script src="data/scenes.js"></script>
 <script src="src/narrative.js"></script>
