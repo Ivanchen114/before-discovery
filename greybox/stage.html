@@ -126,9 +126,9 @@
   #dlgText { color: #ece3d0; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.55;
              font-family: var(--font-dialogue); min-height: 2.4em; white-space: pre-wrap; }
   #dlgText.narr { color: #c8bba2; font-style: italic; animation: bdFade var(--motion-fast) ease; }
-  #dlgText.sys { color: #b7c4cf; font-size: 0.95em; animation: bdFade var(--motion-fast) ease; }
-  #dlgText.sys.gain { color: #e9cf9a; } /* 取得證據/解鎖=獎勵時刻:金色+全字級,不弱化 */
-  #dlgText.sys.gain::before { content: "◆ "; color: #cfa96b; }
+  /* 系統行=藍字全字級(同等重要=同字級,區別靠色彩+符號,不靠縮小——原則手冊 #24) */
+  #dlgText.sys { color: #b7c4cf; font-size: 1em; animation: bdFade var(--motion-fast) ease; }
+  #dlgText.sys.gain::before { content: "◆ "; color: #cfa96b; } /* 取得證據/解鎖:金色標記 */
   #dlgText.pl { color: #d9e4f0; }
   @keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
   #dlgCue { position: absolute; right: 16px; bottom: 10px; color: #cfa96b; font-size: 16px;
@@ -401,7 +401,7 @@
       <div id="pcInner">
         <p class="pc1">一五九〇年,比薩。</p>
         <p class="pc2">你帶著四百年後的答案,墜入這個清晨。</p>
-        <p class="pc3">但在這裡,沒有人相信說出口的謎底。<br>答案不值錢,證明才值錢——<br>讓四百年前的世界點頭,就是你的謎題。</p>
+        <p class="pc3">但在這裡,沒有人相信說出口的謎底。<br>答案,要在四百年前重新被發現——<br>而這一次,推進物理史的人,是你。</p>
         <button id="btnPrologueGo" type="button">啟程</button>
       </div>
     </div>
@@ -460,7 +460,7 @@
     <div id="titleCard">
       <p class="t1">發現之前</p>
       <p class="t2">第一章:重物的渴望</p>
-      <p class="hint" style="margin:-14px 0 0">你早就知道答案——讓世界相信,才是謎題。</p>
+      <p class="hint" style="margin:-14px 0 0">你早就知道答案——這一次,由你親手推進物理史。</p>
       <div id="continueWrap" style="display:none">
         <button id="btnContinue">繼續上次進度</button>
       </div>
