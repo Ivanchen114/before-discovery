@@ -825,9 +825,36 @@
         o.start(); o.stop(c.currentTime + 1.2);
       });
     }
+    /* 真音樂檔模式:bgmFiles[mood] 有檔名→HTMLAudio 循環+交叉淡入;無檔→程序化合成 fallback */
+    var fileCur = null, fileTimer = null;
+    function stopFile(fast) {
+      if (fileTimer) { clearInterval(fileTimer); fileTimer = null; }
+      if (!fileCur) return;
+      var a = fileCur; fileCur = null;
+      var t = setInterval(function () {
+        a.volume = Math.max(0, a.volume - (fast ? 0.08 : 0.02));
+        if (a.volume <= 0.01) { clearInterval(t); a.pause(); }
+      }, 60);
+    }
+    function playFile(url) {
+      stopAll(false); stopFile(false);
+      var a = new Audio(url);
+      a.loop = true; a.volume = 0;
+      var p = a.play();
+      if (p && p.catch) p.catch(function () {}); /* 手勢前被擋:unlockAudio 會 refresh 補播 */
+      fileCur = a;
+      fileTimer = setInterval(function () {
+        if (!fileCur) return;
+        fileCur.volume = Math.min(0.24, fileCur.volume + 0.015);
+        if (fileCur.volume >= 0.24) { clearInterval(fileTimer); fileTimer = null; }
+      }, 60);
+    }
     function play(mood) {
       cur = mood;
       if (!SFX.isOn()) return;
+      var files = ASSETS && ASSETS.bgmFiles;
+      if (files && files[mood]) { playFile(ASSETS.audioBasePath + files[mood]); return; }
+      stopFile(false);
       var c = SFX.ctx(); if (!c) return;
       try { if (c.state === "suspended") c.resume(); } catch (e) {}
       stopAll(true);
@@ -883,7 +910,7 @@
     }
     return {
       play: play,
-      stop: stopAll,
+      stop: function (fade) { stopAll(fade); stopFile(true); },
       current: function () { return cur; },
       refresh: function () { if (cur) play(cur); }
     };
