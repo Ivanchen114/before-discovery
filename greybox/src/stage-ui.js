@@ -349,13 +349,21 @@
       labIntroSeen = true;
       setTimeout(showLabIntro, 0);
     }
+    if (view === "debate" && !debIntroSeen) { /* 首次進辯論廳:說服力與規則在這裡自我介紹(just-in-time) */
+      debIntroSeen = true;
+      setTimeout(function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }, 0);
+    }
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false;
     if (timer) clearTimeout(timer);
     curBustId = null;
     labIntroSeen = false;
+    debIntroSeen = false;
+    repHinted = false; repPrev = null;
     $("labIntro").hidden = true;
+    $("debIntro").hidden = true;
+    $("repToast").hidden = true;
     clearSlot("left"); clearSlot("right");
     npcSide = null;
     $("dialogue").setAttribute("data-active", "none");
@@ -464,6 +472,34 @@
     mzNext();
   });
 
+  /* ---------- 辯論備忘卡(首次進辯論廳;? 鈕重看)+信譽首動提示 ---------- */
+  var debIntroSeen = false;
+  $("btnDebIntroGo").addEventListener("click", function () {
+    $("debIntro").hidden = true;
+    $("btnDebHelp").focus();
+  });
+  (function mountDebHelp() {
+    var b = document.createElement("button");
+    b.id = "btnDebHelp"; b.type = "button";
+    b.setAttribute("aria-label", "重看辯論備忘");
+    b.textContent = "?";
+    b.addEventListener("click", function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); });
+    $("panelWrap").appendChild(b);
+  })();
+  var repHinted = false, repPrev = null;
+  try {
+    new MutationObserver(function () {
+      var v = $("repVal").textContent;
+      if (repPrev === null) { repPrev = v; return; }
+      if (v !== repPrev && !repHinted) { /* 信譽第一次變動:一次性提示(just-in-time,不是開場說明書) */
+        repHinted = true;
+        $("repToast").hidden = false;
+        setTimeout(function () { $("repToast").hidden = true; }, 5000);
+      }
+      repPrev = v;
+    }).observe($("repVal"), { childList: true, characterData: true, subtree: true });
+  } catch (e) {}
+
   /* ---------- 實驗備忘卡(首次進實驗台自動彈;? 鈕可重看)+同配置聚焦 ---------- */
   var labIntroSeen = false;
   function fillLabIntroProps() {
@@ -509,6 +545,7 @@
     if (!$("notebook").hidden) return;
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("labIntro").hidden) return;
+    if (!$("debIntro").hidden) return;
     if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen")) return;
     if (advanceIntent()) return;
     idleAdvance();
@@ -523,6 +560,7 @@
       return;
     }
     if (!$("labIntro").hidden) return; /* 備忘卡開啟:交還原生(按鈕 Enter 即關閉) */
+    if (!$("debIntro").hidden) return;
     if (typing || waiting) {           /* 演出未完:先消化演出,不觸底層按鈕 */
       ev.preventDefault(); ev.stopPropagation();
       advanceIntent();
@@ -653,7 +691,8 @@
     if (ev.key !== "Escape") return;
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
-    if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); }
+    if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); return; }
+    if (!$("debIntro").hidden) { ev.preventDefault(); $("debIntro").hidden = true; $("btnDebHelp").focus(); }
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal(筆記+序幕皆圍欄) */
     var nb = $("notebook");

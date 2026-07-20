@@ -234,6 +234,32 @@
     .mzplate { transition: none; } /* 減少動態:立即換板 */
     #mzCaption, #mzTitleLines p { animation: none; opacity: 1; }
   }
+  /* --- 信譽首動提示+辯論備忘卡 --- */
+  #repToast { position: absolute; top: 46px; left: 10px; z-index: 44; max-width: 340px;
+    background: rgba(20, 14, 10, 0.92); color: #e6d7bd; border: 1px solid var(--color-chapter-accent);
+    border-radius: 6px; padding: 10px 14px; font-size: clamp(13px, 1.2vw, 15px); line-height: 1.6;
+    animation: bdFade var(--motion-medium) ease; }
+  #repToast[hidden] { display: none; }
+  #debIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
+    display: flex; align-items: center; justify-content: center; }
+  #debIntro[hidden] { display: none; }
+  #diSheet { width: min(600px, 92%); background: var(--color-surface-notebook);
+    color: var(--color-ink-primary); border: 2px solid var(--color-chapter-accent); border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6); padding: 18px 24px; }
+  #diSheet h2 { font-family: var(--font-dialogue); font-size: clamp(18px, 1.8vw, 24px);
+    margin: 0 0 8px; border-bottom: 1px solid var(--color-ink-secondary); padding-bottom: 6px; }
+  #diSheet ol { margin: 8px 0; padding-left: 22px; line-height: 1.75; font-size: clamp(15px, 1.35vw, 18px); }
+  #diSheet li { margin: 6px 0; }
+  #btnDebIntroGo { background: var(--color-chapter-accent); color: #f3e9d5;
+    border: 1px solid rgba(230,215,189,0.5); border-radius: 6px; min-height: 44px;
+    padding: 8px 26px; font-size: 1em; cursor: pointer; font-family: var(--font-dialogue);
+    letter-spacing: 0.14em; display: block; margin: 10px 0 2px auto; }
+  #btnDebIntroGo:hover { background: #935c35; }
+  #btnDebHelp { display: none; position: absolute; top: 8px; right: 10px; z-index: 21;
+    min-height: 30px; min-width: 30px; border-radius: 50%; border: 1px solid var(--color-chapter-accent);
+    background: var(--color-surface-world); cursor: pointer; font-family: var(--font-dialogue); }
+  body[data-view="debate"] #btnDebHelp { display: block; }
+  @media (max-height: 520px) { #diSheet { max-height: 92%; overflow-y: auto; } }
   /* --- 首次實驗備忘卡 --- */
   #labIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
     display: flex; align-items: center; justify-content: center; }
@@ -445,6 +471,22 @@
         </div>
         <p id="mzCaption" aria-live="polite"></p>
         <button id="btnPrologueGo" type="button">跳過 ▸</button>
+      </div>
+    </div>
+
+    <div id="repToast" role="status" aria-live="polite" hidden>信譽動了——這座城市在替你的話記帳。滑鼠停在「信譽」上可看規則。</div>
+
+    <div id="debIntro" role="dialog" aria-modal="true" aria-label="辯論備忘" hidden>
+      <div id="diSheet">
+        <h2>旅人筆記・辯論備忘</h2>
+        <ol>
+          <li><b>戰場</b>——對面那位用三根支柱撐起他的理論。支柱不倒,理論不倒。</li>
+          <li><b>追問</b>——讓他把話說滿。說滿的話,才露破綻。</li>
+          <li><b>出示</b>——選證據、選子項、選目標證詞。打中弱點=支柱裂;打錯=<b>說服力 −1</b>。</li>
+          <li><b>說服力歸零=今日辯論中止</b>——不是輸。回實驗台補證據,再入時已破的支柱不必重打。</li>
+          <li><b>鐵則</b>——別說謊。被抓到的那一句,比整場辯論都貴。</li>
+        </ol>
+        <button id="btnDebIntroGo" type="button">上場</button>
       </div>
     </div>
 

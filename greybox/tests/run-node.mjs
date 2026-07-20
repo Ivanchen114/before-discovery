@@ -150,7 +150,8 @@ tests.push({
     for (const frag of ['id="notebook"', 'role="dialog"', 'aria-modal="true"',
       'id="nbTabEvidence"', 'id="nbTabLog"', 'id="nbLabSnap"',
       'id="labIntro"', 'id="btnLabHelp"', ">第1段<", "紀錄不可刪",
-      'id="prologueCard"', "推進物理史"]) {
+      'id="prologueCard"', "推進物理史",
+      'id="debIntro"', 'id="repToast"']) {
       if (!stageHtml.includes(frag)) throw new Error("stage.html 缺筆記本/實驗台要素:" + frag);
     }
     if (!stageHtml.includes("min-height: 44px")) throw new Error("觸控區 44px 規則缺失");
