@@ -286,11 +286,30 @@
     border-radius: 4px; background: #efe4c9; cursor: pointer; display: none; }
   #labAnim.on { display: block; }
   #labAnim svg { display: block; width: 100%; height: auto; }
-  #fxJump { position: absolute; inset: 0; z-index: 46; background: rgba(8, 5, 3, 0.92);
-    display: flex; align-items: center; justify-content: center; }
+  #fxJump { position: absolute; inset: 0; z-index: 46; background: rgba(8, 5, 3, 0.94);
+    display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center;
+    cursor: pointer; }
   #fxJump[hidden] { display: none; }
   #fxYear { font-family: var(--font-dialogue); color: #cfa96b; letter-spacing: 0.3em;
     font-size: clamp(40px, 7vw, 84px); font-variant-numeric: tabular-nums; }
+  /* 筆記翻頁蒙太奇:紙頁飛過,墨色由深轉黃(n1「筆記自己翻了頁…墨跡乾涸又泛黃」的視覺化) */
+  #fxPages { position: relative; width: min(300px, 50vw); height: min(190px, 30vh); }
+  #fxPages i { position: absolute; inset: 0; background: #e6d7bd; border: 1px solid #b7a888;
+    border-radius: 3px 10px 10px 3px; transform-origin: left center; opacity: 0;
+    background-image: repeating-linear-gradient(#e6d7bd 0 22px, rgba(90, 70, 56, 0.28) 22px 23px); }
+  #fxJump:not([hidden]) #fxPages i { animation: bdFlip 1.4s ease-in infinite; }
+  #fxPages i:nth-child(2) { animation-delay: 0.35s !important; background-color: #e2d0ad; }
+  #fxPages i:nth-child(3) { animation-delay: 0.7s !important; background-color: #dcc79e; }
+  #fxPages i:nth-child(4) { animation-delay: 1.05s !important; background-color: #d5bd90; }
+  @keyframes bdFlip {
+    0% { opacity: 0; transform: perspective(700px) rotateY(0deg); }
+    12% { opacity: 1; }
+    55% { opacity: 1; transform: perspective(700px) rotateY(-125deg); }
+    100% { opacity: 0; transform: perspective(700px) rotateY(-175deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #fxJump:not([hidden]) #fxPages i { animation: none; opacity: 0.6; transform: none; }
+  }
   @keyframes bdShake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 2px); }
     40% { transform: translate(5px, -3px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(3px, 2px); } }
   #panelWrap.fx-shake { animation: bdShake 500ms ease; }
@@ -413,7 +432,10 @@
   <div id="bgFallback"><span id="fbTitle">發現之前</span></div>
   <div id="vignette"></div>
   <div id="sceneChip"></div>
-  <div id="fxJump" aria-hidden="true" hidden><span id="fxYear"></span></div>
+  <div id="fxJump" aria-hidden="true" hidden>
+    <div id="fxPages"><i></i><i></i><i></i><i></i></div>
+    <span id="fxYear"></span>
+  </div>
 
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">
     <div id="hud">

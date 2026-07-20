@@ -842,27 +842,43 @@
   /* ---------- 時間跳躍(sceneFx,僅活戲) ---------- */
   var liveStarted = false;
   document.addEventListener("bd:start", function () { liveStarted = true; });
+  var fxDone = null;
+  function endSceneFx() {
+    if (!fxDone) return;
+    var fn = fxDone; fxDone = null;
+    fn();
+  }
   function playSceneFx(sceneId) {
     var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[sceneId];
     if (!fx || fx.fx !== "timejump" || !liveStarted || !$("prologueCard").hidden) return;
     var box = $("fxJump"), yr = $("fxYear");
     box.hidden = false;
+    pauseTyping(); /* 蒙太奇播放時,台詞停一拍——動畫管情緒,台詞管答案 */
     SFX.whoosh();
+    var closed = false;
+    fxDone = function () {
+      if (closed) return;
+      closed = true;
+      yr.textContent = String(fx.to);
+      setTimeout(function () { box.hidden = true; resumeTyping(); }, reduced ? 500 : 700);
+    };
     if (reduced) {
       yr.textContent = String(fx.to);
-      setTimeout(function () { box.hidden = true; }, 900);
+      setTimeout(endSceneFx, 700);
       return;
     }
     var from = fx.from, to = fx.to, span = Math.max(1, to - from), t0 = null;
     function tick(ts) {
+      if (fxDone === null || closed) return;
       if (t0 === null) t0 = ts;
-      var k = Math.min((ts - t0) / 1800, 1);
+      var k = Math.min((ts - t0) / 2600, 1);
       yr.textContent = String(Math.round(from + span * k));
       if (k < 1) requestAnimationFrame(tick);
-      else setTimeout(function () { box.hidden = true; }, 600);
+      else endSceneFx();
     }
     requestAnimationFrame(tick);
   }
+  $("fxJump").addEventListener("click", endSceneFx); /* 點擊快轉(原則 #19:演出永遠可跳) */
   document.addEventListener("bd:scene", function (ev) { playSceneFx(ev.detail.sceneId); });
 
   /* ---------- 支柱破裂(bd:debate 差分) ---------- */
