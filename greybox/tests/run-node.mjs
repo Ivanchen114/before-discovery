@@ -661,6 +661,24 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "手機橫屏真機回歸|證據字級、實驗選單與辯論下半部不再溢出／裁切",
+  fn: () => {
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (/body\[data-view="debate"\] #panelWrap \{ bottom: 42%; \}/.test(stageHtml))
+      throw new Error("舊辯論 bottom:42% 裁切規則仍存在");
+    for (const frag of [
+      "#dlgText.sys.gain { font-size: 1.1em",
+      "grid-template-columns: max-content minmax(0, 1fr)",
+      "grid-template-columns: repeat(3, minmax(260px, 78vw))",
+      "#rotateHint { position: absolute; inset: 0; z-index: 60"
+    ]) if (!stageHtml.includes(frag)) throw new Error("手機橫屏修正缺失:" + frag);
+    for (const frag of ["COMPACT_LAB_QUERY", "timerOptionLabel", "syncLabTimerLabels", 'timer + "・" + PATTERNS.dayCost[timer] + "天"'])
+      if (!cui.includes(frag)) throw new Error("手機計時器短名契約缺失:" + frag);
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {

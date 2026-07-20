@@ -155,9 +155,9 @@
   #dlgText.narr { color: #c8bba2; font-style: italic; animation: bdFade var(--motion-fast) ease; }
   /* 系統行=藍字全字級(同等重要=同字級,區別靠色彩+符號,不靠縮小——原則手冊 #24) */
   #dlgText.sys { color: #b7c4cf; font-size: 1em; animation: bdFade var(--motion-fast) ease; }
-  #dlgText.sys.gain { font-size: 1.5em; text-align: center; line-height: 1.6; } /* 戰利品時刻:放大置中(總監 1.5 倍) */
+  /* 戰利品靠音效、金色標記與脈動演出；長證據說明維持可讀字級，不能整段當標題放大。 */
+  #dlgText.sys.gain { font-size: 1.1em; text-align: left; line-height: 1.55; }
   #dlgText.sys.gain::before { content: "◆ "; color: #cfa96b; }
-  #dlgText.sys.gain::after { content: " ◆"; color: #cfa96b; }
   #dlgText.pl { color: #d9e4f0; }
   @keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
   #dlgCue { position: absolute; right: 16px; bottom: 10px; color: #cfa96b; font-size: 16px;
@@ -358,7 +358,7 @@
 
   /* --- 行動裝置轉橫提示+全螢幕(GB-ADR-014):Android=Fullscreen API+orientation.lock;
      iPhone Safari 不支援元素全螢幕與鎖向,退路=PWA 加入主畫面(manifest fullscreen/landscape)--- */
-  #rotateHint { position: absolute; inset: 0; z-index: 46; display: none; align-items: center;
+  #rotateHint { position: absolute; inset: 0; z-index: 60; display: none; align-items: center;
     justify-content: center; text-align: center; background: rgba(10, 7, 5, 0.93); }
   body.rotOk #rotateHint { display: none !important; }
   @media (orientation: portrait) and (pointer: coarse) { #rotateHint { display: flex; } }
@@ -891,6 +891,7 @@
   @media (max-height: 520px) {
     #dialogue { min-height: 38%; padding: 12px 14px 14px; }
     #dlgText { font-size: clamp(20px, 4.4vh, 24px); }
+    #dlgText.sys.gain { font-size: 1em; line-height: 1.5; }
     .bslot { height: clamp(110px, 30vh, 150px); }
     #bustLeft { left: 10px; } #bustRight { right: 10px; }
     /* 手機橫屏:只留 active portrait,文字不被雙肖像夾窄 */
@@ -904,13 +905,57 @@
     #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/說服力 */
     #sceneChip { display: none; }
     body[data-view="choice"] #panelWrap { bottom: 41%; }
-    body[data-view="debate"] #panelWrap { bottom: 42%; }
+    /* 辯論 v2 的對話框已會退場；舊版預留的 42% 會把證據手牌整段裁掉。 */
+    body[data-view="debate"] #panelWrap { bottom: 3%; }
     #nbSheet { width: 97%; height: 95%; }
     #nbPages { grid-template-columns: 1fr; }
     #nbLeft { border-right: none; }
     #nbTabs { display: flex; }
     #notebook[data-tab="evidence"] #nbRight { display: none; }
     #notebook[data-tab="log"] #nbLeft { display: none; }
+  }
+
+  /* --- 手機橫屏真機修正包（844×390／932×430）---
+     僅在低高度橫屏生效；桌機排版與字級不變。 */
+  @media (max-height: 520px) and (min-width: 701px) {
+    /* 兩欄配置保留，但每格必須把選單限制在自己的欄內。 */
+    body[data-view="lab"] #labConfig label {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      gap: 4px;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    body[data-view="lab"] #lab select {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      padding: 2px 20px 2px 5px;
+      font-size: clamp(14px, 3.6vh, 17px);
+      letter-spacing: 0;
+      text-overflow: ellipsis;
+    }
+
+    /* 三句證詞改為橫向卡列，證據手牌不再埋在三張長卡之後。 */
+    body[data-view="debate"] #panelWrap {
+      bottom: 3%;
+    }
+    .statementGrid {
+      grid-template-columns: repeat(3, minmax(260px, 78vw));
+      overflow-x: auto;
+      padding: 0 2px 8px;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-inline: contain;
+    }
+    .statementCard { scroll-snap-align: start; }
+    .presentAction {
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      box-shadow: 0 -8px 14px rgba(247, 240, 223, 0.94);
+    }
+
   }
 
   /* --- 標題畫面 --- */
@@ -968,6 +1013,11 @@
     border: 1px solid rgba(230,215,189,0.3); border-radius: 6px;
     padding: 8px; font-size: 13px; margin: 8px 0 2px; }
   #titleCard textarea:focus { border-color: #cfa96b; }
+  @media (max-height: 520px) and (min-width: 701px) {
+    /* flex 垂直置中會把過高的標題卡上下裁掉；低高度改從頂端捲動。 */
+    #title-screen { align-items: flex-start; }
+    #titleCard { box-sizing: border-box; max-height: 100%; overflow-y: auto; padding-block: 10px; }
+  }
 </style>
 </head>
 <body data-view="title">

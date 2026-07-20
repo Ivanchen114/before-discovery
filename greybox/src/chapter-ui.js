@@ -25,6 +25,7 @@
       coach: "三天。歌要唱得勻，錢要花得狠——可陡坡需要這雙耳朵。" }
   };
   var BALL_COACH = { "木球": "你要跟一塊會喝水的木頭講道理？先想想，它和銅球只差重量嗎？" };
+  var COMPACT_LAB_QUERY = "(max-height: 520px) and (min-width: 701px)";
 
   function $(id) { return document.getElementById(id); }
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
@@ -200,13 +201,30 @@
       sel.appendChild(o);
     });
   }
+  function compactLabOn() {
+    try { return !!(window.matchMedia && window.matchMedia(COMPACT_LAB_QUERY).matches); }
+    catch (e) { return false; }
+  }
+  function timerOptionLabel(timer, compact) {
+    return compact ? (timer + "・" + PATTERNS.dayCost[timer] + "天")
+      : (timer + "（" + TIMER_PROFILE[timer].short + "）");
+  }
+  function syncLabTimerLabels() {
+    var sel = $("labTimer");
+    if (!sel || !sel.options) return;
+    var compact = compactLabOn();
+    Array.prototype.forEach.call(sel.options, function (o) {
+      o.textContent = timerOptionLabel(o.value, compact);
+    });
+  }
   function initLabSelects() {
     fillSelect("labBall", Object.keys(PATTERNS.ball));
     fillSelect("labSurface", Object.keys(PATTERNS.surface));
     fillSelect("labIncline", Object.keys(PATTERNS.base));
     fillSelect("labTimer", Object.keys(PATTERNS.timer), function (t) {
-      return t + "（" + TIMER_PROFILE[t].short + "）";
+      return timerOptionLabel(t, compactLabOn());
     }, function (t) { return state.mode === "scholar" || t !== "音格"; });
+    syncLabTimerLabels();
     updateLabToolProfile(false);
     /* 斷言按鈕可見性改由當前 embed 需求決定(verification A 級):見 renderAll 之 incline 分支 */
   }
@@ -239,6 +257,15 @@
       if (el) el.hidden = true;
     }
   }
+
+  /* 轉向或進入／退出全螢幕時，只換選單顯示短名；值與實驗狀態不變。 */
+  try {
+    var compactLabMedia = window.matchMedia && window.matchMedia(COMPACT_LAB_QUERY);
+    if (compactLabMedia) {
+      if (compactLabMedia.addEventListener) compactLabMedia.addEventListener("change", syncLabTimerLabels);
+      else if (compactLabMedia.addListener) compactLabMedia.addListener(syncLabTimerLabels);
+    }
+  } catch (e) {}
   function updateAssertButtons(v) { /* GB-ADR-011 斷言分段:亮牌規則=引擎 assertStage 單一事實源(原則 10),UI 不自帶平行邏輯 */
     var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
     var allow = N.assertStage(nodeDef && nodeDef.until, state.mode);
