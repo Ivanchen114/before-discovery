@@ -346,26 +346,91 @@
     $("dlgText").textContent = ""; $("nameplate").style.display = "none";
     closeNotebook(true);
     syncFlags();
-    /* 開場語境:讀檔→最後一句即顯(不重播題詞);全新開局→題詞卡先行,收卡後 kickoff */
+    /* 開場語境:讀檔→最後一句即顯(不重播序幕);全新開局→P0-0「螢幕前」cinematic,收場後 kickoff */
     if (lastReplay) {
       $("prologueCard").hidden = true;
       startLine(lastReplay, true); lastReplay = null; needKickoff = false;
     } else {
       needKickoff = true;
-      $("prologueCard").hidden = false;
-      setTimeout(function () { $("btnPrologueGo").focus(); }, 50);
+      mzShow();
     }
   });
+
+  /* ---------- 序幕 P0-0「螢幕前」(A 案 cinematic;劇本草案 04_劇本/…P0-0…20260720,總監核) ----------
+     真實時鐘=玩家系統時間;裝置感知:滑鼠=游標自移/觸控=頁面自捲;點擊或 Enter/Space=下一拍;
+     「跳過 ▸」與 Esc=整段跳過(原則 #19 演出永遠可跳);電磁風暴=系列電磁線環形伏筆,不解釋成因。 */
+  var mzBeat = -1, mzTimers = [];
+  var mzCoarse = false;
+  try { mzCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches; } catch (e) {}
+  function mzClass(c, on) { $("prologueCard").classList.toggle(c, on); }
+  function mzCap(t) {
+    var el = $("mzCaption");
+    el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
+    el.textContent = t;
+  }
+  function mzReset() {
+    mzBeat = -1;
+    mzTimers.forEach(clearTimeout); mzTimers = [];
+    ["aurora", "reach", "whiteout", "cursorMove", "scrolled"].forEach(function (c) { mzClass(c, false); });
+    $("mzPush").hidden = true;
+    $("mzCursor").hidden = true;
+    $("mzNotifs").innerHTML = "";
+    $("mzTitleLines").hidden = true;
+    $("mzCaption").textContent = "";
+    $("btnPrologueGo").textContent = "跳過 ▸";
+    var d = new Date();
+    $("mzClock").textContent = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+  var MZ = [
+    function () { mzCap("深夜。房間裡只有螢幕的光。"); },
+    function () { mzCap("你在讀一篇文章,停在那座斜塔的插圖上。"); },
+    function () { $("mzPush").hidden = false; mzCap("一則突發推播,跳了出來。"); },
+    function () {
+      if (mzCoarse) { mzClass("scrolled", true); mzCap("頁面自己,往下捲了一行。又一行。像有誰替你讀。"); }
+      else { $("mzCursor").hidden = false; setTimeout(function () { mzClass("cursorMove", true); }, 60);
+             mzCap("游標——在你沒有碰它的情況下——慢慢地,移向那座斜塔。"); }
+    },
+    function () { mzClass("aurora", true); mzCap("窗簾縫隙滲進顏色。綠的,紫的。不該出現在這個緯度的顏色。"); },
+    function () {
+      mzCap("通知一則接一則彈出,又消失,快得像有人在替你翻頁。");
+      ["通訊異常", "極光警報:低緯度", "GPS 訊號中斷", "航班大面積延誤", "(無法載入)"].forEach(function (t, i) {
+        mzTimers.push(setTimeout(function () {
+          var n = document.createElement("div");
+          n.className = "mzn"; n.textContent = t;
+          $("mzNotifs").appendChild(n);
+        }, 180 * (i + 1)));
+      });
+    },
+    function () { mzClass("reach", true); mzCap("你伸手去關螢幕。指尖碰到玻璃的瞬間——玻璃,不見了。"); },
+    function () { mzClass("whiteout", true); mzCap("白光。墜落感。風裡有鐘聲,和一句聽不懂的話——像是,義大利語。"); },
+    function () { mzCap(""); $("mzTitleLines").hidden = false; $("btnPrologueGo").textContent = "啟程"; }
+  ];
+  function mzNext() {
+    mzBeat++;
+    if (mzBeat >= MZ.length) { dismissPrologue(); return; }
+    MZ[mzBeat]();
+  }
+  function mzShow() {
+    mzReset();
+    $("prologueCard").hidden = false;
+    mzNext();
+    setTimeout(function () { $("prologueCard").focus(); }, 30);
+  }
   function dismissPrologue() {
     if ($("prologueCard").hidden) return;
+    mzTimers.forEach(clearTimeout); mzTimers = [];
     $("prologueCard").hidden = true;
-    if (needKickoff) { /* 卡收掉才開演 */
+    if (needKickoff) { /* 序幕收場才開演 */
       needKickoff = false;
       var btns = $("controls").querySelectorAll("button");
       if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
     }
   }
   $("btnPrologueGo").addEventListener("click", dismissPrologue);
+  $("prologueCard").addEventListener("click", function (ev) {
+    if (ev.target.closest("button")) return;
+    mzNext();
+  });
 
   /* ---------- 實驗備忘卡(首次進實驗台自動彈;? 鈕可重看)+同配置聚焦 ---------- */
   var labIntroSeen = false;
@@ -419,7 +484,12 @@
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
-    if (!$("prologueCard").hidden) return; /* 題詞卡:交還原生(啟程鈕聚焦中) */
+    if (!$("prologueCard").hidden) { /* 序幕:Enter/Space=下一拍;焦點在跳過鈕時交還原生 */
+      if (ev.target && ev.target.closest && ev.target.closest("button")) return;
+      ev.preventDefault(); ev.stopPropagation();
+      mzNext();
+      return;
+    }
     if (!$("labIntro").hidden) return; /* 備忘卡開啟:交還原生(按鈕 Enter 即關閉) */
     if (typing || waiting) {           /* 演出未完:先消化演出,不觸底層按鈕 */
       ev.preventDefault(); ev.stopPropagation();
