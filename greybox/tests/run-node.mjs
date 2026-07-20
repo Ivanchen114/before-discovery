@@ -516,6 +516,48 @@ tests.push({
 });
 
 tests.push({
+  name: "斷言分段四格常駐|assertStage 單一事實源+敘事層拒絕搶跑(GB-ADR-011,Sol B-1 補強)",
+  fn: () => {
+    const N2 = require("../src/narrative.js");
+    const scenes = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const untilOf = (sid, nid) => scenes.scenes.find((s) => s.id === sid).nodes.find((n) => n.id === nid).until;
+    /* 四格 matrix:until 直接取自 scenes 資料,不用手抄本(資料改了測試就跟著改) */
+    const CELLS = [
+      ["A2-2", "e1", { explore: [false, false], scholar: [false, false] }],   /* a:只認證 */
+      ["A2-3", "e2", { explore: [true, false], scholar: [true, false] }],     /* b:與球重無關 */
+      ["A2-3", "e3c", { explore: [false, true], scholar: [false, true] }],    /* c:雙模式必經 */
+      ["SC-R1", "e1", { explore: [false, false], scholar: [false, false] }],  /* repair:乾淨紀錄 */
+    ];
+    for (const [sid, nid, expect] of CELLS)
+      for (const mode of ["explore", "scholar"]) {
+        const a = N2.assertStage(untilOf(sid, nid), mode);
+        if (a.b !== expect[mode][0] || a.c !== expect[mode][1])
+          throw new Error(`四格失守 ${sid}/${nid} ${mode}:得 b=${a.b},c=${a.c}`);
+      }
+    /* 自由段(無 until):B 開放、C 依學者 */
+    if (!N2.assertStage(null, "explore").b || N2.assertStage(null, "explore").c || !N2.assertStage(null, "scholar").c)
+      throw new Error("自由段規則失守");
+    /* 敘事層拒絕搶跑:守衛在引擎,不只藏按鈕 */
+    const GUARD = "劇情還沒問到";
+    for (const [sid, nid, type] of [["A2-2", "e1", "b"], ["A2-2", "e1", "c"], ["A2-3", "e2", "c"], ["SC-R1", "e1", "b"], ["SC-R1", "e1", "c"]]) {
+      const s = N2.initialState("scholar");
+      s.cursor = { scene: sid, node: nid };
+      const r = N2.labAction(s, "assert", { type, claimIds: [1, 2] });
+      if (!r.error || !r.error.includes(GUARD)) throw new Error(`搶跑未被引擎擋下:${sid}/${nid} 斷言 ${type}`);
+    }
+    /* 正確階段不誤傷:A2-3/e2 斷言 b 不得觸發守衛(引擎自身的主張檢查訊息可接受) */
+    const ok = N2.initialState("scholar");
+    ok.cursor = { scene: "A2-3", node: "e2" };
+    const rr = N2.labAction(ok, "assert", { type: "b", claimIds: [1, 2] });
+    if (rr.error && rr.error.includes(GUARD)) throw new Error("守衛誤傷正確階段的斷言 b");
+    /* UI 同源:chapter-ui 必須呼叫 assertStage,不得自帶平行邏輯 */
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (!cui.includes("N.assertStage(")) throw new Error("chapter-ui 未使用 assertStage 單一事實源");
+    if (/updateAssertButtons[\s\S]{0,400}until\.e3/.test(cui)) throw new Error("chapter-ui 殘留平行分段邏輯");
+  }
+});
+
+tests.push({
   name: "字體三聲部|明體子集出貨+P0-0 黑體(明體首現 1590)+手寫楷體聲部(總監裁決 20260720)",
   fn: () => {
     /* 子集字型實體+授權隨行:未入庫=不存在 */

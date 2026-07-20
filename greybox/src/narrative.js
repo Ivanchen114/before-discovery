@@ -492,12 +492,31 @@
     return { state: state };
   }
 
+  /* GB-ADR-011 斷言分段的唯一事實源(手冊原則 10:UI 亮牌與引擎守衛同源;Sol 驗證 B-1)。
+     stage a=只認證;b=只開「與球重無關」;c=只開「隨傾角形式不變」(雙模式必經);
+     repairRun(SC-R1)=兩者皆關;無 until 的自由段=B 開放、C 依學者。 */
+  function assertStage(until, mode) {
+    until = until || {};
+    var stage = until.e3 || null;
+    return {
+      b: stage === "b" || (stage === null && !until.repairRun),
+      c: stage === "c" || (stage === null && !until.repairRun && mode === "scholar")
+    };
+  }
+
   function labAction(state0, action, args) {
     var state = clone(state0);
     var r;
     if (action === "run") r = Engine.runExperiment(state.lab, args.config);
     else if (action === "judge") r = Engine.judge(state.lab, args.runIds, args.prediction);
-    else if (action === "assert") r = Engine.assertE3(state.lab, args.type, args.claimIds);
+    else if (action === "assert") {
+      /* 敘事層守衛:搶跑斷言在引擎就擋下,不只藏按鈕(Sol B-1) */
+      var nd = skipInvisible(state);
+      var allow = assertStage(nd && nd.type === "embed" ? nd.until : null, state.mode);
+      if ((args.type === "b" && !allow.b) || (args.type === "c" && !allow.c))
+        return { state: state0, error: "這個斷言劇情還沒問到——先回對話,讓問題被問出口。" };
+      r = Engine.assertE3(state.lab, args.type, args.claimIds);
+    }
     else if (action === "compare") r = Engine.compareRuns(state.lab, args.runIds);
     else return { state: state0, error: "未知實驗台動作:" + action };
     state.lab = r.state;
@@ -564,6 +583,7 @@
     initialState: initialState,
     view: view, advance: advance, choose: choose, setReview: setReview,
     labAction: labAction, embedReady: embedReady, embedComplete: embedComplete,
+    assertStage: assertStage,
     debatePress: debatePress, debatePressChoice: debatePressChoice,
     debatePresent: debatePresent, debateFr: debateFr,
     debateExitSuspended: debateExitSuspended, debateView: debateView,
