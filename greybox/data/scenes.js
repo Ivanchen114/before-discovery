@@ -1,5 +1,5 @@
-/* data/scenes.js — 執行載體(file:// 相容)。規範鏡像:scenes.json(R-DATA-05/06 測試保證一致)
-   內容=劇本 v0.2.1 序幕+第一幕+幕間(M1 範圍);由 tools/gen_scenes.py 產生,兩載體皆為 canonical 資產。 */
+/* data/scenes.js — 執行載體(file:// 相容)。規範鏡像:scenes.json(R-DATA-06 鏡像測試把關)。
+   內容由 tools/gen_scenes.py 產出後人工維護;台詞=劇本 v0.2.2(+GB-ADR 變更註記)。 */
 (function (root) {
   "use strict";
   var data = {
@@ -1861,8 +1861,8 @@
      "type": "review",
      "next": "hf",
      "prompts": [
-      "為什麼重的不會掉比較快?",
-      "為什麼伽利略要用斜面?"
+      "哪一筆證據,讓你不再接受「愈重愈快」?它排除了什麼?",
+      "斜面沒有直接量到垂直落下。它讓你看見了什麼——又還沒有證明什麼?"
      ]
     },
     {

@@ -275,8 +275,15 @@
         kind: "present", pillar: pid, evidence: p.evidence, subitem: p.subitem || null,
         target: p.target, targetText: stmt.text
       });
-      debatePersuasion(state, -1, "debate.present");
-      outcome = d.status === "suspended" ? "suspended" : "wrong";
+      if (pid === "P1" && !d.firstMissUsed) {
+        /* GB-ADR-010:第一支柱首次誤擊=免扣試射(教規則,不教答案);僅一次,再入不重置 */
+        d.firstMissUsed = true;
+        say(state, "旅人筆記", "【試射】這張牌沒有咬住他的話——講堂容你一次失準,下一次就要算數了。");
+        outcome = "wrongFree";
+      } else {
+        debatePersuasion(state, -1, "debate.present");
+        outcome = d.status === "suspended" ? "suspended" : "wrong";
+      }
     }
     return { state: state, outcome: outcome };
   }

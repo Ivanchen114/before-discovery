@@ -7,6 +7,7 @@
   var PATTERNS = window.GB.DATA.patterns;
   var HIST = window.GB.DATA.histfacts;
   var ASSETS = window.GB.DATA.assets || null;
+  var DEBATE = window.GB.DATA.debate || {};
   var KEY = "bd_ch1_save";
   var state = null;
   var lastSceneShown = null;
@@ -527,6 +528,18 @@
     meter.appendChild(mb); meter.appendChild(dots); track.appendChild(meter);
     box.appendChild(track);
   }
+  function stmtHasGap(sid) { /* 探索模式「此句有隙」:資料層 weakTo 存在=可被證據檢驗;學者不標(Sol 分層案) */
+    var CH = DEBATE.chapter || {};
+    var pools = [];
+    Object.keys(CH.pillars || {}).forEach(function (k) {
+      if (CH.pillars[k].statements) pools.push(CH.pillars[k].statements);
+    });
+    pools.push(DEBATE.statements || []);
+    for (var i = 0; i < pools.length; i++)
+      for (var j = 0; j < pools[i].length; j++)
+        if (pools[i][j].id === sid) return !!pools[i][j].weakTo;
+    return false;
+  }
   function renderDebate(v, box) {
     var d = v.debate;
     if (!d) { box.textContent = "(辯論尚未初始化)"; return; }
@@ -578,6 +591,12 @@
           insight.textContent = "問清之後｜" + st.insight;
           row.appendChild(insight);
         }
+        if (state.mode === "explore" && st.pressed && st.status !== "broken" && stmtHasGap(st.id)) {
+          var gap = document.createElement("span");
+          gap.className = "gapBadge";
+          gap.textContent = "此句有隙";
+          row.appendChild(gap);
+        }
         var actions = document.createElement("div"); actions.className = "statementActions";
         if (st.status !== "broken" && !d.pressChoice) {
           var press = mkBtn(actions, st.pressed ? "已問清" : "問到底——讓他把前提說滿", function () {
@@ -615,6 +634,14 @@
         code.textContent = ev.evidence === "E3" ? "斜面實驗・子結論" : "旅人筆記・證據";
         var label = document.createElement("b"); label.textContent = ev.label;
         card.appendChild(code); card.appendChild(label);
+        var sumKey = ev.evidence + (ev.subitem || "");
+        var sum = ASSETS && ASSETS.evidenceSummary ? ASSETS.evidenceSummary[sumKey] : null;
+        if (sum) { /* 白話摘要:說清楚這張牌「證明了什麼」,不標正解(Sol 第一優先) */
+          var sm = document.createElement("span");
+          sm.className = "evSummary";
+          sm.textContent = sum;
+          card.appendChild(sm);
+        }
         card.onclick = function () {
           selectedEvidence = ev;
           evidenceButtons.forEach(function (b) { b.setAttribute("aria-pressed", b === card ? "true" : "false"); });
@@ -752,7 +779,8 @@
     }
     if (v.type === "review") {
       var p = document.createElement("p");
-      p.textContent = "旅人筆記・回顧(自由作答,只存檔,不評分):";
+      p.className = "reviewHead";
+      p.textContent = "旅人筆記・末頁(自由作答,只存檔,不評分)";
       box.appendChild(p);
       var tas = v.prompts.map(function (q) {
         var lab = document.createElement("label");
@@ -765,7 +793,7 @@
         box.appendChild(lab);
         return ta;
       });
-      mkBtn(box, "寫入筆記", function () {
+      mkBtn(box, "封存第一章", function () {
         var r = N.setReview(state, tas[0].value, tas[1].value);
         if (r.error) { addLine("system", r.error, "system"); return; }
         setState(r.state);

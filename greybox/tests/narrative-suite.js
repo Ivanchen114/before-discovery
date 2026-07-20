@@ -600,9 +600,10 @@
 
   t("B-5|trap 雙歸零:lied→中止+修復→再入 FR→honest→完章", function () {
     var s = toDebate("explore");
-    /* 壓量表:P1 期間錯誤出示×3(5→2) */
+    /* 壓量表:P1 期間錯誤出示×4——首發=免扣試射(GB-ADR-010),其後三發 5→2 */
     var r;
-    for (var i = 0; i < 3; i++) { r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p1s1" }]); s = r.state; }
+    for (var i = 0; i < 4; i++) { r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p1s1" }]); s = r.state; }
+    ok(s.debate.firstMissUsed === true, "首發試射旗標");
     eq(s.debate.persuasion, 2);
     r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
     r = deb(s, "debatePress", ["p2s3"]); s = r.state;

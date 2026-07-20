@@ -481,6 +481,40 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "難度透明化|白話摘要+有隙標記(僅探索)+P1 試射+回顧末頁(Sol 彙整,總監核 20260720)",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    /* 摘要完備:八鍵全有,語意透明但不標正解(不得出現「正解/答案/用這張」字樣) */
+    const KEYS = ["E1", "E2", "E3a", "E3b", "E3c", "E4", "S1", "S2"];
+    for (const k of KEYS) {
+      const s = (assets.evidenceSummary || {})[k];
+      if (!s) throw new Error("evidenceSummary 缺:" + k);
+      if (/正解|答案|用這張/.test(s)) throw new Error("摘要洩題:" + k);
+    }
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of ["evidenceSummary", "gapBadge", "stmtHasGap", '"explore"'])
+      if (!cui.includes(frag)) throw new Error("透明化要素缺失:" + frag);
+    /* 有隙標記=僅探索模式(學者不標) */
+    if (!/state\.mode === "explore"[\s\S]{0,300}gapBadge/.test(cui))
+      throw new Error("有隙標記未鎖定探索模式");
+    /* P1 首發免扣:引擎行為測試 */
+    const N2 = require("../src/narrative.js");
+    if (!readFileSync(path.join(here, "../src/narrative.js"), "utf-8").includes("firstMissUsed"))
+      throw new Error("P1 試射旗標缺失");
+    /* 回顧新題(GB-ADR-010)入 scenes;末頁措辭+封存按鈕 */
+    const scenesJson = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const e2 = scenesJson.scenes.find((s) => s.id === "E-2");
+    const rv = e2.nodes.find((n) => n.type === "review");
+    if (!rv.prompts[0].includes("愈重愈快") || !rv.prompts[1].includes("垂直"))
+      throw new Error("回顧題未更新為 GB-ADR-010 版");
+    if (!cui.includes("封存第一章") || !cui.includes("reviewHead")) throw new Error("回顧末頁措辭缺失");
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ["statementCard { background-image", "gapBadge", "evSummary", 'body[data-view="review"] #panelWrap'])
+      if (!stageHtml.includes(frag)) throw new Error("復古化/末頁樣式缺失:" + frag);
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
