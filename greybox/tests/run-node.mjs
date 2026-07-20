@@ -629,6 +629,38 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "終幕卡+行動殼|下一章預告(戲劇卡+系統行)+全螢幕/轉橫+PWA manifest(GB-ADR-013/014)",
+  fn: () => {
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ['id="nextCard"', "拋出去的東西", "第二章製作中", "書信碼",
+      'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
+      if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);
+    /* 鉤引語=E-1 凍結原句的子字串(禁引未凍結之第二章劇本;防台詞漂移) */
+    const scenesJson = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const e1n2 = scenesJson.scenes.find((s) => s.id === "E-1").nodes.find((n) => n.id === "n2").text;
+    if (!e1n2.includes("它往前,又往下——兩件事,同時發生。"))
+      throw new Error("終幕卡鉤引語與 E-1 凍結台詞不符");
+    /* 灰盒不動:對照殼不長舞台專屬件 */
+    const grey = readFileSync(path.join(here, "../chapter.html"), "utf-8");
+    for (const frag of ["nextCard", "btnFull", "rotateHint"])
+      if (grey.includes(frag)) throw new Error("灰盒殼混入舞台專屬件:" + frag);
+    /* 章末系統行正名:候選版時代不得再自稱灰盒 */
+    const fin = scenesJson.scenes.find((s) => s.id === "E-2").nodes.find((n) => n.id === "fin").text;
+    if (fin.includes("灰盒")) throw new Error("章末系統行仍自稱灰盒");
+    /* PWA manifest:全螢幕+橫向+圖示實檔 */
+    const mani = JSON.parse(readFileSync(path.join(here, "../../manifest.json"), "utf-8"));
+    if (mani.display !== "fullscreen" || mani.orientation !== "landscape")
+      throw new Error("manifest 應為 fullscreen+landscape");
+    for (const ic of mani.icons)
+      if (!existsSync(path.join(here, "../..", ic.src))) throw new Error("manifest 圖示缺檔:" + ic.src);
+    /* stage-ui:全螢幕+鎖向+終幕卡掛點;iPhone 不支援時藏鈕 */
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    for (const frag of ["requestFullscreen", 'orientation.lock("landscape")', "nextCard", "btnRotDismiss"])
+      if (!sui.includes(frag)) throw new Error("stage-ui 行動殼邏輯缺失:" + frag);
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {

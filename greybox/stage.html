@@ -2,7 +2,13 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="../manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#14100c">
+<link rel="apple-touch-icon" href="../public/assets/icons/icon-192.png">
 <title>《發現之前》第一章:重物的渴望(舞台版)</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="../public/assets/global/tokens.css">
@@ -349,6 +355,46 @@
   }
   /* 手的聲部:旅人筆記開口=手寫楷體(印刷的世界裡只有你的字是手寫的) */
   #dialogue[data-speaker="旅人筆記"] #dlgText { font-family: var(--font-hand); }
+
+  /* --- 行動裝置轉橫提示+全螢幕(GB-ADR-014):Android=Fullscreen API+orientation.lock;
+     iPhone Safari 不支援元素全螢幕與鎖向,退路=PWA 加入主畫面(manifest fullscreen/landscape)--- */
+  #rotateHint { position: absolute; inset: 0; z-index: 46; display: none; align-items: center;
+    justify-content: center; text-align: center; background: rgba(10, 7, 5, 0.93); }
+  body.rotOk #rotateHint { display: none !important; }
+  @media (orientation: portrait) and (pointer: coarse) { #rotateHint { display: flex; } }
+  .rhBox { max-width: 480px; padding: 26px 30px; }
+  .rhMain { font-family: var(--font-dialogue); color: #efe3cb; font-size: clamp(18px, 5vw, 24px);
+    line-height: 1.7; margin: 0 0 12px; }
+  .rhSub { font-family: var(--font-ui); color: rgba(180, 190, 205, 0.7); font-size: 13px;
+    line-height: 1.7; margin: 0 0 20px; }
+  .rhBtns { margin: 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .rhBtns button { background: none; color: rgba(207,169,107,0.9); border: 1px solid rgba(207,169,107,0.45);
+    border-radius: 999px; min-height: 44px; padding: 6px 22px; letter-spacing: 0.12em;
+    font-size: 15px; cursor: pointer; font-family: var(--font-dialogue); }
+  #btnRotDismiss { color: rgba(180, 170, 150, 0.6); border-color: rgba(180, 170, 150, 0.3); }
+
+  /* --- 終幕預告卡(GB-ADR-013,總監裁決:戲劇卡+角落系統行)--- */
+  #nextCard { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center;
+    justify-content: center; text-align: center; background: rgba(10, 7, 5, 0.86);
+    opacity: 0; transition: opacity 900ms ease; }
+  #nextCard.on { opacity: 1; }
+  #nextCard[hidden] { display: none; }
+  #ncInner { max-width: 640px; padding: 28px 34px; }
+  .ncSealed { font-family: var(--font-dialogue); color: rgba(207, 169, 107, 0.75);
+    font-size: clamp(14px, 1.3vw, 17px); letter-spacing: 0.22em; margin: 0 0 26px; }
+  .ncNext { font-family: var(--font-dialogue); color: #b99a6b; font-size: clamp(13px, 1.2vw, 16px);
+    letter-spacing: 0.5em; margin: 0 0 6px; }
+  .ncTitle { font-family: var(--font-dialogue); color: #f3e9d5; font-weight: 600;
+    font-size: clamp(26px, 3.2vw, 42px); letter-spacing: 0.18em; margin: 0 0 18px; }
+  .ncHook { font-family: var(--font-dialogue); color: #d9c8a8; font-size: clamp(16px, 1.6vw, 21px);
+    line-height: 1.9; margin: 0 0 30px; }
+  .ncSys { font-family: var(--font-ui); color: rgba(180, 190, 205, 0.66);
+    font-size: clamp(12px, 1.05vw, 14px); line-height: 1.7; margin: 0 0 18px; }
+  #ncTitleBtn { background: none; color: rgba(207,169,107,0.85); border: 1px solid rgba(207,169,107,0.45);
+    border-radius: 999px; min-height: 44px; padding: 6px 30px; letter-spacing: 0.2em;
+    font-size: clamp(14px, 1.3vw, 17px); cursor: pointer; font-family: var(--font-dialogue); }
+  #ncTitleBtn:hover { background: rgba(122, 75, 42, 0.4); color: #f3e9d5; }
+  @media (prefers-reduced-motion: reduce) { #nextCard { transition: none; } }
 
   /* --- 進實驗台確認閘(總監:對話沒讀完就被跳走)--- */
   body.embarkGate #panelWrap { display: none !important; }
@@ -949,6 +995,7 @@
       <span class="chip" id="sceneVal" style="display:none"></span>
       <span class="spacer"></span>
       <button id="btnSfx" type="button" aria-pressed="true">音效:開</button>
+      <button id="btnFull" type="button" aria-pressed="false">全螢幕</button>
       <button id="btnDrawer" type="button" aria-haspopup="dialog" aria-expanded="false">旅人筆記</button>
       <button id="btnBackTitle">回標題</button>
     </div>
@@ -1006,6 +1053,24 @@
       <div id="controls"></div>
     </div>
 
+    <div id="rotateHint" role="dialog" aria-label="建議轉為橫向">
+      <div class="rhBox">
+        <p class="rhMain">把裝置轉橫——這齣戲是 16:9 的。</p>
+        <p class="rhSub">iPhone 想去掉網址列:Safari 分享選單 →「加入主畫面」,從桌面開啟即全螢幕。</p>
+        <p class="rhBtns"><button id="btnRotFull" type="button">進入全螢幕</button>
+        <button id="btnRotDismiss" type="button">就這樣玩</button></p>
+      </div>
+    </div>
+    <div id="nextCard" role="dialog" aria-modal="true" aria-label="第一章結束・下一章預告" hidden>
+      <div id="ncInner">
+        <p class="ncSealed">第一章《重物的渴望》——已封存</p>
+        <p class="ncNext">下一章</p>
+        <h2 class="ncTitle">拋出去的東西</h2>
+        <p class="ncHook">「它往前,又往下——兩件事,同時發生。」<br>帕多瓦的運河邊,有人整晚睡不著。</p>
+        <p class="ncSys">第二章製作中。你的進度與筆記已封存於這台裝置——標題畫面可匯出書信碼,更新後帶著它回來。</p>
+        <button id="ncTitleBtn" type="button">回到標題</button>
+      </div>
+    </div>
     <div id="prologueCard" role="dialog" aria-modal="true" aria-label="序幕:螢幕前" tabindex="-1" hidden>
       <div id="mzRoom">
         <img id="mzPlateA" class="mzplate" alt="" aria-hidden="true">

@@ -360,6 +360,15 @@
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
+    if (view === "end") { /* 終幕預告卡(GB-ADR-013):戲劇卡+角落系統行,只在真結局亮 */
+      var nc = $("nextCard");
+      if (nc.hidden) {
+        nc.hidden = false;
+        requestAnimationFrame(function () { nc.classList.add("on"); });
+        $("ncTitleBtn").onclick = function () { location.reload(); };
+        setTimeout(function () { try { $("ncTitleBtn").focus(); } catch (e) {} }, 950);
+      }
+    }
     if (needKickoff && view === "narration" && $("prologueCard").hidden) {
       /* 全新開局:題詞卡收掉後,代玩家按一次繼續,首句自動開演 */
       needKickoff = false;
@@ -623,7 +632,7 @@
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("labIntro").hidden) return;
     if (!$("debIntro").hidden) return;
-    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast")) return;
+    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast, #nextCard, #rotateHint")) return;
     if (advanceIntent()) return;
     idleAdvance();
   });
@@ -647,6 +656,40 @@
     if (ev.target && ev.target.closest && ev.target.closest("button, select, input, textarea, a")) return; /* 交還原生 */
     if (idleAdvance()) ev.preventDefault();
   }, true);
+
+  /* ---------- 行動裝置:全螢幕+橫屏鎖定(GB-ADR-014) ----------
+     Android Chrome=requestFullscreen(手勢內)+screen.orientation.lock("landscape");
+     iPhone Safari 不支援元素全螢幕與鎖向 → 藏按鈕,rotateHint 引導轉橫+加入主畫面(manifest)。 */
+  (function () {
+    var root = document.documentElement;
+    var supported = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+    function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function lockLandscape() {
+      try {
+        if (screen.orientation && screen.orientation.lock)
+          screen.orientation.lock("landscape").catch(function () {});
+      } catch (e) {}
+    }
+    function enter() {
+      var r = root.requestFullscreen ? root.requestFullscreen({ navigationUI: "hide" })
+        : root.webkitRequestFullscreen();
+      if (r && r.then) r.then(lockLandscape, function () {}); else lockLandscape();
+    }
+    function exit() { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    function sync() {
+      var on = fsOn();
+      $("btnFull").textContent = on ? "視窗" : "全螢幕";
+      $("btnFull").setAttribute("aria-pressed", on ? "true" : "false");
+    }
+    if (!supported) { $("btnFull").style.display = "none"; $("btnRotFull").style.display = "none"; }
+    $("btnFull").onclick = function () { if (fsOn()) exit(); else enter(); };
+    document.addEventListener("fullscreenchange", sync);
+    document.addEventListener("webkitfullscreenchange", sync);
+    function rotOk() { body.classList.add("rotOk"); try { sessionStorage.setItem("bd_rotOk", "1"); } catch (e) {} }
+    try { if (sessionStorage.getItem("bd_rotOk") === "1") body.classList.add("rotOk"); } catch (e) {}
+    $("btnRotFull").onclick = function () { enter(); rotOk(); };
+    $("btnRotDismiss").onclick = rotOk;
+  })();
 
   /* ---------- 旅人筆記(全畫面筆記本模式) ---------- */
   function stripIds(root) {
