@@ -270,9 +270,15 @@
     np.textContent = showName ? item.speaker : "";
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
+    var gainHit = isSys && /^(取得證據|旅人筆記解鎖|E\d)/.test(item.text);
     $("dlgText").className = isNarr ? "narr"
-      : (isSys ? ("sys" + (/^(取得證據|旅人筆記解鎖|E\d)/.test(item.text) ? " gain" : ""))
+      : (isSys ? ("sys" + (gainHit ? " gain" : ""))
       : (item.cls === "player" ? "pl" : ""));
+    if (gainHit && !instant) { /* 戰利品時刻:脈動+雙音(SFX 於檔尾定義,事件觸發時必已就緒) */
+      SFX.chime();
+      var dl = $("dialogue");
+      dl.classList.remove("fx-gain"); void dl.offsetWidth; dl.classList.add("fx-gain");
+    }
     setBust(item.speaker, item.cls, item.text);
     pages = paginate(item.text);
     curInstantMode = isNarr || isSys; /* 旁白/系統:整頁淡入不逐字 */
@@ -585,6 +591,20 @@
       var b = document.createElement("b"); b.textContent = code;
       var s = document.createElement("span"); s.textContent = name;
       card.appendChild(b); card.appendChild(s);
+      if (code === "E2") { /* 綁縛悖論示意圖:HTML/SVG 鐵律(點陣不承載物理資訊) */
+        card.insertAdjacentHTML("beforeend",
+          '<svg viewBox="0 0 200 96" xmlns="http://www.w3.org/2000/svg" aria-label="綁縛悖論示意:大小二石以鏈相繫">' +
+          '<circle cx="60" cy="40" r="24" fill="#5a4638"/>' +
+          '<circle cx="112" cy="52" r="12" fill="#8a7658"/>' +
+          '<path d="M 82 46 Q 92 42 100 49" stroke="#241b16" stroke-width="3" fill="none" stroke-dasharray="4 3"/>' +
+          '<text x="60" y="80" font-size="11" text-anchor="middle" fill="#241b16">重石</text>' +
+          '<text x="112" y="80" font-size="11" text-anchor="middle" fill="#241b16">輕石</text>' +
+          '<text x="158" y="34" font-size="11" fill="#8a4f14">拖慢它?</text>' +
+          '<text x="158" y="58" font-size="11" fill="#244a63">合體更快?</text>' +
+          '<path d="M 150 30 L 128 42" stroke="#8a4f14" stroke-width="1.5" fill="none"/>' +
+          '<path d="M 150 54 L 130 54" stroke="#244a63" stroke-width="1.5" fill="none"/>' +
+          "</svg>");
+      }
       wrap.appendChild(card);
     });
   }
@@ -648,4 +668,173 @@
   }
   $("nbTabEvidence").addEventListener("click", function () { selectTab("evidence"); });
   $("nbTabLog").addEventListener("click", function () { selectTab("log"); });
+
+  /* ==================== 體感層(總監 20260720:全開) ====================
+     音效=Web Audio 合成(零資產;BGM 掛點留待音訊分工裁決);偏好存 sessionStorage(非存檔);
+     斜面動畫=bd:run 重播(等時距×遞增距離,點擊跳完,reduced 直出結果幀);
+     時間跳躍=sceneFx 資料驅動,僅活戲;支柱破裂=bd:debate 差分;取得證據=脈動+雙音。 */
+  var SFX = (function () {
+    var ctx = null, on = true;
+    try { on = (sessionStorage.getItem("bd_sfx") || "on") === "on"; } catch (e) {}
+    function ac() {
+      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+      return ctx;
+    }
+    function tone(freq, dur, type, gain) {
+      if (!on) return;
+      var c = ac(); if (!c) return;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = type || "sine"; o.frequency.value = freq;
+      g.gain.setValueAtTime(gain || 0.08, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(); o.stop(c.currentTime + dur);
+    }
+    return {
+      toggle: function () { on = !on; try { sessionStorage.setItem("bd_sfx", on ? "on" : "off"); } catch (e) {} return on; },
+      isOn: function () { return on; },
+      drop: function () { tone(1180, 0.06, "sine", 0.05); },
+      blip: function () { tone(660, 0.05, "square", 0.03); },
+      chime: function () { tone(880, 0.22, "sine", 0.06); setTimeout(function () { tone(1318, 0.3, "sine", 0.05); }, 90); },
+      thud: function () { tone(88, 0.35, "sine", 0.2); tone(55, 0.5, "sine", 0.12); },
+      whoosh: function () {
+        if (!on) return;
+        var c = ac(); if (!c) return;
+        var b = c.createBuffer(1, c.sampleRate * 0.9, c.sampleRate), d = b.getChannelData(0);
+        for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) * 0.25;
+        var s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+        f.type = "lowpass"; f.frequency.value = 520; g.gain.value = 0.22;
+        s.buffer = b; s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+      }
+    };
+  })();
+  function syncSfxBtn() {
+    $("btnSfx").textContent = "音效:" + (SFX.isOn() ? "開" : "關");
+    $("btnSfx").setAttribute("aria-pressed", SFX.isOn() ? "true" : "false");
+  }
+  $("btnSfx").addEventListener("click", function () { SFX.toggle(); syncSfxBtn(); });
+  syncSfxBtn();
+
+  /* ---------- 斜面滾球重播(bd:run) ---------- */
+  var animRaf = null, animSkip = null;
+  function ensureLabAnim() {
+    var el = $("labAnim");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "labAnim";
+    el.setAttribute("role", "img");
+    el.setAttribute("aria-label", "斜面滾球重播動畫(數據以紀錄簿為準)");
+    el.title = "點擊跳過重播";
+    $("lab").insertBefore(el, $("labMsg"));
+    el.addEventListener("click", function () { if (animSkip) animSkip(); });
+    return el;
+  }
+  var INCLINE_DEG = { "緩": 12, "中": 20, "陡": 30 };
+  document.addEventListener("bd:run", function (ev) {
+    var run = ev.detail.run;
+    if (!run || !run.readings) return;
+    var el = ensureLabAnim();
+    el.classList.add("on");
+    if (animRaf) cancelAnimationFrame(animRaf);
+    var deg = INCLINE_DEG[run.config.incline] || 20;
+    var W = 640, H = 150, x0 = 30, y0 = 26;
+    var rad = deg * Math.PI / 180;
+    var trackLen = (W - 70) / Math.cos(rad);
+    if (y0 + trackLen * Math.sin(rad) > H - 18) trackLen = (H - 18 - y0) / Math.sin(rad);
+    var cum = [], t = 0;
+    run.readings.forEach(function (v) { t += v; cum.push(t); });
+    var total = cum[cum.length - 1];
+    function pt(dist) {
+      var l = trackLen * (dist / total);
+      return [x0 + l * Math.cos(rad), y0 + l * Math.sin(rad)];
+    }
+    var svg = ['<svg viewBox="0 0 ' + W + " " + H + '" xmlns="http://www.w3.org/2000/svg">'];
+    var pEnd = pt(total);
+    svg.push('<line x1="' + x0 + '" y1="' + y0 + '" x2="' + pEnd[0] + '" y2="' + pEnd[1] + '" stroke="#5a4638" stroke-width="6" stroke-linecap="round"/>');
+    cum.forEach(function (c, i) {
+      var p = pt(c);
+      svg.push('<line x1="' + p[0] + '" y1="' + (p[1] - 9) + '" x2="' + p[0] + '" y2="' + (p[1] + 9) + '" stroke="#7a4b2a" stroke-width="2" id="tick' + i + '" opacity="0.25"/>');
+      svg.push('<text x="' + p[0] + '" y="' + (p[1] + 24) + '" font-size="12" text-anchor="middle" fill="#5a4638" id="lbl' + i + '" opacity="0">第' + (i + 1) + "段 " + run.readings[i].toFixed(1) + "</text>");
+    });
+    svg.push('<text x="' + (W - 8) + '" y="16" font-size="12" text-anchor="end" fill="#8a4f14">重播:' + run.config.ball + "・" + run.config.incline + "・" + run.config.timer + "(點擊跳過)</text>");
+    svg.push('<circle id="ballDot" cx="' + x0 + '" cy="' + (y0 - 8) + '" r="9" fill="#7a4b2a" stroke="#241b16" stroke-width="1.5"/>');
+    svg.push("</svg>");
+    el.innerHTML = svg.join("");
+    var ball = el.querySelector("#ballDot");
+    var SEG_MS = 800, segs = run.readings.length;
+    function showSeg(i) {
+      var tk = el.querySelector("#tick" + i), lb = el.querySelector("#lbl" + i);
+      if (tk) tk.setAttribute("opacity", "1");
+      if (lb) lb.setAttribute("opacity", "1");
+      if (run.config.timer === "水鐘") SFX.drop(); else SFX.blip();
+    }
+    function finish() {
+      if (animRaf) cancelAnimationFrame(animRaf);
+      animRaf = null; animSkip = null;
+      var p = pt(total);
+      ball.setAttribute("cx", p[0]); ball.setAttribute("cy", p[1] - 8);
+      for (var i = 0; i < segs; i++) {
+        var tk = el.querySelector("#tick" + i), lb = el.querySelector("#lbl" + i);
+        if (tk) tk.setAttribute("opacity", "1");
+        if (lb) lb.setAttribute("opacity", "1");
+      }
+    }
+    animSkip = finish;
+    if (reduced) { finish(); return; }
+    var start = null, shown = {};
+    function step(ts) {
+      if (start === null) start = ts;
+      var el2 = ts - start;
+      var seg = Math.min(Math.floor(el2 / SEG_MS), segs - 1);
+      var frac = Math.min((el2 - seg * SEG_MS) / SEG_MS, 1);
+      var d0 = seg === 0 ? 0 : cum[seg - 1];
+      var dist = d0 + (cum[seg] - d0) * frac;
+      var p = pt(dist);
+      ball.setAttribute("cx", p[0]); ball.setAttribute("cy", p[1] - 8);
+      for (var i = 0; i < segs; i++) {
+        if (!shown[i] && el2 >= (i + 1) * SEG_MS) { shown[i] = true; showSeg(i); }
+      }
+      if (el2 < segs * SEG_MS) animRaf = requestAnimationFrame(step);
+      else finish();
+    }
+    animRaf = requestAnimationFrame(step);
+  });
+
+  /* ---------- 時間跳躍(sceneFx,僅活戲) ---------- */
+  var liveStarted = false;
+  document.addEventListener("bd:start", function () { liveStarted = true; });
+  function playSceneFx(sceneId) {
+    var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[sceneId];
+    if (!fx || fx.fx !== "timejump" || !liveStarted || !$("prologueCard").hidden) return;
+    var box = $("fxJump"), yr = $("fxYear");
+    box.hidden = false;
+    SFX.whoosh();
+    if (reduced) {
+      yr.textContent = String(fx.to);
+      setTimeout(function () { box.hidden = true; }, 900);
+      return;
+    }
+    var from = fx.from, to = fx.to, span = Math.max(1, to - from), t0 = null;
+    function tick(ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min((ts - t0) / 1800, 1);
+      yr.textContent = String(Math.round(from + span * k));
+      if (k < 1) requestAnimationFrame(tick);
+      else setTimeout(function () { box.hidden = true; }, 600);
+    }
+    requestAnimationFrame(tick);
+  }
+  document.addEventListener("bd:scene", function (ev) { playSceneFx(ev.detail.sceneId); });
+
+  /* ---------- 支柱破裂(bd:debate 差分) ---------- */
+  var prevBroken = {};
+  document.addEventListener("bd:debate", function (ev) {
+    var d = ev.detail, hit = false;
+    (d.broken || []).forEach(function (id) { if (!prevBroken[id]) { prevBroken[id] = true; hit = true; } });
+    if (!hit) return;
+    SFX.thud();
+    var p = $("panelWrap");
+    p.classList.remove("fx-shake"); void p.offsetWidth; p.classList.add("fx-shake");
+  });
+  document.addEventListener("bd:start", function () { prevBroken = {}; });
 })();

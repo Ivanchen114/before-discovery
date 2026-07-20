@@ -302,10 +302,11 @@
   function bindLabButtons() {
     $("labRun").onclick = function () {
       var config = { ball: $("labBall").value, surface: $("labSurface").value, incline: $("labIncline").value, timer: $("labTimer").value };
-      doLab("run", { config: config }, "labMsg", function (res) {
+      var out = doLab("run", { config: config }, "labMsg", function (res) {
         return "run #" + res.run.id + " 完成(" + cfgLabel(res.run.config) + ",第 " + res.run.seq + " 次):" +
           res.run.readings.map(fmt).join(" / ");
       });
+      if (out && out.run) emit("bd:run", { run: out.run }); /* 表現層重播動畫掛點(無訂閱者=灰盒不變) */
     };
     $("labJudge").onclick = function () {
       var ids = checkedIds("labRunSel");
@@ -355,6 +356,10 @@
   function renderDebate(v, box) {
     var d = v.debate;
     if (!d) { box.textContent = "(辯論尚未初始化)"; return; }
+    emit("bd:debate", { /* 支柱破裂 FX 掛點(無訂閱者=灰盒不變) */
+      broken: d.pillarSummary.filter(function (p) { return p.broken; }).map(function (p) { return p.id; }),
+      persuasion: d.persuasion, status: d.status, phase: d.phase
+    });
     var head = document.createElement("p");
     head.textContent = "支柱:" + d.pillarSummary.map(function (p) {
       return p.id + (p.broken ? "✕(已破)" : "○");

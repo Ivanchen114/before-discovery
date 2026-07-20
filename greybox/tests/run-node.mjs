@@ -301,6 +301,38 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "體感層|滾球重播/時間跳躍/支柱破裂/音效掛點/E2 示意圖(總監 20260720 全開)",
+  fn: () => {
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    /* 掛點兩端對齊(chapter-ui 發佈=無訂閱者零行為;stage-ui 訂閱) */
+    for (const evName of ["bd:run", "bd:debate"]) {
+      if (!cui.includes('"' + evName + '"')) throw new Error("chapter-ui 缺掛點:" + evName);
+      if (!sui.includes('"' + evName + '"')) throw new Error("stage-ui 未訂閱:" + evName);
+    }
+    /* sceneFx 資料驅動:場景存在+fx 值域受控 */
+    const sceneIds = new Set(scenes.scenes.map((s) => s.id));
+    for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
+      if (!sceneIds.has(sc)) throw new Error("sceneFx 指向不存在場景:" + sc);
+      if (fx.fx !== "timejump") throw new Error("sceneFx 未知效果:" + fx.fx);
+      if (typeof fx.from !== "number" || typeof fx.to !== "number") throw new Error("timejump 缺年份");
+    }
+    if (!(assets.sceneFx && assets.sceneFx["INT-1"])) throw new Error("INT-1 十一年跳躍未註冊");
+    /* 音效=合成零資產;偏好走 sessionStorage(存檔純度不破);HUD 有開關 */
+    if (!sui.includes("AudioContext")) throw new Error("音效合成器缺失");
+    if (!sui.includes("sessionStorage")) throw new Error("音效偏好未持久化(sessionStorage)");
+    if (!stageHtml.includes('id="btnSfx"')) throw new Error("HUD 音效開關缺失");
+    /* 滾球重播:吃真實讀值+可跳過+reduced 直出;破裂 FX;E2 SVG */
+    for (const frag of ["labAnim", "run.readings", "animSkip", "fx-shake", 'code === "E2"'])
+      if (!sui.includes(frag)) throw new Error("體感層要素缺失:" + frag);
+    if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
+      throw new Error("FX 樣式/容器缺失");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
