@@ -1,7 +1,7 @@
 /* tests/run-node.mjs — `npm test` 進入點(零外部依賴)
    執行:共用套件全部測試 + R-DATA-05 鏡像一致性(需檔案系統,node 限定) */
 import { createRequire } from "module";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -512,6 +512,34 @@ tests.push({
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["statementCard { background-image", "gapBadge", "evSummary", 'body[data-view="review"] #panelWrap'])
       if (!stageHtml.includes(frag)) throw new Error("復古化/末頁樣式缺失:" + frag);
+  }
+});
+
+tests.push({
+  name: "字體三聲部|明體子集出貨+P0-0 黑體(明體首現 1590)+手寫楷體聲部(總監裁決 20260720)",
+  fn: () => {
+    /* 子集字型實體+授權隨行:未入庫=不存在 */
+    const fdir = path.join(here, "../../public/assets/fonts");
+    for (const f of ["bd-serif-tc-regular.woff2", "bd-serif-tc-bold.woff2", "LICENSE-OFL-1.1.txt"])
+      if (!existsSync(path.join(fdir, f))) throw new Error("字型檔缺失:" + f);
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ['"BD Serif TC"', "bd-serif-tc-regular.woff2", "--font-hand", "font-display: swap"])
+      if (!stageHtml.includes(frag)) throw new Error("三聲部樣式缺失:" + frag);
+    /* 明體鏈以子集字型為首;回退鏈保留 */
+    if (!/--font-dialogue:\s*"BD Serif TC",\s*"Noto Serif TC"/.test(stageHtml))
+      throw new Error("--font-dialogue 未以 BD Serif TC 為首");
+    /* 穿越瞬間:P0-0 題詞/字幕/按鈕=黑體,禁用明體(字形穿越契約) */
+    for (const sel of ["#mzTitleLines p", "#mzCaption", "#btnPrologueGo"]) {
+      const m = stageHtml.split(sel + " {")[1];
+      if (!m) throw new Error("P0-0 選擇器缺失:" + sel);
+      const block = m.slice(0, m.indexOf("}"));
+      if (block.includes("--font-dialogue")) throw new Error("P0-0 出現明體(穿越瞬間破功):" + sel);
+    }
+    /* 手的聲部:旅人筆記台詞+回顧作答+檯上便條 */
+    if (!stageHtml.includes('#dialogue[data-speaker="旅人筆記"] #dlgText'))
+      throw new Error("旅人筆記手寫規則缺失");
+    if (!readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8").includes("dataset.speaker"))
+      throw new Error("stage-ui 未掛 speaker 資料屬性");
   }
 });
 

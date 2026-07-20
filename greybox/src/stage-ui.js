@@ -283,6 +283,7 @@
     np.textContent = showName ? item.speaker : "";
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
+    $("dialogue").dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */
     var gainHit = isSys && /^(取得證據|旅人筆記解鎖|E\d)/.test(item.text);
     $("dlgText").className = isNarr ? "narr"
       : (isSys ? ("sys" + (gainHit ? " gain" : ""))

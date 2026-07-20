@@ -10,9 +10,26 @@
   /* stage.html — 滿版舞台殼 v2(總監裁決 2026-07-19 第一輪視覺修正:
      筆記本模式取代抽屜/對話框左側半身像/字級放大 RWD)。
      引擎/資料/存檔與 chapter.html 完全共用;本檔只換表現層。灰盒版仍在 chapter.html。 */
+  /* 字體三聲部(總監裁決 2026-07-20):
+     系統聲部=黑體(現代/裝置/HUD)、世界聲部=明體(1590 對話與文件;萬曆年間=明體定型年代,與伽利略同代)、
+     手的聲部=楷體(旅人筆記/玩家親筆)。明體自帶子集字型(BD Serif TC=Noto Serif CJK TC 子集,OFL,
+     1562 字約 1.4MB,見 public/assets/fonts/),根治 Windows 回退新細明體;楷體暫用系統字
+     (Mac=Kaiti TC/Win=標楷體 DFKai-SB),日後可換芫荽。P0-0 現代序章全用黑體,
+     明體首現於 1590 落地=字形自演穿越。 */
+  @font-face {
+    font-family: "BD Serif TC";
+    src: url("../public/assets/fonts/bd-serif-tc-regular.woff2") format("woff2");
+    font-weight: 400; font-display: swap;
+  }
+  @font-face {
+    font-family: "BD Serif TC";
+    src: url("../public/assets/fonts/bd-serif-tc-bold.woff2") format("woff2");
+    font-weight: 600 700; font-display: swap;
+  }
   :root {
-    --font-dialogue: "Noto Serif TC", "Source Han Serif TC", "Songti TC", Georgia, serif;
+    --font-dialogue: "BD Serif TC", "Noto Serif TC", "Source Han Serif TC", "Songti TC", Georgia, serif;
     --font-ui: system-ui, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+    --font-hand: "Kaiti TC", "DFKai-SB", "BiauKai", "TW-Kai", "KaiTi", serif;
   }
   html, body { height: 100%; margin: 0; }
   body { background: #14100c; overflow: hidden; color: var(--color-ink-primary);
@@ -240,8 +257,8 @@
     font-size: clamp(16px, 1.5vw, 20px); line-height: 1.9; color: #241b16; }
   body[data-view="review"] #controls textarea { width: 100% !important; min-height: 9rem;
     background: repeating-linear-gradient(transparent 0 34px, rgba(90, 70, 56, 0.35) 34px 35px);
-    border: none; resize: none; font-family: var(--font-dialogue);
-    font-size: 17px; line-height: 35px; color: #2a3c55; padding: 0; }
+    border: none; resize: none; font-family: var(--font-hand); /* 手的聲部:玩家親筆=楷體+墨藍 */
+    font-size: 18px; line-height: 35px; color: #2a3c55; padding: 0; }
   body[data-view="review"] #controls textarea:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
   body[data-view="review"] #controls button { grid-column: 2; justify-self: end;
     background: var(--color-chapter-accent); color: #f3e9d5; border-radius: 999px;
@@ -307,7 +324,8 @@
   #mzTitleLines { position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 24px; }
   #mzTitleLines[hidden] { display: none; }
-  #mzTitleLines p { font-family: var(--font-dialogue); color: #f6ecd8;
+  /* 穿越瞬間:P0-0 現代序章一律黑體,整個遊戲的第一個明體字出現在 1590 落地(字形自演穿越) */
+  #mzTitleLines p { font-family: var(--font-ui); color: #f6ecd8;
     background: rgba(14, 10, 7, 0.42); padding: 8px 22px; border-radius: 6px; /* 暗色半透明字影,不用純白遮圖 */
     text-shadow: 0 1px 6px rgba(10, 7, 5, 0.9);
     font-size: clamp(17px, 2vw, 26px); line-height: 1.9; margin: 0; opacity: 0;
@@ -315,19 +333,22 @@
   #mzTitleLines p:nth-child(2) { animation-delay: calc(var(--motion-dramatic) * 0.8); }
   #mzTitleLines p:nth-child(3) { animation-delay: calc(var(--motion-dramatic) * 1.6); }
   #mzCaption { position: absolute; left: 6%; right: 6%; bottom: 12%; text-align: center;
-    color: #e6d7bd; font-family: var(--font-dialogue); font-size: clamp(17px, 1.9vw, 24px);
+    color: #e6d7bd; font-family: var(--font-ui); font-size: clamp(17px, 1.9vw, 24px);
     line-height: 1.8; margin: 0;
     text-shadow: 0 1px 4px rgba(0,0,0,0.95), 0 0 14px rgba(0,0,0,0.55); /* 亮板上仍可讀 */
     animation: bdFade var(--motion-medium) ease; }
   #btnPrologueGo { position: absolute; right: 3%; bottom: 3%; background: none; color: rgba(207,169,107,0.85);
     border: 1px solid rgba(207,169,107,0.45); border-radius: 999px; min-height: 44px;
     padding: 6px 24px; font-size: clamp(14px, 1.3vw, 17px); letter-spacing: 0.2em;
-    cursor: pointer; font-family: var(--font-dialogue); }
+    cursor: pointer; font-family: var(--font-ui); }
   #btnPrologueGo:hover { background: rgba(122, 75, 42, 0.4); color: #f3e9d5; }
   @media (prefers-reduced-motion: reduce) {
     .mzplate { transition: none; } /* 減少動態:立即換板 */
     #mzCaption, #mzTitleLines p { animation: none; opacity: 1; }
   }
+  /* 手的聲部:旅人筆記開口=手寫楷體(印刷的世界裡只有你的字是手寫的) */
+  #dialogue[data-speaker="旅人筆記"] #dlgText { font-family: var(--font-hand); }
+
   /* --- 進實驗台確認閘(總監:對話沒讀完就被跳走)--- */
   body.embarkGate #panelWrap { display: none !important; }
   body.embarkGate #dialogue { display: block !important; }
@@ -453,8 +474,8 @@
     border-radius: 6px; background: rgba(122,75,42,0.08); }
   .labEyebrow { display: block; margin-bottom: 3px; color: var(--color-chapter-accent); font-size: 0.72em;
     font-weight: 700; letter-spacing: 0.16em; }
-  #labHint { margin: 0; color: var(--color-ink-primary) !important; font-family: var(--font-dialogue);
-    font-size: 1.04em; line-height: 1.55; }
+  #labHint { margin: 0; color: var(--color-ink-primary) !important; font-family: var(--font-hand); /* 釘在檯上的自筆便條 */
+    font-size: 1.1em; line-height: 1.55; }
   #labFlow { display: flex; align-items: center; gap: 7px; margin-top: 8px; color: var(--color-ink-secondary);
     font-size: 0.78em; }
   #labFlow span { padding: 2px 7px; border-radius: 999px; background: rgba(255,250,236,0.62);
