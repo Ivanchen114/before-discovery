@@ -442,6 +442,7 @@
   }
   function mzShow() {
     mzReset();
+    BGM.play("storm"); /* 序幕:風暴低鳴(手勢解鎖前靜默,首次點擊自動補播) */
     if (ASSETS && ASSETS.prologuePlates) { /* 四板先暖 */
       Object.keys(ASSETS.prologuePlates).forEach(function (k) {
         preloadEntry(assetEntry(ASSETS.prologuePlates[k]));
@@ -758,6 +759,7 @@
     return {
       toggle: function () { on = !on; try { sessionStorage.setItem("bd_sfx", on ? "on" : "off"); } catch (e) {} return on; },
       isOn: function () { return on; },
+      ctx: ac,
       drop: function () { tone(1180, 0.06, "sine", 0.05); },
       blip: function () { tone(660, 0.05, "square", 0.03); },
       chime: function () { tone(880, 0.22, "sine", 0.06); setTimeout(function () { tone(1318, 0.3, "sine", 0.05); }, 90); },
@@ -782,12 +784,131 @@
       }
     };
   })();
+  /* ---------- 程序化環境音樂(BGM):Web Audio 即席合成,零資產零版權 ----------
+     音訊分工裁決(總監 20260720):v1=程式合成;真實錄音/生成音樂=未來選項(掛點相容)。
+     每個 mood=低音 drone+調式撥弦(隨機稀疏)+環境噪音層;場景切換交叉淡入;非確定性=氛圍非 fixture。 */
+  var BGM = (function () {
+    var cur = null, master = null, layers = [], timers = [];
+    var MOODS = {
+      storm:    { drone: [55, 82.5],     scale: [660, 880, 990],              gain: 0.05,  pluckMs: [4000, 9000],  noise: "rumble" },
+      pisa:     { drone: [110, 165],     scale: [293.7, 330, 392, 440, 494],  gain: 0.06,  pluckMs: [2600, 6000],  noise: null },
+      study:    { drone: [98, 147],      scale: [261.6, 294, 349, 392],       gain: 0.05,  pluckMs: [3200, 7000],  noise: null },
+      rain:     { drone: [87.3, 130.8],  scale: [233, 262, 311, 349],         gain: 0.05,  pluckMs: [4500, 9000],  noise: "rain" },
+      workshop: { drone: [103.8, 155.6], scale: [277, 311, 370, 415],         gain: 0.055, pluckMs: [3000, 6500],  noise: "drip" },
+      hall:     { drone: [73.4, 110],    scale: [220, 246.9, 293.7],          gain: 0.06,  pluckMs: [5000, 10000], noise: null, pulse: true },
+      dusk:     { drone: [130.8, 196],   scale: [523, 587, 659, 784],         gain: 0.045, pluckMs: [3800, 8000],  noise: null }
+    };
+    function noiseBuf(c, secs) {
+      var b = c.createBuffer(1, c.sampleRate * secs, c.sampleRate), d = b.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return b;
+    }
+    function stopAll(fade) {
+      timers.forEach(clearTimeout); timers = [];
+      var c = SFX.ctx();
+      if (master && c) {
+        var m = master;
+        try { m.gain.setTargetAtTime(0.0001, c.currentTime, fade ? 0.5 : 0.05); } catch (e) {}
+        setTimeout(function () { try { m.disconnect(); } catch (e) {} }, 1400);
+      }
+      layers.forEach(function (n) { try { if (n.stop) n.stop(c ? c.currentTime + 1.3 : 0); } catch (e) {} });
+      layers = []; master = null;
+    }
+    function pluck(c, freq, M) {
+      if (!master) return;
+      [0, 3].forEach(function (detune) {
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = "triangle"; o.frequency.value = freq; o.detune.value = detune;
+        g.gain.setValueAtTime(0.22, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 1.1);
+        o.connect(g); g.connect(master);
+        o.start(); o.stop(c.currentTime + 1.2);
+      });
+    }
+    function play(mood) {
+      cur = mood;
+      if (!SFX.isOn()) return;
+      var c = SFX.ctx(); if (!c) return;
+      try { if (c.state === "suspended") c.resume(); } catch (e) {}
+      stopAll(true);
+      cur = mood;
+      var M = MOODS[mood]; if (!M) return;
+      master = c.createGain();
+      master.gain.setValueAtTime(0.0001, c.currentTime);
+      master.gain.setTargetAtTime(M.gain, c.currentTime, 1.2);
+      master.connect(c.destination);
+      M.drone.forEach(function (f, i) {
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = "sine"; o.frequency.value = f; g.gain.value = i ? 0.5 : 0.8;
+        o.connect(g); g.connect(master); o.start(); layers.push(o);
+      });
+      if (M.noise) {
+        var s = c.createBufferSource(), f2 = c.createBiquadFilter(), g2 = c.createGain();
+        s.buffer = noiseBuf(c, 2); s.loop = true;
+        f2.type = "lowpass";
+        f2.frequency.value = M.noise === "rain" ? 900 : (M.noise === "rumble" ? 170 : 500);
+        g2.gain.value = M.noise === "rain" ? 0.5 : 0.3;
+        s.connect(f2); f2.connect(g2); g2.connect(master);
+        s.start(); layers.push(s);
+        if (M.noise === "drip") (function drip() {
+          timers.push(setTimeout(function () {
+            if (!master) return;
+            var o = c.createOscillator(), g = c.createGain();
+            o.type = "sine"; o.frequency.value = 1400 + Math.random() * 500;
+            g.gain.setValueAtTime(0.12, c.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.09);
+            o.connect(g); g.connect(master); o.start(); o.stop(c.currentTime + 0.1);
+            drip();
+          }, 2500 + Math.random() * 3500));
+        })();
+      }
+      if (M.pulse) (function beat() { /* 辯論廳:55Hz 低頻脈搏,緊張感的物理學 */
+        timers.push(setTimeout(function () {
+          if (!master) return;
+          var o = c.createOscillator(), g = c.createGain();
+          o.type = "sine"; o.frequency.value = 55;
+          g.gain.setValueAtTime(0.5, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.28);
+          o.connect(g); g.connect(master); o.start(); o.stop(c.currentTime + 0.3);
+          beat();
+        }, 1150));
+      })();
+      (function stroll() { /* 撥弦隨機漫步 */
+        timers.push(setTimeout(function () {
+          if (!master) return;
+          pluck(c, M.scale[Math.floor(Math.random() * M.scale.length)], M);
+          stroll();
+        }, M.pluckMs[0] + Math.random() * (M.pluckMs[1] - M.pluckMs[0])));
+      })();
+    }
+    return {
+      play: play,
+      stop: stopAll,
+      current: function () { return cur; },
+      refresh: function () { if (cur) play(cur); }
+    };
+  })();
   function syncSfxBtn() {
-    $("btnSfx").textContent = "音效:" + (SFX.isOn() ? "開" : "關");
+    $("btnSfx").textContent = "聲音:" + (SFX.isOn() ? "開" : "關");
     $("btnSfx").setAttribute("aria-pressed", SFX.isOn() ? "true" : "false");
   }
-  $("btnSfx").addEventListener("click", function () { SFX.toggle(); syncSfxBtn(); });
+  $("btnSfx").addEventListener("click", function () {
+    var on = SFX.toggle();
+    syncSfxBtn();
+    if (on) BGM.refresh(); else BGM.stop(false);
+  });
   syncSfxBtn();
+  document.addEventListener("click", function unlockAudio() { /* 首次手勢:解鎖 AudioContext,補播當前 mood */
+    document.removeEventListener("click", unlockAudio);
+    var c = SFX.ctx();
+    try { if (c && c.state === "suspended") c.resume(); } catch (e) {}
+    BGM.refresh();
+  });
+  document.addEventListener("bd:scene", function (ev) { /* 場景→mood(資料驅動),同 mood 不重啟 */
+    var map = ASSETS && ASSETS.sceneBgm;
+    var mood = map && map[ev.detail.sceneId];
+    if (mood && mood !== BGM.current()) BGM.play(mood);
+  });
 
   /* ---------- 斜面滾球重播(bd:run) ---------- */
   var animRaf = null, animSkip = null;

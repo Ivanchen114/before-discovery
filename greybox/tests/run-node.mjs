@@ -348,6 +348,15 @@ tests.push({
     /* 滾球重播:吃真實讀值+可跳過+reduced 直出;破裂 FX;E2 SVG */
     for (const frag of ["labAnim", "run.readings", "animSkip", "fx-shake", 'code === "E2"'])
       if (!sui.includes(frag)) throw new Error("體感層要素缺失:" + frag);
+    /* 程序化 BGM:mood 值域受控+23 場景全覆蓋+場景驅動+總開關 */
+    const BGM_MOODS = ["pisa", "study", "rain", "workshop", "hall", "dusk"];
+    const bgm = assets.sceneBgm || {};
+    scenes.scenes.forEach((s) => {
+      if (!(s.id in bgm)) throw new Error("場景缺 BGM mood:" + s.id);
+      if (!BGM_MOODS.includes(bgm[s.id])) throw new Error("未知 mood:" + s.id + "→" + bgm[s.id]);
+    });
+    for (const frag of ["sceneBgm", "BGM.refresh", 'play("storm")'])
+      if (!sui.includes(frag)) throw new Error("BGM 要素缺失:" + frag);
     if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
       throw new Error("FX 樣式/容器缺失");
   }
