@@ -486,6 +486,28 @@
     b.addEventListener("click", function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); });
     $("panelWrap").appendChild(b);
   })();
+  /* 量表說明=點/觸碰即顯(hover title 僅桌機加菜;雙線索原則,手機平板不靠懸停) */
+  var hudTipTimer = null;
+  function showHudTip(text) {
+    var tip = $("hudTip");
+    tip.textContent = text;
+    tip.hidden = false;
+    if (hudTipTimer) clearTimeout(hudTipTimer);
+    hudTipTimer = setTimeout(function () { tip.hidden = true; }, 7000);
+  }
+  document.getElementById("hud").addEventListener("click", function (ev) {
+    var chip = ev.target.closest(".chip");
+    if (!chip || !chip.title) return;
+    if (!$("hudTip").hidden && $("hudTip").textContent === chip.title) { $("hudTip").hidden = true; return; }
+    showHudTip(chip.title);
+  });
+  document.getElementById("hud").addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    var chip = ev.target.closest ? ev.target.closest(".chip") : null;
+    if (!chip || !chip.title) return;
+    ev.preventDefault();
+    showHudTip(chip.title);
+  });
   var repHinted = false, repPrev = null;
   try {
     new MutationObserver(function () {
@@ -546,7 +568,7 @@
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("labIntro").hidden) return;
     if (!$("debIntro").hidden) return;
-    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen")) return;
+    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast")) return;
     if (advanceIntent()) return;
     idleAdvance();
   });

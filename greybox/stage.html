@@ -235,11 +235,13 @@
     #mzCaption, #mzTitleLines p { animation: none; opacity: 1; }
   }
   /* --- 信譽首動提示+辯論備忘卡 --- */
-  #repToast { position: absolute; top: 46px; left: 10px; z-index: 44; max-width: 340px;
+  #hud .chip[title] { cursor: pointer; }
+  #hud .chip:focus-visible { outline: 3px solid var(--color-focus); }
+  #repToast, #hudTip { position: absolute; top: 46px; left: 10px; z-index: 44; max-width: 340px;
     background: rgba(20, 14, 10, 0.92); color: #e6d7bd; border: 1px solid var(--color-chapter-accent);
     border-radius: 6px; padding: 10px 14px; font-size: clamp(13px, 1.2vw, 15px); line-height: 1.6;
     animation: bdFade var(--motion-medium) ease; }
-  #repToast[hidden] { display: none; }
+  #repToast[hidden], #hudTip[hidden] { display: none; }
   #debIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
     display: flex; align-items: center; justify-content: center; }
   #debIntro[hidden] { display: none; }
@@ -439,10 +441,10 @@
 
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">
     <div id="hud">
-      <span class="chip" title="信譽 0–5:空口斷言、被抓到說謊會扣;歸零時關鍵人物暫時拒談,需經修復事件贖回——沒有 game over,只有代價。">信譽 <b id="repVal">3</b>/5</span>
-      <span class="chip" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
-      <span class="chip" id="e3Val"></span>
-      <span class="chip" id="perVal" title="說服力:辯論中的氣勢量表;錯誤出示會扣,歸零=辯論中止(可補證據再入)。"></span>
+      <span class="chip" tabindex="0" title="信譽 0–5:空口斷言、被抓到說謊會扣;歸零時關鍵人物暫時拒談,需經修復事件贖回——沒有 game over,只有代價。">信譽 <b id="repVal">3</b>/5</span>
+      <span class="chip" tabindex="0" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
+      <span class="chip" tabindex="0" id="e3Val"></span>
+      <span class="chip" tabindex="0" id="perVal" title="說服力:辯論中的氣勢量表;錯誤出示會扣,歸零=辯論中止(可補證據再入)。"></span>
       <span class="chip" id="modeVal"></span>
       <span class="chip" id="sceneVal" style="display:none"></span>
       <span class="spacer"></span>
@@ -496,7 +498,8 @@
       </div>
     </div>
 
-    <div id="repToast" role="status" aria-live="polite" hidden>信譽動了——這座城市在替你的話記帳。滑鼠停在「信譽」上可看規則。</div>
+    <div id="repToast" role="status" aria-live="polite" hidden>信譽動了——這座城市在替你的話記帳。點一下「信譽」可看規則。</div>
+    <div id="hudTip" role="status" aria-live="polite" hidden></div>
 
     <div id="debIntro" role="dialog" aria-modal="true" aria-label="辯論備忘" hidden>
       <div id="diSheet">
