@@ -154,7 +154,12 @@
     $("repVal").textContent = state.rep;
     $("dayVal").textContent = state.lab.days;
     var e3 = state.lab.evidence.e3;
-    $("e3Val").textContent = "E3:a" + (e3.a ? "●" : "○") + "b" + (e3.b ? "●" : "○") + "c" + (e3.c ? "●" : "○");
+    /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
+    var e3Started = state.lab.evidence.runs.length > 0 || e3.a || e3.b || e3.c;
+    $("e3Val").textContent = e3Started
+      ? "斜面主張:規律" + (e3.a ? "●" : "○") + " 重量" + (e3.b ? "●" : "○") + " 傾角" + (e3.c ? "●" : "○")
+      : "";
+    $("e3Val").title = "你要在斜面上親手立起的三個主張:規律成立/與球重無關/隨傾角形式不變。●=已認證——三顆全亮,終辯才有火力。";
     $("perVal").textContent = state.debate ? ("說服力:" + state.debate.persuasion + "/5") : "";
     $("modeVal").textContent = "模式:" + (state.mode === "scholar" ? "學者" : "探索");
     $("sceneVal").textContent = "場景:" + state.cursor.scene;

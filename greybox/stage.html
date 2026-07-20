@@ -40,6 +40,7 @@
                border: 1px solid rgba(230, 215, 189, 0.25); border-radius: 3px;
                font-variant-numeric: tabular-nums; white-space: nowrap; }
   #hud .chip b { color: #fff; font-weight: 600; }
+  #hud .chip:empty { display: none; } /* 進度揭露:量表未啟用前不佔位 */
   #hud button { background: rgba(20, 14, 10, 0.72); color: #e6d7bd; border: 1px solid rgba(230,215,189,0.4);
                 border-radius: 3px; padding: 6px 12px; font-size: inherit; cursor: pointer; min-height: 36px; }
   #hud button:hover { background: rgba(122, 75, 42, 0.8); }
@@ -390,10 +391,10 @@
 
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">
     <div id="hud">
-      <span class="chip">信譽 <b id="repVal">3</b>/5</span>
-      <span class="chip">第 <b id="dayVal">0</b> 天</span>
+      <span class="chip" title="信譽 0–5:空口斷言、被抓到說謊會扣;歸零時關鍵人物暫時拒談,需經修復事件贖回——沒有 game over,只有代價。">信譽 <b id="repVal">3</b>/5</span>
+      <span class="chip" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
       <span class="chip" id="e3Val"></span>
-      <span class="chip" id="perVal"></span>
+      <span class="chip" id="perVal" title="說服力:辯論中的氣勢量表;錯誤出示會扣,歸零=辯論中止(可補證據再入)。"></span>
       <span class="chip" id="modeVal"></span>
       <span class="chip" id="sceneVal" style="display:none"></span>
       <span class="spacer"></span>
