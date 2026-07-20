@@ -2,6 +2,10 @@
 
 物理史穿越解謎網頁遊戲:玩家與歷史上的科學家並肩卡關——你早就知道答案,但沒有人相信說出口的謎底;讓答案在四百年前重新被發現,親手推進物理史。
 
+**▶ 線上試玩**:https://YOUR-USERNAME.github.io/before-discovery/(GitHub Pages;或下載本倉庫雙擊 `greybox/stage.html`,離線可玩)
+**⚠ 給玩家的提醒**:本倉庫含完整劇本與**謎底**(治理文件所需)——想保留解謎樂趣,請直接玩,別翻 `04_劇本/` 與 `greybox/decisions.md`。
+**授權**:程式=MIT(LICENSE)|劇本與內容=CC BY-NC-SA 4.0|字型=OFL|AI 生成資產條款見 LICENSE-CONTENT.md
+
 **最後更新**:2026-07-20|**階段**:第一章完整可玩(舞台版 stage.html);主要美術批次+Batch03 已接;**候選版 QA 未簽**(實機清單見 greybox/docs/browser-checklist.md)
 **團隊**:總監 陳育詮(唯一裁決者)|Claude(程式實作)|Sol(美術+對抗審查)——分工見 `decisions.md` ADR-001
 
