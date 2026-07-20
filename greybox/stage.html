@@ -333,24 +333,76 @@
   @media (prefers-reduced-motion: reduce) {
     #panelWrap.fx-shake, #dialogue.fx-gain { animation: none; }
   }
-  /* 工作桌+實驗簿雙區(Sol 巡查 B-2:器材=舞台構件不是郵票;漸進揭露;內部語法不外洩) */
-  #lab { display: grid; grid-template-columns: minmax(0, 44%) minmax(0, 1fr); gap: 20px; align-items: start; }
-  #benchProps { display: flex; gap: 16px; justify-content: center; align-items: flex-end;
-    background: rgba(122, 75, 42, 0.08); border: 1px solid rgba(90, 70, 56, 0.35);
-    border-radius: 6px; padding: 12px; min-height: 130px; }
-  #benchProps img { height: clamp(150px, 22vh, 250px); width: auto; }
-  #labProps { display: flex; gap: 16px; }
-  #labProps img { height: clamp(150px, 22vh, 250px); width: auto; }
-  #labConfig { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin: 10px 0; }
+  /* 實驗台 v2:左頁是可操作裝置,右頁是會逐步寫滿的實驗簿。引擎資料零改動。 */
+  body[data-view="lab"] #panelWrap { top: 10vh; bottom: auto; max-height: 84vh;
+    box-sizing: border-box; overflow: auto; padding: 16px 20px; }
+  #lab { display: grid; grid-template-columns: minmax(390px, 0.9fr) minmax(520px, 1.1fr);
+    gap: 26px; align-items: start; }
+  #labBench, #labBook { min-width: 0; }
+  #labBench > h3, #labBook > h3 { margin-top: 0; }
+  #benchProps { overflow: hidden; border: 1px solid rgba(90, 70, 56, 0.35); border-radius: 8px;
+    padding: 9px; background: linear-gradient(145deg, rgba(122,75,42,0.13), rgba(239,228,201,0.72));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45); }
+  #labProps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; width: 100%; }
+  #labProps figure { min-width: 0; margin: 0; overflow: hidden; border: 1px solid rgba(90,70,56,0.28);
+    border-radius: 5px; background: #e8dcc1; }
+  #labProps img { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; object-fit: cover;
+    mix-blend-mode: multiply; filter: sepia(0.1) saturate(0.78) contrast(1.04); }
+  #labProps figcaption { padding: 4px 8px 5px; color: var(--color-ink-secondary); font-size: 0.76em;
+    border-top: 1px solid rgba(90,70,56,0.2); letter-spacing: 0.04em; }
+  #labConfig { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; margin: 11px 0 8px; }
   #labConfig label { display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    background: #efe4c9; border: 1px solid var(--color-ink-secondary); border-radius: 4px; padding: 6px 10px; }
+    background: rgba(239,228,201,0.78); border: 1px solid var(--color-ink-secondary);
+    border-radius: 4px; padding: 6px 10px; }
   #labRun { width: 100%; font-weight: 600; letter-spacing: 0.12em; font-family: var(--font-dialogue); }
-  #labBook { border-left: 2px solid rgba(90, 70, 56, 0.3); padding-left: 18px; }
-  #secRuns:has(#labRunsBody:empty), #secClaims:has(#labClaimsBody:empty) { display: none; } /* 空表不上桌 */
-  @media (max-height: 520px) {
+  #labBook { border-left: 2px solid rgba(90, 70, 56, 0.24); padding-left: 22px; }
+  #labGoal { margin: 0 0 12px; padding: 11px 13px; border: 1px solid rgba(122,75,42,0.42);
+    border-radius: 6px; background: rgba(122,75,42,0.08); }
+  .labEyebrow { display: block; margin-bottom: 3px; color: var(--color-chapter-accent); font-size: 0.72em;
+    font-weight: 700; letter-spacing: 0.16em; }
+  #labHint { margin: 0; color: var(--color-ink-primary) !important; font-family: var(--font-dialogue);
+    font-size: 1.04em; line-height: 1.55; }
+  #labFlow { display: flex; align-items: center; gap: 7px; margin-top: 8px; color: var(--color-ink-secondary);
+    font-size: 0.78em; }
+  #labFlow span { padding: 2px 7px; border-radius: 999px; background: rgba(255,250,236,0.62);
+    border: 1px solid rgba(90,70,56,0.24); }
+  #labFlow i { font-style: normal; opacity: 0.58; }
+  #labEmpty { min-height: 150px; display: grid; place-content: center; text-align: center;
+    border: 1px dashed rgba(90,70,56,0.42); border-radius: 6px; color: var(--color-ink-secondary);
+    background: repeating-linear-gradient(0deg, transparent 0 28px, rgba(90,70,56,0.08) 29px 30px); }
+  #labEmpty[hidden] { display: none; }
+  #labEmpty b { display: block; margin-bottom: 4px; color: var(--color-ink-primary); font-family: var(--font-dialogue); }
+  #labEmpty p { margin: 0; }
+  #secRuns, #secClaims { min-width: 0; overflow-x: auto; }
+  #secRuns[hidden], #secClaims[hidden] { display: none; }
+  #secRuns table, #secClaims table { width: 100%; white-space: nowrap; }
+  #judgeRow { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 8px 0 2px; }
+  #judgeRow label { flex: 1 1 300px; }
+  #embedGate { margin-top: 11px; }
+  #embedGate .gateStatus { padding: 8px 10px; border-left: 3px solid rgba(122,75,42,0.44);
+    color: var(--color-ink-secondary); background: rgba(122,75,42,0.06); }
+  #embedGate.ready button { width: 100%; font-family: var(--font-dialogue); font-weight: 600; letter-spacing: 0.12em; }
+  @media (max-height: 520px) and (min-width: 701px) {
+    body[data-view="lab"] #panelWrap { top: 14%; bottom: 3%; max-height: none; padding: 10px 12px; }
+    #lab { grid-template-columns: minmax(280px, 40%) minmax(0, 1fr); gap: 13px; }
+    #labBook { padding-left: 12px; }
+    #benchProps { padding: 5px; }
+    #labProps { gap: 5px; }
+    #labProps figcaption { display: none; }
+    #labConfig { gap: 4px 6px; margin: 6px 0 4px; }
+    #labConfig label { padding: 3px 5px; }
+    #labGoal { padding: 7px 9px; margin-bottom: 7px; }
+    #labFlow { display: none; }
+    #labEmpty { min-height: 90px; }
+  }
+  @media (max-width: 1100px) and (min-height: 521px) {
     #lab { grid-template-columns: 1fr; }
-    #labBook { border-left: none; padding-left: 0; }
-    #benchProps img, #labProps img { height: 110px; }
+    #labBook { border-left: none; border-top: 2px solid rgba(90,70,56,0.24); padding: 14px 0 0; }
+  }
+  @media (max-width: 700px) {
+    body[data-view="lab"] #panelWrap { top: 12%; bottom: 3%; max-height: none; }
+    #lab { grid-template-columns: 1fr; }
+    #labBook { border-left: none; border-top: 2px solid rgba(90,70,56,0.24); padding: 14px 0 0; }
   }
   /* 標題主視覺+史實頁橫幅(Batch 03) */
   #title-screen.title-art { background-size: cover; background-position: center; }
@@ -362,7 +414,7 @@
   #tomeDecor { display: none; }
   body[data-view="debate"] #tomeDecor { display: block; float: right; height: 96px; width: auto;
     margin: 0 0 8px 12px; opacity: 0.92; }
-  @media (max-height: 520px) { #labProps img { height: 48px; } body[data-view="debate"] #tomeDecor { height: 64px; } }
+  @media (max-height: 520px) { body[data-view="debate"] #tomeDecor { height: 64px; } }
   #nbLabSnap table { border-collapse: collapse; margin: 6px 0; font-size: 0.92em; width: 100%; }
   #nbLabSnap th, #nbLabSnap td { border: 1px solid var(--color-ink-secondary); padding: 2px 7px;
     text-align: right; font-variant-numeric: tabular-nums; }
@@ -494,31 +546,38 @@
 
     <div id="panelWrap">
       <div id="lab" style="display:none" aria-label="實驗台">
-        <div id="labBench" aria-label="工作桌">
-          <h3>工作桌</h3>
-          <div id="benchProps" aria-hidden="true"></div>
-          <p class="hint" id="labHint" style="color:var(--color-ink-secondary)"></p>
+        <div id="labBench" aria-label="斜面裝置">
+          <h3>斜面裝置</h3>
+          <div id="benchProps" role="group" aria-label="水鐘、斜槽與銅球"></div>
           <div id="labConfig">
             <label>球:<select id="labBall"></select></label>
             <label>槽面:<select id="labSurface"></select></label>
             <label>傾角:<select id="labIncline"></select></label>
             <label>計時:<select id="labTimer"></select></label>
           </div>
-          <button id="labRun">放球——執行實驗</button>
+          <button id="labRun">放球，開始計時</button>
           <div id="labAnimSlot"></div>
           <div class="labmsg" id="labMsg" role="status" aria-live="polite">槽已刨直,水鐘已備。選好配置,放球。</div>
         </div>
         <div id="labBook" aria-label="旅人實驗簿">
           <h3>旅人實驗簿<button id="btnLabHelp" type="button" aria-label="重看實驗備忘">?</button></h3>
-          <p class="hint tblhint">「段」=水鐘滴下等量水的<b>等時距</b>;數字=該段滾過的刻度格數。墨水書寫,<b>紀錄不可刪</b>——勾選你要引用的紀錄。</p>
-          <section id="secRuns">
+          <div id="labGoal" role="status" aria-live="polite">
+            <span class="labEyebrow">這一輪要證明</span>
+            <p id="labHint"></p>
+            <div id="labFlow" aria-hidden="true"><span>放球</span><i>→</i><span>讀四段</span><i>→</i><span>押第五段</span><i>→</i><span>提出主張</span></div>
+          </div>
+          <div id="labEmpty">
+            <p><b>第一頁還是空的。</b>先在左邊放一次球，數字會自己寫進來。</p>
+          </div>
+          <section id="secRuns" hidden>
+            <p class="hint tblhint">「段」=水鐘滴下等量水的<b>等時距</b>;數字=該段滾過的刻度格數。墨水書寫,<b>紀錄不可刪</b>——勾選你要引用的紀錄。</p>
             <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th><th>第幾天</th></tr></thead>
               <tbody id="labRunsBody"></tbody></table>
             <p id="judgeRow"><label>若你看出了規律——押第五段會滾幾格:<input type="number" id="labPred" step="0.1" style="width:90px"></label>
             <button id="labJudge">認證規律</button></p>
             <div class="labmsg" id="judgeMsg" role="status" aria-live="polite"></div>
           </section>
-          <section id="secClaims">
+          <section id="secClaims" hidden>
             <h3>主張(勾選兩筆 → 斷言)</h3>
             <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>預測</th><th>結果</th><th>第幾天</th></tr></thead>
               <tbody id="labClaimsBody"></tbody></table>

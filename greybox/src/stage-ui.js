@@ -673,16 +673,19 @@
       wrap.appendChild(card);
     });
   }
-  /* 器材圖:實驗台上緣裝飾條(水鐘+銅球木槽);辯論面板角落《物理學》評注本——皆裝飾層,aria-hidden */
+  /* 器材圖:實驗台主視覺(水鐘+銅球木槽);辯論面板角落《物理學》評注本。 */
   function mountDecor() {
     var strip = document.createElement("div");
-    strip.id = "labProps"; strip.setAttribute("aria-hidden", "true");
-    [["prop_water_clock", "水鐘"], ["prop_ball_groove", "銅球與木槽"]].forEach(function (p) {
+    strip.id = "labProps";
+    [["prop_water_clock", "水鐘與天平"], ["prop_ball_groove", "斜槽、銅球與墊木"]].forEach(function (p) {
       var e = assetEntry(p[0]);
       if (!e) return;
+      var fig = document.createElement("figure");
       var img = document.createElement("img");
-      img.src = assetUrl(e); img.alt = ""; img.loading = "lazy";
-      strip.appendChild(img);
+      img.src = assetUrl(e); img.alt = p[1]; img.loading = "lazy";
+      var cap = document.createElement("figcaption");
+      cap.textContent = p[1];
+      fig.appendChild(img); fig.appendChild(cap); strip.appendChild(fig);
     });
     if (strip.children.length) {
       var host = $("benchProps") || $("lab"); /* 工作桌構件區(B-2:器材上主舞台) */

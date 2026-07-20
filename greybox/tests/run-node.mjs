@@ -426,9 +426,12 @@ tests.push({
       if (!sui.includes(frag)) throw new Error("Batch03 接線缺失:" + frag);
     /* 工作桌重排+可靠性 */
     for (const frag of ['id="labBench"', 'id="labBook"', 'id="benchProps"', 'id="labAnimSlot"',
-      'id="secRuns"', 'id="secClaims"', 'id="saveWarn"'])
+      'id="labGoal"', 'id="labFlow"', 'id="labEmpty"', 'id="secRuns"', 'id="secClaims"', 'id="saveWarn"'])
       if (!stageHtml.includes(frag)) throw new Error("工作桌重排要素缺失:" + frag);
-    if (!stageHtml.includes(":has(#labRunsBody:empty)")) throw new Error("漸進揭露缺失");
+    if (!cui.includes("friendlyLabGoal") || !cui.includes("secRuns.hidden") || !cui.includes("empty.hidden"))
+      throw new Error("實驗簿白話目標/漸進揭露缺失");
+    if (!sui.includes("figcaption") || !stageHtml.includes("mix-blend-mode: multiply"))
+      throw new Error("器材主視覺的防溢位/紙面融合缺失");
     for (const frag of ["unlockAudioOnce", "visibilitychange", 'addEventListener("pointerdown", unlockAudioOnce)', 'addEventListener("keydown", unlockAudioOnce)'])
       if (!sui.includes(frag)) throw new Error("音訊可靠性缺失:" + frag);
   }

@@ -300,14 +300,38 @@
       tc.appendChild(tr);
       tr.querySelector("input").checked = !!keepC[c.id];
     });
+    /* 舞台版漸進揭露；灰盒殼沒有這些容器，故全部為可選掛點。 */
+    var secRuns = document.getElementById("secRuns");
+    var secClaims = document.getElementById("secClaims");
+    var empty = document.getElementById("labEmpty");
+    if (secRuns) secRuns.hidden = state.lab.evidence.runs.length === 0;
+    if (secClaims) secClaims.hidden = state.lab.inference.claims.length === 0;
+    if (empty) empty.hidden = state.lab.evidence.runs.length > 0;
+  }
+  function friendlyLabGoal(v) { /* 凍結 hint 保留於資料層；玩家只看白話任務。 */
+    var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
+    var until = (nodeDef && nodeDef.until) || {};
+    if (until.e3 === "a") return "從四段數字找出規律，押中第五段，讓它成為你的第一筆主張。";
+    if (until.e3 === "b") return "只換球的大小，做出兩筆成立紀錄，看看重量有沒有改變規律。";
+    if (until.e3 === "c") return "只改斜面的傾角，再做一筆成立紀錄，看看規律的形狀會不會變。";
+    if (until.repairRun) return "做完任意一次乾淨的實驗，把新紀錄帶回去。";
+    return "自由補做實驗；覺得證據夠了，就帶著實驗簿回到辯論會。";
   }
   function renderEmbedGate(v) {
     var gate = $("embedGate");
     gate.innerHTML = "";
     var ready = N.embedReady(state);
+    gate.className = ready ? "ready" : "pending";
+    if (!ready) {
+      var status = document.createElement("div");
+      status.className = "gateStatus";
+      status.textContent = "實驗簿還缺關鍵的一筆——完成上方目標後，就能繼續。";
+      gate.appendChild(status);
+      return;
+    }
     var btn = document.createElement("button");
-    btn.textContent = ready ? "▶ 繼續劇情" : "(未達成:" + (v.hint || "完成實驗台目標") + ")";
-    btn.disabled = !ready;
+    btn.textContent = v.scene === "A3-F" ? "▶ 帶著證據重返辯論會"
+      : (v.scene === "SC-R1" ? "▶ 帶著新紀錄回去" : "▶ 帶著主張繼續");
     btn.onclick = function () {
       var r = N.embedComplete(state);
       if (r.error) { $("labMsg").textContent = r.error; return; }
@@ -510,7 +534,7 @@
     box.innerHTML = "";
     if (v.type === "embed" && v.system === "incline") {
       $("lab").style.display = "";
-      $("labHint").textContent = v.hint || "";
+      $("labHint").textContent = friendlyLabGoal(v);
       var ek = v.scene + "/" + v.nodeId;
       if (ek !== lastEmbedKey) {
         lastEmbedKey = ek;
