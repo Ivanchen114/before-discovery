@@ -292,12 +292,18 @@
   t("M2|hadFailure:失敗判定觸發旗標,死路B回述於 embed 後出現", function () {
     var s = toActTwo("explore");
     var r = lab(s, "run", { config: { ball: "銅大", surface: "原木", incline: "緩", timer: "水鐘" } }); s = r.state;
-    r = lab(s, "judge", { runIds: [1], prediction: 9 * r.result.run.readings[0] }); s = r.state;
+    var badPrediction = 9 * r.result.run.readings[0];
+    r = lab(s, "judge", { runIds: [1], prediction: badPrediction }); s = r.state;
     ok(!r.result.claim.ok, "原木配置不可判定");
     eq(s.flags.hadFailure, "1", "hadFailure 旗標");
+    eq(s.flags.labFailStreak, "1", "第一次失敗累積提示層級");
+    r = lab(s, "judge", { runIds: [1], prediction: badPrediction }); s = r.state;
+    ok(!r.result.claim.ok, "同一筆再次判定仍不可成立");
+    eq(s.flags.labFailStreak, "2", "連續第二次失敗開啟中性觀察");
     r = lab(s, "run", { config: CFG_BIG }); s = r.state;
     r = lab(s, "judge", { runIds: [2], prediction: 9 * r.result.run.readings[0] }); s = r.state;
     ok(r.result.claim.ok);
+    eq(s.flags.labFailStreak, "0", "成功後失敗連續數歸零");
     var c = Narrative.embedComplete(s); s = c.state;
     var rr = run(s); s = rr.state;
     var texts = rr.passed.map(function (n) { return n.text; }).join("|");
@@ -494,25 +500,48 @@
     ok(s.ended, "第一章完");
   });
 
-  t("M3|中止與再入:錯誤出示×5→中止→離場→補實驗→再入(量表重置,已破支柱保留)", function () {
+  t("M3|中止與再入:錯誤出示×5→中止→伽利略複盤→再入(量表重置,已破支柱保留)", function () {
     var s = toDebate("explore");
     var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    r = deb(s, "debatePress", ["p2s1"]); s = r.state;
     for (var i = 0; i < 5; i++) {
       r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p2s1" }]); s = r.state;
     }
     eq(s.debate.status, "suspended", "歸零中止");
+    ok(s.debate.mistakes.length > 0, "錯配被保留供複盤");
     ok(!Narrative.embedReady(s), "中止時不可收束");
     r = deb(s, "debateExitSuspended", []); s = r.state;
     var rr = run(s); s = rr.state;
-    eq(rr.view.scene, "A3-F"); eq(rr.view.system, "incline", "回實驗台自由補證");
-    ok(Narrative.embedReady(s), "A3-F 無門檻,隨時可重返");
-    var l = lab(s, "run", { config: CFG_BIG }); s = l.state;
+    eq(rr.view.scene, "A3-F"); eq(rr.view.system, "debrief", "證據齊全時改做證據—證詞複盤");
+    ok(rr.view.debate.mistakes.length > 0, "複盤視圖可見錯配紀錄");
+    ok(rr.view.debate.statements.some(function (st) { return st.insight; }), "已問清的前提可在複盤重看");
+    var runsBefore = s.lab.evidence.runs.length;
+    ok(Narrative.embedReady(s), "A3-F 複盤無額外實驗門檻");
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;
     eq(rr.view.scene, "A3-D");
     eq(s.debate.status, "pending"); eq(s.debate.persuasion, 5, "量表重置");
+    eq(s.lab.evidence.runs.length, runsBefore, "說服力中止不製造無意義實驗");
+    eq(s.debate.mistakes.length, 0, "複盤完成後清空本輪錯配");
     ok(s.debate.pillars.P1.broken, "已破支柱保留");
     eq(s.debate.idx, 1, "從第二柱續戰");
+  });
+
+  t("M3|追問有玩法狀態:問清前提→顯示洞見;重複追問拒絕且不改 state", function () {
+    var s = toDebate("explore");
+    var before = Narrative.debateView(s);
+    var st0 = before.statements.filter(function (st) { return st.id === "p1s2"; })[0];
+    ok(st0 && !st0.pressed && !st0.insight, "追問前不預洩洞見");
+    var persuasion = s.debate.persuasion;
+    var r = deb(s, "debatePress", ["p1s2"]); s = r.state;
+    var after = Narrative.debateView(s);
+    var st1 = after.statements.filter(function (st) { return st.id === "p1s2"; })[0];
+    ok(st1.pressed && st1.insight, "追問後洞見成為可用資訊");
+    eq(s.debate.persuasion, persuasion, "追問本身免費");
+    var frozen = JSON.stringify(s);
+    var repeat = Narrative.debatePress(s, "p1s2");
+    ok(repeat.error && repeat.error.indexOf("已經問清") >= 0, "重複追問有明確回饋");
+    eq(JSON.stringify(repeat.state), frozen, "重複追問不改 state");
   });
 
   t("M3|學者 FR:干擾項−1、亂序不罰、三環組鏈→trap 誠實(零代價)→勝", function () {
@@ -596,9 +625,12 @@
     rr = run(s); s = rr.state;                              /* rep=1,回 A3-D(仍中止) */
     eq(s.rep, 1); eq(rr.view.scene, "A3-D");
     r = deb(s, "debateExitSuspended", []); s = r.state;
-    rr = run(s); s = rr.state;                              /* A3-F 補實驗 embed */
+    rr = run(s); s = rr.state;                              /* A3-F 證據—證詞複盤 */
+    eq(rr.view.system, "debrief", "信譽修復後另做辯論複盤,兩種失敗不混淆");
+    var repairRuns = s.lab.evidence.runs.length;
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;                              /* reenter → A3-D */
+    eq(s.lab.evidence.runs.length, repairRuns, "雙歸零只在 SC-R1 補一次實驗");
     eq(s.debate.status, "pending"); eq(s.debate.persuasion, 5, "量表重置");
     ok(s.debate.fr.trapPending, "再入後仍停在 FR trap");
     r = deb(s, "debateFr", ["honest"]); s = r.state;

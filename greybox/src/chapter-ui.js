@@ -13,6 +13,17 @@
   var lastEmbedKey = null;
   var newConfirm = false;
   var expandedRuns = {}; /* run 分組展開狀態(UI 記憶,不入存檔;資料保存性與可見密度分離) */
+  var labCoachSeen = {}; /* 器材初見台詞:每次遊玩 session 各說一次,不污染科學狀態。 */
+
+  var TIMER_PROFILE = {
+    "脈搏": { short: "1 天｜抖動大", detail: "便宜，但人的心跳會亂；只有過程夠慢時，多測幾次才可能把亂跳平均掉。",
+      coach: "我的心跳？激動時它也跟著跑。便宜——但你得多聽幾次。" },
+    "水鐘": { short: "2 天｜較穩", detail: "緩坡與中坡可靠；過程太快時會產生固定方向的偏差，重複測量也洗不掉。",
+      coach: "穩。只是坡太陡，短得只夠幾滴；那種偏差，多測幾次也不會自己消失。" },
+    "音格": { short: "3 天｜最精確", detail: "以等距音點分割時間；成本最高，但能分辨陡坡的短促過程。",
+      coach: "三天。歌要唱得勻，錢要花得狠——可陡坡需要這雙耳朵。" }
+  };
+  var BALL_COACH = { "木球": "你要跟一塊會喝水的木頭講道理？先想想，它和銅球只差重量嗎？" };
 
   function $(id) { return document.getElementById(id); }
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
@@ -193,9 +204,39 @@
     fillSelect("labSurface", Object.keys(PATTERNS.surface));
     fillSelect("labIncline", Object.keys(PATTERNS.base));
     fillSelect("labTimer", Object.keys(PATTERNS.timer), function (t) {
-      return t + "(" + PATTERNS.dayCost[t] + " 天/次)";
+      return t + "（" + TIMER_PROFILE[t].short + "）";
     }, function (t) { return state.mode === "scholar" || t !== "音格"; });
+    updateLabToolProfile(false);
     /* 斷言按鈕可見性改由當前 embed 需求決定(verification A 級):見 renderAll 之 incline 分支 */
+  }
+  function showLabCoach(key, text) {
+    var el = document.getElementById("labCoach");
+    if (!el) return;
+    if (labCoachSeen[key]) { el.hidden = true; return; }
+    labCoachSeen[key] = true;
+    el.textContent = text;
+    el.hidden = false;
+  }
+  function updateLabToolProfile(speak) {
+    var timer = $("labTimer").value;
+    var p = TIMER_PROFILE[timer];
+    var el = document.getElementById("labToolProfile");
+    if (el && p) {
+      el.textContent = "";
+      var b = document.createElement("b");
+      b.textContent = timer + "｜" + p.short + "。";
+      el.appendChild(b);
+      el.appendChild(document.createTextNode(p.detail));
+    }
+    if (speak && p) showLabCoach("timer:" + timer, p.coach);
+  }
+  function updateBallCoach() {
+    var ball = $("labBall").value;
+    if (BALL_COACH[ball]) showLabCoach("ball:" + ball, BALL_COACH[ball]);
+    else {
+      var el = document.getElementById("labCoach");
+      if (el) el.hidden = true;
+    }
   }
   function updateAssertButtons(v) { /* 依 embed until 決定,不看模式(E3.c 雙模式必經) */
     var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
@@ -315,7 +356,45 @@
     if (until.e3 === "b") return "只換球的大小，做出兩筆成立紀錄，看看重量有沒有改變規律。";
     if (until.e3 === "c") return "只改斜面的傾角，再做一筆成立紀錄，看看規律的形狀會不會變。";
     if (until.repairRun) return "做完任意一次乾淨的實驗，把新紀錄帶回去。";
-    return "自由補做實驗；覺得證據夠了，就帶著實驗簿回到辯論會。";
+    return "自由檢查你的實驗簿。";
+  }
+  function lastFailedClaim() {
+    var cs = state.lab.inference.claims;
+    for (var i = cs.length - 1; i >= 0; i--) if (!cs[i].ok) return cs[i];
+    return null;
+  }
+  function neutralLabObservation(c) {
+    if (!c) return "把失敗拆開看：是前四段的數字不夠規整，還是第五段的預測沒有接上？";
+    if (!c.consistent && !c.predHit) return "兩道門都沒過。先分開看數字本身的形狀，再看你的第五段預測。";
+    if (!c.consistent) return "你的預測接得上，但前四段本身不夠規整。誤差是來回亂跳，還是次次往同一邊偏？";
+    return "前四段站得住；問題只在第五段。你延伸的是整條規律，還是最後一段看起來增加了多少？";
+  }
+  function strongLabQuestion(c) {
+    if (!c) return neutralLabObservation(c);
+    var timer = c.config && c.config.timer;
+    var incline = c.config && c.config.incline;
+    if (!c.consistent && timer === "水鐘" && incline === "陡")
+      return "伽利略：『陡坡只給水鐘幾滴。若每次都往同一邊歪，多測幾次救得了嗎？你要放緩斜面，還是換一把分得更細的鐘？』";
+    if (!c.consistent)
+      return "伽利略：『同一配置再看幾筆。若偏差忽左忽右，可以平均；若次次同向，就該換器材或改變時間尺度。你看到哪一種？』";
+    return "伽利略：『把第一段當一份。第二、三、四段各有幾份？下一段該接的是這個形狀，不是最後一次增加的格數。』";
+  }
+  function renderLabAssist() {
+    var wrap = document.getElementById("labAssist");
+    var textEl = document.getElementById("labAssistText");
+    var btn = document.getElementById("btnLabDiscuss");
+    if (!wrap || !textEl || !btn) return;
+    var streak = parseInt(state.flags.labFailStreak || "0", 10);
+    var c = lastFailedClaim();
+    wrap.hidden = streak < 2;
+    if (streak < 2) return;
+    var strong = streak >= 3 && state.mode === "explore";
+    textEl.textContent = strong ? strongLabQuestion(c) : neutralLabObservation(c);
+    btn.hidden = strong;
+    btn.onclick = function () {
+      textEl.textContent = strongLabQuestion(c);
+      btn.hidden = true;
+    };
   }
   function renderEmbedGate(v) {
     var gate = $("embedGate");
@@ -330,8 +409,10 @@
       return;
     }
     var btn = document.createElement("button");
-    btn.textContent = v.scene === "A3-F" ? "▶ 帶著證據重返辯論會"
-      : (v.scene === "SC-R1" ? "▶ 帶著新紀錄回去" : "▶ 帶著主張繼續");
+    btn.textContent = v.scene === "SC-R1" ? "▶ 帶著新紀錄回去"
+      : (v.nodeId === "e1" ? "▶ 讓伽利略看看這筆規律"
+      : (v.nodeId === "e2" ? "▶ 把換球的結論說給他聽"
+      : (v.nodeId === "e3c" ? "▶ 收好實驗簿，離開工作室" : "▶ 帶著主張繼續")));
     btn.onclick = function () {
       var r = N.embedComplete(state);
       if (r.error) { $("labMsg").textContent = r.error; return; }
@@ -348,11 +429,13 @@
     if (okMsg) $(msgEl).textContent = okMsg(r.result);
     renderStatus(); renderLabTables();
     var v = N.view(state);
-    if (v.type === "embed" && v.system === "incline") renderEmbedGate(v);
+    if (v.type === "embed" && v.system === "incline") { renderEmbedGate(v); renderLabAssist(); }
     else renderAll();
     return r.result;
   }
   function bindLabButtons() {
+    $("labTimer").onchange = function () { updateLabToolProfile(true); };
+    $("labBall").onchange = updateBallCoach;
     $("labRun").onclick = function () {
       var config = { ball: $("labBall").value, surface: $("labSurface").value, incline: $("labIncline").value, timer: $("labTimer").value };
       var out = doLab("run", { config: config }, "labMsg", function (res) {
@@ -369,11 +452,12 @@
       doLab("judge", { runIds: ids, prediction: pred }, "judgeMsg", function (res) {
         if (res.rejected) return res.rejected.reason + (res.rejected.diff.length ? "——相異變因:" + res.rejected.diff.join("、") : "");
         var c = res.claim;
-        if (c.ok) return "主張 #" + c.id + " 成立(" + cfgLabel(c.config) + ")。";
-        var parts = [];
-        if (!c.predHit) parts.push("預測未中(偏差 " + (c.predDev * 100).toFixed(1) + "%)");
-        if (!c.consistent) parts.push("選集內部不一致(最大偏差 " + (c.maxDev * 100).toFixed(1) + "%)");
-        return "主張 #" + c.id + " 不成立:" + parts.join(";") + "。";
+        if (c.ok) return "主張 #" + c.id + " 成立（" + cfgLabel(c.config) + "）。\n" +
+          "前四段形狀偏差 " + (c.maxDev * 100).toFixed(1) + "% ✓｜第五段預測偏差 " + (c.predDev * 100).toFixed(1) + "% ✓";
+        return "主張 #" + c.id + " 未成立。\n" +
+          "前四段形狀偏差 " + (c.maxDev * 100).toFixed(1) + "% " + (c.consistent ? "✓" : "✕") + "｜" +
+          "第五段預測偏差 " + (c.predDev * 100).toFixed(1) + "% " + (c.predHit ? "✓" : "✕") + "\n" +
+          "認證門檻：兩項皆須 ≤ 12.0%。";
       });
     };
     function doAssert(type) {
@@ -406,6 +490,43 @@
     box.appendChild(b);
     return b;
   }
+  function evidenceLabel(code, subitem) {
+    var names = SCENES.evidenceNames || {};
+    if (code === "E3") {
+      var subs = { a: "規律成立", b: "與球重無關", c: "隨傾角形式不變" };
+      return (names.E3 || "斜面奇數律") + "・" + (subs[subitem] || subitem || "");
+    }
+    return names[code] || code;
+  }
+  function availableEvidenceCards() {
+    var out = [];
+    ["E1", "E2", "E4", "S1", "S2"].forEach(function (code) {
+      if (state.evidence[code]) out.push({ evidence: code, subitem: null, label: evidenceLabel(code) });
+    });
+    ["a", "b", "c"].forEach(function (sub) {
+      if (state.lab.evidence.e3[sub]) out.push({ evidence: "E3", subitem: sub, label: evidenceLabel("E3", sub) });
+    });
+    return out;
+  }
+  function renderPillarTrack(d, box) {
+    var track = document.createElement("div");
+    track.className = "debatePillars";
+    track.setAttribute("aria-label", "理論的三根支柱");
+    d.pillarSummary.forEach(function (p, i) {
+      var el = document.createElement("div");
+      el.className = "debatePillar " + (p.broken ? "isBroken" : (d.pillar && d.pillar.id === p.id ? "isCurrent" : ""));
+      var no = document.createElement("span"); no.textContent = "第" + (i + 1) + "柱";
+      var title = document.createElement("b"); title.textContent = (p.title || p.id).replace(/^第.支柱:/, "");
+      el.appendChild(no); el.appendChild(title); track.appendChild(el);
+    });
+    var meter = document.createElement("div");
+    meter.className = "debateMeter";
+    meter.setAttribute("aria-label", "說服力 " + d.persuasion + " / 5");
+    var mb = document.createElement("b"); mb.textContent = "說服力";
+    var dots = document.createElement("span"); dots.textContent = "●".repeat(d.persuasion) + "○".repeat(Math.max(0, 5 - d.persuasion));
+    meter.appendChild(mb); meter.appendChild(dots); track.appendChild(meter);
+    box.appendChild(track);
+  }
   function renderDebate(v, box) {
     var d = v.debate;
     if (!d) { box.textContent = "(辯論尚未初始化)"; return; }
@@ -413,17 +534,15 @@
       broken: d.pillarSummary.filter(function (p) { return p.broken; }).map(function (p) { return p.id; }),
       persuasion: d.persuasion, status: d.status, phase: d.phase
     });
-    var head = document.createElement("p");
-    head.textContent = "支柱:" + d.pillarSummary.map(function (p) {
-      return p.id + (p.broken ? "✕(已破)" : "○");
-    }).join(" ") + "|說服力:" + "●".repeat(d.persuasion) + "○".repeat(Math.max(0, 5 - d.persuasion));
-    box.appendChild(head);
+    box.className = "debateBoard";
+    renderPillarTrack(d, box);
 
     if (d.status === "suspended") {
       var pS = document.createElement("p");
-      pS.textContent = "辯論已中止——證據與已破支柱保留。";
+      pS.className = "debateSuspend";
+      pS.textContent = "今日辯論中止。證據沒有消失，已破的支柱也不會復原；先把失手的配對攤開。";
       box.appendChild(pS);
-      mkBtn(box, "離場(回實驗室補證據)", function () { doDebate("debateExitSuspended", []); });
+      mkBtn(box, "與伽利略複盤", function () { doDebate("debateExitSuspended", []); });
       return;
     }
     if (d.status === "won" || d.phase === "won") {
@@ -439,22 +558,45 @@
       return;
     }
     if (d.phase === "pillars") {
-      var pT = document.createElement("p");
-      pT.textContent = "當前:" + d.pillar.title;
+      var pT = document.createElement("h3");
+      pT.className = "debateCurrent";
+      pT.textContent = d.pillar.title;
       box.appendChild(pT);
+      var stmtGrid = document.createElement("div");
+      stmtGrid.className = "statementGrid";
+      var selectedTarget = null, selectedEvidence = null;
+      var targetButtons = [], evidenceButtons = [];
       d.statements.forEach(function (st) {
-        var row = document.createElement("div");
-        row.className = "line" + (st.status === "broken" ? " broken" : "");
-        var span = document.createElement("span");
-        span.textContent = st.id + " " + st.text + " ";
-        row.appendChild(span);
-        if (st.status !== "broken" && !d.pressChoice) {
-          mkBtn(row, "追問", function () { doDebate("debatePress", [st.id]); });
+        var row = document.createElement("article");
+        row.className = "statementCard" + (st.pressed ? " isPressed" : "");
+        var quote = document.createElement("blockquote");
+        quote.textContent = "「" + st.text + "」";
+        row.appendChild(quote);
+        if (st.insight) {
+          var insight = document.createElement("p");
+          insight.className = "statementInsight";
+          insight.textContent = "問清之後｜" + st.insight;
+          row.appendChild(insight);
         }
-        box.appendChild(row);
+        var actions = document.createElement("div"); actions.className = "statementActions";
+        if (st.status !== "broken" && !d.pressChoice) {
+          var press = mkBtn(actions, st.pressed ? "已問清" : "問到底——讓他把前提說滿", function () {
+            doDebate("debatePress", [st.id]);
+          }, st.pressed);
+          press.className = "pressBtn";
+          var target = mkBtn(actions, "用證據回擊這一句", function () {
+            selectedTarget = st;
+            targetButtons.forEach(function (b) { b.setAttribute("aria-pressed", b === target ? "true" : "false"); });
+            updateAction();
+          });
+          target.className = "targetBtn"; target.setAttribute("aria-pressed", "false"); targetButtons.push(target);
+        }
+        row.appendChild(actions); stmtGrid.appendChild(row);
       });
+      box.appendChild(stmtGrid);
       if (d.pressChoice) {
-        var pc = document.createElement("p");
+        var pc = document.createElement("section");
+        pc.className = "pressChoice";
         pc.textContent = d.pressChoice.prompt;
         box.appendChild(pc);
         d.pressChoice.options.forEach(function (o) {
@@ -462,38 +604,40 @@
         });
         return;
       }
-      /* 出示表單 */
-      var form = document.createElement("p");
-      form.appendChild(document.createTextNode("出示:"));
-      var evSel = document.createElement("select");
-      ["E1", "E2", "E3", "E4", "S1", "S2"].forEach(function (ev) {
-        if (ev === "E3" || state.evidence[ev]) {
-          var o = document.createElement("option"); o.value = ev; o.textContent = ev; evSel.appendChild(o);
+      var handTitle = document.createElement("h3"); handTitle.textContent = "你的證據"; box.appendChild(handTitle);
+      var hand = document.createElement("div"); hand.className = "evidenceHand";
+      availableEvidenceCards().forEach(function (ev) {
+        var card = document.createElement("button");
+        card.type = "button"; card.className = "evidenceCard"; card.setAttribute("aria-pressed", "false");
+        var art = assetEntry("card_" + ev.evidence);
+        if (art) card.style.backgroundImage = "linear-gradient(rgba(247,240,223,.78),rgba(247,240,223,.9)),url(" + assetUrl(art) + ")";
+        var code = document.createElement("small");
+        code.textContent = ev.evidence === "E3" ? "斜面實驗・子結論" : "旅人筆記・證據";
+        var label = document.createElement("b"); label.textContent = ev.label;
+        card.appendChild(code); card.appendChild(label);
+        card.onclick = function () {
+          selectedEvidence = ev;
+          evidenceButtons.forEach(function (b) { b.setAttribute("aria-pressed", b === card ? "true" : "false"); });
+          updateAction();
+        };
+        evidenceButtons.push(card); hand.appendChild(card);
+      });
+      box.appendChild(hand);
+      var preview = document.createElement("button");
+      preview.type = "button"; preview.className = "presentAction"; preview.disabled = true;
+      preview.textContent = "先選一句證詞與一張證據";
+      preview.onclick = function () {
+        if (!selectedEvidence || !selectedTarget) return;
+        doDebate("debatePresent", [{ evidence: selectedEvidence.evidence, subitem: selectedEvidence.subitem, target: selectedTarget.id }]);
+      };
+      box.appendChild(preview);
+      function updateAction() {
+        if (!selectedEvidence || !selectedTarget) {
+          preview.disabled = true; preview.textContent = "先選一句證詞與一張證據"; return;
         }
-      });
-      evSel.setAttribute("aria-label", "選擇證據");
-      var subSel = document.createElement("select");
-      var e3lit = state.lab.evidence.e3; /* A-1:只列已取得子項(所有權=引擎 ownsEvidence 同語義) */
-      [["a", "a 規律成立"], ["b", "b 與球重無關"], ["c", "c 隨傾角形式不變"]].forEach(function (p) {
-        if (!e3lit[p[0]]) return;
-        var o = document.createElement("option"); o.value = p[0]; o.textContent = p[1]; subSel.appendChild(o);
-      });
-      subSel.setAttribute("aria-label", "E3 子項");
-      subSel.style.display = "";
-      evSel.onchange = function () { subSel.style.display = (evSel.value === "E3") ? "" : "none"; };
-      var tgSel = document.createElement("select");
-      d.statements.forEach(function (st) {
-        if (st.status !== "broken") {
-          var o = document.createElement("option"); o.value = st.id; o.textContent = "→ " + st.id; tgSel.appendChild(o);
-        }
-      });
-      tgSel.setAttribute("aria-label", "目標證詞");
-      form.appendChild(evSel); form.appendChild(subSel); form.appendChild(tgSel);
-      box.appendChild(form);
-      mkBtn(box, "出示", function () {
-        var sub = (evSel.value === "E3") ? subSel.value : null;
-        doDebate("debatePresent", [{ evidence: evSel.value, subitem: sub, target: tgSel.value }]);
-      });
+        preview.disabled = false;
+        preview.textContent = "出示「" + selectedEvidence.label + "」——反駁「" + selectedTarget.text + "」";
+      }
       return;
     }
     if (d.phase === "trap") {
@@ -523,15 +667,56 @@
       }
     }
   }
+  function renderDebrief(v, box) {
+    var d = v.debate;
+    box.className = "debateDebrief";
+    var h = document.createElement("h2"); h.textContent = "與伽利略複盤"; box.appendChild(h);
+    var lead = document.createElement("p");
+    lead.textContent = "你不缺證據。先看剛才把哪些證據放進了不相干的句子；已破的支柱會原樣保留。";
+    box.appendChild(lead);
+    var mistakes = d && d.mistakes ? d.mistakes : [];
+    var list = document.createElement("ol"); list.className = "debriefList";
+    if (!mistakes.length) {
+      var none = document.createElement("li"); none.textContent = "沒有可列出的配對；回想最後一個讓說服力歸零的選擇。"; list.appendChild(none);
+    }
+    mistakes.forEach(function (m) {
+      var li = document.createElement("li");
+      li.textContent = m.kind === "present"
+        ? "你用「" + evidenceLabel(m.evidence, m.subitem) + "」回擊「" + m.targetText + "」——兩者沒有咬合。"
+        : m.label;
+      list.appendChild(li);
+    });
+    box.appendChild(list);
+    var clueTitle = document.createElement("h3"); clueTitle.textContent = "已問清的前提"; box.appendChild(clueTitle);
+    var anyInsight = false;
+    (d && d.statements || []).forEach(function (st) {
+      if (!st.insight) return;
+      anyInsight = true;
+      var p = document.createElement("p"); p.className = "debriefInsight"; p.textContent = st.insight; box.appendChild(p);
+    });
+    if (!anyInsight) {
+      var p0 = document.createElement("p"); p0.className = "debriefInsight";
+      p0.textContent = d && d.phase === "pillars"
+        ? "你還沒有把當前證詞問清。重返後可先『問到底』，再決定證據要打哪一句。"
+        : "你已走到最後反撲。回看上面的失手：是哪一步越過了手上證據真正量到的邊界？";
+      box.appendChild(p0);
+    }
+    mkBtn(box, "整理好了，重返辯論", function () {
+      var r = N.embedComplete(state);
+      if (r.error) { addLine("system", r.error, "system"); return; }
+      setState(r.state); renderAll();
+    });
+  }
 
   /* ---------- 主渲染 ---------- */
   function renderAll() {
     renderStatus();
     var v = N.view(state);
     sceneHeading(v.scene);
-    emit("bd:view", { type: v.type, system: v.system || null, scene: v.scene, ended: !!state.ended });
+    emit("bd:view", { type: v.type, system: v.system || null, scene: v.scene, nodeId: v.nodeId, ended: !!state.ended });
     var box = $("controls");
     box.innerHTML = "";
+    box.className = "";
     if (v.type === "embed" && v.system === "incline") {
       $("lab").style.display = "";
       $("labHint").textContent = friendlyLabGoal(v);
@@ -546,11 +731,21 @@
         }
       }
       updateAssertButtons(v);
+      updateLabToolProfile(false);
+      if (v.scene === "A2-2" && v.nodeId === "e1") {
+        var p0 = TIMER_PROFILE[$("labTimer").value];
+        if (p0) showLabCoach("timer:" + $("labTimer").value, p0.coach);
+      }
       renderLabTables();
+      renderLabAssist();
       renderEmbedGate(v);
       return;
     }
     $("lab").style.display = "none";
+    if (v.type === "embed" && v.system === "debrief") {
+      renderDebrief(v, box);
+      return;
+    }
     if (v.type === "embed" && v.system === "debate") {
       renderDebate(v, box);
       return;

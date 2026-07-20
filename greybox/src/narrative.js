@@ -136,6 +136,7 @@
       persuasion: DEBATE.persuasion, idx: 0, pillars: pillars,
       p3NeedFlag: false, pressChoice: null,
       fr: { opened: false, step: 0, slots: [], trapPending: false, resolved: false },
+      mistakes: [],
       status: "pending"
     };
     state.eventLog.push({ t: "debateInit" });
@@ -144,6 +145,7 @@
     if (!state.debate) return;
     state.debate.persuasion = DEBATE.persuasion;
     if (state.debate.status === "suspended") state.debate.status = "pending";
+    state.debate.mistakes = [];
     state.eventLog.push({ t: "debateReenter" });
   }
   function curPillarId(d) { return CH.order[d.idx]; }
@@ -168,6 +170,11 @@
     if (d.status !== "pending") return "辯論非進行狀態";
     return null;
   }
+  function rememberMistake(d, rec) {
+    if (!d.mistakes) d.mistakes = [];
+    d.mistakes.push(rec);
+    if (d.mistakes.length > 6) d.mistakes.shift();
+  }
 
   /* B-1:證據所有權單一語義——引擎與 UI 共用(E3 依子項查 lab;其餘查章節證據) */
   function ownsEvidence(state, evidence, subitem) {
@@ -186,8 +193,12 @@
     if (d.idx >= 3) return { state: state0, error: "支柱已盡,面對最後反撲" };
     var stmt = findStmt(curPillarId(d), sid);
     if (!stmt) return { state: state0, error: "無此證詞" };
+    var pid = curPillarId(d);
+    if (d.pillars[pid].s[sid] === "pressed") return { state: state0, error: "這句已經問清了" };
     say(state, "旅人(你)", "【追問】" + stmt.text);
     say(state, "辛普里奧", stmt.press || "(不答。)");
+    d.pillars[pid].s[sid] = "pressed";
+    if (stmt.insight) say(state, "旅人筆記", "【問清之後】" + stmt.insight);
     if (stmt.pressChoice) {
       d.pressChoice = { sid: sid };
       return { state: state, choice: stmt.pressChoice };
@@ -206,6 +217,7 @@
     say(state, "旅人(你)", opt.text);
     say(state, "辛普里奧", opt.reply || "");
     if (opt.penalty) {
+      rememberMistake(d, { kind: "answer", label: "你用『未來的物理學』交換權威,反而走進了他的規則。" });
       if (opt.penalty.rep) applyRep(state, opt.penalty.rep, "debate.pressChoice");
       if (opt.penalty.persuasion) debatePersuasion(state, opt.penalty.persuasion, "debate.pressChoice");
     }
@@ -259,6 +271,10 @@
       outcome = "special";
     } else {
       say(state, "辛普里奧", CH.texts.wrong);
+      rememberMistake(d, {
+        kind: "present", pillar: pid, evidence: p.evidence, subitem: p.subitem || null,
+        target: p.target, targetText: stmt.text
+      });
       debatePersuasion(state, -1, "debate.present");
       outcome = d.status === "suspended" ? "suspended" : "wrong";
     }
@@ -297,6 +313,7 @@
       if (!t) return { state: state0, error: "選項不存在" };
       say(state, "旅人(你)", t.text);
       if (t.id === "lied") {
+        rememberMistake(d, { kind: "boundary", label: "你聲稱量過垂直落下,卻拿不出任何紀錄。" });
         say(state, "辛普里奧", t.reply);
         if (t.penalty.rep) applyRep(state, t.penalty.rep, "debate.trap");
         if (t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.trap");
@@ -326,6 +343,7 @@
     if (pickDistract) {
       say(state, "旅人(你)", pickDistract.text);
       say(state, "system", sch.distractorReply);
+      rememberMistake(d, { kind: "chain", label: "論證鏈選入『" + pickDistract.text + "』,但這一環撐不住追問。" });
       debatePersuasion(state, -1, "debate.fr.distractor");
       return { state: state, outcome: d.status === "suspended" ? "suspended" : "distractor" };
     }
@@ -351,7 +369,8 @@
   function debateView(state) {
     var d = state.debate;
     if (!d) return null;
-    var v = { persuasion: d.persuasion, status: d.status, pressChoice: null, phase: null };
+    var v = { persuasion: d.persuasion, status: d.status, pressChoice: null, phase: null,
+              mistakes: (d.mistakes || []).slice() };
     v.pillarSummary = ["P1", "P2", "P3"].map(function (pid) {
       return { id: pid, title: pillarDef(pid).title, broken: d.pillars[pid].broken };
     });
@@ -360,7 +379,9 @@
       v.phase = "pillars";
       v.pillar = { id: pid, title: pillarDef(pid).title };
       v.statements = pillarStatements(pid).map(function (s) {
-        return { id: s.id, text: s.text, status: d.pillars[pid].s[s.id] };
+        var status = d.pillars[pid].s[s.id];
+        return { id: s.id, text: s.text, status: status,
+                 pressed: status === "pressed", insight: status === "pressed" ? (s.insight || "") : "" };
       });
       if (d.pressChoice) {
         var stmt = findStmt(pid, d.pressChoice.sid);
@@ -410,7 +431,7 @@
     } else if (node.type === "embed") {
       v.system = node.system; v.hint = node.hint || ""; v.preset = node.preset || null;
       v.ready = untilMet(state, node.until);
-      if (node.system === "debate") v.debate = debateView(state);
+      if (node.system === "debate" || node.system === "debrief") v.debate = debateView(state);
     } else if (node.type === "review") {
       v.prompts = node.prompts;
     }
@@ -475,7 +496,14 @@
     state.lab = r.state;
     var e3 = state.lab.evidence.e3;
     if (e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
-    if (action === "judge" && ((r.claim && !r.claim.ok) || r.rejected)) state.flags.hadFailure = "1";
+    if (action === "judge") {
+      if ((r.claim && !r.claim.ok) || r.rejected) {
+        state.flags.hadFailure = "1";
+        state.flags.labFailStreak = String(parseInt(state.flags.labFailStreak || "0", 10) + 1);
+      } else if (r.claim && r.claim.ok) {
+        state.flags.labFailStreak = "0";
+      }
+    }
     state.eventLog.push({ t: "lab", action: action, at: state.cursor.scene + "/" + state.cursor.node });
     return { state: state, result: r };
   }

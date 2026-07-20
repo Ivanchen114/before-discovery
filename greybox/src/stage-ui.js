@@ -205,6 +205,12 @@
     var active = typing || waiting || queue.length > 0;
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
+    /* 對話真正播完才把鍵盤焦點交給轉場鈕；不得只在進場瞬間猜一次時機。 */
+    if (!active && body.classList.contains("embarkGate") && !$("btnEmbark").hidden) {
+      setTimeout(function () {
+        if (!body.classList.contains("held") && body.classList.contains("embarkGate")) $("btnEmbark").focus();
+      }, 0);
+    }
   }
   function charDelay(ch) {
     if (LONG_P.indexOf(ch) >= 0) return TYPE_MS + PAUSE_LONG;
@@ -348,27 +354,42 @@
         if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
       }, 0);
     }
-    /* 進實驗台確認閘:從敘事/選項流進 embed 時,先停在對話,玩家按「前往」才換場(讀完再走) */
-    if (view === "lab" && prevView !== "lab" && (prevView === "narration" || prevView === "choice")) {
+    /* 大型互動轉場確認閘：主實驗首次進場、信譽修復、首次辯論。
+       A2-3/e2/e3c 是同一工作階段的連續任務，不重複把玩家趕出再請進來。 */
+    var fromStory = prevView === "narration" || prevView === "choice";
+    var gateLab = view === "lab" && fromStory &&
+      (d.scene === "A2-2" || d.scene === "SC-R1");
+    var gateDebate = view === "debate" && fromStory && !debIntroSeen;
+    if (gateLab || gateDebate) {
+      pendingEmbarkView = view;
       body.classList.add("embarkGate");
+      $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
+        : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉" : "▸ 前往實驗台");
       $("btnEmbark").hidden = false;
-      setTimeout(function () { if (!body.classList.contains("held")) $("btnEmbark").focus(); }, 30);
+      syncFlags();
     } else if (view === "lab" && !labIntroSeen && !body.classList.contains("embarkGate")) {
       labIntroSeen = true; /* 非閘道路徑(讀檔直落實驗台):照舊直接給備忘卡 */
       setTimeout(showLabIntro, 0);
     }
-    if (view !== "lab") { body.classList.remove("embarkGate"); $("btnEmbark").hidden = true; }
-    if (view === "debate" && !debIntroSeen) { /* 首次進辯論廳:說服力與規則在這裡自我介紹(just-in-time) */
+    if (view !== "lab" && view !== "debate") {
+      pendingEmbarkView = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
+    }
+    if (view === "debate" && !debIntroSeen && !body.classList.contains("embarkGate")) { /* 讀檔直落辯論 */
       debIntroSeen = true;
       setTimeout(function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }, 0);
     }
     prevView = view;
   });
-  var prevView = null;
+  var prevView = null, pendingEmbarkView = null;
   $("btnEmbark").addEventListener("click", function () {
+    var target = pendingEmbarkView;
+    pendingEmbarkView = null;
     body.classList.remove("embarkGate");
     $("btnEmbark").hidden = true;
-    if (!labIntroSeen) { labIntroSeen = true; showLabIntro(); }
+    if (target === "debate") {
+      if (!debIntroSeen) { debIntroSeen = true; $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }
+      else { var db = $("controls").querySelector("button"); if (db) db.focus(); }
+    } else if (!labIntroSeen) { labIntroSeen = true; showLabIntro(); }
     else { var b = $("labRun"); if (b) b.focus(); }
   });
   document.addEventListener("bd:start", function () {
@@ -377,6 +398,7 @@
     curBustId = null;
     labIntroSeen = false;
     debIntroSeen = false;
+    pendingEmbarkView = null;
     repHinted = false; repPrev = null;
     $("labIntro").hidden = true;
     $("debIntro").hidden = true;

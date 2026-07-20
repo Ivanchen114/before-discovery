@@ -440,6 +440,47 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "試玩修正|實驗診斷+連續工作階段+辯論桌 v2+失敗分流(Sol 20260720)",
+  fn: () => {
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const chapterHtml = readFileSync(path.join(here, "../chapter.html"), "utf-8");
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const plainUi = readFileSync(path.join(here, "../src/ui.js"), "utf-8");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+
+    /* 實驗回饋:器材性格公開、兩道 12% 門檻分開說、失敗後才漸進給問句。 */
+    for (const frag of ['id="labToolProfile"', 'id="labCoach"', 'id="labAssist"', 'id="btnLabDiscuss"'])
+      if (!stageHtml.includes(frag)) throw new Error("實驗診斷 UI 缺失:" + frag);
+    for (const frag of ["TIMER_PROFILE", "labFailStreak", "neutralLabObservation", "strongLabQuestion",
+      "前四段形狀偏差", "第五段預測偏差", "兩項皆須 ≤ 12.0%"])
+      if (!cui.includes(frag)) throw new Error("實驗診斷邏輯缺失:" + frag);
+    if (cui.includes("選集內部不一致") || plainUi.includes("選集內部不一致"))
+      throw new Error("誤導性舊訊息『選集內部不一致』回歸");
+
+    /* 連續工作階段:A2-2 首入才閘；A2-3 e2/e3c 不重複跳出再進。 */
+    if (!sui.includes('d.scene === "A2-2" || d.scene === "SC-R1"'))
+      throw new Error("實驗進場閘未限縮為主實驗首次/信譽修復");
+    if (!sui.includes('$("btnEmbark").focus()')) throw new Error("轉場確認鈕未取得鍵盤焦點");
+
+    /* 辯論桌:證詞卡+證據手牌+自然語言行動句；追問後才顯示洞見。 */
+    for (const frag of ["statementCard", "evidenceHand", "問到底——讓他把前提說滿",
+      "先選一句證詞與一張證據", "renderDebrief", "與伽利略複盤"])
+      if (!cui.includes(frag)) throw new Error("辯論桌 v2 缺失:" + frag);
+    for (const p of Object.values((debate.chapter || {}).pillars || {})) {
+      const statements = p.useLegacy ? debate.statements : p.statements;
+      for (const st of statements) if (!st.insight) throw new Error("證詞缺追問洞見:" + st.id);
+    }
+    const a3f = scenes.scenes.find((s) => s.id === "A3-F");
+    const debrief = a3f && a3f.nodes.find((n) => n.type === "embed");
+    if (!debrief || debrief.system !== "debrief") throw new Error("說服力中止仍被誤導回實驗台");
+
+    /* 模式是玩法偏好，不把成年人/學生按學段分級。 */
+    for (const h of [stageHtml, chapterHtml])
+      if (/國中基準|高中以上/.test(h)) throw new Error("模式文案仍以學段標記玩家");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {

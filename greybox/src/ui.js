@@ -184,9 +184,9 @@
       $("judgeMsg").textContent = "主張 #" + c.id + " 成立(" + cfgLabel(c.config) + ")。已入主張紀錄。";
     } else {
       var parts = [];
-      if (!c.predHit) parts.push("預測未中(偏差 " + (c.predDev * 100).toFixed(1) + "%)");
-      if (!c.consistent) parts.push("選集內部不一致(最大偏差 " + (c.maxDev * 100).toFixed(1) + "%)");
-      $("judgeMsg").textContent = "主張 #" + c.id + " 不成立:" + parts.join(";") + "。";
+      parts.push("前四段形狀偏差 " + (c.maxDev * 100).toFixed(1) + "% " + (c.consistent ? "✓" : "✕"));
+      parts.push("第五段預測偏差 " + (c.predDev * 100).toFixed(1) + "% " + (c.predHit ? "✓" : "✕"));
+      $("judgeMsg").textContent = "主張 #" + c.id + " 未成立:" + parts.join(";") + "。認證門檻:兩項皆須 ≤12.0%。";
     }
     renderAll();
   };
