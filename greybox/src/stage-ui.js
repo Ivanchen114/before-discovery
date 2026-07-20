@@ -17,6 +17,7 @@
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
   function $(id) { return document.getElementById(id); }
+  function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
   var body = document.body;
 
   var reduced = false;
@@ -67,7 +68,7 @@
     curSceneId = sceneId;
     preloadScene(sceneId);
     var sc = sceneInfo(sceneId);
-    $("sceneChip").textContent = sceneId + (sc && sc.title ? "|" + sc.title : "");
+    $("sceneChip").textContent = sceneId + (sc && sc.title ? "｜" + displayText(sc.title) : "");
     var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[sceneId]) : null;
     var img = $("bgImg"), fb = $("bgFallback");
     if (e) {
@@ -351,7 +352,7 @@
     if (d.replay) { lastReplay = d; return; } /* 回放進筆記(chapter-ui 寫入 #log),不重演 */
     /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
     $("srLine").textContent =
-      (d.speaker && d.cls !== "stage" && d.cls !== "system" ? d.speaker + ":" : "") + d.text;
+      (d.speaker && d.cls !== "stage" && d.cls !== "system" ? displayText(d.speaker) + "：" : "") + displayText(d.text);
     enqueue(d);
   });
   var needKickoff = false;
@@ -464,11 +465,11 @@
     hideEl.classList.remove("on");
     mzPlateActive = (mzPlateActive === "A" ? "B" : "A");
   }
-  function mzSay(t) { $("mzSr").textContent = t; } /* 單一隱藏 live region:只播關鍵內容,通知不逐條搶讀 */
+  function mzSay(t) { $("mzSr").textContent = displayText(t); } /* 單一隱藏 live region:只播關鍵內容,通知不逐條搶讀 */
   function mzCap(t) {
     var el = $("mzCaption");
     el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
-    el.textContent = t;
+    el.textContent = displayText(t);
   }
   function mzReset() {
     mzBeat = -1;
@@ -1074,7 +1075,7 @@
     };
   })();
   function syncSfxBtn() {
-    $("btnSfx").textContent = "聲音:" + (SFX.isOn() ? "開" : "關");
+    $("btnSfx").textContent = "聲音：" + (SFX.isOn() ? "開" : "關");
     $("btnSfx").setAttribute("aria-pressed", SFX.isOn() ? "true" : "false");
   }
   $("btnSfx").addEventListener("click", function () {
@@ -1158,7 +1159,7 @@
       svg.push('<line x1="' + p[0] + '" y1="' + (p[1] - 9) + '" x2="' + p[0] + '" y2="' + (p[1] + 9) + '" stroke="#7a4b2a" stroke-width="2" id="tick' + i + '" opacity="0.25"/>');
       svg.push('<text x="' + p[0] + '" y="' + (p[1] + 24) + '" font-size="12" text-anchor="middle" fill="#5a4638" id="lbl' + i + '" opacity="0">第' + (i + 1) + "段 " + run.readings[i].toFixed(1) + "</text>");
     });
-    svg.push('<text x="' + (W - 8) + '" y="16" font-size="12" text-anchor="end" fill="#8a4f14">重播:' + run.config.ball + "・" + run.config.incline + "・" + run.config.timer + "(點擊跳過)</text>");
+    svg.push('<text x="' + (W - 8) + '" y="16" font-size="12" text-anchor="end" fill="#8a4f14">重播：' + run.config.ball + "・" + run.config.incline + "・" + run.config.timer + "（點擊跳過）</text>");
     svg.push('<circle id="ballDot" cx="' + x0 + '" cy="' + (y0 - 8) + '" r="9" fill="#7a4b2a" stroke="#241b16" stroke-width="1.5"/>');
     svg.push("</svg>");
     el.innerHTML = svg.join("");

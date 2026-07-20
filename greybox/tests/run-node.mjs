@@ -712,6 +712,8 @@ tests.push({
     }
     if (!sui.includes('SHORT_P = "、，,；;：:·—"') || !sui.includes('LONG_P = "。．.？！?!…"'))
       throw new Error("逐字演出未識別全形中文標點");
+    if (!sui.includes('"聲音：" +') || !sui.includes('displayText(d.speaker) + "："'))
+      throw new Error("動態 HUD／對話紀錄仍輸出半形中文標點");
   }
 });
 

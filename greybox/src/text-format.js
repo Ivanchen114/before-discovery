@@ -37,7 +37,12 @@
           var tag = child.parentNode && child.parentNode.nodeName;
           if (tag !== "SCRIPT" && tag !== "STYLE" && tag !== "TEXTAREA" && tag !== "CODE" && tag !== "PRE")
             child.nodeValue = normalizeZhPunctuation(child.nodeValue);
-        } else if (child.nodeType === 1) walk(child);
+        } else if (child.nodeType === 1) {
+          ["title", "aria-label", "placeholder"].forEach(function (name) {
+            if (child.hasAttribute(name)) child.setAttribute(name, normalizeZhPunctuation(child.getAttribute(name)));
+          });
+          walk(child);
+        }
         child = next;
       }
     }
