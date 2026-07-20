@@ -776,7 +776,7 @@
       toggle: function () { on = !on; try { sessionStorage.setItem("bd_sfx", on ? "on" : "off"); } catch (e) {} return on; },
       isOn: function () { return on; },
       ctx: ac,
-      drop: function () { tone(1180, 0.06, "sine", 0.05); },
+      drop: function () { tone(840, 0.05, "sine", 0.035); },
       blip: function () { tone(660, 0.05, "square", 0.03); },
       chime: function () { tone(880, 0.22, "sine", 0.06); setTimeout(function () { tone(1318, 0.3, "sine", 0.05); }, 90); },
       thud: function () { tone(88, 0.35, "sine", 0.2); tone(55, 0.5, "sine", 0.12); },
@@ -805,14 +805,16 @@
      每個 mood=低音 drone+調式撥弦(隨機稀疏)+環境噪音層;場景切換交叉淡入;非確定性=氛圍非 fixture。 */
   var BGM = (function () {
     var cur = null, master = null, layers = [], timers = [];
+    /* 撥弦層已停用(總監試玩:合成撥弦=丁丁丁風鈴,出戲)——只留鋪底 drone+環境噪音+辯論脈搏;
+       真音樂(Gemini 生成/bgmFiles)落地即整組讓位。pluckMs:null=不排撥弦。 */
     var MOODS = {
-      storm:    { drone: [55, 82.5],     scale: [660, 880, 990],              gain: 0.05,  pluckMs: [4000, 9000],  noise: "rumble" },
-      pisa:     { drone: [110, 165],     scale: [293.7, 330, 392, 440, 494],  gain: 0.06,  pluckMs: [2600, 6000],  noise: null },
-      study:    { drone: [98, 147],      scale: [261.6, 294, 349, 392],       gain: 0.05,  pluckMs: [3200, 7000],  noise: null },
-      rain:     { drone: [87.3, 130.8],  scale: [233, 262, 311, 349],         gain: 0.05,  pluckMs: [4500, 9000],  noise: "rain" },
-      workshop: { drone: [103.8, 155.6], scale: [277, 311, 370, 415],         gain: 0.055, pluckMs: [3000, 6500],  noise: "drip" },
-      hall:     { drone: [73.4, 110],    scale: [220, 246.9, 293.7],          gain: 0.06,  pluckMs: [5000, 10000], noise: null, pulse: true },
-      dusk:     { drone: [130.8, 196],   scale: [523, 587, 659, 784],         gain: 0.045, pluckMs: [3800, 8000],  noise: null }
+      storm:    { drone: [55, 82.5],     scale: [],  gain: 0.05,  pluckMs: null, noise: "rumble" },
+      pisa:     { drone: [110, 165],     scale: [],  gain: 0.05,  pluckMs: null, noise: null },
+      study:    { drone: [98, 147],      scale: [],  gain: 0.045, pluckMs: null, noise: null },
+      rain:     { drone: [87.3, 130.8],  scale: [],  gain: 0.05,  pluckMs: null, noise: "rain" },
+      workshop: { drone: [103.8, 155.6], scale: [],  gain: 0.05,  pluckMs: null, noise: "drip" },
+      hall:     { drone: [73.4, 110],    scale: [],  gain: 0.055, pluckMs: null, noise: null, pulse: true },
+      dusk:     { drone: [130.8, 196],   scale: [],  gain: 0.04,  pluckMs: null, noise: null }
     };
     function noiseBuf(c, secs) {
       var b = c.createBuffer(1, c.sampleRate * secs, c.sampleRate), d = b.getChannelData(0);
@@ -893,16 +895,16 @@
         g2.gain.value = M.noise === "rain" ? 0.5 : 0.3;
         s.connect(f2); f2.connect(g2); g2.connect(master);
         s.start(); layers.push(s);
-        if (M.noise === "drip") (function drip() {
+        if (M.noise === "drip") (function drip() { /* 低頻悶滴,稀疏——不再是丁 */
           timers.push(setTimeout(function () {
             if (!master) return;
             var o = c.createOscillator(), g = c.createGain();
-            o.type = "sine"; o.frequency.value = 1400 + Math.random() * 500;
-            g.gain.setValueAtTime(0.12, c.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.09);
-            o.connect(g); g.connect(master); o.start(); o.stop(c.currentTime + 0.1);
+            o.type = "sine"; o.frequency.value = 620 + Math.random() * 180;
+            g.gain.setValueAtTime(0.045, c.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.12);
+            o.connect(g); g.connect(master); o.start(); o.stop(c.currentTime + 0.13);
             drip();
-          }, 2500 + Math.random() * 3500));
+          }, 7000 + Math.random() * 7000));
         })();
       }
       if (M.pulse) (function beat() { /* 辯論廳:55Hz 低頻脈搏,緊張感的物理學 */
@@ -916,7 +918,7 @@
           beat();
         }, 1150));
       })();
-      (function stroll() { /* 撥弦隨機漫步 */
+      if (M.pluckMs && M.scale.length) (function stroll() { /* 撥弦漫步(現停用;真曲進場前不再排) */
         timers.push(setTimeout(function () {
           if (!master) return;
           pluck(c, M.scale[Math.floor(Math.random() * M.scale.length)], M);
