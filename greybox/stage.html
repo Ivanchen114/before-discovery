@@ -206,53 +206,23 @@
   .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden;
             clip: rect(0 0 0 0); white-space: nowrap; }
   .mzplate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-             opacity: 0; transition: opacity var(--motion-dramatic) ease; }
+             opacity: 0; transition: opacity 600ms ease; } /* v03:交叉淡化 500–800ms */
   .mzplate.on { opacity: 1; }
-  #prologueCard.bare #mzScreen { opacity: 0; } /* 板03:HTML 螢幕框讓位給指尖 */
-  #mzAurora { position: absolute; inset: 0; opacity: 0; transition: opacity calc(var(--motion-dramatic) * 2) ease;
-    background: linear-gradient(115deg, transparent 30%, rgba(64, 160, 110, 0.22) 45%,
-      rgba(120, 80, 190, 0.20) 62%, transparent 78%); pointer-events: none; }
-  #prologueCard.aurora #mzAurora { opacity: 1; }
-  #mzScreen { position: relative; width: min(560px, 82%); background: #11151a;
-    border: 1px solid #2a3542; border-radius: 10px; padding: 40px 26px 30px;
-    box-shadow: 0 0 60px rgba(140, 170, 200, 0.18); transition: box-shadow var(--motion-dramatic) ease, opacity var(--motion-medium) ease; }
-  #prologueCard.reach #mzScreen { box-shadow: 0 0 140px rgba(190, 215, 240, 0.5); }
-  #prologueCard.whiteout #mzScreen, #prologueCard.whiteout #mzCaption { opacity: 0; }
-  #mzClock { position: absolute; top: 10px; right: 14px; color: #9fb2c4; font-size: 13px;
-    font-variant-numeric: tabular-nums; }
-  #mzArticle { color: #cfd8e0; font-family: var(--font-ui); transition: transform 1.6s ease; }
-  #prologueCard.scrolled #mzArticle { transform: translateY(-14px); }
-  #mzArticle b { display: block; font-size: clamp(16px, 1.7vw, 21px); margin-bottom: 10px; color: #e8eef4; }
-  #mzArticle p { font-size: clamp(13px, 1.3vw, 16px); line-height: 1.8; color: #9fb2c4; margin: 0 0 12px; }
-  #mzTower { width: 52px; height: auto; display: block; margin: 4px auto 0; opacity: 0.9; }
-  #mzPush { position: absolute; top: -14px; left: 6%; right: 6%; background: #1c2128;
-    border: 1px solid #3d4b5c; border-left: 4px solid #b8842c; border-radius: 6px;
-    color: #dbe4ec; font-size: clamp(12px, 1.2vw, 15px); padding: 8px 12px;
-    animation: bdFade var(--motion-medium) ease; }
-  #mzPush b { color: #e8b85a; }
-  #mzCursor { position: absolute; left: 12%; top: 20%; width: 0; height: 0;
-    border-left: 11px solid #f0f4f8; border-bottom: 4px solid transparent; border-top: 12px solid transparent;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8)); transform: rotate(-8deg);
-    transition: left 2.6s ease, top 2.6s ease; }
-  #prologueCard.cursorMove #mzCursor { left: 47%; top: 66%; }
-  #mzNotifs { position: absolute; right: -10px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
-  .mzn { background: #1c2128; border: 1px solid #3d4b5c; color: #9fb2c4; font-size: 12px;
-    padding: 5px 10px; border-radius: 5px; animation: bdFade 240ms ease; }
-  #mzWhite { position: absolute; inset: 0; background: #f5efe2; opacity: 0; pointer-events: none;
-    transition: opacity calc(var(--motion-dramatic) * 1.6) ease; }
-  #prologueCard.whiteout #mzWhite { opacity: 0.45; } /* 板04 本身即白光,只疊輕量亮度層 */
-  #prologueCard.whiteout #mzCaption { color: #241b16; text-shadow: 0 1px 6px rgba(245, 239, 226, 0.85); }
+  /* v03(Sol 20260720):六板文字直生於圖;程式僅交叉淡化+字幕+題詞+無障礙文字,禁再疊可見 UI */
   #mzTitleLines { position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 24px; }
   #mzTitleLines[hidden] { display: none; }
-  #mzTitleLines p { font-family: var(--font-dialogue); color: #241b16;
+  #mzTitleLines p { font-family: var(--font-dialogue); color: #f6ecd8;
+    background: rgba(14, 10, 7, 0.42); padding: 8px 22px; border-radius: 6px; /* 暗色半透明字影,不用純白遮圖 */
+    text-shadow: 0 1px 6px rgba(10, 7, 5, 0.9);
     font-size: clamp(17px, 2vw, 26px); line-height: 1.9; margin: 0; opacity: 0;
     animation: bdFade var(--motion-dramatic) ease forwards; }
   #mzTitleLines p:nth-child(2) { animation-delay: calc(var(--motion-dramatic) * 0.8); }
   #mzTitleLines p:nth-child(3) { animation-delay: calc(var(--motion-dramatic) * 1.6); }
   #mzCaption { position: absolute; left: 6%; right: 6%; bottom: 12%; text-align: center;
     color: #e6d7bd; font-family: var(--font-dialogue); font-size: clamp(17px, 1.9vw, 24px);
-    line-height: 1.8; margin: 0; text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    line-height: 1.8; margin: 0;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.95), 0 0 14px rgba(0,0,0,0.55); /* 亮板上仍可讀 */
     animation: bdFade var(--motion-medium) ease; }
   #btnPrologueGo { position: absolute; right: 3%; bottom: 3%; background: none; color: rgba(207,169,107,0.85);
     border: 1px solid rgba(207,169,107,0.45); border-radius: 999px; min-height: 44px;
@@ -260,8 +230,8 @@
     cursor: pointer; font-family: var(--font-dialogue); }
   #btnPrologueGo:hover { background: rgba(122, 75, 42, 0.4); color: #f3e9d5; }
   @media (prefers-reduced-motion: reduce) {
-    #mzAurora, #mzScreen, #mzArticle, #mzCursor, #mzWhite, .mzplate { transition: none; }
-    #mzPush, .mzn, #mzCaption, #mzTitleLines p { animation: none; opacity: 1; }
+    .mzplate { transition: none; } /* 減少動態:立即換板 */
+    #mzCaption, #mzTitleLines p { animation: none; opacity: 1; }
   }
   /* --- 首次實驗備忘卡 --- */
   #labIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
@@ -446,28 +416,6 @@
         <img id="mzPlateA" class="mzplate" alt="" aria-hidden="true">
         <img id="mzPlateB" class="mzplate" alt="" aria-hidden="true">
         <div id="mzSr" class="srOnly" aria-live="polite"></div>
-        <div id="mzAurora" aria-hidden="true"></div>
-        <div id="mzScreen" aria-hidden="true">
-          <span id="mzClock"></span>
-          <div id="mzArticle">
-            <b>比薩斜塔上,他真的丟過那兩顆球嗎?</b>
-            <p>通俗故事常這樣開場:亞里斯多德錯了一千九百年,直到伽利略登上斜塔。可那兩顆球,真的落下過嗎?</p>
-            <svg id="mzTower" viewBox="0 0 40 84" aria-hidden="true">
-              <rect x="12" y="14" width="16" height="62" rx="2" fill="#cdb98f" transform="rotate(4 20 76)"/>
-              <rect x="10" y="8" width="20" height="10" rx="2" fill="#cdb98f" transform="rotate(4 20 76)"/>
-              <g fill="#8a7658" transform="rotate(4 20 76)">
-                <rect x="14" y="22" width="3" height="5"/><rect x="19" y="22" width="3" height="5"/><rect x="24" y="22" width="3" height="5"/>
-                <rect x="14" y="34" width="3" height="5"/><rect x="19" y="34" width="3" height="5"/><rect x="24" y="34" width="3" height="5"/>
-                <rect x="14" y="46" width="3" height="5"/><rect x="19" y="46" width="3" height="5"/><rect x="24" y="46" width="3" height="5"/>
-                <rect x="14" y="58" width="3" height="5"/><rect x="19" y="58" width="3" height="5"/><rect x="24" y="58" width="3" height="5"/>
-              </g>
-            </svg>
-          </div>
-          <div id="mzPush" hidden><b>突發</b>|罕見強烈地磁風暴抵達地球——低緯度地區出現極光,多地通訊異常。監測單位表示:<b>本次強度遠超預報,異常增幅原因待查</b>。</div>
-          <div id="mzCursor" hidden></div>
-          <div id="mzNotifs" aria-hidden="true"></div>
-        </div>
-        <div id="mzWhite" aria-hidden="true"></div>
         <div id="mzTitleLines" hidden>
           <p>你帶著四百年後的答案,墜入一五九〇年的清晨。</p>
           <p>但在那裡,沒有人相信說出口的謎底。</p>

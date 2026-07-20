@@ -368,13 +368,11 @@
 
   /* ---------- 序幕 P0-0「螢幕前」(A 案 cinematic;劇本草案 04_劇本/…P0-0…20260720,總監核) ----------
      真實時鐘=玩家系統時間;裝置感知:滑鼠=游標自移/觸控=頁面自捲;點擊或 Enter/Space=下一拍;
-     「跳過 ▸」與 Esc=整段跳過(原則 #19 演出永遠可跳);電磁風暴=系列電磁線環形伏筆,不解釋成因。 */
+     「跳過 ▸」與 Esc=整段跳過(原則 #19 演出永遠可跳);地磁風暴=系列電磁線環形伏筆,可神祕者為異常增幅非成因。 */
   var mzBeat = -1, mzTimers = [];
-  var mzCoarse = false;
-  try { mzCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches; } catch (e) {}
-  function mzClass(c, on) { $("prologueCard").classList.toggle(c, on); }
-  /* 四連板(Sol 20260720):拍→板映射;交叉淡化雙 img;無資產=退純 CSS 景(灰盒 fallback) */
-  var MZ_PLATE = [1, 1, 1, 1, 2, 2, 3, 4, 4];
+  /* v03 六板(Sol 20260720,文字直生於圖):拍→板映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;
+     程式僅交叉淡化+字幕+題詞+無障礙文字——禁再疊可見文章/新聞/通知/游標/動態時鐘(00:49 已入圖) */
+  var MZ_PLATE = [1, 1, 2, 3, 3, 4, 5, 6, 6];
   var mzPlateActive = "B", mzPlateCur = 0; /* 首板落 A 槽 */
   function mzSetPlate(n) {
     if (n === mzPlateCur) return;
@@ -398,48 +396,28 @@
   function mzReset() {
     mzBeat = -1;
     mzTimers.forEach(clearTimeout); mzTimers = [];
-    ["aurora", "reach", "whiteout", "cursorMove", "scrolled", "bare"].forEach(function (c) { mzClass(c, false); });
     mzPlateCur = 0; mzPlateActive = "B";
     $("mzPlateA").classList.remove("on"); $("mzPlateB").classList.remove("on");
     $("mzSr").textContent = "";
-    $("mzPush").hidden = true;
-    $("mzCursor").hidden = true;
-    $("mzNotifs").innerHTML = "";
     $("mzTitleLines").hidden = true;
     $("mzCaption").textContent = "";
     $("btnPrologueGo").textContent = "跳過 ▸";
-    var d = new Date();
-    $("mzClock").textContent = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
   }
   var MZ = [
-    function () { mzCap("深夜。房間裡只有螢幕的光。"); },
+    function () { mzCap("深夜,零點四十九分。房間裡,只剩平板的光。"); },
     function () {
-      mzCap("你在讀一篇文章,停在那座斜塔的插圖上。");
-      mzSay("文章標題:比薩斜塔上,他真的丟過那兩顆球嗎?內文:通俗故事常這樣開場——亞里斯多德錯了一千九百年,直到伽利略登上斜塔。可那兩顆球,真的落下過嗎?");
+      mzCap("文章停在那座斜塔——「那兩顆球,真的落下過嗎?」");
+      mzSay("平板畫面:物理史專題,時間零點四十九分。文章標題:比薩斜塔上,他真的丟過那兩顆球嗎?內文:通俗故事常這樣開場:直到伽利略登上斜塔。可那兩顆球,真的落下過嗎?");
     },
     function () {
-      $("mzPush").hidden = false;
-      mzCap("一則突發推播,跳了出來。");
-      mzSay("突發推播:罕見強烈地磁風暴抵達地球——低緯度地區出現極光,多地通訊異常。監測單位表示:本次強度遠超預報,異常增幅原因待查。");
+      mzCap("整面畫面,被突發新聞接管。窗簾縫,滲進第一縷不該有的顏色。");
+      mzSay("突發新聞:罕見強烈地磁風暴抵達地球。低緯度地區出現極光,多地通訊異常。監測單位:本次強度遠超預報,異常增幅原因待查。新聞畫面為地球磁層與極光環監測示意圖。");
     },
-    function () {
-      if (mzCoarse) { mzClass("scrolled", true); mzCap("頁面自己,往下捲了一行。又一行。像有誰替你讀。"); }
-      else { $("mzCursor").hidden = false; setTimeout(function () { mzClass("cursorMove", true); }, 60);
-             mzCap("游標——在你沒有碰它的情況下——慢慢地,移向那座斜塔。"); }
-    },
-    function () { mzClass("aurora", true); mzCap("窗簾縫隙滲進顏色。綠的,紫的。不該出現在這個緯度的顏色。"); },
-    function () {
-      mzCap("通知一則接一則彈出,又消失,快得像有人在替你翻頁。");
-      ["通訊異常", "極光警報:低緯度", "GPS 訊號中斷", "航班大面積延誤", "(無法載入)"].forEach(function (t, i) {
-        mzTimers.push(setTimeout(function () {
-          var n = document.createElement("div");
-          n.className = "mzn"; n.textContent = t;
-          $("mzNotifs").appendChild(n);
-        }, 180 * (i + 1)));
-      });
-    },
-    function () { mzClass("bare", true); mzCap("你伸手去關螢幕。指尖碰到玻璃的瞬間——玻璃,不見了。"); },
-    function () { mzClass("whiteout", true); mzCap("白光。墜落感。風裡有鐘聲,和一句聽不懂的話——像是,義大利語。"); },
+    function () { mzCap("你抬起頭。新聞裡的事,正在你的窗外發生——極光,在 101 後方炸開。"); },
+    function () { mzCap("家電哀鳴。燈,熄了。只剩你,和手裡那塊發光的玻璃。"); },
+    function () { mzCap("暗下來的玻璃上,新聞消失了。只剩——那座發著光的斜塔。你的右手,自己抬了起來。"); },
+    function () { mzCap("指尖碰到玻璃的瞬間——玻璃,不見了。平板的另一頭,有晨光。"); },
+    function () { mzCap("台北被抽走。四百年,從你身邊墜過。風裡有鐘聲,和一句聽不懂的話——像是,義大利語。"); },
     function () { mzCap(""); $("mzTitleLines").hidden = false; $("btnPrologueGo").textContent = "啟程"; }
   ];
   function mzNext() {

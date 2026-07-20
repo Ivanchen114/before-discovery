@@ -266,29 +266,38 @@ tests.push({
 });
 
 tests.push({
-  name: "序幕四連板|拍板映射+可及性關鍵文字+焦點圍欄+科學措辭(Sol 過目 20260720)",
+  name: "序幕 v03 六板|映射+舊版未引用+禁可見疊層+固定時間+可及性(Sol 交接 20260720)",
   fn: () => {
-    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const assetsText = readFileSync(path.join(here, "../data/assets.json"), "utf-8");
+    const assets = JSON.parse(assetsText);
     const ids = new Set(assets.entries.map((e) => e.id));
     const pp = assets.prologuePlates || {};
-    for (const k of ["1", "2", "3", "4"])
-      if (!pp[k] || !ids.has(pp[k])) throw new Error("prologuePlates 缺板 " + k);
+    for (const k of ["1", "2", "3", "4", "5", "6"])
+      if (!pp[k] || !ids.has(pp[k]) || !pp[k].includes("v03")) throw new Error("prologuePlates 缺 v03 板 " + k);
+    /* 舊版未引用:v01/v02 廢案禁止出現在 manifest */
+    for (const old of ["p0_0_plate01_dark_room", "p0_0_plate02_aurora_intrusion",
+      "p0_0_plate03_reach_glass", "p0_0_plate04_whitefall", "ch01/prologue/p0_0_plate"])
+      if (assetsText.includes(old)) throw new Error("廢案仍被引用:" + old);
+    /* 禁可見疊層:文字已直生於圖,程式不得再畫文章/新聞/通知/游標/動態時鐘/白層 */
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    /* 科學措辭:地磁風暴(NASA/NOAA 用語);神祕的是異常增幅,不是成因;斜塔=通俗故事(Museo Galileo) */
-    for (const frag of ["地磁風暴", "異常增幅原因待查", "通俗故事常這樣開場",
-      'id="mzPlateA"', 'id="mzPlateB"', 'id="mzSr"', 'aria-live="polite"'])
+    for (const banned of ['id="mzScreen"', 'id="mzArticle"', 'id="mzPush"', 'id="mzCursor"',
+      'id="mzNotifs"', 'id="mzClock"', 'id="mzWhite"', 'id="mzAurora"'])
+      if (stageHtml.includes(banned)) throw new Error("v03 禁令:可見疊層仍存在 " + banned);
+    for (const frag of ['id="mzPlateA"', 'id="mzPlateB"', 'id="mzSr"', 'aria-live="polite"', 'id="mzTitleLines"'])
       if (!stageHtml.includes(frag)) throw new Error("序幕要素缺失:" + frag);
-    for (const banned of ["電磁風暴", "成因尚不清楚"])
-      if (stageHtml.includes(banned)) throw new Error("違反科學措辭修正:" + banned);
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    /* 拍→板映射固定(0-3→1/4-5→2/6→3/7-8→4);可及性發聲;序幕焦點圍欄 */
-    if (!sui.includes("MZ_PLATE = [1, 1, 1, 1, 2, 2, 3, 4, 4]")) throw new Error("拍板映射不符 Sol 規格");
-    if (!sui.includes("mzSay(")) throw new Error("可及性關鍵文字(mzSay)缺失");
-    if (!/mzSay\("文章標題:/.test(sui) || !/mzSay\("突發推播:/.test(sui))
-      throw new Error("文章/推播關鍵內容未經可及性文字送出");
+    /* 固定時間 00:49 已入圖:程式不得輸出動態時鐘 */
+    if (/new Date\(/.test(sui)) throw new Error("固定時間契約:stage-ui 不得再有 new Date() 可見時鐘");
+    /* 拍→板映射(n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6) */
+    if (!sui.includes("MZ_PLATE = [1, 1, 2, 3, 3, 4, 5, 6, 6]")) throw new Error("六板拍映射不符交接規格");
+    /* 可及性:文章/新聞完整內容經隱藏 live region 送出;科學措辭鎖定 */
+    if (!/mzSay\("平板畫面:/.test(sui) || !/mzSay\("突發新聞:/.test(sui))
+      throw new Error("文章/新聞關鍵內容未經可及性文字送出");
+    for (const frag of ["地磁風暴", "異常增幅原因待查", "通俗故事常這樣開場", "那兩顆球"])
+      if (!sui.includes(frag)) throw new Error("可及性文字缺關鍵內容:" + frag);
+    for (const banned of ["電磁風暴", "成因尚不清楚"])
+      if (sui.includes(banned) || stageHtml.includes(banned)) throw new Error("違反科學措辭:" + banned);
     if (!/pc\.hidden && !pc\.contains\(ev\.target\)/.test(sui)) throw new Error("序幕焦點圍欄缺失");
-    if (!sui.includes('mzClass("bare", true)')) throw new Error("板03 應撤 HTML 螢幕框(bare)");
-    if (!/whiteout #mzWhite \{ opacity: 0\.4/.test(stageHtml)) throw new Error("板04 不得被全不透明白層蓋掉");
   }
 });
 
