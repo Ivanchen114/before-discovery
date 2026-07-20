@@ -104,7 +104,8 @@
               border: 1px solid rgba(230, 215, 189, 0.35); border-top: 2px solid var(--color-chapter-accent);
               border-radius: 6px; padding: 16px 20px 18px; box-sizing: border-box; }
   body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue,
-  body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue { display: none; }
+  body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue,
+  body[data-view="debate"] #dialogue { display: none; } /* 辯論:台詞演完即退場,讓出證據手牌(總監實玩:對話框壓住手牌) */
   body.queue-active #dialogue { display: block !important; }
   /* 雙肖像槽(Sol 審核 20260720):位置+明暗+名牌文字+色彩=四線索;站位由 speakerSide 資料決定,永不鏡像 */
   .bslot { position: absolute; bottom: 0; height: clamp(170px, 26vh, 220px);
