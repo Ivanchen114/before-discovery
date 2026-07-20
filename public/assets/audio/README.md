@@ -43,7 +43,7 @@
 
 **歷史審核狀態**(依 `05_審核/發現之前_第一章BGM與GB-ADR-011驗證_Sol_20260720.md`):v1 六檔皆約 30 秒，曾因 `loop=true` 造成單調；v2 已取消硬循環，改為單次 cue＋里程碑變奏＋環境音。仍須真人 G8 抽查相對音量、對白遮蔽與 A/B/C 交叉淡換。
 
-**授權補記**(公開發佈用,Sol BGM-3):Lyria 生成內容含 SynthID 數位浮水印,**不得移除**。生成紀錄——生成日期:2026-07-20;工具:Google Gemini 應用內音樂生成(Lyria,短片段版;非 Lyria Pro 長曲);生成帳號類型:【待總監填:免費/Google AI Pro】;適用條款:Google 生成式 AI 使用條款+Gemini 應用音樂生成說明(https://support.google.com/gemini/answer/16901237,查閱日 2026-07-20)。若日後以 Pro 重生長版,本欄逐項更新。
+**授權補記**(公開發佈用,Sol BGM-3):Lyria 生成內容含 SynthID 數位浮水印,**不得移除**。生成紀錄——生成日期:2026-07-20;工具:Google Gemini 應用內音樂生成(Lyria,短片段版;非 Lyria Pro 長曲);生成帳號類型:Google AI Pro(訂閱帳號,總監口頭確認 2026-07-20);適用條款:Google 生成式 AI 使用條款+Gemini 應用音樂生成說明(https://support.google.com/gemini/answer/16901237,查閱日 2026-07-20)。若日後以 Pro 重生長版,本欄逐項更新。
 
 六曲由總監以 Google Gemini(Lyria)生成;提示詞 v1 由 Claude 撰寫如下(共同鐵則:純器樂、無人聲、可無縫循環、音量平穩不搶台詞):
 
