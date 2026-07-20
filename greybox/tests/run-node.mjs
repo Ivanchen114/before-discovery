@@ -647,6 +647,8 @@ tests.push({
   name: "終幕卡+行動殼|下一章預告(戲劇卡+系統行)+全螢幕/轉橫+PWA manifest(GB-ADR-013/014)",
   fn: () => {
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    if (stageHtml.includes("灰盒對照版"))
+      throw new Error("玩家入口不應顯示內部灰盒對照連結");
     for (const frag of ['id="nextCard"', "拋出去的東西", "第二章製作中", "書信碼",
       'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
       if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);

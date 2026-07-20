@@ -6,7 +6,7 @@
 **⚠ 給玩家的提醒**:本倉庫含完整劇本與**謎底**(治理文件所需)——想保留解謎樂趣,請直接玩,別翻 `04_劇本/` 與 `greybox/decisions.md`。
 **授權**:程式=MIT(LICENSE)|劇本與內容=CC BY-NC-SA 4.0|字型=OFL|AI 生成資產條款見 LICENSE-CONTENT.md
 
-**最後更新**:2026-07-20|**階段**:第一章完整可玩(舞台版 stage.html);主要美術批次+Batch03 已接;**候選版 QA 未簽**(實機清單見 greybox/docs/browser-checklist.md)
+**最後更新**:2026-07-21|**階段**:第一章正式候選版完整可玩(`stage.html`);主要美術批次+Batch03 已接;**候選版 QA 未簽**(實機清單見 greybox/docs/browser-checklist.md)
 **團隊**:總監 陳育詮(唯一裁決者)|Claude(程式實作)|Sol(美術+對抗審查)——分工見 `decisions.md` ADR-001
 
 ## 資料夾地圖
@@ -20,7 +20,7 @@
 | `04_劇本/` | 章節完整劇本 | 第一章 **v0.2.2 🔒已凍結**|第二章 v0.1(紙上先行,ADR-010) |
 | `05_審核/` | 審核報告、審稿紀錄、驗算附件 | Sol 第 2 輪已交付;Claude 回應 20260719 已交付 |
 | `art/` | 美術來源母版、Art Proof、提示詞與生成審核紀錄 | 第一章寫實歷史插畫 G1 Art Proof v0.2（P-5 Style Lock） |
-| `greybox/` | **可玩遊戲**+引擎+測試+實作級 GB-ADR | **舞台版(候選正式呈現)**:雙擊 `greybox/stage.html`(滿版+對話框+逐字演出)|灰盒對照:`chapter.html`|切片:`index.html`|兩版同一存檔 |
+| `greybox/` | **可玩遊戲**+引擎+測試+實作級 GB-ADR | **玩家唯一入口**:`greybox/stage.html`(第一章正式候選版);`chapter.html` 與 `index.html` 僅供內部 QA/開發驗證 |
 | `archive/` | 被取代的舊版文件 | 勿引用 |
 
 ## 新協作者(Sol)從這裡開始
@@ -28,7 +28,7 @@
 1. 讀 `decisions.md`(分工與待裁決)→ `01_治理/發現之前_雙模型協作流程_v0.1.1.md`(工作規則)。
 2. 法源順序:`02_設計/架構計劃書 v0.3`(憲章,不可交易)→ `03_規格/灰盒功能規格書 v0.1.2` → 其餘。
 3. 你的當期任務:`01_治理/發現之前_Sol任務書_第2輪審查_20260718.md`。
-4. 玩灰盒:雙擊 `greybox/index.html`;跑測試:`greybox/` 內 `npm test`(Node 18+,零依賴)或開 `greybox/tests/tests.html`。
+4. 玩候選版:雙擊 `greybox/stage.html`;內部 QA 才使用 `chapter.html`/`index.html`;跑測試:`greybox/` 內 `npm test`(Node 18+,零依賴)或開 `greybox/tests/tests.html`。
 
 ## 鐵律摘要(全文見 01_治理)
 
