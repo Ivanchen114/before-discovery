@@ -13,9 +13,10 @@
   /* 字體三聲部(總監裁決 2026-07-20):
      系統聲部=黑體(現代/裝置/HUD)、世界聲部=明體(1590 對話與文件;萬曆年間=明體定型年代,與伽利略同代)、
      手的聲部=楷體(旅人筆記/玩家親筆)。明體自帶子集字型(BD Serif TC=Noto Serif CJK TC 子集,OFL,
-     1562 字約 1.4MB,見 public/assets/fonts/),根治 Windows 回退新細明體;楷體暫用系統字
-     (Mac=Kaiti TC/Win=標楷體 DFKai-SB),日後可換芫荽。P0-0 現代序章全用黑體,
-     明體首現於 1590 落地=字形自演穿越。 */
+     1562 字約 1.4MB,見 public/assets/fonts/),根治 Windows 回退新細明體;楷體=provisional,
+     暫用系統字(Mac=Kaiti TC/Win=標楷體),RC 前須隨遊戲附 OFL 手寫子集(Sol 字體驗證 B-2)。
+     P0-0 現代敘事全黑體,落地 1590 恢復世界明體;標題畫面=書封例外(封面→現代→歷史三拍,
+     Sol 字體驗證 B-1,勿宣稱「全遊戲首次出現明體」)。 */
   @font-face {
     font-family: "BD Serif TC";
     src: url("../public/assets/fonts/bd-serif-tc-regular.woff2") format("woff2");
@@ -324,7 +325,7 @@
   #mzTitleLines { position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 24px; }
   #mzTitleLines[hidden] { display: none; }
-  /* 穿越瞬間:P0-0 現代序章一律黑體,整個遊戲的第一個明體字出現在 1590 落地(字形自演穿越) */
+  /* 穿越剪接:P0-0 現代敘事一律黑體,落地 1590 恢復世界明體(標題=書封例外,不算首現) */
   #mzTitleLines p { font-family: var(--font-ui); color: #f6ecd8;
     background: rgba(14, 10, 7, 0.42); padding: 8px 22px; border-radius: 6px; /* 暗色半透明字影,不用純白遮圖 */
     text-shadow: 0 1px 6px rgba(10, 7, 5, 0.9);

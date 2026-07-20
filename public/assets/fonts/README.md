@@ -19,6 +19,10 @@ pyftsubset NotoSerifCJK-Regular.ttc --font-number=3 --text-file=charset.txt \
 # Bold 同理。需 python 套件:fonttools、brotli。
 ```
 
-**三聲部速查**(定義在 `greybox/stage.html`):`--font-dialogue`=明體(1590 世界)、`--font-ui`=黑體(現代/系統)、`--font-hand`=楷體(旅人筆記/玩家親筆;暫用系統楷,Mac=Kaiti TC、Win=標楷體,日後可換芫荽並比照本流程子集化)。
+**三聲部速查**(定義在 `greybox/stage.html`):`--font-dialogue`=明體(1590 世界)、`--font-ui`=黑體(現代/系統)、`--font-hand`=楷體(旅人筆記/玩家親筆)。
+
+**楷體狀態=provisional**(Sol 字體驗證 B-2,20260720):現靠系統字(Mac=Kaiti TC、Win=標楷體),但受檢 Mac 未必裝有,退到底會與世界明體合流=第三聲部不可保證存在。**RC 前義務**:子集化一套 OFL 楷/手寫字型(候選:芫荽)比照本流程隨遊戲出貨;在那之前不得宣告三聲部完成。
+
+**時序註記**(Sol B-1):玩家實際看到的是「標題明體(書封)→ P0-0 黑體(現代)→ 1590 明體(歷史)」三拍;標題畫面=封面例外,勿宣稱「全遊戲首次出現明體」。
 
 **OFL 義務**:再散布須附 LICENSE-OFL-1.1.txt;不得以「Noto」原名販售字型本體;隨遊戲捆綁散布=允許。

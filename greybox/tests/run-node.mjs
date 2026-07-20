@@ -558,7 +558,7 @@ tests.push({
 });
 
 tests.push({
-  name: "字體三聲部|明體子集出貨+P0-0 黑體(明體首現 1590)+手寫楷體聲部(總監裁決 20260720)",
+  name: "字體三聲部|明體子集出貨+P0-0 現代敘事全黑體(1590 恢復世界明體;標題=書封例外)+楷體 provisional(Sol 字體驗證 20260720)",
   fn: () => {
     /* 子集字型實體+授權隨行:未入庫=不存在 */
     const fdir = path.join(here, "../../public/assets/fonts");
@@ -570,18 +570,31 @@ tests.push({
     /* 明體鏈以子集字型為首;回退鏈保留 */
     if (!/--font-dialogue:\s*"BD Serif TC",\s*"Noto Serif TC"/.test(stageHtml))
       throw new Error("--font-dialogue 未以 BD Serif TC 為首");
-    /* 穿越瞬間:P0-0 題詞/字幕/按鈕=黑體,禁用明體(字形穿越契約) */
-    for (const sel of ["#mzTitleLines p", "#mzCaption", "#btnPrologueGo"]) {
+    /* 穿越剪接:P0-0 題詞/字幕/按鈕=黑體,禁用明體(標題畫面=書封例外,不在此檢) */
+    const blockOf = (sel) => {
       const m = stageHtml.split(sel + " {")[1];
-      if (!m) throw new Error("P0-0 選擇器缺失:" + sel);
-      const block = m.slice(0, m.indexOf("}"));
-      if (block.includes("--font-dialogue")) throw new Error("P0-0 出現明體(穿越瞬間破功):" + sel);
-    }
-    /* 手的聲部:旅人筆記台詞+回顧作答+檯上便條 */
+      if (!m) throw new Error("選擇器缺失:" + sel);
+      return m.slice(0, m.indexOf("}"));
+    };
+    for (const sel of ["#mzTitleLines p", "#mzCaption", "#btnPrologueGo"])
+      if (blockOf(sel).includes("--font-dialogue")) throw new Error("P0-0 出現明體(穿越剪接破功):" + sel);
+    /* 楷體三落點常駐(Sol 最小修正 ③):回顧作答/檯上便條/旅人筆記台詞 */
+    if (!blockOf('body[data-view="review"] #controls textarea').includes("--font-hand"))
+      throw new Error("楷體落點缺:回顧作答");
+    if (!blockOf("#labHint").includes("--font-hand")) throw new Error("楷體落點缺:檯上便條");
     if (!stageHtml.includes('#dialogue[data-speaker="旅人筆記"] #dlgText'))
-      throw new Error("旅人筆記手寫規則缺失");
+      throw new Error("楷體落點缺:旅人筆記台詞");
     if (!readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8").includes("dataset.speaker"))
       throw new Error("stage-ui 未掛 speaker 資料屬性");
+    /* runtime 確有「旅人筆記」發言來源,CSS 掛勾不落空 */
+    if (!readFileSync(path.join(here, "../src/narrative.js"), "utf-8").includes('"旅人筆記"'))
+      throw new Error("narrative 無旅人筆記發言來源");
+    /* 便條=玩家親筆:第一人稱自筆語氣(Sol B-3) */
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (!cui.includes("我要從四段數字找出規律")) throw new Error("便條未改第一人稱");
+    /* 楷體 provisional 標記+RC 前義務入檔 */
+    if (!readFileSync(path.join(fdir, "README.md"), "utf-8").includes("provisional"))
+      throw new Error("楷體未標 provisional");
   }
 });
 

@@ -349,14 +349,15 @@
     if (secClaims) secClaims.hidden = state.lab.inference.claims.length === 0;
     if (empty) empty.hidden = state.lab.evidence.runs.length > 0;
   }
-  function friendlyLabGoal(v) { /* 凍結 hint 保留於資料層；玩家只看白話任務。 */
+  function friendlyLabGoal(v) { /* 凍結 hint 保留於資料層；玩家只看白話任務。
+       第一人稱自筆語氣(Sol 字體驗證 B-3):便條套楷體=玩家親筆,文案不得像系統下指令。 */
     var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
     var until = (nodeDef && nodeDef.until) || {};
-    if (until.e3 === "a") return "從四段數字找出規律，押中第五段，讓它成為你的第一筆主張。";
-    if (until.e3 === "b") return "只換球的大小，做出兩筆成立紀錄，看看重量有沒有改變規律。";
-    if (until.e3 === "c") return "只改斜面的傾角，再做一筆成立紀錄，看看規律的形狀會不會變。";
-    if (until.repairRun) return "做完任意一次乾淨的實驗，把新紀錄帶回去。";
-    return "自由檢查你的實驗簿。";
+    if (until.e3 === "a") return "我要從四段數字找出規律，押中第五段——這會是我的第一筆主張。";
+    if (until.e3 === "b") return "我只換球的大小，做出兩筆成立紀錄，看重量會不會改變規律。";
+    if (until.e3 === "c") return "我只改斜面的傾角，再做一筆成立紀錄，看規律的形狀變不變。";
+    if (until.repairRun) return "我要重新做一次乾淨的實驗，把新紀錄帶回去。";
+    return "翻翻我的實驗簿，想想下一步。";
   }
   function lastFailedClaim() {
     var cs = state.lab.inference.claims;
