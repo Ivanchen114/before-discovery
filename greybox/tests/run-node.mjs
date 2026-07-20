@@ -1,7 +1,7 @@
 /* tests/run-node.mjs — `npm test` 進入點(零外部依賴)
    執行:共用套件全部測試 + R-DATA-05 鏡像一致性(需檔案系統,node 限定) */
 import { createRequire } from "module";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -716,6 +716,19 @@ tests.push({
       throw new Error("逐字演出未識別全形中文標點");
     if (!sui.includes('"聲音：" +') || !sui.includes('displayText(d.speaker) + "："'))
       throw new Error("動態 HUD／對話紀錄仍輸出半形中文標點");
+  }
+});
+
+tests.push({
+  name: "C-2 拆分|stage-ui.js ≡ src/stage/*.part.js 串接(落後檢測;GB-ADR-015)",
+  fn: async () => {
+    const { concatParts } = await import("../tools/build-stage.mjs");
+    const disk = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    if (concatParts() !== disk)
+      throw new Error("stage-ui.js 落後於 part 檔:執行 node tools/build-stage.mjs 後重新 commit");
+    const parts = readdirSync(path.join(here, "../src/stage")).filter((f) => f.endsWith(".part.js"));
+    if (parts.length < 11) throw new Error("stage part 檔缺失(應 ≥11,現 " + parts.length + ")");
+    if (!disk.includes("本檔為生成物")) throw new Error("stage-ui.js 缺生成告示");
   }
 });
 

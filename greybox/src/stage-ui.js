@@ -1,4 +1,6 @@
 /* src/stage-ui.js — 滿版舞台表現層 v2(僅 stage.html 載入;chapter.html 不載本檔=灰盒不變)。
+   ⚠ 本檔為生成物(GB-ADR-015 C-2 拆分):源碼在 src/stage/*.part.js,改 part 後執行
+   `node tools/build-stage.mjs` 重建;直接改本檔=白改且落後檢測會紅。
    職責:訂閱 chapter-ui.js 的 bd:* 事件,做打字機/半身像/場景背景/筆記本模式。
    鐵律:不碰引擎、不碰狀態、不碰存檔——只消費事件、唯讀資料(scenes/assets)與 DOM。
    v2(總監裁決 2026-07-19 第一輪視覺修正):
