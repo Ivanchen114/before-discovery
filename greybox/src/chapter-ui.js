@@ -239,12 +239,16 @@
       if (el) el.hidden = true;
     }
   }
-  function updateAssertButtons(v) { /* 依 embed until 決定,不看模式(E3.c 雙模式必經) */
+  function updateAssertButtons(v) { /* GB-ADR-011 斷言分段:實驗自由,斷言=劇情里程碑,等劇情提問才亮。
+       stage a=只認證;b=亮「與球重無關」;c=亮「隨傾角形式不變」(雙模式必經,E3.c 契約不變);
+       repairRun(SC-R1)=兩者皆隱;無 until 的自由段=B 開放、C 依學者。 */
     var nodeDef = N._sceneMap[v.scene] && N._sceneMap[v.scene].nodes[v.nodeId];
     var until = (nodeDef && nodeDef.until) || {};
-    var needC = until.e3 === "c";
-    $("labAssertC").style.display = (needC || state.mode === "scholar") ? "" : "none";
-    $("labAssertB").style.display = needC ? "none" : ""; /* C 階段隱藏 B,避免選錯工具 */
+    var stage = until.e3 || null;
+    var showB = stage === "b" || (stage === null && !until.repairRun);
+    var showC = stage === "c" || (stage === null && !until.repairRun && state.mode === "scholar");
+    $("labAssertB").style.display = showB ? "" : "none";
+    $("labAssertC").style.display = showC ? "" : "none";
   }
   function checkedIds(cls) {
     return Array.prototype.map.call(document.querySelectorAll("." + cls + ":checked"), function (el) {
