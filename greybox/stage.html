@@ -192,7 +192,7 @@
   #nbSheet.nb-art #nbPages { position: absolute; left: 11%; right: 10%; top: 7.5%; bottom: 9%; }
   #nbSheet.nb-art #nbLeft { border-right: none; padding: 1.5% 7% 2% 2%; }
   #nbSheet.nb-art #nbRight { padding: 1.5% 2% 2% 7%; }
-  @media (max-height: 520px) { /* 手機橫屏:退回素面單頁,不擠書縫 */
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { /* 手機橫屏:退回素面單頁,不擠書縫 */
     #nbSheet.nb-art { background-image: none !important; aspect-ratio: auto; width: 97%; height: 95%;
       background-color: var(--color-surface-notebook); border: 2px solid var(--color-chapter-accent); padding: 10px 16px; }
     #nbSheet.nb-art #nbHead { position: static; }
@@ -275,7 +275,7 @@
   body[data-view="review"] #controls button { grid-column: 2; justify-self: end;
     background: var(--color-chapter-accent); color: #f3e9d5; border-radius: 999px;
     letter-spacing: 0.28em; padding: 8px 30px; font-family: var(--font-dialogue); }
-  @media (max-height: 520px) {
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     body[data-view="review"] #panelWrap { background-size: cover; }
     body[data-view="review"] #controls { grid-template-columns: 1fr; gap: 8px; padding: 7% 12%; overflow-y: auto; }
     body[data-view="review"] #controls button { grid-column: 1; }
@@ -317,7 +317,7 @@
     margin: 0; border: none; background: none; font-family: var(--font-dialogue);
     font-size: 0.95em; padding: 6px 10px; }
   #panelWrap .grpToggle:hover { background: rgba(122, 75, 42, 0.14); }
-  @media (max-height: 520px) { /* 手機橫屏:天數收進 row detail(title),四段與選取優先 */
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { /* 手機橫屏:天數收進 row detail(title),四段與選取優先 */
     #lab table th:nth-child(8), #lab table td:nth-child(8) { display: none; }
   }
   .tblhint { margin: 2px 0 6px; }
@@ -454,7 +454,7 @@
     min-height: 30px; min-width: 30px; border-radius: 50%; border: 1px solid var(--color-chapter-accent);
     background: var(--color-surface-world); cursor: pointer; font-family: var(--font-dialogue); }
   body[data-view="debate"] #btnDebHelp { display: block; }
-  @media (max-height: 520px) { #diSheet { max-height: 92%; overflow-y: auto; } }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { #diSheet { max-height: 92%; overflow-y: auto; } }
   /* --- 首次實驗備忘卡 --- */
   #labIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
     display: flex; align-items: center; justify-content: center; }
@@ -475,7 +475,7 @@
     padding: 8px 26px; font-size: 1em; cursor: pointer; font-family: var(--font-dialogue);
     letter-spacing: 0.14em; display: block; margin: 10px 0 2px auto; }
   #btnLabIntroGo:hover { background: #935c35; }
-  @media (max-height: 520px) { #liProps img { height: 56px; } #liSheet { max-height: 92%; overflow-y: auto; } }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { #liProps img { height: 56px; } #liSheet { max-height: 92%; overflow-y: auto; } }
   /* --- 體感層:斜面重播動畫/時間跳躍/支柱破裂/證據脈動 --- */
   #labAnim { clear: both; margin: 8px 0; border: 1px solid var(--color-ink-secondary);
     border-radius: 4px; background: #efe4c9; cursor: pointer; display: none; }
@@ -567,7 +567,7 @@
   #embedGate .gateStatus { padding: 8px 10px; border-left: 3px solid rgba(122,75,42,0.44);
     color: var(--color-ink-secondary); background: rgba(122,75,42,0.06); }
   #embedGate.ready button { width: 100%; font-family: var(--font-dialogue); font-weight: 600; letter-spacing: 0.12em; }
-  @media (max-height: 520px) and (min-width: 701px) {
+  @media (max-height: 520px) and (min-width: 701px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     body[data-view="lab"] #panelWrap { top: 14%; bottom: 3%; max-height: none; padding: 10px 12px; }
     #lab { grid-template-columns: minmax(280px, 40%) minmax(0, 1fr); gap: 13px; }
     #labBook { padding-left: 12px; }
@@ -580,11 +580,11 @@
     #labFlow { display: none; }
     #labEmpty { min-height: 90px; }
   }
-  @media (max-width: 1100px) and (min-height: 521px) {
+  @media (max-width: 1100px) and (min-height: 521px) and (pointer: fine) {
     #lab { grid-template-columns: 1fr; }
     #labBook { border-left: none; border-top: 2px solid rgba(90,70,56,0.24); padding: 14px 0 0; }
   }
-  @media (max-width: 700px) {
+  @media (max-width: 700px) and (pointer: fine) {
     body[data-view="lab"] #panelWrap { top: 12%; bottom: 3%; max-height: none; }
     #lab { grid-template-columns: 1fr; }
     #labBook { border-left: none; border-top: 2px solid rgba(90,70,56,0.24); padding: 14px 0 0; }
@@ -635,7 +635,7 @@
   .debriefList { padding: 10px 10px 10px 34px; background: rgba(122,75,42,.07); border-radius: 6px; }
   .debriefList li { margin: 7px 0; line-height: 1.5; }
   .debriefInsight { padding: 8px 10px; border-left: 3px solid var(--color-evidence); background: rgba(31,48,63,.06); }
-  @media (max-height: 520px) {
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     body[data-view="debate"] #panelWrap { top: 14%; bottom: 3%; max-height: none; padding: 9px 12px; }
     .debatePillars { grid-template-columns: repeat(3, minmax(105px,1fr)) 130px; gap: 5px; }
     .debatePillar, .debateMeter { min-height: 48px; padding: 4px 7px; }
@@ -644,7 +644,7 @@
     .statementCard blockquote { font-size: .94em; }
     .evidenceCard { flex-basis: 145px; min-height: 76px !important; }
   }
-  @media (max-width: 760px) and (min-height: 521px) {
+  @media (max-width: 760px) and (min-height: 521px) and (pointer: fine) {
     .debatePillars { grid-template-columns: 1fr 1fr; }
     .statementGrid { grid-template-columns: 1fr; }
   }
@@ -868,14 +868,14 @@
     border-color: rgba(91, 62, 37, 0.5);
     background: transparent;
   }
-  @media (max-height: 520px) and (min-width: 701px) {
+  @media (max-height: 520px) and (min-width: 701px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     body[data-view="lab"] #panelWrap { padding: 7px; }
     body[data-view="lab"] #lab { grid-template-columns: minmax(280px, 40%) minmax(0, 1fr); gap: 7px; }
     body[data-view="lab"] #labBench, body[data-view="lab"] #labBook { padding: 9px; }
     body[data-view="lab"] #labProps figcaption { display: none; }
     body[data-view="lab"] #labConfig label { min-height: 38px; padding: 2px 5px 2px 7px; }
   }
-  @media (max-width: 1100px) and (min-height: 521px), (max-width: 700px) {
+  @media (max-width: 1100px) and (min-height: 521px) and (pointer: fine), (max-width: 700px) and (pointer: fine) {
     body[data-view="lab"] #lab { grid-template-columns: 1fr; }
     body[data-view="lab"] #labBook { border-top: 1px solid rgba(80, 58, 39, 0.46); padding: 14px; }
   }
@@ -885,11 +885,11 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
   #histBanner { display: none; width: 100%; height: auto; border-radius: 4px; margin: 0 0 10px; }
   body[data-view="histfacts"] #histBanner { display: block; }
-  @media (max-height: 520px) { body[data-view="histfacts"] #histBanner { max-height: 110px; object-fit: cover; } }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { body[data-view="histfacts"] #histBanner { max-height: 110px; object-fit: cover; } }
   #tomeDecor { display: none; }
   body[data-view="debate"] #tomeDecor { display: block; float: right; height: 96px; width: auto;
     margin: 0 0 8px 12px; opacity: 0.92; }
-  @media (max-height: 520px) { body[data-view="debate"] #tomeDecor { height: 64px; } }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { body[data-view="debate"] #tomeDecor { height: 64px; } }
   #nbLabSnap table { border-collapse: collapse; margin: 6px 0; font-size: 0.92em; width: 100%; }
   #nbLabSnap th, #nbLabSnap td { border: 1px solid var(--color-ink-secondary); padding: 2px 7px;
     text-align: right; font-variant-numeric: tabular-nums; }
@@ -908,7 +908,7 @@
   #log .composite { width: 36px; vertical-align: middle; margin-right: 6px; }
 
   /* --- 手機橫屏(低高度視窗) --- */
-  @media (max-height: 520px) {
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     #dialogue { min-height: 38%; padding: 12px 14px 14px; }
     #dlgText { font-size: clamp(20px, 4.4vh, 24px); }
     #dlgText.sys.gain { font-size: 1em; line-height: 1.5; }
@@ -959,7 +959,7 @@
 
   /* --- 手機橫屏真機修正包（844×390／932×430）---
      僅在低高度橫屏生效；桌機排版與字級不變。 */
-  @media (max-height: 520px) and (min-width: 701px) {
+  @media (max-height: 520px) and (min-width: 701px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     /* 兩欄配置保留，但每格必須把選單限制在自己的欄內。 */
     body[data-view="lab"] #labConfig label {
       display: grid;
@@ -1087,11 +1087,11 @@
     padding: 7px; font: 12px/1.3 var(--font-ui); margin: 6px 0; resize: none; }
   #titleCard textarea:focus { border-color: #cfa96b; }
   #letterMsg { margin: 5px 0 0; font: 400 11px/1.35 var(--font-ui); }
-  @media (max-width: 760px) and (min-height: 521px) {
+  @media (max-width: 760px) and (min-height: 521px) and (pointer: fine) {
     #titleCard { grid-template-columns: 1fr; grid-template-areas: "identity" "launch"; gap: 12px; overflow-y: auto; }
     .titleIdentity { border-right: 0; border-bottom: 1px solid rgba(207,169,107,.42); padding: 0 0 12px; }
   }
-  @media (max-height: 520px) and (min-width: 701px) {
+  @media (max-height: 520px) and (min-width: 701px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     #titleCard { width: min(96%, 920px); max-height: calc(100% - 10px); grid-template-columns: minmax(180px,.62fr) minmax(470px,1.7fr);
       gap: 14px; padding: 10px 14px; overflow: hidden; }
     .titleIdentity { padding: 4px 14px 4px 0; }

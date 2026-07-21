@@ -66,6 +66,7 @@
 **背景**:玩家回報安卓「進不去」;總監截圖定位根因——直向時 16:9 舞台成 219px 高帶,標題卡上下溢出被裁,繼續/開始按鈕不可見;rotateHint 被關閉後即卡死。總監問「一進去可以直接是橫屏嗎」。
 **裁決**:網頁無法命令裝置轉向(iOS 無鎖向 API;Android 需全螢幕手勢),採遊戲業標準解:**portrait+coarse 時整座 #stage 旋轉 90°(translate 置中+rotate)畫滿螢幕**,寬高公式=原式 vw/vh 對調(dvh 優先,vh 回退);實體轉向即由真橫屏 media 接手。rotateHint 於此模式退場(GB-ADR-014 的攔截職責被本案取代;原則 38 的層級要求仍適用於其餘 overlay)。已知代價:直向下鍵盤輸入(押注值/回顧/書信碼)為側向打字,可接受;字級 clamp 之 vw 縮小由 px 下限兜底。
 **驗證**:契約測試(media 條件+rotate+rotateHint 退場);真機=總監 Android/iPhone 直拿實測,見標題全貌並可開局。
+**補記(2026-07-21,總監授權 Claude 代修,Sol 事後複驗)**:系列首頁 v2 驗證揭露整合縫——media query 依視窗非旋轉舞台,直拿手機命中「窄高」分支跑出直版單欄。修法=**旋轉手機視同 844×390 低高度橫屏**:全部 13 個 `(max-height:520px)` 系列區塊追加替代式 `(orientation:portrait) and (pointer:coarse) and (max-width:520px)`(max-width 限定=視覺高度<520,iPad 直拿不誤吃手機壓縮版);全部 5 個窄高/窄寬區塊加 `(pointer:fine)` 鎖桌機。真橫屏手機規則零改動。契約測試鎖兩式。
 
 ## GB-ADR-015|stage-ui 拆分=分檔源+生成串接(2026-07-21)
 

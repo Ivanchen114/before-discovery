@@ -680,6 +680,11 @@ tests.push({
       throw new Error("直向自動橫置規則缺失(GB-ADR-016)");
     if (!/rotate\(90deg\);[\s\S]{0,200}#rotateHint \{ display: none !important; \}/.test(stageHtml))
       throw new Error("自動橫置後 rotateHint 未退場");
+    /* 016 補記:旋轉手機=視覺低高度橫屏——低高度規則需含直向替代式;窄高規則鎖桌機(pointer:fine) */
+    if (!stageHtml.includes("(orientation: portrait) and (pointer: coarse) and (max-width: 520px)"))
+      throw new Error("低高度規則缺直向旋轉替代式(GB-ADR-016 補記)");
+    if (!stageHtml.includes("(min-height: 521px) and (pointer: fine)"))
+      throw new Error("窄高規則未鎖桌機 pointer:fine");
     /* stage-ui:全螢幕+鎖向+終幕卡掛點;iPhone 不支援時藏鈕 */
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const frag of ["requestFullscreen", 'orientation.lock("landscape")', "nextCard", "btnRotDismiss"])

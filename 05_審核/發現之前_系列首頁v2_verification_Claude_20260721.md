@@ -16,7 +16,9 @@
 
 `stage.html` 標題區保留 `@media (max-width:760px) and (min-height:521px) → #titleCard 單欄+overflow-y:auto`(窄高視窗用)。**media query 依視窗而非旋轉後舞台**:手機直拿時(390×844)GB-ADR-016 已把舞台轉成 844×390 視覺橫屏,但此分支仍命中 → 橫舞台內渲染直版單欄捲動卡,與 v2「單屏無捲動」目標相悖。
 
-**建議修法(擇一,Sol 裁)**:
+**處置(2026-07-21 追記)**:總監授權 Claude 代修,採方案 a 之系統化版——不只標題卡,**全站 18 個 media 區塊一次對齊**(13 個低高度區塊加直向旋轉替代式、5 個窄高窄寬區塊鎖 pointer:fine;iPad 直拿以 max-width:520 排除)。契約測試鎖定;66/66。詳 GB-ADR-016 補記。**請 Sol 事後複驗**(特別是 844×390 真橫屏未受波及+iPad 直拿旋轉後的桌面版面)。
+
+**原建議修法(擇一,Sol 裁)**:
 a. 窄高分支加 `and (pointer: fine)`——排除觸控直向(它已被 016 轉橫),桌機窄窗保留單欄捲動;另在 `(orientation: portrait) and (pointer: coarse)` 區塊把標題卡映射到低高度橫屏規則(844×390 同款)。
 b. 016 的旋轉區塊內直接覆寫 titleCard 為橫屏 grid(重複規則較多,但自包含)。
 
