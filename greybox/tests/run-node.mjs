@@ -670,6 +670,11 @@ tests.push({
       throw new Error("manifest 應為 fullscreen+landscape");
     for (const ic of mani.icons)
       if (!existsSync(path.join(here, "../..", ic.src))) throw new Error("manifest 圖示缺檔:" + ic.src);
+    /* 直向自動橫置(GB-ADR-016):portrait+coarse 時舞台旋轉 90° 滿版,rotateHint 退場 */
+    if (!/@media \(orientation: portrait\) and \(pointer: coarse\)[\s\S]{0,700}rotate\(90deg\)/.test(stageHtml))
+      throw new Error("直向自動橫置規則缺失(GB-ADR-016)");
+    if (!/rotate\(90deg\);[\s\S]{0,200}#rotateHint \{ display: none !important; \}/.test(stageHtml))
+      throw new Error("自動橫置後 rotateHint 未退場");
     /* stage-ui:全螢幕+鎖向+終幕卡掛點;iPhone 不支援時藏鈕 */
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const frag of ["requestFullscreen", 'orientation.lock("landscape")', "nextCard", "btnRotDismiss"])

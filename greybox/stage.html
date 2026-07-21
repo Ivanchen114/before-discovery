@@ -356,6 +356,21 @@
   /* 手的聲部:旅人筆記開口=手寫楷體(印刷的世界裡只有你的字是手寫的) */
   #dialogue[data-speaker="旅人筆記"] #dlgText { font-family: var(--font-hand); }
 
+  /* --- 直向自動橫置(GB-ADR-016,總監:一進去直接橫屏):手機直拿時整座舞台旋轉 90°
+     畫滿螢幕,實體轉向後由真橫屏接手;取代 rotateHint 的攔截職責(玩家回報:直向標題
+     上下被裁,按鈕看不到=進不去)。僅觸控裝置;桌機窄窗不受影響。 --- */
+  @media (orientation: portrait) and (pointer: coarse) {
+    #stage {
+      width: min(100vh, calc(100vw * 16 / 9));
+      height: min(100vw, calc(100vh * 9 / 16));
+      width: min(100dvh, calc(100dvw * 16 / 9));
+      height: min(100dvw, calc(100dvh * 9 / 16));
+      inset: auto; left: 50%; top: 50%; margin: 0;
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+    #rotateHint { display: none !important; } /* 已自動橫置,毋須再攔 */
+  }
+
   /* --- 行動裝置轉橫提示+全螢幕(GB-ADR-014):Android=Fullscreen API+orientation.lock;
      iPhone Safari 不支援元素全螢幕與鎖向,退路=PWA 加入主畫面(manifest fullscreen/landscape)--- */
   #rotateHint { position: absolute; inset: 0; z-index: 60; display: none; align-items: center;
