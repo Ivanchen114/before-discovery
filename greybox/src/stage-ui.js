@@ -1160,8 +1160,8 @@
   })();
 
   /* ---------- 程序化環境音樂(BGM):Web Audio 即席合成,零資產零版權 ----------
-     音訊分工裁決(總監 20260720):v1=程式合成;真實錄音/生成音樂=未來選項(掛點相容)。
-     每個 mood=低音 drone+調式撥弦(隨機稀疏)+環境噪音層;場景切換交叉淡入;非確定性=氛圍非 fixture。 */
+     真音樂存在時不補合成低鳴；需要持續配樂的場景改採「曲末留白→同曲淡入重播」。
+     程序合成只留給 storm/null 或實檔缺失 cue。 */
   var BGM = (function () {
     var cur = null, curVariant = 0, curFinished = false;
     var master = null, layers = [], timers = [];
@@ -1203,18 +1203,19 @@
         o.start(); o.stop(c.currentTime + 1.2);
       });
     }
-    /* BGM v2(Gemini 30 秒素材):once=播一次回環境音;milestone=A/B/C 依玩法進度換段;
-       silence=刻意留白。舊 string schema 仍視為 once,舊存檔/舊資產可回退。 */
-    var fileCur = null, fileTimer = null;
+    /* BGM v2.1(Gemini 30 秒素材):once=播一次;milestone=A/B/C 依玩法進度換段;
+       repeatGapMs=曲末留白後重播同段；silence=刻意留白。 */
+    var fileCur = null, fileTimer = null, fileReplayTimer = null;
     function cueSpec(mood) {
       var files = ASSETS && ASSETS.bgmFiles;
       var raw = files && files[mood];
       if (raw === null || typeof raw === "undefined") return null;
-      if (typeof raw === "string") return { mode: "once", ambient: mood, clips: [raw] };
+      if (typeof raw === "string") return { mode: "once", clips: [raw] };
       return raw;
     }
     function stopFile(fast) {
       if (fileTimer) { clearInterval(fileTimer); fileTimer = null; }
+      if (fileReplayTimer) { clearTimeout(fileReplayTimer); fileReplayTimer = null; }
       if (!fileCur) return;
       var a = fileCur; fileCur = null;
       var t = setInterval(function () {
@@ -1294,9 +1295,14 @@
         }, M.pluckMs[0] + Math.random() * (M.pluckMs[1] - M.pluckMs[0])));
       })();
     }
-    function settle(spec) {
-      if (spec && spec.ambient) playSynth(spec.ambient);
-      else stopAll(true);
+    function scheduleReplay(spec, mood, variant) {
+      var gap = spec && Number(spec.repeatGapMs);
+      if (!(gap > 0) || !SFX.isOn()) { stopAll(true); return; }
+      if (fileReplayTimer) clearTimeout(fileReplayTimer);
+      fileReplayTimer = setTimeout(function () {
+        fileReplayTimer = null;
+        if (!document.hidden && SFX.isOn() && cur === mood && curVariant === variant) play(cur, curVariant);
+      }, Math.max(1000, gap));
     }
     function play(mood, variant) {
       cur = mood;
@@ -1309,7 +1315,10 @@
       }
       if (spec && spec.clips && spec.clips.length) {
         curVariant = Math.max(0, Math.min(curVariant, spec.clips.length - 1));
-        playFile(ASSETS.audioBasePath + spec.clips[curVariant], function () { settle(spec); });
+        var playingMood = mood, playingVariant = curVariant;
+        playFile(ASSETS.audioBasePath + spec.clips[curVariant], function () {
+          scheduleReplay(spec, playingMood, playingVariant);
+        });
         return;
       }
       playSynth(mood); /* storm/null 或無實檔 cue → 程序化聲景 */
@@ -1330,7 +1339,10 @@
       refresh: function () {
         if (!cur) return;
         var spec = cueSpec(cur);
-        if (curFinished) { if (spec && spec.ambient) playSynth(spec.ambient); return; }
+        if (curFinished) {
+          if (spec && Number(spec.repeatGapMs) > 0 && !fileReplayTimer) scheduleReplay(spec, cur, curVariant);
+          return;
+        }
         play(cur, curVariant);
       }
     };

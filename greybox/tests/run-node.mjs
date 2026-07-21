@@ -435,7 +435,7 @@ tests.push({
       throw new Error("同名 SC-R1 章別音樂覆寫失效");
     for (const frag of ["sceneBgm", "BGM.refresh", 'play("storm")', 'play("travelerTitle")'])
       if (!sui.includes(frag)) throw new Error("BGM 要素缺失:" + frag);
-    /* 真音樂檔:once/milestone schema+實檔存在;storm 恆 null;30 秒素材禁止硬循環 */
+    /* 真音樂檔:once/milestone schema+實檔存在;storm 恆 null;30 秒素材禁止硬循環或低鳴回退 */
     if (assets.bgmVersion !== 2) throw new Error("BGM schema 應為 v2");
     for (const [mood, raw] of Object.entries(assets.bgmFiles || {})) {
       if (raw === null) continue;
@@ -444,6 +444,9 @@ tests.push({
         throw new Error("bgmFiles mode 非法:" + mood + "→" + spec.mode);
       if (!Array.isArray(spec.clips)) throw new Error("bgmFiles clips 非陣列:" + mood);
       if (spec.mode === "silence" && spec.clips.length) throw new Error("silence 不得掛音樂檔");
+      if ("ambient" in spec) throw new Error("真音樂不得在曲末回退程序低鳴:" + mood);
+      if ("repeatGapMs" in spec && !(spec.repeatGapMs >= 3000 && spec.repeatGapMs <= 10000))
+        throw new Error("repeatGapMs 應保留 3–10 秒呼吸:" + mood + "→" + spec.repeatGapMs);
       for (const f of spec.clips) {
         if (!/^(common|ch\d{2})\//.test(f)) throw new Error("BGM 未按 common/chXX 分庫:" + mood + "→" + f);
         try { readFileSync(path.join(here, "..", assets.audioBasePath, f)); }
@@ -466,6 +469,9 @@ tests.push({
       throw new Error("第二章專屬曲應為 13 首且不得重複引用");
     if (!sui.includes("a.loop = false") || sui.includes("a.loop = true"))
       throw new Error("Gemini 30 秒素材不得無限硬循環");
+    for (const frag of ["repeatGapMs", "scheduleReplay", "fileReplayTimer"])
+      if (!sui.includes(frag)) throw new Error("曲末留白重播機制缺失:" + frag);
+    if (sui.includes("playSynth(spec.ambient)")) throw new Error("真音樂播完仍會啟動程序低鳴");
     for (const frag of ['d.scene === "A2-2"', 'd.scene === "A2-3"', 'd.scene === "A2-4"',
       'sceneCue(sceneId)', 'BGM.current() === "ch2Catapult"', 'd.scene === "B2-3"', 'd.scene === "B2-4"',
       'BGM.current() !== "ch2Debate"', 'd.phase === "fr"', "BGM.variant(1)", "BGM.variant(2)"])

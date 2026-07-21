@@ -1,6 +1,6 @@
 # public/assets/audio/ — 真音樂資產庫(v2)
 
-**規則 v2**:`bgmFiles[cue]` 使用 `{mode, clips, ambient}`。`once`=30 秒播一次後回程序環境音；`milestone`=A/B/C 依玩法里程碑交叉淡換；`silence`=刻意留白。`storm:null` 恆用程序合成。禁止再把 Gemini 30 秒素材設成無限硬循環。
+**規則 v2.1**:`bgmFiles[cue]` 使用 `{mode, clips, repeatGapMs?}`。`once`=單一段落；`milestone`=A/B/C 依玩法里程碑換段；`repeatGapMs`=曲末安靜指定毫秒後，再淡入重播同一段；`silence`=刻意留白。`storm:null` 恆用程序合成。禁止把 Gemini 30 秒素材設成無間隔硬循環，也禁止真音樂播完後補程序低頻 drone。
 
 ## 目錄規則
 
@@ -45,7 +45,11 @@
 
 `ch01/Beneath_the_Chisel.mp3` 與 `ch01/Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `ch01/Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
 
-## BGM v2 runtime（Sol 整合，2026-07-20）
+## BGM v2.1 runtime（Sol 整合；2026-07-22 依總監實聽修正）
+
+- 2026-07-22 實聽發現：舊版真音樂播完會回退 Web Audio 低頻 drone，造成不舒服的持續低鳴。已取消此回退。
+- 需要持續陪伴的故事、工坊與辯論 cue，改為「曲末留白 5 秒→同段淡入重播」；標題、時間跳躍、章末等一次性 cue 播完即靜默。
+- `storm` 是序幕劇情本身的電磁風暴聲，仍保留程序合成，不屬於這次移除的低鳴回退。
 
 - 標題首次手勢：`Traveler_Theme_Title_A`，一次播放。
 - P0-0：`storm` 程序合成；進 1590 切實樂器。
@@ -61,7 +65,7 @@
 
 ## 第二章 runtime（Sol 整合，2026-07-21）
 
-- 13 檔均為可解碼 MP3（44.1 kHz／192 kbps）；實際長度約 24.84–30.77 秒。runtime 以 `ended` 事件銜接環境音，不假設檔案必須剛好 30 秒。
+- 13 檔均為可解碼 MP3（44.1 kHz／192 kbps）；實際長度約 24.84–30.77 秒。runtime 以 `ended` 事件開始 5 秒留白，不假設檔案必須剛好 30 秒。
 - B0-1 舊紙歸來、B0-2／B2-5 砲術提問：兩個獨立敘事 cue。
 - B1-1／B1-3／B2-1／B2-2 墨跡與觀察共用 `ch2Ink`；B1-2 船桅雨夜、B1-4 運河撞牆各有專屬 cue。
 - 彈射工坊：A=裝置與首輪；B=第一組乾淨關係成立後；C=換球複驗與雙球機關。依認知里程碑換段，不按秒數輪播。

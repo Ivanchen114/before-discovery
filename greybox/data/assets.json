@@ -1419,21 +1419,21 @@
   },
   "pisa": {
    "mode": "once",
-   "ambient": "pisa",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Piazza_at_Dawn.mp3"
    ]
   },
   "study": {
    "mode": "once",
-   "ambient": "study",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Sun_Through_Lattice.mp3"
    ]
   },
   "rain": {
    "mode": "once",
-   "ambient": "rain",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Midnight_at_the_Casement.mp3"
    ]
@@ -1446,7 +1446,7 @@
   },
   "workshop": {
    "mode": "milestone",
-   "ambient": "workshop",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Workshop_Inquiry_A.mp3",
     "ch01/Workshop_Inquiry_B.mp3",
@@ -1455,14 +1455,14 @@
   },
   "challenge": {
    "mode": "once",
-   "ambient": "workshop",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Debate_Hall_A.mp3"
    ]
   },
   "hall": {
    "mode": "milestone",
-   "ambient": "hall",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Debate_Hall_A.mp3",
     "ch01/Debate_Hall_B.mp3",
@@ -1471,56 +1471,56 @@
   },
   "debrief": {
    "mode": "once",
-   "ambient": "study",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Debate_Debrief.mp3"
    ]
   },
   "dusk": {
    "mode": "once",
-   "ambient": "dusk",
+   "repeatGapMs": 5000,
    "clips": [
     "ch01/Where_The_Sun_Rests.mp3"
    ]
   },
   "ch2OldPage": {
    "mode": "once",
-   "ambient": "study",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Old_Page_Returns.mp3"
    ]
   },
   "ch2Cannon": {
    "mode": "once",
-   "ambient": "workshop",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Cannon_Question.mp3"
    ]
   },
   "ch2Ink": {
    "mode": "once",
-   "ambient": "study",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Ink_And_Motion.mp3"
    ]
   },
   "ch2Shipmast": {
    "mode": "once",
-   "ambient": "rain",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Shipmast_Rain.mp3"
    ]
   },
   "ch2Canal": {
    "mode": "once",
-   "ambient": "dusk",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Canal_Impasse.mp3"
    ]
   },
   "ch2Catapult": {
    "mode": "milestone",
-   "ambient": "workshop",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Catapult_A.mp3",
     "ch02/Ch2_Catapult_B.mp3",
@@ -1529,7 +1529,7 @@
   },
   "ch2Debate": {
    "mode": "milestone",
-   "ambient": "hall",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Debate_A.mp3",
     "ch02/Ch2_Debate_B.mp3",
@@ -1538,14 +1538,14 @@
   },
   "ch2Debrief": {
    "mode": "once",
-   "ambient": "study",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Debate_Debrief.mp3"
    ]
   },
   "ch2Telescope": {
    "mode": "once",
-   "ambient": "dusk",
+   "repeatGapMs": 5000,
    "clips": [
     "ch02/Ch2_Telescope_Dusk.mp3"
    ]
