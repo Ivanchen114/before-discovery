@@ -1090,8 +1090,17 @@ tests.push({
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
     if (!c2.includes("engine2.js") || !c2.includes("GB.Engine = window.GB.Engine2")) throw new Error("chapter2 引擎重指缺失");
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries"])
+    for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries",
+      "cat2CompareFailure", "r.result.ok === false", "firstCopper", "firstWood",
+      "cat2Mission", "cat2DefaultMessage", "mountCatapultReplay", "catReplayTrajectory",
+      'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
       if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
+    if (!(cui.indexOf("catapultGate(sv)") < cui.indexOf("if (!open)")))
+      throw new Error("彈射工坊完成出口仍藏在長紀錄簿底端");
+    const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ["grid-template-rows: auto auto", "font-family: var(--font-dialogue); overflow: visible",
+      ".catReplay", ".catCompareHint", ".catCompare > button"])
+      if (!stage.includes(frag)) throw new Error("彈射工坊捲動/重播/比較提示樣式缺失:" + frag);
     if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("engine2")) throw new Error("灰盒一章殼混入 ch2 引擎");
   }
 });
@@ -1254,6 +1263,8 @@ tests.push({
     if (s.series[0].dayEnded !== 6) throw new Error("銅球首輪應第 6 天收,得 " + s.series[0].dayEnded);
     s = runSeries(s, "wood", 5.0);
     if (s.days !== 2 + 4 * 4) throw new Error("四輪後總天數錯:" + s.days);
+    const sameBall = E2.compareBalls(s, 1, 2);
+    if (sameBall.ok || !sameBall.diffs.includes("球種須一銅一木")) throw new Error("同球比較未給可翻譯守衛原因");
     /* 換球守衛正例 */
     const cmp = E2.compareBalls(s, 1, 4);
     if (!cmp.ok || !cmp.state.evidence.f2.ball) throw new Error("換球正例未過:" + JSON.stringify(cmp.diffs));

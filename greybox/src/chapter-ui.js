@@ -877,14 +877,136 @@
 
   /* ---------- 第二章彈射工坊面板(R-WS2/R-LAB2;僅 system="catapult" 時渲染,ch1 零觸發) ---------- */
   var cat2Msg = "";
+  var cat2Replay = null;
+  var cat2EmbedKey = "";
+  function cat2CompareFailure(diffs) {
+    diffs = diffs || [];
+    if (diffs.indexOf("球種須一銅一木") >= 0)
+      return "還不能比較重量：這兩組是同一種球。請選一組銅球和一組木球。";
+    if (diffs.indexOf("裝置指紋(零件/校準)不同") >= 0)
+      return "你換球時也換了零件或校準，無法只把差異歸給重量。請選裝置與校準完全相同的一銅一木。";
+    if (diffs.indexOf("series 未完成") >= 0)
+      return "至少有一組還沒測完 4、9、16、25 格；完整收完兩組再比較。";
+    if (diffs.indexOf("含區間讀值") >= 0)
+      return "至少一組只留下模糊區間，還不能逐點比對。請改善量法後重做。";
+    if (diffs.indexOf("形狀誤差超限") >= 0)
+      return "至少一組本身還沒有穩定呈現同一條規律，不能拿來判斷球重。";
+    if (diffs.indexOf("兩球讀值差超過 3%") >= 0)
+      return "兩球的射程差超過容許範圍；先檢查是否真的只換了球。";
+    return diffs.length ? "這兩組還不能形成乾淨比較：" + diffs.join("、") : "這兩組還不能形成乾淨比較。";
+  }
+  function cat2ErrorText(code, result) {
+    var map = {
+      "not-assembled": "裝置還沒組完整：五個槽位都要有零件。",
+      "series-open": "目前這組還沒結束；請先完成或明確放棄，再換零件或開新組。",
+      "no-open-series": "先選一顆球，開始一組連續測量。",
+      "wrong-order": "高度要依 4 → 9 → 16 → 25 格進行，才能形成可比較的一組紀錄。",
+      "prediction-required": "25 格是驗證題：先押射程，再放球。",
+      "too-early": "先完成 4、9、16 格，才有足夠線索預測 25 格。",
+      "bad-prediction": "請輸入一個有效的射程數字。",
+      "dependency-missing": "這項校準缺少對應零件，先把裝置組好。",
+      "series-not-found": "找不到那組紀錄，請重新選擇。"
+    };
+    var text = map[code] || code;
+    if (result && result.diffs && result.diffs.length) text += "——" + cat2CompareFailure(result.diffs);
+    return "✕ " + text;
+  }
   function doLab2(action, args, okText) {
     var r = N.labAction(state, action, args);
-    if (r.error) { cat2Msg = "✕ " + r.error + (r.result && r.result.diffs ? "——" + r.result.diffs.join("、") : ""); }
-    else { setState(r.state); cat2Msg = okText ? okText(r.result) : ""; }
+    if (r.error) { cat2Msg = cat2ErrorText(r.error, r.result); }
+    else {
+      setState(r.state);
+      if (action === "runHeight" && r.result && r.result.series) {
+        var rd = r.result.series.readings[args.H];
+        cat2Replay = { H: args.H, reading: rd, ball: r.result.series.ball };
+      }
+      cat2Msg = r.result && r.result.ok === false
+        ? "✕ " + cat2CompareFailure(r.result.diffs)
+        : (okText ? okText(r.result) : "");
+    }
     renderAll();
+  }
+  function cat2Mission(v) {
+    if (v.nodeId === "e1") return {
+      step: "第一步｜建立銅球基準",
+      text: "組好裝置並完成兩項校準，再用同一顆銅球依序測量 4、9、16 格。"
+    };
+    if (v.nodeId === "e2") return {
+      step: "第二步｜先押再看",
+      text: "根據 4、9、16 格的紀錄，先押出 25 格的射程，再放球檢驗你的規律。"
+    };
+    if (v.nodeId === "e3") return {
+      step: "第三步｜只換球",
+      text: "裝置和校準全部不變，改用同徑木球完成整組；最後比較一組銅球和一組木球。"
+    };
+    return { step: "這一輪要完成", text: v.hint || "完成一筆乾淨紀錄。" };
+  }
+  function cat2DefaultMessage(v, lab2, open, done) {
+    if (N.embedReady(state)) return "本段目標已完成。按上方的「收好數據，回到故事」繼續。";
+    if (v.nodeId === "e1") return open
+      ? "目前只要完成銅球的 4、9、16 格；25 格會在你先說出規律後再開放。"
+      : "先組滿五個槽位並校準發射零位、沙盤標尺，再用銅球開始。";
+    if (v.nodeId === "e2") return open
+      ? "讀完前三個高度後，先鎖定 25 格預測；看到結果前不能改答案。"
+      : "選擇剛才尚未完成的銅球紀錄，或以同一裝置重做一組乾淨銅球紀錄。";
+    if (v.nodeId === "e3") {
+      var hasWood = done.some(function (s) { return s.status === "complete" && s.ball === "wood"; });
+      if (!hasWood && !open) return "保持零件與校準不變，選木球開始一組完整測量。";
+      if (open) return "木球也要走完 4、9、16、押注、25；中途不要換零件。";
+      return "最後一步：在「換球比較」選一組銅球＋一組木球；兩組裝置與校準必須相同。";
+    }
+    return "完成上方任務後，就能回到故事。";
+  }
+  function mountCatapultReplay(parent) {
+    if (!cat2Replay) return;
+    var replay = cat2Replay;
+    cat2Replay = null; /* 每次放球只演一次；後續重繪不重播。 */
+    var raw = replay.reading;
+    var range = typeof raw === "number" ? raw : ((raw[0] + raw[1]) / 2);
+    var endX = Math.round(Math.max(390, Math.min(535, 350 + range * 36)));
+    var endY = Math.round(78 + replay.H * 2.05);
+    var path = "M 72 42 L 226 42 Q " + Math.round((226 + endX) / 2) + " 43 " + endX + " " + endY;
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fig = document.createElement("figure");
+    fig.className = "catReplay";
+    fig.setAttribute("aria-label", (replay.ball === "copper" ? "銅球" : "木球") +
+      "從高度架釋放，飛離桌緣後落入沙盤的實驗重播");
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 600 155");
+    svg.setAttribute("aria-hidden", "true");
+    function svgNode(tag, cls, attrs, text, parent2) {
+      var node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      if (cls) node.setAttribute("class", cls);
+      Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, String(attrs[key])); });
+      if (text != null) node.textContent = text;
+      (parent2 || svg).appendChild(node);
+      return node;
+    }
+    svgNode("path", "catReplayGroove", { d: "M 48 24 L 72 42 L 226 42" });
+    svgNode("path", "catReplayTrajectory", { d: path });
+    svgNode("line", "catReplaySand", { x1: 245, y1: endY, x2: 570, y2: endY });
+    svgNode("path", "catReplayMeasure", { d: "M 238 45 L 238 " + endY + " M 232 45 L 244 45 M 232 " + endY + " L 244 " + endY });
+    svgNode("path", "catReplayMeasure", { d: "M 226 " + (endY + 12) + " L " + endX + " " + (endY + 12) });
+    svgNode("text", "catReplayH", { x: 248, y: Math.round((45 + endY) / 2) }, "H=" + replay.H);
+    svgNode("text", "catReplayR", { x: Math.round((226 + endX) / 2), y: Math.min(150, endY + 28) }, "射程 " +
+      (typeof raw === "number" ? raw.toFixed(1) : raw[0].toFixed(1) + "–" + raw[1].toFixed(1)) + " 尺");
+    var ball = svgNode("circle", "catReplayBall " + replay.ball,
+      { r: 8, cx: reduced ? endX : 0, cy: reduced ? endY : 0 });
+    if (!reduced) svgNode("animateMotion", "", { dur: "1.7s", path: path, fill: "freeze",
+      keyTimes: "0;0.36;1", keyPoints: "0;0.36;1", calcMode: "spline",
+      keySplines: ".3 0 .7 1;.2 .05 .8 1" }, null, ball);
+    svgNode("circle", "catReplayMark", { cx: endX, cy: endY, r: 13 });
+    fig.appendChild(svg);
+    var cap = document.createElement("figcaption");
+    cap.textContent = (replay.ball === "copper" ? "銅球" : "木球") + "｜下落高度 " + replay.H + " 格｜沙痕射程 " +
+      (typeof raw === "number" ? raw.toFixed(1) : raw[0].toFixed(1) + "–" + raw[1].toFixed(1)) + " 尺";
+    fig.appendChild(cap);
+    parent.appendChild(fig);
   }
   function renderCatapult(v, box) {
     var E2 = window.GB.Engine2, lab2 = state.lab;
+    var embedKey = v.scene + "/" + v.nodeId;
+    if (embedKey !== cat2EmbedKey) { cat2EmbedKey = embedKey; cat2Msg = ""; cat2Replay = null; }
     var open = null;
     (lab2.series || []).forEach(function (s) { if (s.status === "open") open = s; });
     function el(tag, txt, parent, cls) {
@@ -898,11 +1020,9 @@
       if (cls) img.className = cls; (parent || box).appendChild(img); return img;
     }
     function catapultGate(parent) {
-      var gate = el("section", "", parent, "catGate " + (N.embedReady(state) ? "ready" : "pending"));
-      if (!N.embedReady(state)) {
-        el("p", v.hint || "先完成這一輪需要的裝置與紀錄。", gate);
-        return;
-      }
+      if (!N.embedReady(state)) return;
+      var gate = el("section", "", parent, "catGate ready");
+      el("p", "本段完成，故事可以繼續。", gate);
       btn(v.scene === "SC-R1" ? "▶ 帶著乾淨紀錄回去" : "▶ 收好數據，回到故事", function () {
         var r = N.embedComplete(state);
         if (r.error) { cat2Msg = "✕ " + r.error; renderAll(); return; }
@@ -965,15 +1085,19 @@
     var sh = el("div", "", sv, "catSectionHead");
     el("h3", "II　旅人實驗簿", sh);
     el("span", "4 → 9 → 16 → 押注 → 25", sh, "catSequence");
+    var missionCopy = cat2Mission(v);
     var mission = el("div", "", sv, "catMission");
-    el("small", "這一輪要證明", mission);
-    el("p", v.hint || "同一裝置、同一顆球，讀出下落高度與射程的關係。", mission);
+    el("small", missionCopy.step, mission);
+    el("p", missionCopy.text, mission);
+    catapultGate(sv); /* 完成出口固定在目標旁，不再藏在長紀錄簿底端。 */
+    mountCatapultReplay(sv);
     if (!open) {
       var row0 = el("div", "", sv, "catStartSeries");
       var bs = document.createElement("select");
       [["copper", "同徑實心銅球"], ["wood", "同徑實心木球"]].forEach(function (b2) {
         var o = document.createElement("option"); o.value = b2[0]; o.textContent = b2[1]; bs.appendChild(o);
       });
+      bs.value = v.nodeId === "e3" ? "wood" : "copper"; /* 換球階段預選任務所需球，仍保留玩家自由。 */
       row0.appendChild(bs);
       btn("開始一組連結測量", function () { doLab2("beginSeries", { ball: bs.value }); }, row0, "catPrimary");
     } else {
@@ -1018,8 +1142,28 @@
         var cr = el("div", "", tv, "catCompare");
         el("b", "換球比較", cr);
         var sa = document.createElement("select"), sb = document.createElement("select");
-        comp.forEach(function (s) { [sa, sb].forEach(function (sel2) { var o = document.createElement("option"); o.value = s.id; o.textContent = "#" + s.id + (s.ball === "copper" ? "銅" : "木"); sel2.appendChild(o.cloneNode(true)); }); });
+        comp.forEach(function (s) {
+          [sa, sb].forEach(function (sel2) {
+            var o = document.createElement("option"); o.value = s.id;
+            o.textContent = "#" + s.id + "・" + (s.ball === "copper" ? "銅球" : "木球");
+            sel2.appendChild(o);
+          });
+        });
+        var firstCopper = comp.find(function (s) { return s.ball === "copper"; });
+        var firstWood = comp.find(function (s) { return s.ball === "wood"; });
+        if (firstCopper && firstWood) { sa.value = firstCopper.id; sb.value = firstWood.id; }
         cr.appendChild(sa); cr.appendChild(sb);
+        var compareHint = el("small", "", cr, "catCompareHint");
+        function updateCompareHint() {
+          var a = comp.find(function (s) { return s.id === parseInt(sa.value, 10); });
+          var b = comp.find(function (s) { return s.id === parseInt(sb.value, 10); });
+          if (!a || !b || a.id === b.id || a.ball === b.ball)
+            compareHint.textContent = "請選一組銅球＋一組木球；同球重測不能回答重量。";
+          else if (a.fingerprint !== b.fingerprint)
+            compareHint.textContent = "這兩組連裝置或校準也不同；請找只換球的一組。";
+          else compareHint.textContent = "✓ 只換了球，可以檢驗重量是否改變規律。";
+        }
+        sa.onchange = updateCompareHint; sb.onchange = updateCompareHint; updateCompareHint();
         btn("比較兩組・提出斷言", function () {
           doLab2("compareBalls", { a: parseInt(sa.value, 10), b: parseInt(sb.value, 10) }, function (res) {
             return res.ok ? "同一副骨架——與球重無關,成立。" : "";
@@ -1027,9 +1171,8 @@
         }, cr, "catPrimary");
       }
     }
-    var mp = el("p", cat2Msg || "每一筆沙痕都會留下。先看異常跟著哪個零件走。", sv, "catMessage");
+    var mp = el("p", cat2Msg || cat2DefaultMessage(v, lab2, open, done), sv, "catMessage");
     mp.setAttribute("role", "status");
-    catapultGate(sv);
   }
 
   /* ---------- 主渲染 ---------- */

@@ -718,9 +718,9 @@
   /* 第二章彈射工坊：同一舞台內的器材頁＋實驗簿，不回退成工程表單。 */
   #controls.catapultWorkshop {
     --cat-dark: #211912; --cat-paper: #f0e5ca; --cat-line: #8b6138;
-    min-height: 100%; display: grid; grid-template-columns: minmax(340px,.92fr) minmax(430px,1.08fr);
-    grid-template-rows: auto minmax(0,1fr); gap: 10px; color: #2c241b;
-    font-family: var(--font-dialogue); overflow: hidden;
+    min-height: 0; display: grid; grid-template-columns: minmax(340px,.92fr) minmax(430px,1.08fr);
+    grid-template-rows: auto auto; gap: 10px; color: #2c241b;
+    font-family: var(--font-dialogue); overflow: visible;
   }
   .catHead { grid-column: 1/-1; min-height: 58px; display: flex; align-items: center; justify-content: space-between;
     padding: 7px 16px; color: #f2e4c8; border: 1px solid rgba(203,161,100,.38);
@@ -729,7 +729,7 @@
   .catHead h2 { margin: 2px 0 0; font-size: clamp(21px,2.2vw,30px); letter-spacing: .08em; }
   .catHead p { display: inline; margin: 0 0 0 15px; color: #cfc0aa; font-size: 13px; }
   .catDay { flex: 0 0 auto; padding: 7px 12px; border: 1px solid #a87a43; color: #e5c38e; font-family: var(--font-ui); }
-  .catApparatus, .catBook { min-width: 0; min-height: 0; overflow-y: auto; border: 1px solid rgba(93,62,35,.68);
+  .catApparatus, .catBook { min-width: 0; min-height: 0; align-self: start; overflow: visible; border: 1px solid rgba(93,62,35,.68);
     box-shadow: 0 8px 24px rgba(0,0,0,.3); }
   .catApparatus { padding: 11px; color: #eee0c5; background:
     radial-gradient(circle at 28% 0,rgba(135,89,43,.22),transparent 42%), linear-gradient(145deg,#30241b,#17120e); }
@@ -767,6 +767,21 @@
   .catMission { margin: 0 0 10px; padding: 10px 12px; border-left: 5px solid var(--cat-line); background: rgba(255,255,255,.3); }
   .catMission small { color: #8a5730; font: 700 11px var(--font-ui); letter-spacing: .08em; }
   .catMission p { margin: 3px 0 0; font-size: 17px; }
+  .catReplay { position: relative; margin: 8px 0 10px; overflow: hidden; border: 1px solid rgba(112,77,42,.4);
+    border-radius: 4px; background: linear-gradient(180deg,rgba(255,255,255,.28),rgba(177,135,83,.12)); }
+  .catReplay svg { display: block; width: 100%; height: clamp(92px,16vh,155px); }
+  .catReplay figcaption { padding: 4px 9px; color: #594632; border-top: 1px solid rgba(112,77,42,.25);
+    font: 600 11px/1.4 var(--font-ui); }
+  .catReplayGroove { fill: none; stroke: #4d3524; stroke-width: 7; stroke-linecap: round; }
+  .catReplayTrajectory { fill: none; stroke: rgba(112,71,34,.6); stroke-width: 2.5; stroke-dasharray: 7 6; }
+  .catReplaySand { stroke: #8e7048; stroke-width: 5; stroke-dasharray: 2 5; }
+  .catReplayMeasure { fill: none; stroke: #765b3d; stroke-width: 1.5; }
+  .catReplayH, .catReplayR { fill: #5b4129; font: 700 12px var(--font-ui); }
+  .catReplayR { text-anchor: middle; }
+  .catReplayBall { fill: #72543a; stroke: #2e2118; stroke-width: 2; filter: drop-shadow(0 2px 2px rgba(31,20,13,.45)); }
+  .catReplayBall.wood { fill: #9c7548; }
+  .catReplayMark { fill: none; stroke: #9b5728; stroke-width: 3; opacity: .7; animation: catLanding 700ms 1.6s ease-out both; }
+  @keyframes catLanding { from { r: 3; opacity: 0; } 45% { opacity: .85; } to { r: 18; opacity: 0; } }
   .catStartSeries { display: grid; grid-template-columns: minmax(150px,1fr) auto; gap: 8px; margin: 10px 0; }
   .catProgress { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; margin: 8px 0; }
   .catStep { min-height: 55px; display: flex; flex-direction: column; justify-content: center; padding: 6px 8px;
@@ -781,9 +796,13 @@
   .catRecords summary { cursor: pointer; font-weight: 700; }.catRecord { padding: 4px 7px; border-bottom: 1px dotted rgba(91,60,32,.35); font-size: 13px; }
   .catCompare { display: grid; grid-template-columns: auto 1fr 1fr auto; align-items: center; gap: 6px; margin-top: 8px; }
   .catCompare select { color: #33261b; background: rgba(255,255,255,.44); }
+  .catCompare > button { grid-column: 4; grid-row: 1; }
+  .catCompareHint { grid-column: 1/-1; grid-row: 2; padding: 4px 7px; color: #6b5036;
+    border-left: 3px solid #9b6b3e; background: rgba(130,91,52,.08); font-family: var(--font-ui); }
   .catMessage { min-height: 31px; margin: 8px 0 0; padding: 6px 9px; border-left: 3px solid #8a613b; background: rgba(124,87,50,.08); white-space: pre-wrap; }
   .catGate { display: flex; justify-content: flex-end; align-items: center; min-height: 45px; margin-top: 7px; border-top: 1px solid rgba(101,72,43,.35); }
-  .catGate.pending p { margin: 7px 0; color: #786753; }.catGateGo { min-width: 230px; }
+  .catGate p { margin: 7px auto 7px 0; color: #5f4b36; }.catGateGo { min-width: 230px; }
+  @media (prefers-reduced-motion: reduce) { .catReplayMark { animation: none; opacity: .55; } }
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     #controls.catapultWorkshop { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 6px; }
     .catHead { min-height: 42px; padding: 3px 10px; }.catHead h2 { font-size: 19px; }.catHead p { display: none; }.catDay { padding: 4px 8px; }
@@ -798,6 +817,9 @@
     .catStartSeries .catPrimary { width: 100%; }
     .catProgress { margin: 4px 0; }.catStep { min-height: 39px; padding: 3px 5px; }.catStep b { font-size: 12px; }
     .catMeasureAction { margin: 4px 0; }.catRecords { margin-top: 4px; }.catRecord { padding: 2px 5px; font-size: 11px; }
+    .catReplay { margin: 4px 0; }.catReplay svg { height: 82px; }.catReplay figcaption { display: none; }
+    .catCompare { grid-template-columns: 1fr 1fr; }.catCompare > b, .catCompareHint { grid-column: 1/-1; }
+    .catCompare > button { grid-column: 1/-1; grid-row: auto; }
     .catMessage { margin-top: 4px; min-height: 24px; padding: 3px 6px; font-size: 12px; }.catGate { min-height: 34px; }
   }
 
