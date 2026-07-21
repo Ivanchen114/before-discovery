@@ -245,6 +245,35 @@
       '<path d="M 150 54 L 130 54" stroke="#244a63" stroke-width="1.5" fill="none"/>' +
       '</svg>';
   }
+  function mountE2FocusVisual(diagram) {
+    var art = assetEntry("card_E2");
+    if (!art) {
+      diagram.innerHTML = e2DiagramMarkup();
+      return;
+    }
+    diagram.classList.add("scene-focus-e2-art");
+    var img = document.createElement("img");
+    img.src = assetUrl(art);
+    img.alt = "";
+    img.setAttribute("aria-hidden", "true");
+    diagram.appendChild(img);
+
+    var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "e2-argument-arrows");
+    overlay.setAttribute("viewBox", "0 0 800 500");
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML = '<path class="slow" d="M 610 184 C 565 187 526 206 474 231"/>' +
+      '<path class="fast" d="M 610 307 C 560 295 525 281 475 260"/>';
+    diagram.appendChild(overlay);
+
+    [["heavy", "重石"], ["light", "輕石"], ["slow", "拖慢大石？"],
+      ["fast", "合在一起更快？"]].forEach(function (pair) {
+      var label = document.createElement("span");
+      label.className = "e2-label " + pair[0];
+      label.textContent = pair[1];
+      diagram.appendChild(label);
+    });
+  }
   function showFocusVisualForLine(text) {
     var rule = focusRuleForLine(text);
     if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
@@ -258,7 +287,7 @@
         diagram.className = "scene-focus-evidence";
         diagram.setAttribute("role", "img");
         diagram.setAttribute("aria-label", item.alt || "綁縛悖論示意圖");
-        diagram.innerHTML = e2DiagramMarkup();
+        mountE2FocusVisual(diagram);
         media.appendChild(diagram);
         shown++;
         return;
@@ -860,14 +889,15 @@
       if (!item) return;
       var code = item.split(" ")[0];
       var name = item.slice(code.length).trim();
-      var bgE = assetEntry("card_" + code) || tpl; /* Batch03:card_<code> 優先,缺圖回退共用底(E2 恆回退+SVG) */
+      var specificBg = assetEntry("card_" + code);
+      var bgE = specificBg || tpl; /* card_<code> 優先,缺圖回退共用底；E2 另保留 SVG 降級。 */
       var card = document.createElement("div");
       card.className = "evcard";
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
       var b = document.createElement("b"); b.textContent = code;
       var s = document.createElement("span"); s.textContent = name;
       card.appendChild(b); card.appendChild(s);
-      if (code === "E2") { /* 綁縛悖論示意圖:HTML/SVG 鐵律(點陣不承載物理資訊) */
+      if (code === "E2" && !specificBg) { /* 生圖底板缺席時，仍以 SVG 保住完整語意。 */
         card.insertAdjacentHTML("beforeend", e2DiagramMarkup());
         card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
         card.lastElementChild.removeAttribute("aria-hidden");

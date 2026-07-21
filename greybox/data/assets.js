@@ -220,9 +220,10 @@
    "id": "card_E2",
    "kind": "card",
    "label": "綁縛悖論(示意圖)",
-   "path": null,
+   "path": "ch01/cards/card_E2.webp",
    "firstScreen": false,
-   "sourceMaster": "",
+   "sourceMaster": "OpenAI imagegen 2026-07-21；E1/E3 卡框風格參考；精確文字與箭頭由 HTML/SVG 疊層",
+   "note": "時代質感由生圖底板承擔；物理語意與可讀文字由程式疊層，缺圖時回退 SVG",
    "w": 800,
    "h": 500
   },

@@ -491,14 +491,13 @@ tests.push({
       throw new Error("srLine 讀屏主線缺失");
     for (const h of [stageHtml, chapterHtml])
       if (!h.includes("src/sanitize.js")) throw new Error("殼未載入 sanitize.js");
-    /* Batch03:四卡專圖+標題/史實橫幅;E2 恆 null(程式 SVG) */
+    /* Batch03:五卡專圖+標題/史實橫幅;E2 仍保留程式語意疊層與 SVG 降級。 */
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const byId = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
-    for (const cid of ["card_E1", "card_E3", "card_E4", "card_E5"]) {
+    for (const cid of ["card_E1", "card_E2", "card_E3", "card_E4", "card_E5"]) {
       const e = byId[cid];
       if (!e || !e.path || e.w !== 800 || e.h !== 500) throw new Error("Batch03 卡片缺失/尺寸錯:" + cid);
     }
-    if (byId["card_E2"].path !== null) throw new Error("card_E2 應維持 null(程式 SVG)");
     if (!byId["title_background"] || !byId["histfacts_banner"]) throw new Error("標題/史實橫幅 entry 缺失");
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const frag of ['assetEntry("card_" + code)', "title_background", "histfacts_banner"])
@@ -1327,8 +1326,11 @@ tests.push({
       "#sceneFocus.quad", "(orientation:portrait) and (pointer:coarse)"])
       if (!html.includes(frag)) throw new Error("舞台特寫 DOM/CSS 缺失:" + frag);
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const frag of ["showFocusVisualForLine", "clearFocusVisual", "lineFocusVisual", "e2DiagramMarkup", "r.scene !== sid"])
+    for (const frag of ["showFocusVisualForLine", "clearFocusVisual", "lineFocusVisual", "e2DiagramMarkup",
+      "mountE2FocusVisual", "scene-focus-e2-art", "拖慢大石？", "合在一起更快？", "r.scene !== sid"])
       if (!sui.includes(frag)) throw new Error("舞台特寫接線/預載缺失:" + frag);
+    if (!html.includes(".scene-focus-e2-art") || !html.includes(".e2-argument-arrows"))
+      throw new Error("E2 生圖底板的精確語意疊層樣式缺失");
   }
 });
 
