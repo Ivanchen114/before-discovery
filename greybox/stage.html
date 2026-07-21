@@ -146,6 +146,11 @@
   #dialogue.has-l #nameplate { left: 190px; }
   #dialogue.has-l #dlgText { margin-left: 180px; }
   #dialogue.has-r #dlgText { margin-right: 180px; }
+  /* 旁白／舞台動作／系統聲部不屬於任何角色：舊肖像留在槽內供下一句復用，
+     但此句必須退場並歸還完整文字寬度，不能只把人物壓暗。 */
+  #dialogue.voice-no-portrait .bslot { display: none !important; }
+  #dialogue.voice-no-portrait #dlgText { margin-left: 0; margin-right: 0; }
+  #dialogue.voice-no-portrait #nameplate { left: 16px; }
   #nameplate.np-player { background: var(--color-evidence); }
   #nameplate { position: absolute; top: -14px; left: 16px; background: var(--color-chapter-accent);
                color: #f3e9d5; font-size: clamp(16px, 1.4vw, 20px); padding: 3px 16px;

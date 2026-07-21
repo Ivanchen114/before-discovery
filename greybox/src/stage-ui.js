@@ -177,7 +177,9 @@
     return null;
   }
   function setBust(speaker, cls, text) {
-    if (cls === "stage" || cls === "system") { setLit("none"); return; } /* 旁白/系統:雙暗,不指定發言者 */
+    var noPortraitVoice = cls === "stage" || cls === "system";
+    $("dialogue").classList.toggle("voice-no-portrait", noPortraitVoice);
+    if (noPortraitVoice) { setLit("none"); return; } /* 旁白/系統:肖像退場並還回完整文字寬度 */
     if (TRAVELER[speaker] || cls === "player") {
       var tside = ensureTraveler();
       setLit(tside || "none"); /* 撤回剪影時=舊行為:對手壓暗 */
@@ -193,7 +195,11 @@
       entry = assetEntry(ASSETS.speakerPortrait[speaker]);
       masked = !!entry;
     }
-    if (!entry) { setLit("none"); return; } /* 無圖角色:不假裝,雙暗 */
+    if (!entry) {
+      $("dialogue").classList.add("voice-no-portrait");
+      setLit("none");
+      return;
+    } /* 無圖角色:不沿用上一位肖像,還回完整文字寬度 */
     var side = sideOf(speaker);
     if (npcSide && npcSide !== side) clearSlot(npcSide); /* 對手換側:舊側清場 */
     npcSide = side;

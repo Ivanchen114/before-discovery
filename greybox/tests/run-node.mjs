@@ -260,6 +260,11 @@ tests.push({
       throw new Error("stage-ui 未使用資料驅動站位/剪影(疑似硬編碼)");
     if (!sui.includes("travelerBust=0")) throw new Error("剪影撤回參數(?travelerBust=0)缺失");
     if (!sui.includes('setLit("none")')) throw new Error("旁白/系統雙暗(setLit none)缺失");
+    if (!sui.includes('classList.toggle("voice-no-portrait", noPortraitVoice)'))
+      throw new Error("旁白/系統未切換無肖像版面");
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ["#dialogue.voice-no-portrait .bslot", "#dialogue.voice-no-portrait #dlgText"])
+      if (!stageHtml.includes(frag)) throw new Error("無肖像聲部未退場或未歸還文字寬度:" + frag);
     if (/scaleX\(\s*-1\s*\)/.test(sui)) throw new Error("偵測到鏡像");
     /* 引擎:連跑 20 次,state 保留 20 筆且 JSON 往返無損(紀錄不可刪的程式面) */
     let s = Engine.initialState();
