@@ -53,6 +53,7 @@
    "title": "把量時間的東西找齊",
    "subtitle": "點開三個亮起的器材。先知道各自管什麼，再開始量。",
    "plateAsset": "bg_workshop_padua",
+   "platePosition": "left center",
    "speaker": "伽利略",
    "enterLabel": "帶齊器材，開始斜面實驗",
    "items": [
@@ -61,7 +62,7 @@
      "label": "水鐘",
      "asset": "prop_water_clock",
      "x": 12,
-     "y": 38,
+     "y": 23,
      "function": "滴下等量的水，代表經過等長的時間；它把看不見的時間切成可以比較的片段。",
      "line": "鐘不會替我們回答。它只負責把時間切得一樣大。"
     },
@@ -69,8 +70,8 @@
      "id": "groove",
      "label": "斜槽與刻度",
      "asset": "prop_ball_groove",
-     "x": 46,
-     "y": 50,
+     "x": 45,
+     "y": 48,
      "function": "讓太快的下落變慢，並用槽上的刻度記下球在每個等時段走過的距離。",
      "line": "斜面不是拿來冒充自由落體；它是把太快的運動攤開，讓我們量得到。"
     },
@@ -78,8 +79,8 @@
      "id": "balls",
      "label": "實驗球",
      "asset": "prop_ball_groove",
-     "x": 50,
-     "y": 66,
+     "x": 61,
+     "y": 55,
      "function": "先用同一顆球建立基準；後續換球時，才能檢查改變球重會不會改變量到的規律。",
      "line": "先讓一顆球把規律說清楚。等骨架固定，再換球追問重量。"
     }

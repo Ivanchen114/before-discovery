@@ -788,6 +788,7 @@
     var cfg = {
       key: apparatusBriefingKey(sceneId), title: source.title, subtitle: source.subtitle,
       speaker: source.speaker, enterLabel: source.enterLabel, plateAsset: source.plateAsset,
+      platePosition: source.platePosition,
       items: source.items || [], found: {}
     };
     apparatusSurveyActive = cfg;
@@ -800,6 +801,7 @@
     $("asLine").textContent = "";
     $("asArtWrap").hidden = true;
     var plate = assetEntry(cfg.plateAsset);
+    $("asPlate").style.objectPosition = cfg.platePosition || "center center";
     if (plate) $("asPlate").src = assetUrl(plate); else $("asPlate").removeAttribute("src");
     var hs = $("asHotspots");
     while (hs.firstChild) hs.removeChild(hs.firstChild);
