@@ -859,8 +859,70 @@ tests.push({
     banned.forEach((word) => { if (visible.includes(word)) throw new Error("非模仿台詞仍有半文言門檻:" + word); });
     if ((visible.match(/老夫/g) || []).length < 8) throw new Error("白話化過頭：辛普里奧的老派聲線遺失");
     const script = readFileSync(path.join(here, "../../04_劇本/第二章完整劇本_拋出去的東西_v0.1.3.md"), "utf-8");
-    for (const frag of ["CH2-CR-002", "一件物體在同一時間,只能有一種運動", "你們這套骨架,敢延伸到哪裡"])
+    for (const frag of ["CH2-CR-002", "CH2-CR-004", "一件物體在同一時間,只能有一種運動", "你們這套骨架,敢延伸到哪裡"])
       if (!script.includes(frag)) throw new Error("劇本未同步語氣修正:" + frag);
+  }
+});
+
+tests.push({
+  name: "雙章角色聲線|旅人固定現代白話；老派不等於文言；章末不用製作術語",
+  fn: () => {
+    const s1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const s2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const d1 = JSON.parse(readFileSync(path.join(here, "../data/debate.json"), "utf-8"));
+    const d2 = JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"));
+    const traveler = [];
+    for (const data of [s1, s2]) for (const scene of data.scenes) for (const node of (scene.nodes || []))
+      if (node.speaker === "旅人") traveler.push(node.text || "");
+    for (const data of [d1, d2]) for (const pillar of Object.values(data.chapter.pillars))
+      traveler.push(pillar.playerCorrect || "");
+    const travelerText = traveler.join("\n");
+    const travelerBanned = ["便知", "二石", "擲下", "慢於", "快於", "敢問", "取哪一頭", "稚子", "尚不足以判定", "前行得再遠"];
+    travelerBanned.forEach((word) => { if (travelerText.includes(word)) throw new Error("旅人聲線滑向半文言:" + word); });
+
+    const simplicio = [];
+    for (const data of [s1, s2]) for (const scene of data.scenes) for (const node of (scene.nodes || []))
+      if (node.speaker === "辛普里奧") simplicio.push(node.text || "");
+    for (const data of [d1, d2]) for (const pillar of Object.values(data.chapter.pillars)) {
+      for (const st of pillar.statements || []) simplicio.push(st.text || "", st.press || "");
+      simplicio.push(pillar.breakReply || "");
+    }
+    const simplicioText = simplicio.join("\n");
+    ["爾等", "爾之", "此乃", "焉知", "然則", "安從"].forEach((word) => {
+      if (simplicioText.includes(word)) throw new Error("辛普里奧以難讀文言代替老派聲線:" + word);
+    });
+    if ((simplicioText.match(/老夫/g) || []).length < 8) throw new Error("辛普里奧老派辨識詞遺失");
+
+    const allNodes = [...s1.scenes, ...s2.scenes].flatMap((scene) => scene.nodes || []);
+    const archaicMimics = allNodes.filter((node) => /此乃|焉知/.test(node.text || ""));
+    if (archaicMimics.length !== 3) throw new Error("核准的模仿節點數漂移:" + archaicMimics.length);
+    for (const node of archaicMimics) {
+      if (node.speaker !== "伽利略" || !/模仿|學那個熟悉/.test(node.text))
+        throw new Error("半文言未明標為伽利略模仿:" + (node.text || ""));
+    }
+
+    const runtimeVisible = JSON.stringify(s1) + JSON.stringify(s2) + JSON.stringify(d1) + JSON.stringify(d2);
+    if (runtimeVisible.includes("鉤子")) throw new Error("玩家可見資料洩漏編劇術語「鉤子」");
+    for (const [file, cr] of [["第一章完整劇本_重物的渴望_v0.2.2.md", "CH1-CR-004"], ["第二章完整劇本_拋出去的東西_v0.1.3.md", "CH2-CR-004"]]) {
+      const script = readFileSync(path.join(here, "../../04_劇本/" + file), "utf-8");
+      if (!script.includes(cr) || !script.includes("旅人筆記新增未解線索")) throw new Error("凍結劇本未同步聲線 CR:" + file);
+    }
+  }
+});
+
+tests.push({
+  name: "第二章 P2 可理解性|先說可測預測，再由一拋一放反駁",
+  fn: () => {
+    const scenes = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const debate = JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"));
+    const p2 = debate.chapter.pillars.P2;
+    const target = p2.statements.find((s) => s.id === "p2s2");
+    if (!p2.title.includes("才會開始下墜")) throw new Error("P2 標題仍是未翻譯術語");
+    if (!target.text.includes("等它用完") || !target.insight.includes("晚落")) throw new Error("P2 沒把可測預測說滿");
+    if (target.weakTo?.evidence !== "F3") throw new Error("P2 弱點不再指向 F3");
+    if (!p2.playerCorrect.includes("應該比原地放下的晚落") || !p2.playerCorrect.includes("向前飛並沒有讓下墜延後"))
+      throw new Error("P2 正解缺『如果—應該—可是—所以』證據鏈");
+    if (scenes.evidenceNames.F3 !== "一拋一放・近乎同時落地") throw new Error("F3 名稱未同步白話化");
   }
 });
 
