@@ -920,7 +920,12 @@
     if (TEXT) TEXT.normalizeTextNodes(document.getElementById("stage"));
     var loaded = tryLoad();
     $("continueWrap").style.display = loaded ? "" : "none";
-    if (loaded) $("btnContinue").onclick = function () { startGame(loaded); };
+    if (loaded) {
+      $("continueMeta").textContent = loaded.ended
+        ? "已完成・共 " + loaded.lab.days + " 天"
+        : (loaded.mode === "scholar" ? "學者模式" : "探索模式") + "・第 " + loaded.lab.days + " 天";
+      $("btnContinue").onclick = function () { startGame(loaded); };
+    }
     $("btnNew").onclick = function () {
       if (loaded && !newConfirm) {
         newConfirm = true;

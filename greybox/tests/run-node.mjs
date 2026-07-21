@@ -688,6 +688,26 @@ tests.push({
 });
 
 tests.push({
+  name: "系列首頁 v2|單屏殼+章節列+字體分工+進度歸屬",
+  fn: () => {
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of [
+      'class="titleIdentity"', 'class="chapterRail"', 'data-chapter="ch01"',
+      'data-chapter="ch02" disabled', 'id="continueMeta"', 'overflow: hidden'
+    ]) if (!stageHtml.includes(frag)) throw new Error("系列首頁契約缺失:" + frag);
+    if (!stageHtml.includes("font-family: var(--font-ui); font-weight: 600"))
+      throw new Error("首頁操作字未使用黑體聲部");
+    if (!stageHtml.includes("#titleCard .t1") || !stageHtml.includes("font-family: var(--font-dialogue)"))
+      throw new Error("系列標題未保留明體聲部");
+    if (/label\.mode \.mc small\s*\{[^}]*display\s*:\s*none/s.test(stageHtml))
+      throw new Error("低高度畫面仍須保留模式說明給輔助技術");
+    for (const frag of ['$("continueMeta").textContent', 'loaded.mode === "scholar"', 'loaded.lab.days'])
+      if (!cui.includes(frag)) throw new Error("首頁進度未標明模式/天數:" + frag);
+  }
+});
+
+tests.push({
   name: "手機橫屏真機回歸|證據字級、實驗選單與辯論下半部不再溢出／裁切",
   fn: () => {
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");

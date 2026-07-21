@@ -882,7 +882,7 @@
   /* 標題主視覺+史實頁橫幅(Batch 03) */
   #title-screen.title-art { background-size: cover; background-position: center; }
   #title-screen.title-art #titleCard { background: rgba(16, 11, 7, 0.62); border-radius: 12px;
-    padding: 22px 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
   #histBanner { display: none; width: 100%; height: auto; border-radius: 4px; margin: 0 0 10px; }
   body[data-view="histfacts"] #histBanner { display: block; }
   @media (max-height: 520px) { body[data-view="histfacts"] #histBanner { max-height: 110px; object-fit: cover; } }
@@ -1002,63 +1002,122 @@
 
   /* --- 標題畫面 --- */
   #title-screen { position: absolute; inset: 0; z-index: 50; background: #1d1610;
-                  display: flex; align-items: center; justify-content: center; overflow-y: auto; }
-  #titleCard { text-align: center; color: #e6d7bd; max-width: 560px; padding: 24px;
-               -webkit-user-select: text; user-select: text; }
-  #titleCard .t1 { font-family: var(--font-dialogue);
-                   font-size: clamp(34px, 6vw, 56px); letter-spacing: 0.3em; margin: 0 0 4px; }
-  #titleCard .t2 { color: #cfa96b; font-size: clamp(15px, 2vw, 19px); letter-spacing: 0.15em; margin: 0 0 6px; }
-  #titleCard .t2::after { content: ""; display: block; width: 180px; height: 1px; margin: 18px auto 0;
-    background: linear-gradient(90deg, transparent, rgba(207,169,107,0.7), transparent); }
-  #titleCard fieldset, #titleCard details { border: 1px solid rgba(230,215,189,0.22);
-    background: rgba(230,215,189,0.045); border-radius: 8px;
-    text-align: left; padding: 14px 18px; margin-top: 16px; }
-  #titleCard legend { padding: 0 8px; color: #cfa96b; font-family: var(--font-dialogue);
-    letter-spacing: 0.12em; font-size: clamp(15px, 1.3vw, 17px); }
-  #titleCard summary { color: #cfa96b; font-family: var(--font-dialogue); letter-spacing: 0.12em;
-    font-size: clamp(15px, 1.3vw, 17px); cursor: pointer; padding: 2px 4px; }
+                  display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #titleCard { position: relative; box-sizing: border-box; width: min(94%, 940px); max-height: calc(100% - 24px);
+    display: grid; grid-template-columns: minmax(210px, .72fr) minmax(460px, 1.55fr);
+    grid-template-areas: "identity launch"; gap: clamp(18px, 3vw, 38px); align-items: center;
+    color: #e6d7bd; padding: clamp(18px, 2.4vw, 30px); text-align: left;
+    -webkit-user-select: text; user-select: text; }
+  .titleIdentity { grid-area: identity; align-self: center; border-right: 1px solid rgba(207,169,107,.42);
+    padding: 8px clamp(16px, 2.4vw, 30px) 8px 2px; }
+  .titleKicker { margin: 0 0 8px; color: #cfa96b; font: 600 12px/1.3 var(--font-ui);
+    letter-spacing: .16em; }
+  #titleCard .t1 { font-family: var(--font-dialogue); font-size: clamp(38px, 5.2vw, 66px);
+    font-weight: 500; letter-spacing: .12em; line-height: 1.08; margin: 0 0 14px; white-space: nowrap; }
+  .titleTagline { margin: 0; color: rgba(230,215,189,.78); font: 400 clamp(14px,1.5vw,17px)/1.7 var(--font-ui); }
+  .titleLaunch { grid-area: launch; min-width: 0; position: relative; }
+  .chapterStatus { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 8px; }
+  .chapterStatusText span { display: block; color: #cfa96b; font: 600 11px/1.2 var(--font-ui); letter-spacing: .14em; }
+  .chapterStatusText strong { display: block; margin-top: 3px; color: #f2e6cf;
+    font: 600 clamp(19px,2vw,25px)/1.25 var(--font-dialogue); letter-spacing: .06em; }
+  .chapterRail { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 9px; }
+  .chapterPick { min-width: 0; min-height: 48px; display: grid; grid-template-columns: auto 1fr auto;
+    align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid rgba(230,215,189,.23);
+    border-radius: 6px; background: rgba(16,11,8,.5); color: rgba(230,215,189,.62);
+    font-family: var(--font-ui); text-align: left; }
+  .chapterPick .chNo { color: #cfa96b; font-size: 11px; letter-spacing: .08em; }
+  .chapterPick b { overflow: hidden; color: inherit; font: 600 14px/1.2 var(--font-dialogue);
+    white-space: nowrap; text-overflow: ellipsis; }
+  .chapterPick small { font-size: 10px; white-space: nowrap; }
+  .chapterPick.isActive { border-color: rgba(207,169,107,.72); color: #f2e6cf;
+    background: rgba(122,75,42,.32); box-shadow: inset 3px 0 #cfa96b; }
+  .chapterPick:disabled { cursor: default; opacity: .72; }
+  #titleCard fieldset { border: 1px solid rgba(230,215,189,0.22); background: rgba(230,215,189,0.045);
+    border-radius: 8px; text-align: left; padding: 8px 10px 10px; margin: 0; }
+  #titleCard legend { padding: 0 6px; color: #cfa96b; font: 600 12px/1.2 var(--font-ui);
+    letter-spacing: .08em; }
+  #titleCard summary { color: #cfa96b; font: 500 13px/1.2 var(--font-ui); letter-spacing: .06em;
+    cursor: pointer; padding: 5px 2px; list-style-position: inside; }
   #titleCard summary:hover { color: #e6d7bd; }
-  /* 模式選卡:原生 radio 隱形保留(鍵盤方向鍵可換),外觀由卡片承擔 */
-  label.mode { display: block; margin: 10px 0; position: relative; }
+  /* 模式選卡:橫向分段;原生 radio 隱形保留鍵盤操作 */
+  .modeRow { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  label.mode { display: block; margin: 0; position: relative; }
   label.mode input { position: absolute; opacity: 0; pointer-events: none; }
-  label.mode .mc { display: flex; flex-direction: column; gap: 2px; cursor: pointer; position: relative;
-    border: 1px solid rgba(230,215,189,0.28); border-radius: 6px; padding: 12px 14px 12px 46px;
+  label.mode .mc { display: flex; flex-direction: column; justify-content: center; gap: 1px; cursor: pointer; position: relative;
+    min-height: 48px; box-sizing: border-box; border: 1px solid rgba(230,215,189,0.28);
+    border-radius: 6px; padding: 7px 9px 7px 34px;
     transition: border-color var(--motion-instant) ease, background var(--motion-instant) ease; }
-  label.mode .mc::before { content: ""; position: absolute; left: 14px; top: 50%;
-    transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%;
+  label.mode .mc::before { content: ""; position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%); width: 15px; height: 15px; border-radius: 50%;
     border: 2px solid rgba(230,215,189,0.5); box-sizing: border-box;
     transition: border-color var(--motion-instant) ease, background var(--motion-instant) ease; }
-  label.mode .mc b { font-family: var(--font-dialogue); font-size: 1.08em; letter-spacing: 0.08em;
-    color: #e6d7bd; font-weight: 600; }
-  label.mode .mc small { color: rgba(230,215,189,0.62); font-size: 0.88em; }
+  label.mode .mc b { font: 600 14px/1.25 var(--font-ui); letter-spacing: .04em; color: #e6d7bd; }
+  label.mode .mc small { color: rgba(230,215,189,0.62); font: 400 11px/1.3 var(--font-ui); }
   label.mode .mc:hover { border-color: rgba(230,215,189,0.55); background: rgba(230,215,189,0.05); }
   label.mode input:checked + .mc { border-color: var(--color-chapter-accent); background: rgba(122,75,42,0.28); }
   label.mode input:checked + .mc::before { border-color: #cfa96b; background: #e6d7bd;
-    box-shadow: inset 0 0 0 3.5px #2a1d13; }
+    box-shadow: inset 0 0 0 3px #2a1d13; }
   label.mode input:checked + .mc b { color: #f6ecd8; }
   label.mode input:focus-visible + .mc { outline: 3px solid var(--color-focus); outline-offset: 2px; }
-  /* 按鈕階層:主動作=章節棕,次動作=空心 */
+  .newGameActions { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin-top: 8px; }
+  /* 按鈕階層:主動作=章節棕,次動作=空心;操作字一律黑體 */
   #titleCard button { background: var(--color-chapter-accent); color: #f3e9d5;
     border: 1px solid rgba(230,215,189,0.45); border-bottom-color: rgba(18,11,7,0.75);
-    border-radius: 6px; padding: 10px 24px; font-size: clamp(16px, 1.4vw, 18px); cursor: pointer;
-    margin-top: 10px; min-height: 44px; letter-spacing: 0.14em; font-family: var(--font-dialogue);
+    border-radius: 6px; padding: 8px 18px; font-size: 14px; cursor: pointer;
+    margin: 0; min-height: 42px; letter-spacing: .06em; font-family: var(--font-ui); font-weight: 600;
     transition: background var(--motion-instant) ease, transform var(--motion-instant) ease; }
   #titleCard button:hover { background: #935c35; }
   #titleCard button:active { transform: translateY(1px); }
   #btnExport { background: transparent; color: #cfa96b; border-color: rgba(207,169,107,0.55); }
   #btnExport:hover { background: rgba(122,75,42,0.35); color: #f3e9d5; }
-  #continueWrap button { width: 100%; font-size: 1.14em; letter-spacing: 0.26em;
-    box-shadow: 0 0 0 1px rgba(122,75,42,0.55), 0 6px 18px rgba(0,0,0,0.35); }
+  #continueWrap { min-width: 180px; text-align: right; }
+  #continueWrap button { width: 100%; box-shadow: 0 0 0 1px rgba(122,75,42,0.55), 0 5px 14px rgba(0,0,0,.3); }
+  #continueMeta { display: block; margin-top: 3px; color: rgba(230,215,189,.64);
+    font: 400 11px/1.2 var(--font-ui); }
   .hint { font-size: clamp(13px, 1.1vw, 15px); color: rgba(230,215,189,0.75); }
-  #titleCard label { font-size: clamp(15px, 1.3vw, 17px); }
-  #titleCard textarea { width: 95%; background: rgba(230,215,189,0.1); color: #e6d7bd;
+  #titleCard label { font-size: 14px; }
+  #newWarn { grid-column: 1 / -1; margin: 0; font: 500 11px/1.3 var(--font-ui); color: #f0c27a; }
+  .titleTools { margin: 5px 0 0 auto; width: max-content; max-width: 100%; text-align: right; }
+  #titleCard details { position: relative; margin: 0; }
+  #titleCard details[open] { position: absolute; z-index: 4; right: 0; bottom: 0; width: min(100%, 520px);
+    box-sizing: border-box; padding: 10px 12px; border: 1px solid rgba(230,215,189,.35);
+    border-radius: 8px; background: rgba(20,14,10,.98); box-shadow: 0 12px 34px rgba(0,0,0,.55); }
+  #titleCard textarea { box-sizing: border-box; width: 100%; background: rgba(230,215,189,0.1); color: #e6d7bd;
     border: 1px solid rgba(230,215,189,0.3); border-radius: 6px;
-    padding: 8px; font-size: 13px; margin: 8px 0 2px; }
+    padding: 7px; font: 12px/1.3 var(--font-ui); margin: 6px 0; resize: none; }
   #titleCard textarea:focus { border-color: #cfa96b; }
+  #letterMsg { margin: 5px 0 0; font: 400 11px/1.35 var(--font-ui); }
+  @media (max-width: 760px) and (min-height: 521px) {
+    #titleCard { grid-template-columns: 1fr; grid-template-areas: "identity" "launch"; gap: 12px; overflow-y: auto; }
+    .titleIdentity { border-right: 0; border-bottom: 1px solid rgba(207,169,107,.42); padding: 0 0 12px; }
+  }
   @media (max-height: 520px) and (min-width: 701px) {
-    /* flex 垂直置中會把過高的標題卡上下裁掉；低高度改從頂端捲動。 */
-    #title-screen { align-items: flex-start; }
-    #titleCard { box-sizing: border-box; max-height: 100%; overflow-y: auto; padding-block: 10px; }
+    #titleCard { width: min(96%, 920px); max-height: calc(100% - 10px); grid-template-columns: minmax(180px,.62fr) minmax(470px,1.7fr);
+      gap: 14px; padding: 10px 14px; overflow: hidden; }
+    .titleIdentity { padding: 4px 14px 4px 0; }
+    .titleKicker { margin-bottom: 5px; font-size: 10px; }
+    #titleCard .t1 { font-size: clamp(31px,6.5vh,40px); margin-bottom: 7px; letter-spacing: .08em; }
+    .titleTagline { font-size: 12px; line-height: 1.45; }
+    .chapterStatus { margin-bottom: 5px; }
+    .chapterStatusText strong { font-size: 18px; }
+    .chapterRail { margin-bottom: 6px; }
+    .chapterPick { min-height: 42px; padding: 5px 8px; }
+    .chapterPick b { font-size: 13px; }
+    #titleCard fieldset { padding: 5px 8px 7px; }
+    label.mode .mc { min-height: 42px; padding-block: 5px; }
+    label.mode .mc small {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .newGameActions { margin-top: 6px; }
+    #titleCard button { min-height: 42px; padding: 6px 14px; }
+    #continueMeta { display: none; }
+    .titleTools { margin-top: 3px; }
+    #titleCard summary { font-size: 11px; }
   }
 </style>
 </head>
@@ -1251,30 +1310,52 @@
 
   <section id="title-screen" aria-label="標題畫面">
     <div id="titleCard">
-      <p class="t1">發現之前</p>
-      <p class="t2">第一章:重物的渴望</p>
-      <p class="hint" style="margin:-14px 0 0">你早就知道答案——這一次,由你親手推進物理史。</p>
-      <div id="continueWrap" style="display:none">
-        <button id="btnContinue">繼續上次進度</button>
-      </div>
-      <fieldset>
-        <legend>新遊戲——選擇模式(中途不可換)</legend>
-        <label class="mode"><input type="radio" name="mode" value="explore" checked>
-          <span class="mc"><b>探索模式</b><small>想順著故事推理——引導較多，卡住時伽利略會主動追問</small></span>
-        </label>
-        <label class="mode"><input type="radio" name="mode" value="scholar">
-          <span class="mc"><b>學者模式</b><small>想自己拆資料——開放音格計時與進階斷言，提示改為主動索取</small></span>
-        </label>
-        <button id="btnNew">開始新遊戲</button>
-        <p class="hint" id="newWarn" style="display:none">注意:開始新遊戲將覆蓋既有存檔。再按一次確認。</p>
-      </fieldset>
-      <details>
-        <summary>旅人書信碼(跨機續玩)</summary>
-        <button id="btnExport" style="display:none">匯出書信碼(複製+下載)</button>
-        <textarea id="letterCode" rows="2" aria-label="書信碼" placeholder="把書信碼貼在這裡……"></textarea>
-        <button id="btnImport">貼碼續玩</button>
-        <p class="hint" id="letterMsg">貼碼續玩會覆蓋本機現有進度;共機環境請先各自匯出。</p>
-      </details>
+      <header class="titleIdentity">
+        <p class="titleKicker">物理史推理遊戲</p>
+        <p class="t1">發現之前</p>
+        <p class="titleTagline">知道答案，不等於能說服一個時代。<br>親手讓證據成立。</p>
+      </header>
+      <section class="titleLaunch" aria-label="章節與遊戲選項">
+        <div class="chapterStatus">
+          <div class="chapterStatusText"><span>目前可玩</span><strong>第一章・重物的渴望</strong></div>
+          <div id="continueWrap" style="display:none">
+            <button id="btnContinue">繼續第一章</button>
+            <span id="continueMeta"></span>
+          </div>
+        </div>
+        <nav class="chapterRail" aria-label="章節選擇">
+          <button type="button" class="chapterPick isActive" data-chapter="ch01" aria-current="page">
+            <span class="chNo">01</span><b>重物的渴望</b><small>可玩</small>
+          </button>
+          <button type="button" class="chapterPick" data-chapter="ch02" disabled>
+            <span class="chNo">02</span><b>拋出去的東西</b><small>製作中</small>
+          </button>
+        </nav>
+        <fieldset>
+          <legend>從第一章開始・選擇模式（中途不可換）</legend>
+          <div class="modeRow">
+            <label class="mode"><input type="radio" name="mode" value="explore" checked>
+              <span class="mc"><b>探索模式</b><small>故事引導較多，卡住時伽利略會主動追問</small></span>
+            </label>
+            <label class="mode"><input type="radio" name="mode" value="scholar">
+              <span class="mc"><b>學者模式</b><small>開放進階工具，提示改為主動索取</small></span>
+            </label>
+          </div>
+          <div class="newGameActions">
+            <p class="hint" id="newWarn" style="display:none">注意：開始新遊戲將覆蓋既有存檔。再按一次確認。</p>
+            <button id="btnNew">開始第一章</button>
+          </div>
+        </fieldset>
+        <div class="titleTools">
+          <details>
+            <summary>跨裝置續玩・旅人書信碼</summary>
+            <button id="btnExport" style="display:none">匯出書信碼</button>
+            <textarea id="letterCode" rows="2" aria-label="書信碼" placeholder="把書信碼貼在這裡……"></textarea>
+            <button id="btnImport">貼碼續玩</button>
+            <p class="hint" id="letterMsg">貼碼續玩會覆蓋本機現有進度；共用裝置請先各自匯出。</p>
+          </details>
+        </div>
+      </section>
     </div>
   </section>
 
