@@ -6,6 +6,7 @@
   "use strict";
   if (typeof module === "object" && module.exports) {
     module.exports = factory(require("../data/scenes.js"), require("./engine.js"), require("../data/debate.js"));
+    module.exports._factory = factory; /* M1:測試可用第二章資料另建實例(瀏覽器端 ch2 走 chapter2.html 重指 DATA.scenes,本行不影響) */
   } else {
     root.GB = root.GB || {};
     root.GB.Narrative = factory(root.GB.DATA.scenes, root.GB.Engine, root.GB.DATA.debate);

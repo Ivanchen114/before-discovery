@@ -9,7 +9,7 @@
   var ASSETS = window.GB.DATA.assets || null;
   var DEBATE = window.GB.DATA.debate || {};
   var TEXT = window.GB.TextFormat || null;
-  var KEY = "bd_ch1_save";
+  var KEY = window.BD_SAVE_KEY || "bd_ch1_save"; /* R-SAV2:chapter2.html 覆寫為 bd_ch2_save;未設=第一章原值,灰盒零差異 */
   var state = null;
   var lastSceneShown = null;
   var lastEmbedKey = null;

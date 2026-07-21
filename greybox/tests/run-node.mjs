@@ -767,6 +767,114 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "第二章 M1|scenes2 雙載體深等+劇本 v0.1.3 逐字抽查+存檔鍵隔離",
+  fn: () => {
+    const fromJs = require("../data/scenes2.js");
+    const fromJson = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    if (JSON.stringify(fromJs) !== JSON.stringify(fromJson)) throw new Error("scenes2 雙載體不深等");
+    /* 逐字抽查(凍結劇本 v0.1.3) */
+    const flat = JSON.stringify(fromJson);
+    for (const frag of ["老夫讀了。(抬眼)有一問。", "此乃前章舊案,老夫已錄於冊", "答非所問",
+      "那才是 impetus 押的注", "先不給它名字", "這一回,老夫也帶數字來"])
+      if (!flat.includes(frag)) throw new Error("劇本逐字缺失:" + frag);
+    /* 效果抽查:B0-2 a=rep-1/b 線 S3+rep+1;B1-2 F1 */
+    const b02 = fromJson.scenes.find((s) => s.id === "B0-2");
+    const q1 = b02.nodes.find((n) => n.id === "q1");
+    if (q1.options.find((o) => o.id === "a").effects[0].rep !== -1) throw new Error("B0-2.a 信譽效果錯");
+    if (!JSON.stringify(b02.nodes.find((n) => n.id === "s1").effects).includes('"S3"')) throw new Error("S3 未授予");
+    /* 學者節點 mode 過濾標記 */
+    const b12 = fromJson.scenes.find((s) => s.id === "B1-2");
+    if (b12.nodes.find((n) => n.id === "nsch1").mode !== "scholar") throw new Error("學者節點未標 mode");
+    /* 存檔鍵隔離:chapter2 覆寫 bd_ch2_save;chapter.html 不得含覆寫(灰盒零差異) */
+    const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
+    if (!c2.includes('BD_SAVE_KEY = "bd_ch2_save"') || !c2.includes("scenes2")) throw new Error("chapter2 殼要素缺失");
+    if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("BD_SAVE_KEY")) throw new Error("chapter.html 混入 ch2 覆寫");
+    if (!readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8").includes('window.BD_SAVE_KEY || "bd_ch1_save"'))
+      throw new Error("存檔鍵預設回退缺失");
+  }
+});
+
+tests.push({
+  name: "第二章 M1|R-NAR2 三軌 lint:真實文本零受管詞+六組負向變異",
+  fn: () => {
+    const data = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const TERMS = data.lint.terms;
+    const scan = (sc) => { /* 掃所有玩家可見字串:台詞/選項/系統行/標題 */
+      const hits = [];
+      const check = (txt, where) => {
+        if (typeof txt !== "string") return;
+        for (const [k, words] of Object.entries(TERMS))
+          for (const w of words) if (txt.includes(w)) hits.push({ k, w, where });
+      };
+      sc.scenes.forEach((s) => { check(s.title, s.id); s.nodes.forEach((n) => {
+        check(n.text, s.id + "/" + n.id);
+        (n.options || []).forEach((o) => check(o.text, s.id + "/" + n.id + "." + o.id));
+      }); });
+      return hits;
+    };
+    const hits = scan(data);
+    /* M1 合法狀態:B0-B1 無任何受管詞;有登錄的例外須在 lint.entries(現為空) */
+    const allowed = new Set((data.lint.entries || []).map((e) => e.nodeId + ":" + e.term));
+    const bad = hits.filter((h) => !allowed.has(h.where.split(".")[0] + ":" + h.w));
+    if (bad.length) throw new Error("受管詞違規:" + JSON.stringify(bad[0]));
+    /* 六組負向變異(合成注入,驗掃描器有牙) */
+    const inject = (txt) => scan({ scenes: [{ id: "X", title: "", nodes: [{ id: "n1", type: "line", speaker: "旅人", text: txt, next: "end" }] }] }).length;
+    const negatives = ["這就是拋物線", "射程吃的是平方根", "它們同時落地了", "√H 的關係", "開方即可", "拋物線是完美的形"];
+    negatives.forEach((t, i) => { if (!inject(t)) throw new Error("負向變異未被抓到 #" + (i + 1) + ":" + t); });
+  }
+});
+
+tests.push({
+  name: "第二章 M1|行為走查:B0-1→B1-4 全程可通,證據/信譽/學者分支/存檔往返",
+  fn: () => {
+    const F = require("../src/narrative.js")._factory;
+    const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const Engine = require("../src/engine.js");
+    const walk = (mode, pickWrongFirst) => {
+      const N2 = F(scenes2, Engine, {});
+      let st = N2.initialState(mode);
+      let guard = 0;
+      while (!st.ended && guard++ < 300) {
+        const v = N2.view(st);
+        if (v.type === "choice") {
+          const opts = v.options.map((o) => o.id);
+          let pick = opts.includes("a") ? "a" : opts[0];
+          if (pickWrongFirst && v.scene === "B0-2" && !st.flags.triedA) {
+            st = N2.choose(st, "a").state; st.flags.triedA = "1";
+            if (st.rep !== 2) throw new Error("B0-2.a 應 rep 3→2,得 " + st.rep);
+            continue; /* 誤選後讓引擎把回應台詞走完,迴圈自然回到選項 */
+          }
+          if (v.scene === "B0-2") pick = "b";
+          const r = N2.choose(st, pick);
+          if (r.error) throw new Error("choose 失敗:" + v.scene + " " + r.error);
+          st = r.state;
+        } else {
+          const r = N2.advance(st);
+          if (r.error) throw new Error("advance 失敗:" + JSON.stringify(v).slice(0, 80));
+          st = r.state;
+        }
+      }
+      if (!st.ended) throw new Error("300 步未達終點(" + mode + ")");
+      return st;
+    };
+    const s1 = walk("explore", true);
+    if (!s1.evidence.S3 || !s1.evidence.F1) throw new Error("探索線證據缺失");
+    if (s1.rep !== 3) throw new Error("探索線信譽應 3(−1+1),得 " + s1.rep);
+    const s2 = walk("scholar", false);
+    if (!s2.evidence.F1) throw new Error("學者線 F1 缺失");
+    if (!s2.transcript.some((t) => (t.text || "").includes("先不給它名字"))) throw new Error("學者分支未演出");
+    if (walk("explore", false).transcript.some((t) => (t.text || "").includes("先不給它名字")))
+      throw new Error("探索線誤入學者節點");
+    /* 存檔往返 */
+    const F2i = F(scenes2, Engine, {});
+    const code = F2i.serialize(s1);
+    const back = F2i.loadSave(code);
+    if (back.error) throw new Error("ch2 存檔往返失敗:" + back.error);
+    if (JSON.stringify(back.state) !== JSON.stringify(JSON.parse(JSON.stringify(s1)))) throw new Error("往返不深等");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
