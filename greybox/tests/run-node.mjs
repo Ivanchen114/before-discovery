@@ -194,9 +194,11 @@ tests.push({
   fn: () => {
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const ids = new Set(assets.entries.map((e) => e.id));
-    const sceneIds = new Set(scenes.scenes.map((s) => s.id));
+    const scenes2Portrait = require("../data/scenes2.js");
+    const sceneIds = new Set(scenes.scenes.concat(scenes2Portrait.scenes).map((s) => s.id));
     const sdp = assets.sceneDialoguePortrait || {};
     const EARLY = /^(P0-|A1-)/;                 /* 1590:26 歲伽利略/58 歲辛普里奧 */
+    const CH2 = /^(B|SC-R1)/;                   /* 1608+:44 歲伽利略/76 歲辛普里奧 */
     for (const [sc, m] of Object.entries(sdp)) {
       if (!sceneIds.has(sc)) throw new Error("sceneDialoguePortrait 指向不存在場景:" + sc);
       for (const [sp, aid] of Object.entries(m)) {
@@ -204,10 +206,12 @@ tests.push({
         if (sp === "旅人" || sp === "旅人(你)") throw new Error("旅人不得入對話肖像映射(驗收6):" + sc);
         if (EARLY.test(sc) && /39|72/.test(aid)) throw new Error("年代錯置:1590 場景用了老年肖像:" + sc + "→" + aid);
         if (!EARLY.test(sc) && /26|58/.test(aid)) throw new Error("年代錯置:1603+ 場景用了青年肖像:" + sc + "→" + aid);
+        if (CH2.test(sc) && (sp === "伽利略" || sp === "辛普里奧") && !/44|76/.test(aid))
+          throw new Error("年代錯置:第二章未用 44/76 歲肖像:" + sc + "→" + aid);
       }
     }
     /* 每個場景都要有 scene-aware 覆寫列(伽利略/辛普里奧年代安全的前提) */
-    scenes.scenes.forEach((s) => {
+    scenes.scenes.concat(scenes2Portrait.scenes).forEach((s) => {
       if (!(s.id in sdp)) throw new Error("場景缺對話肖像覆寫列:" + s.id);
     });
     const spd = assets.speakerDialoguePortrait || {};
@@ -225,8 +229,10 @@ tests.push({
     if (!(a0 >= 0 && a > a0 && b > a && c > b)) throw new Error("肖像四層解析順序錯誤(應:台詞→場景→預設→筆記頭像)");
     /* 台詞級覆寫:目標存在+match 真的出現在該場景/辯論文本+年代守衛 */
     const ldp = assets.lineDialoguePortrait || [];
-    const scenesText = readFileSync(path.join(here, "../data/scenes.json"), "utf-8");
-    const debateText = readFileSync(path.join(here, "../data/debate.json"), "utf-8");
+    const scenesText = readFileSync(path.join(here, "../data/scenes.json"), "utf-8") +
+      readFileSync(path.join(here, "../data/scenes2.json"), "utf-8");
+    const debateText = readFileSync(path.join(here, "../data/debate.json"), "utf-8") +
+      readFileSync(path.join(here, "../data/debate2.json"), "utf-8");
     for (const r of ldp) {
       if (!ids.has(r.asset)) throw new Error("台詞覆寫指向不存在資產:" + r.asset);
       if (!sceneIds.has(r.scene)) throw new Error("台詞覆寫指向不存在場景:" + r.scene);
@@ -234,6 +240,8 @@ tests.push({
         throw new Error("台詞覆寫 match 字串不存在於任何文本:" + r.match);
       if (EARLY.test(r.scene) && /39|72/.test(r.asset)) throw new Error("台詞覆寫年代錯置:" + r.scene);
       if (!EARLY.test(r.scene) && /26|58/.test(r.asset)) throw new Error("台詞覆寫年代錯置:" + r.scene);
+      if (CH2.test(r.scene) && (r.speaker === "伽利略" || r.speaker === "辛普里奧") && !/44|76/.test(r.asset))
+        throw new Error("第二章台詞覆寫未用 44/76 歲肖像:" + r.scene);
       if (r.speaker === "旅人" || r.speaker === "旅人(你)") throw new Error("旅人不得入台詞覆寫");
     }
   }
@@ -438,7 +446,12 @@ tests.push({
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const concat = (cui.match(/\.innerHTML\s*=\s*[^;]+;/g) || []).filter((l) => !/=\s*"";/.test(l));
     if (concat.length) throw new Error("chapter-ui 仍有 innerHTML 串接:" + concat[0]);
-    if (!(cui.indexOf("Sanitize.sanitizeImport") >= 0 && cui.indexOf("Sanitize.sanitizeImport") < cui.indexOf("startGame(chk.state)")))
+    /* 章節化後由 sanitizeLoaded 分派 ch1/ch2；鎖資料流，不再把舊區域變數 chk 寫死。 */
+    const importFn = cui.slice(cui.indexOf("function importCurrentChapter"), cui.indexOf("function initTitle"));
+    const importClick = cui.slice(cui.indexOf('$("btnImport").onclick'), cui.indexOf("initTitle();"));
+    if (!(importFn.indexOf("sanitizeLoaded(r.state)") >= 0 && importFn.indexOf("sanitizeLoaded(r.state)") < importFn.indexOf("return { state: chk.state }")))
+      throw new Error("匯入函式未先淨化再回傳 state");
+    if (!(importClick.indexOf("importCurrentChapter") >= 0 && importClick.indexOf("importCurrentChapter") < importClick.indexOf("startGame(imported.state)")))
       throw new Error("匯入閘未接在 startGame 之前");
     if (!cui.includes("saveWarn")) throw new Error("存檔失敗警示缺失(B-4)");
     if (!cui.includes("revokeObjectURL")) throw new Error("匯出 URL 未回收(C-1)");
@@ -495,9 +508,9 @@ tests.push({
     if (cui.includes("選集內部不一致") || plainUi.includes("選集內部不一致"))
       throw new Error("誤導性舊訊息『選集內部不一致』回歸");
 
-    /* 連續工作階段:A2-2 首入才閘；A2-3 e2/e3c 不重複跳出再進。 */
-    if (!sui.includes('d.scene === "A2-2" || d.scene === "SC-R1"'))
-      throw new Error("實驗進場閘未限縮為主實驗首次/信譽修復");
+    /* 連續工作階段:各章主實驗 e1 首入才閘；後續 embed 不重複跳出再進。 */
+    for (const frag of ['d.scene === "A2-2" && d.nodeId === "e1"', 'd.scene === "B2-3" && d.nodeId === "e1"', 'd.scene === "SC-R1"'])
+      if (!sui.includes(frag)) throw new Error("實驗進場閘缺失:" + frag);
     if (!sui.includes('$("btnEmbark").focus()')) throw new Error("轉場確認鈕未取得鍵盤焦點");
 
     /* 辯論桌:證詞卡+證據手牌+自然語言行動句；追問後才顯示洞見。 */
@@ -699,8 +712,9 @@ tests.push({
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     for (const frag of [
       'class="titleIdentity"', 'class="chapterRail"', 'data-chapter="ch01"',
-      'data-chapter="ch02" disabled', 'id="continueMeta"', 'overflow: hidden'
+      'data-chapter="ch02"', 'id="continueMeta"', 'overflow: hidden'
     ]) if (!stageHtml.includes(frag)) throw new Error("系列首頁契約缺失:" + frag);
+    if (/data-chapter="ch02"[^>]*disabled/.test(stageHtml)) throw new Error("第二章已完成卻仍 disabled");
     if (!stageHtml.includes("font-family: var(--font-ui); font-weight: 600"))
       throw new Error("首頁操作字未使用黑體聲部");
     if (!stageHtml.includes("#titleCard .t1") || !stageHtml.includes("font-family: var(--font-dialogue)"))
@@ -773,6 +787,15 @@ tests.push({
     const fromJs = require("../data/scenes2.js");
     const fromJson = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
     if (JSON.stringify(fromJs) !== JSON.stringify(fromJson)) throw new Error("scenes2 雙載體不深等");
+    const debate2Js = require("../data/debate2.js");
+    const debate2Json = JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"));
+    if (JSON.stringify(debate2Js) !== JSON.stringify(debate2Json)) throw new Error("debate2 雙載體不深等");
+    const hist2Js = require("../data/histfacts2.js");
+    const hist2Json = JSON.parse(readFileSync(path.join(here, "../data/histfacts2.json"), "utf-8"));
+    if (JSON.stringify(hist2Js) !== JSON.stringify(hist2Json)) throw new Error("histfacts2 雙載體不深等");
+    hist2Json.rows.forEach((row) => {
+      if (!hist2Json.labels.includes(row.label)) throw new Error("histfacts2 未宣告標籤:" + row.label);
+    });
     /* 逐字抽查(凍結劇本 v0.1.3) */
     const flat = JSON.stringify(fromJson);
     for (const frag of ["老夫讀了。(抬眼)有一問。", "此乃前章舊案,老夫已錄於冊", "答非所問",
@@ -838,7 +861,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M1-M3|全章走查:B0-1→BE-2 終(彈射三 embed+三柱+FR 兩步判讀+F5 雙路)",
+  name: "第二章 M1-M3|全章走查:B0-1→BE-2 終+雙歸零修復(彈射三 embed+三柱+FR 兩步判讀+F5 雙路)",
   fn: () => {
     const F = require("../src/narrative.js")._factory;
     const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
@@ -868,6 +891,10 @@ tests.push({
           for (const H of [4, 9, 16]) lab("runHeight", { H });
           lab("predictSeries", { value: 5.0 }); lab("runHeight", { H: 25 });
           lab("compareBalls", { a: 1, b: 2 });
+        } else if (u.repairRun) {
+          /* 雙歸零時先走信譽修復：既有裝置不重組，只新增一筆乾淨沙痕。 */
+          lab("beginSeries", { ball: "copper" });
+          lab("runHeight", { H: 4 });
         }
         const rc = N2.embedComplete(st);
         if (rc.error) throw new Error("embedComplete:" + rc.error);
@@ -876,6 +903,7 @@ tests.push({
       const driveDebate = () => {
         const dv = N2.debateView(st);
         const ok = (r, tag) => { if (r.error) throw new Error(tag + ":" + r.error); st = r.state; };
+        if (dv.status === "suspended") { ok(N2.debateExitSuspended(st), "exit suspended"); return; }
         if (dv.phase === "pillars") {
           const pid = dv.pillar.id;
           ok(N2.debatePresent(st, { target: { P1: "p1s2", P2: "p2s2", P3: "p3s2" }[pid],
@@ -891,7 +919,14 @@ tests.push({
           ok(N2.debateFr(st, dv.enemy.step === "slope" ? "steeper" : "boundary"), "enemy " + dv.enemy.step);
           return;
         }
-        if (dv.phase === "trap") { ok(N2.debateFr(st, o.over && !st.flags.overd ? (st.flags.overd = "1", "over") : "honest"), "claim"); return; }
+        if (dv.phase === "trap") {
+          if (o.doubleZero && !st.flags.dzPrimed) {
+            /* 對抗邊界注入：讓 over 的 −2/−1 同時把兩量表打到零。 */
+            st = JSON.parse(JSON.stringify(st));
+            st.debate.persuasion = 2; st.rep = 1; st.flags.dzPrimed = "1";
+          }
+          ok(N2.debateFr(st, o.over && !st.flags.overd ? (st.flags.overd = "1", "over") : "honest"), "claim"); return;
+        }
         if (dv.phase === "fr") {
           if (dv.fr.kind === "explore") { ok(N2.debateFr(st, "a"), "fr explore"); return; }
           ok(N2.debateFr(st, ["c1", "c2", "c3"][dv.fr.slots.length]), "fr slot");
@@ -902,6 +937,8 @@ tests.push({
       };
       let guard = 0;
       while (!st.ended && guard++ < 900) {
+        const lock = N2.redirectIfLocked(st);
+        if (lock.redirected) { st = lock.state; continue; }
         const v = N2.view(st);
         if (v.type === "embed" && v.system === "debate") { driveDebate(); continue; }
         if (v.type === "embed" && v.system === "debrief") { const r = N2.embedComplete(st); if (r.error) throw new Error(r.error); st = r.state; continue; }
@@ -955,6 +992,13 @@ tests.push({
     if (s3.debate.persuasion !== 3 || s3.rep !== 3 - 1 + 1) /* B0-2 b 未誤選:rep 3+1(S3 線)−1(over)=3 */
       throw new Error("over 代價錯:persuasion=" + s3.debate.persuasion + " rep=" + s3.rep);
     if (!s3.debate.fr.overTried || s3.debate.status !== "won") throw new Error("over 強制轉 honest 未完賽");
+    /* 雙歸零：over 同時清空說服力與信譽→修復一次→複盤一次→honest 完章。 */
+    const s4 = walk("explore", { over: true, doubleZero: true });
+    const countEvent = (t) => s4.eventLog.filter((e) => e.t === t).length;
+    if (countEvent("repairEnter") !== 1) throw new Error("雙歸零應且僅應進入一次信譽修復,得 " + countEvent("repairEnter"));
+    if (countEvent("debateSuspend") !== 1) throw new Error("雙歸零應且僅應中止一次辯論,得 " + countEvent("debateSuspend"));
+    if (s4.rep !== 1 || s4.debate.status !== "won" || !s4.debate.fr.overTried)
+      throw new Error("雙歸零修復後未以 honest 完章:rep=" + s4.rep + " status=" + s4.debate.status);
     /* 存檔往返 */
     const F2i = F(scenes2, E2, D2);
     const back = F2i.loadSave(F2i.serialize(s1));
@@ -1003,6 +1047,79 @@ tests.push({
     for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries"])
       if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
     if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("engine2")) throw new Error("灰盒一章殼混入 ch2 引擎");
+  }
+});
+
+tests.push({
+  name: "第二章 M3b|schema1 章別隔離+書信封套+跨章唯讀投影(R-SAV2/R-XCH)",
+  fn: () => {
+    const F = require("../src/narrative.js")._factory;
+    const scenes2 = require("../data/scenes2.js");
+    const E2 = require("../src/engine2.js");
+    const D2 = require("../data/debate2.js");
+    const N2 = F(scenes2, E2, D2);
+    const Env = require("../src/save-envelope.js");
+    const s2 = N2.initialState("explore");
+    if (N2.SAVE_SCHEMA !== 1 || N2.CHAPTER_ID !== "ch2" || s2.schemaVersion !== 1 || s2.chapter !== "ch2")
+      throw new Error("第二章 schema/章別未隔離");
+    const letter = Env.encode("ch2", s2);
+    const decoded = Env.decode(letter);
+    if (!decoded.envelope || decoded.chapter !== "ch2" || JSON.stringify(decoded.payload) !== JSON.stringify(s2))
+      throw new Error("第二章封套往返失敗");
+    const legacy = Env.decode(JSON.stringify(require("../src/narrative.js").initialState("explore")));
+    if (!legacy.legacy || !legacy.value || legacy.value.schemaVersion !== 3) throw new Error("第一章 legacy raw 未辨識");
+    const badVer = JSON.stringify({ format: Env.FORMAT, envelopeVersion: 99, chapter: "ch2", payload: s2 });
+    if (Env.decode(badVer).error !== "envelope-version") throw new Error("未知封套版本未拒絕");
+    const badChapter = JSON.stringify({ format: Env.FORMAT, envelopeVersion: 1, chapter: "ch9", payload: s2 });
+    if (Env.decode(badChapter).error !== "chapter") throw new Error("未知章別未拒絕");
+    const N1 = require("../src/narrative.js");
+    let done = N1.initialState("scholar");
+    done.ended = true; done.lab.evidence.e3 = { a: true, b: true, c: true };
+    const projected = N2.projectCh1(JSON.stringify(done));
+    if (!projected.certified || projected.source !== "ch1-schema3") throw new Error("完章投影未認證");
+    done.schemaVersion = 2;
+    if (!N2.projectCh1(JSON.stringify(done)).invalid) throw new Error("錯 schema 跨章資料未拒絕");
+  }
+});
+
+tests.push({
+  name: "第二章 M3b|sanitizeImport2 白名單與負向變異",
+  fn: () => {
+    const F = require("../src/narrative.js")._factory;
+    const scenes2 = require("../data/scenes2.js");
+    const E2 = require("../src/engine2.js");
+    const N2 = F(scenes2, E2, require("../data/debate2.js"));
+    const S = require("../src/sanitize.js");
+    const fresh = N2.initialState("explore");
+    if (!S.sanitizeImport2(JSON.parse(JSON.stringify(fresh)), scenes2, E2).ok) throw new Error("合法第二章 state 被拒");
+    const mutations = [
+      (s) => { s.chapter = "ch1"; },
+      (s) => { s.schemaVersion = 3; },
+      (s) => { s.cursor.node = "不存在"; },
+      (s) => { s.lab.slots.release = "roughEdge"; },
+      (s) => { s.lab.days = NaN; },
+      (s) => { s.lab.series = [{ id: 1, status: "complete", ball: "copper", profile: "clean", cycle: 0, readings: { 4: Infinity }, prediction: 5 }]; },
+      (s) => { s.transcript = [{ scene: "B0-1", text: "x".repeat(2001) }]; }
+    ];
+    mutations.forEach((mutate, i) => {
+      const s = JSON.parse(JSON.stringify(fresh)); mutate(s);
+      if (S.sanitizeImport2(s, scenes2, E2).ok) throw new Error("惡意第二章案例 #" + (i + 1) + " 未拒絕");
+    });
+  }
+});
+
+tests.push({
+  name: "第二章 M3b|敵方數據卡 UI+匯入淨化接線契約",
+  fn: () => {
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of ["renderEnemyDataCard", 'd.phase === "enemy"', "enemyDataCard", "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"])
+      if (!cui.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
+    const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
+    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "拋出去的東西"])
+      if (!c2.includes(frag)) throw new Error("第二章殼缺失:" + frag);
+    const stage2 = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", "data-chapter=\"ch02\""])
+      if (!stage2.includes(frag)) throw new Error("第二章正式舞台回歸契約缺失:" + frag);
   }
 });
 

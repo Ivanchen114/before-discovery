@@ -15,6 +15,7 @@
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
   var TEXT = window.GB.TextFormat || null;
+  var CHAPTER_ID = SCENES.chapter === "ch2" ? "ch2" : "ch1";
   var TYPE_MS = 40;                    /* 逐字基速 */
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
@@ -366,13 +367,20 @@
   var needKickoff = false;
   document.addEventListener("bd:view", function (ev) {
     var d = ev.detail, view;
-    if (d.type === "embed") view = (d.system === "incline") ? "lab" : "debate";
+    if (d.type === "embed") view = (d.system === "incline" || d.system === "catapult") ? "lab" : "debate";
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
     if (view === "end") { /* 終幕預告卡(GB-ADR-013):戲劇卡+角落系統行,只在真結局亮 */
       var nc = $("nextCard");
       if (nc.hidden) {
+        if (CHAPTER_ID === "ch2") {
+          nc.querySelector(".ncSealed").textContent = "第二章《拋出去的東西》——已封存";
+          nc.querySelector(".ncNext").textContent = "旅程將繼續";
+          nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
+          nc.querySelector(".ncHook").textContent = "你已讓兩種運動在同一條墨線上相遇。物理史還有更多看似理所當然的答案，等著重新取得證據。";
+          nc.querySelector(".ncSys").textContent = "第二章進度與筆記已封存於這台裝置。你可回到系列首頁重玩任一章，或匯出旅人書信碼。";
+        }
         nc.hidden = false;
         requestAnimationFrame(function () { nc.classList.add("on"); });
         $("ncTitleBtn").onclick = function () { location.reload(); };
@@ -391,13 +399,15 @@
        A2-3/e2/e3c 是同一工作階段的連續任務，不重複把玩家趕出再請進來。 */
     var fromStory = prevView === "narration" || prevView === "choice";
     var gateLab = view === "lab" && fromStory &&
-      (d.scene === "A2-2" || d.scene === "SC-R1");
+      ((d.scene === "A2-2" && d.nodeId === "e1") ||
+       (d.scene === "B2-3" && d.nodeId === "e1") || d.scene === "SC-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
-        : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉" : "▸ 前往實驗台");
+        : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
+        : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if (view === "lab" && !labIntroSeen && !body.classList.contains("embarkGate")) {
@@ -423,7 +433,10 @@
       if (!debIntroSeen) { debIntroSeen = true; $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }
       else { var db = $("controls").querySelector("button"); if (db) db.focus(); }
     } else if (!labIntroSeen) { labIntroSeen = true; showLabIntro(); }
-    else { var b = $("labRun"); if (b) b.focus(); }
+    else {
+      var b = CHAPTER_ID === "ch2" ? $("controls").querySelector("button") : $("labRun");
+      if (b) b.focus();
+    }
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false; ackPending = false;
@@ -446,6 +459,10 @@
     if (lastReplay) {
       $("prologueCard").hidden = true;
       startLine(lastReplay, true); lastReplay = null; needKickoff = false;
+    } else if (CHAPTER_ID === "ch2") {
+      /* 現代穿越只演一次：從系列首頁直接進第二章，不重播第一章序幕。 */
+      $("prologueCard").hidden = true;
+      needKickoff = true;
     } else {
       needKickoff = true;
       mzShow();
@@ -597,10 +614,26 @@
 
   /* ---------- 實驗備忘卡(首次進實驗台自動彈;? 鈕可重看)+同配置聚焦 ---------- */
   var labIntroSeen = false;
+  function configureLabIntroCopy() {
+    if (CHAPTER_ID !== "ch2") return;
+    var sheet = $("liSheet"), title = sheet.querySelector("h2"), list = sheet.querySelector("ol");
+    title.textContent = "旅人筆記・彈射工坊備忘";
+    var lines = [
+      "先組裝，再測量——五個槽位缺一不可；裝配順序由你決定。",
+      "器材會留下指紋——手放、毛邊與粗量法造成的異常不同。不要只換數字，要找異常跟著哪個零件走。",
+      "校準也算實驗——發射零位與沙盤標尺各花一天；更換相依零件後，舊校準可能失效。",
+      "連結測量——同一裝置、同一顆球，依序測 4、9、16 格；看過前三筆後，先押 25 格射程再放球。",
+      "兩道門檻——前三筆的形狀與第 25 格預測都須在容許範圍內；失敗紀錄不刪，拿來診斷裝置。",
+      "換球比較——要主張與重量無關，兩組紀錄只能換球；裝置、校準與誤差指紋必須相同。"
+    ];
+    while (list.firstChild) list.removeChild(list.firstChild);
+    lines.forEach(function (text) { var li = document.createElement("li"); li.textContent = text; list.appendChild(li); });
+    $("btnLabIntroGo").textContent = "開始組裝";
+  }
   function fillLabIntroProps() {
     var box = $("liProps");
     if (!box || box.children.length) return;
-    ["prop_water_clock", "prop_ball_groove"].forEach(function (id) {
+    (CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] : ["prop_water_clock", "prop_ball_groove"]).forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;
       var img = document.createElement("img");
@@ -609,6 +642,7 @@
     });
   }
   function showLabIntro() {
+    configureLabIntroCopy();
     fillLabIntroProps();
     $("labIntro").hidden = false;
     $("btnLabIntroGo").focus();

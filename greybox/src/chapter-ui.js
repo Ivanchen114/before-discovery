@@ -9,6 +9,8 @@
   var ASSETS = window.GB.DATA.assets || null;
   var DEBATE = window.GB.DATA.debate || {};
   var TEXT = window.GB.TextFormat || null;
+  var ENVELOPE = window.GB.SaveEnvelope || null;
+  var CHAPTER_ID = N.CHAPTER_ID || (SCENES.chapter === "ch2" ? "ch2" : "ch1");
   var KEY = window.BD_SAVE_KEY || "bd_ch1_save"; /* R-SAV2:chapter2.html 覆寫為 bd_ch2_save;未設=第一章原值,灰盒零差異 */
   var state = null;
   var lastSceneShown = null;
@@ -51,10 +53,27 @@
       if (warn) warn.hidden = false;
     }
   }
+  function migrateLegacyCh2(text) {
+    if (CHAPTER_ID !== "ch2" || !text) return null;
+    try {
+      var old = JSON.parse(text);
+      if (!old || old.chapter === "ch2" || old.schemaVersion !== 3 || !old.cursor || !/^B|^SC-R1/.test(old.cursor.scene || "")) return null;
+      old.schemaVersion = 1; old.chapter = "ch2";
+      old.reveals = old.reveals || { sqrt: old.flags && old.flags.revealSqrt === "1", parabola: old.flags && old.flags.revealParabola === "1" };
+      return JSON.stringify(old);
+    } catch (e) { return null; }
+  }
+  function sanitizeLoaded(s) {
+    if (!window.GB.Sanitize) return { ok: false, reason: "sanitizer 缺失" };
+    return CHAPTER_ID === "ch2"
+      ? window.GB.Sanitize.sanitizeImport2(s, SCENES, window.GB.Engine2)
+      : window.GB.Sanitize.sanitizeImport(s, PATTERNS, SCENES);
+  }
   function tryLoad() { /* B-3/R-SAV-02:壞檔備份+一次性非阻塞提示 */
     var text = null;
     try { text = localStorage.getItem(KEY); } catch (e) { return null; }
-    var r = N.loadSave(text);
+    var migrated = migrateLegacyCh2(text);
+    var r = N.loadSave(migrated || text);
     if (r.empty) return null;
     if (r.error) {
       try { localStorage.setItem(KEY + "_corrupt", text); localStorage.removeItem(KEY); } catch (e2) {}
@@ -63,7 +82,18 @@
       warn.textContent = "偵測到無法讀取的舊進度(" + (r.error === "schema" ? "版本不符" : "檔案損壞") + "),已備份;請開新遊戲。";
       return null;
     }
-    return r.state;
+    var chk = sanitizeLoaded(r.state);
+    if (!chk.ok) {
+      try { localStorage.setItem(KEY + "_corrupt", text); localStorage.removeItem(KEY); } catch (e3) {}
+      var warn2 = $("newWarn");
+      warn2.style.display = "";
+      warn2.textContent = "偵測到不合法的進度(" + chk.reason + "),已備份；請開新遊戲。";
+      return null;
+    }
+    if (migrated) {
+      try { localStorage.setItem(KEY, N.serialize(chk.state)); } catch (e4) {}
+    }
+    return chk.state;
   }
   function setState(s) {
     state = s;
@@ -177,6 +207,12 @@
   function renderStatus() {
     $("repVal").textContent = state.rep;
     $("dayVal").textContent = state.lab.days;
+    if (CHAPTER_ID === "ch2") {
+      var f2 = state.lab.evidence && state.lab.evidence.f2 || { law: false, ball: false };
+      $("e3Val").textContent = "彈射主張：開方律" + (f2.law ? "●" : "○") + " 重量" + (f2.ball ? "●" : "○");
+      $("e3Val").title = "第二章的兩項核心主張：射程隨下落高度開方、同裝置下與球重無關。";
+      $("dayVal").parentElement.title = "天數=工坊與實驗成本：組裝不花天；校準與每次連結測量會推進日程。天數記錄你為可靠證據付出的時間。";
+    } else {
     var e3 = state.lab.evidence.e3;
     /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
     var e3Started = state.lab.evidence.runs.length > 0 || e3.a || e3.b || e3.c;
@@ -184,6 +220,7 @@
       ? "斜面主張：規律" + (e3.a ? "●" : "○") + " 重量" + (e3.b ? "●" : "○") + " 傾角" + (e3.c ? "●" : "○")
       : "";
     $("e3Val").title = "你要在斜面上親手立起的三個主張:規律成立/與球重無關/隨傾角形式不變。●=已認證——三顆全亮,終辯才有火力。";
+    }
     $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
     $("modeVal").textContent = "模式：" + (state.mode === "scholar" ? "學者" : "探索");
     $("sceneVal").textContent = "場景：" + state.cursor.scene;
@@ -542,6 +579,12 @@
   }
   function availableEvidenceCards() {
     var out = [];
+    if (CHAPTER_ID === "ch2") {
+      Object.keys(SCENES.evidenceNames || {}).forEach(function (code) {
+        if (state.evidence[code]) out.push({ evidence: code, subitem: null, label: evidenceLabel(code) });
+      });
+      return out;
+    }
     ["E1", "E2", "E4", "S1", "S2"].forEach(function (code) {
       if (state.evidence[code]) out.push({ evidence: code, subitem: null, label: evidenceLabel(code) });
     });
@@ -568,6 +611,54 @@
     var dots = document.createElement("span"); dots.textContent = "●".repeat(d.persuasion) + "○".repeat(Math.max(0, 5 - d.persuasion));
     meter.appendChild(mb); meter.appendChild(dots); track.appendChild(meter);
     box.appendChild(track);
+  }
+  function renderEnemyDataCard(enemy, box) {
+    var card = document.createElement("section");
+    card.className = "enemyDataCard";
+    card.setAttribute("aria-label", "辛普里奧提出的遠砲軌跡資料");
+    var head = document.createElement("header");
+    var eyebrow = document.createElement("small"); eyebrow.textContent = "對手提出的資料｜先讀，再答";
+    var title = document.createElement("h3"); title.textContent = "遠砲軌跡抄錄";
+    head.appendChild(eyebrow); head.appendChild(title); card.appendChild(head);
+
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 600 270");
+    svg.setAttribute("role", "img");
+    var st = document.createElementNS(ns, "title"); st.textContent = "遠砲高度隨水平位置變化圖";
+    var sd = document.createElementNS(ns, "desc"); sd.textContent = enemy.card.a11y;
+    svg.appendChild(st); svg.appendChild(sd);
+    for (var g = 0; g <= 10; g++) {
+      var gx = 42 + g * 51;
+      var ln = document.createElementNS(ns, "line");
+      ln.setAttribute("x1", gx); ln.setAttribute("x2", gx); ln.setAttribute("y1", 24); ln.setAttribute("y2", 232);
+      ln.setAttribute("class", "enemyGrid"); svg.appendChild(ln);
+    }
+    for (var gy = 0; gy <= 4; gy++) {
+      var yy = 232 - gy * 50;
+      var gl = document.createElementNS(ns, "line");
+      gl.setAttribute("x1", 42); gl.setAttribute("x2", 552); gl.setAttribute("y1", yy); gl.setAttribute("y2", yy);
+      gl.setAttribute("class", "enemyGrid"); svg.appendChild(gl);
+    }
+    var pts = enemy.card.x.map(function (x, i) { return (42 + x * 51) + "," + (232 - enemy.card.y[i] * 50); }).join(" ");
+    var path = document.createElementNS(ns, "polyline");
+    path.setAttribute("points", pts); path.setAttribute("class", "enemyCurve"); svg.appendChild(path);
+    enemy.card.x.forEach(function (x, i) {
+      var dot = document.createElementNS(ns, "circle");
+      dot.setAttribute("cx", 42 + x * 51); dot.setAttribute("cy", 232 - enemy.card.y[i] * 50); dot.setAttribute("r", 4);
+      dot.setAttribute("class", "enemyPoint"); svg.appendChild(dot);
+    });
+    if (state.mode === "explore") {
+      [["初段｜斜率 1.3", 75, 145], ["末段｜斜率 1.8", 408, 177]].forEach(function (m) {
+        var tx = document.createElementNS(ns, "text"); tx.textContent = m[0]; tx.setAttribute("x", m[1]); tx.setAttribute("y", m[2]);
+        tx.setAttribute("class", "enemySlopeLabel"); svg.appendChild(tx);
+      });
+    }
+    card.appendChild(svg);
+    var data = document.createElement("p");
+    data.className = "enemyNumbers";
+    data.textContent = "x：" + enemy.card.x.join("・") + "｜高度：" + enemy.card.y.join("・");
+    card.appendChild(data); box.appendChild(card);
   }
   function stmtHasGap(sid) { /* 探索模式「此句有隙」:資料層 weakTo 存在=可被證據檢驗;學者不標(Sol 分層案) */
     var CH = DEBATE.chapter || {};
@@ -717,6 +808,14 @@
       });
       return;
     }
+    if (d.phase === "enemy") {
+      renderEnemyDataCard(d.enemy, box);
+      var ep = document.createElement("p"); ep.className = "enemyPrompt"; ep.textContent = displayText(d.enemy.prompt); box.appendChild(ep);
+      d.enemy.options.forEach(function (o) {
+        mkBtn(box, o.text, function () { doDebate("debateFr", [o.id]); });
+      });
+      return;
+    }
     if (d.phase === "fr") {
       var pF = document.createElement("p");
       pF.textContent = displayText(d.fr.prompt);
@@ -788,58 +887,112 @@
     var E2 = window.GB.Engine2, lab2 = state.lab;
     var open = null;
     (lab2.series || []).forEach(function (s) { if (s.status === "open") open = s; });
-    function el(tag, txt, parent) { var e = document.createElement(tag); if (txt) e.textContent = displayText(txt); (parent || box).appendChild(e); return e; }
-    function btn(txt, fn, parent) { var b = el("button", txt, parent); b.type = "button"; b.onclick = fn; return b; }
-    el("h3", "彈射工坊|" + (v.hint || "組裝置→校準→連結測量"));
-    /* 裝置(持續可見) */
-    var dv = el("div"); dv.style.border = "1px solid #999"; dv.style.padding = "6px 10px";
-    el("b", "裝置", dv);
+    function el(tag, txt, parent, cls) {
+      var e = document.createElement(tag); if (txt) e.textContent = displayText(txt);
+      if (cls) e.className = cls; (parent || box).appendChild(e); return e;
+    }
+    function btn(txt, fn, parent, cls) { var b = el("button", txt, parent, cls); b.type = "button"; b.onclick = fn; return b; }
+    function art(id, alt, parent, cls) {
+      var e = assetEntry(id); if (!e) return null;
+      var img = document.createElement("img"); img.src = assetUrl(e); img.alt = alt || e.label || "";
+      if (cls) img.className = cls; (parent || box).appendChild(img); return img;
+    }
+    function catapultGate(parent) {
+      var gate = el("section", "", parent, "catGate " + (N.embedReady(state) ? "ready" : "pending"));
+      if (!N.embedReady(state)) {
+        el("p", v.hint || "先完成這一輪需要的裝置與紀錄。", gate);
+        return;
+      }
+      btn(v.scene === "SC-R1" ? "▶ 帶著乾淨紀錄回去" : "▶ 收好數據，回到故事", function () {
+        var r = N.embedComplete(state);
+        if (r.error) { cat2Msg = "✕ " + r.error; renderAll(); return; }
+        setState(r.state); addLine("system", "(互動段落完成)", "system"); renderAll();
+      }, gate, "catGateGo");
+    }
+
+    box.className = "catapultWorkshop";
+    var head = el("header", "", box, "catHead");
+    var headCopy = el("div", "", head);
+    el("small", "第二章・核心實驗", headCopy);
+    el("h2", "彈射工坊", headCopy);
+    el("p", v.hint || "組裝置 → 校準 → 連結測量", headCopy);
+    var dayBadge = el("div", "第 " + lab2.days + " 天", head, "catDay");
+    dayBadge.setAttribute("aria-label", "工坊目前第 " + lab2.days + " 天");
+
+    /* 左頁：裝置必須持續可見；零件圖只表現所選實物，不貼好壞標籤。 */
+    var dv = el("section", "", box, "catApparatus");
+    var dh = el("div", "", dv, "catSectionHead");
+    el("h3", "I　裝置與校準", dh);
+    el("span", E2.profileOf(lab2) === "notRunnable" ? "尚未組好" : "可以放球", dh, "catReadyTag");
+    var master = el("figure", "", dv, "catMaster");
+    art((ASSETS && ASSETS.workshopApparatusAsset) || "workshop2_projectile_apparatus_master", "桌緣彈射裝置", master);
+    el("figcaption", "短斜槽、桌沿與升降沙盤——你選的零件會決定數據的脾氣。", master);
+    var slotNames = { launcher: "發射槽", release: "釋放", edge: "桌沿", rangeBed: "落點", heightRig: "高度架" };
+    var slots = el("div", "", dv, "catSlots");
     E2._SLOTS.forEach(function (slot) {
-      var row = el("div", "", dv);
+      var row = el("article", "", slots, "catSlot " + (lab2.slots[slot] ? "isFilled" : "isEmpty"));
       var cur = lab2.slots[slot];
-      el("span", slot + ":" + (cur ? E2._PARTS[cur].label : "(空)") + " ", row);
+      var partAsset = cur && ASSETS && ASSETS.workshopPartAsset ? ASSETS.workshopPartAsset[cur] : null;
+      if (partAsset) art(partAsset, "", row, "catPartArt");
+      var copy = el("div", "", row, "catSlotCopy");
+      el("small", slotNames[slot] || slot, copy);
+      el("b", cur ? E2._PARTS[cur].label : "尚未裝入", copy);
       var sel = document.createElement("select");
+      sel.setAttribute("aria-label", (slotNames[slot] || slot) + "零件");
       Object.keys(E2._PARTS).forEach(function (pid) {
         var p = E2._PARTS[pid];
         if (p.slot !== slot) return;
         if (p.scholar && state.mode !== "scholar") return;
         var o = document.createElement("option"); o.value = pid; o.textContent = p.label; sel.appendChild(o);
       });
-      row.appendChild(sel);
-      btn(cur ? "更換" : "裝上", function () { doLab2(cur ? "replacePart" : "place", { slot: slot, part: sel.value }); }, row);
+      if (cur) sel.value = cur;
+      copy.appendChild(sel);
+      btn(cur ? "更換零件" : "裝上零件", function () {
+        doLab2(cur ? "replacePart" : "place", { slot: slot, part: sel.value });
+      }, copy, "catPartBtn");
     });
-    var cal = el("div", "", dv);
+    var cal = el("div", "", dv, "catCalibrations");
     [["releaseZero", "發射零位(同刻度三放重疊)"], ["rangeScale", "沙盤標尺"]].forEach(function (c) {
-      var row = el("div", "", cal);
-      el("span", "校準・" + c[1] + ":" + (lab2.calib[c[0]] ? "✓ 已校" : "未校 "), row);
-      if (!lab2.calib[c[0]]) btn("校準(1 天)", function () { doLab2("calibrate", { kind: c[0] }); }, row);
+      var row = el("div", "", cal, "catCal " + (lab2.calib[c[0]] ? "isDone" : ""));
+      el("span", lab2.calib[c[0]] ? "✓" : "○", row);
+      el("b", c[1], row);
+      if (!lab2.calib[c[0]]) btn("校準・1 天", function () { doLab2("calibrate", { kind: c[0] }); }, row);
+      else el("em", "已校準", row);
     });
-    /* 連結測量 */
-    var sv = el("div"); sv.style.border = "1px dashed #666"; sv.style.padding = "6px 10px"; sv.style.marginTop = "8px";
-    el("b", "連結測量(同裝置同球:4→9→16 格,押注,再放 25 格)", sv);
+
+    /* 右頁：測量、押注與不可刪紀錄。 */
+    var sv = el("section", "", box, "catBook");
+    var sh = el("div", "", sv, "catSectionHead");
+    el("h3", "II　旅人實驗簿", sh);
+    el("span", "4 → 9 → 16 → 押注 → 25", sh, "catSequence");
+    var mission = el("div", "", sv, "catMission");
+    el("small", "這一輪要證明", mission);
+    el("p", v.hint || "同一裝置、同一顆球，讀出下落高度與射程的關係。", mission);
     if (!open) {
-      var row0 = el("div", "", sv);
+      var row0 = el("div", "", sv, "catStartSeries");
       var bs = document.createElement("select");
       [["copper", "同徑實心銅球"], ["wood", "同徑實心木球"]].forEach(function (b2) {
         var o = document.createElement("option"); o.value = b2[0]; o.textContent = b2[1]; bs.appendChild(o);
       });
       row0.appendChild(bs);
-      btn("開始一組連結測量", function () { doLab2("beginSeries", { ball: bs.value }); }, row0);
+      btn("開始一組連結測量", function () { doLab2("beginSeries", { ball: bs.value }); }, row0, "catPrimary");
     } else {
-      el("div", "進行中 #" + open.id + "(" + (open.ball === "copper" ? "銅" : "木") + "球)——已測:" +
-        [4, 9, 16, 25].filter(function (h) { return h in open.readings; }).map(function (h) {
-          var rd = open.readings[h];
-          return h + "格→" + (typeof rd === "number" ? rd.toFixed(1) + "尺" : "範圍 " + rd[0] + "–" + rd[1] + " 尺");
-        }).join(";") || "(尚未放球)", sv);
+      var progress = el("div", "", sv, "catProgress");
+      [4, 9, 16, 25].forEach(function (h) {
+        var rd = open.readings[h], step = el("div", "", progress, "catStep " + (rd != null ? "isDone" : ""));
+        el("small", "高度 " + h, step);
+        el("b", rd == null ? "待測" : (typeof rd === "number" ? rd.toFixed(1) + " 尺" : rd[0] + "–" + rd[1] + " 尺"), step);
+      });
       var nh = [4, 9, 16, 25].filter(function (h) { return !(h in open.readings); })[0];
-      var act = el("div", "", sv);
-      if (nh && nh < 25) btn("放球:下落高度 " + nh + " 格(1 天)", function () { doLab2("runHeight", { H: nh }); }, act);
+      var act = el("div", "", sv, "catMeasureAction");
+      if (nh && nh < 25) btn("放球・下落高度 " + nh + " 格（1 天）", function () { doLab2("runHeight", { H: nh }); }, act, "catPrimary");
       else if (nh === 25 && (typeof open.prediction !== "number")) {
-        el("span", "掉得愈深,飛得愈遠——25 格,你押射程幾尺:", act);
-        var inp = document.createElement("input"); inp.type = "number"; inp.step = "0.1"; inp.style.width = "80px";
+        el("label", "25 格下落高度——你押射程幾尺？", act);
+        var inp = document.createElement("input"); inp.type = "number"; inp.step = "0.1"; inp.inputMode = "decimal";
+        inp.setAttribute("aria-label", "預測 25 格下落高度的射程");
         act.appendChild(inp);
-        btn("押注", function () { doLab2("predictSeries", { value: parseFloat(inp.value) }); }, act);
-      } else if (nh === 25) btn("放球:25 格——見真章(1 天)", function () {
+        btn("鎖定預測", function () { doLab2("predictSeries", { value: parseFloat(inp.value) }); }, act, "catPrimary");
+      } else if (nh === 25) btn("放球・25 格——見真章（1 天）", function () {
         doLab2("runHeight", { H: 25 }, function (res) {
           var s = res.series;
           if (s.rejectReason === "non-scalar") return "這個範圍太寬,還不能押一個數——量法得再講究。";
@@ -847,35 +1000,36 @@
             : "未成立:形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% " + (s.shapeError <= 0.12 ? "✓" : "✕") +
               "|預測偏差 " + (s.predictionError * 100).toFixed(1) + "% " + (s.predictionError <= 0.12 ? "✓" : "✕");
         });
-      }, act);
-      btn("放棄這組(紀錄保留)", function () { doLab2("abandonSeries", {}); }, act);
+      }, act, "catPrimary");
+      btn("放棄這組（紀錄保留）", function () { doLab2("abandonSeries", {}); }, act, "catQuiet");
     }
     /* 完成紀錄+換球比較 */
     var done = (lab2.series || []).filter(function (s) { return s.status !== "open"; });
     if (done.length) {
-      var tv = el("div"); tv.style.marginTop = "8px";
-      el("b", "紀錄簿(不可刪)", tv);
+      var tv = el("details", "", sv, "catRecords"); tv.open = true;
+      el("summary", "紀錄簿・" + done.length + " 組（不可刪）", tv);
       done.forEach(function (s) {
-        el("div", "#" + s.id + " " + (s.ball === "copper" ? "銅" : "木") + " " +
+        el("div", "#" + s.id + "｜" + (s.ball === "copper" ? "銅球" : "木球") + "｜" +
           [4, 9, 16, 25].map(function (h) { var rd = s.readings[h]; return typeof rd === "number" ? rd.toFixed(1) : (rd ? "[" + rd[0] + "-" + rd[1] + "]" : "—"); }).join("/") +
-          "|" + (s.status === "abandoned" ? "已放棄" : (s.accepted ? "成立" : "未成立")), tv);
+          "｜" + (s.status === "abandoned" ? "已放棄" : (s.accepted ? "成立 ✓" : "未成立")), tv, "catRecord");
       });
       var comp = done.filter(function (s) { return s.status === "complete"; });
       if (comp.length >= 2) {
-        var cr = el("div", "", tv);
-        el("span", "換球比較(勾兩組):", cr);
+        var cr = el("div", "", tv, "catCompare");
+        el("b", "換球比較", cr);
         var sa = document.createElement("select"), sb = document.createElement("select");
         comp.forEach(function (s) { [sa, sb].forEach(function (sel2) { var o = document.createElement("option"); o.value = s.id; o.textContent = "#" + s.id + (s.ball === "copper" ? "銅" : "木"); sel2.appendChild(o.cloneNode(true)); }); });
         cr.appendChild(sa); cr.appendChild(sb);
-        btn("斷言:與球重無關", function () {
+        btn("比較兩組・提出斷言", function () {
           doLab2("compareBalls", { a: parseInt(sa.value, 10), b: parseInt(sb.value, 10) }, function (res) {
             return res.ok ? "同一副骨架——與球重無關,成立。" : "";
           });
-        }, cr);
+        }, cr, "catPrimary");
       }
     }
-    var mp = el("p", cat2Msg); mp.className = "labmsg"; mp.setAttribute("role", "status");
-    renderEmbedGate(v);
+    var mp = el("p", cat2Msg || "每一筆沙痕都會留下。先看異常跟著哪個零件走。", sv, "catMessage");
+    mp.setAttribute("role", "status");
+    catapultGate(sv);
   }
 
   /* ---------- 主渲染 ---------- */
@@ -941,7 +1095,7 @@
         box.appendChild(lab);
         return ta;
       });
-      mkBtn(box, "封存第一章", function () {
+      mkBtn(box, CHAPTER_ID === "ch2" ? "封存第二章" : "封存第一章", function () {
         var r = N.setReview(state, tas[0].value, tas[1].value);
         if (r.error) { addLine("system", r.error, "system"); return; }
         setState(r.state);
@@ -1022,9 +1176,56 @@
     renderAll();
   }
 
+  function chapterLabel() { return CHAPTER_ID === "ch2" ? "第二章" : "第一章"; }
+  function readProjection() {
+    if (CHAPTER_ID !== "ch2") return null;
+    try {
+      var p = JSON.parse(localStorage.getItem("bd_ch2_ch1_ref") || "null");
+      return p && p.source === "ch1-schema3" ? p : null;
+    } catch (e) { return null; }
+  }
+  function routeToChapter(chapter, pendingLetter) {
+    try { if (pendingLetter) sessionStorage.setItem("bd_pending_letter", pendingLetter); } catch (e) {}
+    var u = new URL(location.href);
+    u.searchParams.set("chapter", chapter);
+    location.href = u.href;
+  }
+  function configureSeriesTitle() {
+    document.title = CHAPTER_ID === "ch2"
+      ? "《發現之前》第二章：拋出去的東西（舞台版）"
+      : "《發現之前》第一章：重物的渴望（舞台版）";
+    var meta = document.querySelector(".chapterStatusText strong");
+    if (meta) meta.textContent = CHAPTER_ID === "ch2" ? "第二章・拋出去的東西" : "第一章・重物的渴望";
+    var legend = document.querySelector("#titleCard fieldset legend");
+    if (legend) legend.textContent = "從" + chapterLabel() + "開始・選擇模式（中途不可換）";
+    $("btnNew").textContent = "開始" + chapterLabel();
+    $("btnContinue").textContent = "繼續" + chapterLabel();
+    Array.prototype.forEach.call(document.querySelectorAll(".chapterPick"), function (b) {
+      var mine = b.getAttribute("data-chapter") === CHAPTER_ID;
+      b.disabled = false;
+      b.classList.toggle("isActive", mine);
+      if (mine) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+      var sm = b.querySelector("small"); if (sm) sm.textContent = "可玩";
+      b.onclick = function () { if (!mine) routeToChapter(b.getAttribute("data-chapter")); };
+    });
+  }
+  function importCurrentChapter(rawText) {
+    var r = N.loadSave(rawText);
+    if (r.error) return { error: r.error };
+    var chk = sanitizeLoaded(r.state);
+    if (!chk.ok) return { error: "sanitize", reason: chk.reason };
+    return { state: chk.state };
+  }
+
   function initTitle() {
     if (TEXT) TEXT.normalizeTextNodes(document.getElementById("stage"));
+    configureSeriesTitle();
     var loaded = tryLoad();
+    var projection = readProjection();
+    try {
+      var pending = sessionStorage.getItem("bd_pending_letter");
+      if (pending) { $("letterCode").value = pending; sessionStorage.removeItem("bd_pending_letter"); }
+    } catch (e0) {}
     $("continueWrap").style.display = loaded ? "" : "none";
     if (loaded) {
       $("continueMeta").textContent = loaded.ended
@@ -1039,51 +1240,63 @@
         return;
       }
       var mode = document.querySelector("input[name=mode]:checked").value;
-      startGame(N.initialState(mode));
+      startGame(N.initialState(mode, CHAPTER_ID === "ch2" && projection ? { ch1: projection } : null));
       save();
     };
     $("btnBackTitle").onclick = function () { save(); location.reload(); };
 
-    /* R-SAV-05 書信碼(CR-001):匯出=serialize 原文;匯入唯一入口=loadSave 四分類 */
     $("btnExport").style.display = loaded ? "" : "none";
     $("btnExport").onclick = function () {
-      var text = null;
-      try { text = localStorage.getItem(KEY); } catch (e) {}
-      if (!text) { $("letterMsg").textContent = "沒有可匯出的進度。"; return; }
+      var raw = null;
+      try { raw = localStorage.getItem(KEY); } catch (e) {}
+      if (!raw) { $("letterMsg").textContent = "沒有可匯出的進度。"; return; }
+      var parsed;
+      try { parsed = JSON.parse(raw); } catch (e1) { $("letterMsg").textContent = "本機進度損壞，無法匯出。"; return; }
+      var text = ENVELOPE ? ENVELOPE.encode(CHAPTER_ID, parsed) : raw;
       var ta = $("letterCode");
-      ta.value = text;
-      ta.focus(); ta.select();
+      ta.value = text; ta.focus(); ta.select();
       var copied = false;
-      try { copied = document.execCommand("copy"); } catch (e) {}
-      try { /* 下載 .txt(file:// 可用;失敗不阻斷) */
+      try { copied = document.execCommand("copy"); } catch (e2) {}
+      try {
         var blob = new Blob([text], { type: "application/json" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "發現之前_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
+        a.download = "發現之前_" + CHAPTER_ID + "_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e3) {} }, 3000); /* C-1 */
-      } catch (e2) {}
-      $("letterMsg").textContent = copied
-        ? "書信碼已複製並下載為檔案——到任何機器貼入「貼碼續玩」即可接續。"
-        : "書信碼已填入欄位並下載為檔案——請手動複製保存。";
+        setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e3) {} }, 3000);
+      } catch (e4) {}
+      $("letterMsg").textContent = copied ? "書信碼已複製並下載。" : "書信碼已填入欄位並下載，請手動複製保存。";
     };
     $("btnImport").onclick = function () {
       var text = ($("letterCode").value || "").trim();
       if (!text) { $("letterMsg").textContent = "請先把書信碼貼進欄位。"; return; }
-      var r = N.loadSave(text);
-      if (r.empty) { $("letterMsg").textContent = "書信碼是空的。"; return; }
-      if (r.error) {
-        $("letterMsg").textContent = "書信碼無法讀取(" + (r.error === "schema" ? "版本不符" : "格式損壞") + ")——本機既有進度未受影響。";
-        return;
+      var dec = ENVELOPE ? ENVELOPE.decode(text) : { legacy: true, value: null };
+      if (dec.error || dec.empty) {
+        $("letterMsg").textContent = "書信碼無法讀取（" + (dec.error || "空白") + "）——本機進度未受影響。"; return;
       }
-      /* A-1 匯入閘:跨機貼入必經深層白名單;違規=整包拒絕,本機存檔不動(Sanitize 雙載體,測試涵蓋負向) */
-      var chk = window.GB.Sanitize.sanitizeImport(r.state, PATTERNS, SCENES);
-      if (!chk.ok) {
-        $("letterMsg").textContent = "書信碼含非法內容(" + chk.reason + "),已拒絕——本機既有進度未受影響。";
-        return;
+      if (dec.envelope && dec.chapter !== CHAPTER_ID) {
+        routeToChapter(dec.chapter, text); return;
       }
-      startGame(chk.state);
-      save();
+      var candidate = dec.envelope ? JSON.stringify(dec.payload) : text;
+      var migrated = migrateLegacyCh2(candidate);
+      var imported = importCurrentChapter(migrated || candidate);
+      if (!imported.error) { startGame(imported.state); save(); return; }
+
+      /* R-SAV2 向後相容：在第二章貼第一章 raw code，只取經淨化的投影，不覆寫第一章。 */
+      if (CHAPTER_ID === "ch2" && dec.legacy) {
+        var rawObj = dec.value;
+        var ch1Scenes = window.GB.DATA.scenes1;
+        var ch1Chk = window.GB.Sanitize.sanitizeImport(rawObj, PATTERNS, ch1Scenes);
+        if (ch1Chk.ok) {
+          projection = N.projectCh1(JSON.stringify(ch1Chk.state));
+          try { localStorage.setItem("bd_ch2_ch1_ref", JSON.stringify(projection)); } catch (e5) {}
+          $("letterMsg").textContent = projection.certified
+            ? "第一章筆記已驗證；開始第二章時會啟用跨章論證聲部。"
+            : "第一章筆記已讀取，但尚未完成認證；第二章仍可直接開始。";
+          return;
+        }
+      }
+      $("letterMsg").textContent = "書信碼含非法內容（" + (imported.reason || imported.error) + "），已拒絕——本機進度未受影響。";
     };
   }
 

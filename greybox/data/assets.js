@@ -1,8 +1,8 @@
-/* data/assets.js — 執行載體(file:// 相容)。規範鏡像:assets.json(美術規格 §5.9;鏡像測試把關)
-   資產槽位清單=第一章全需求;path=null → UI fallback(灰盒)。Sol 填 path 即上圖,程式零改動。 */
+/* data/assets.js — 執行載體(file:// 相容)。規範鏡像:assets.json（測試把關）。
+   ⚠ 本檔為生成物；請改 assets.json 後執行 node tools/build-assets.mjs。 */
 (function (root) {
-  "use strict";
-  var data = {
+ "use strict";
+ var data = {
  "version": 1,
  "basePath": "../public/assets/",
  "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 v03 六板(文字直生於圖;拍映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;程式僅交叉淡化+字幕+題詞+無障礙文字;v01/v02 廢案禁引)。 lineDialoguePortrait[{scene,speaker,match,asset}]→台詞級表情覆寫(最高優先;子字串比對;年代守衛測試把關)。 sceneFx[場景]→進場特效(timejump=三板 3.4s 溶接偽影片+年份四里程碑 HTML 淡換;僅活戲;無資產=單紙淡入 fallback)。 sceneBgm[場景]→程序化環境音樂 mood(pisa/study/rain/workshop/hall/dusk;storm=序幕專用;Web Audio 合成零資產,聲音鈕總開關)。 bgmFiles[mood]→真音樂檔(mp3/ogg,放 public/assets/audio/ 填檔名即播,交叉淡入;null=回退程序化合成;storm 建議留合成=現代場景用合成器,1590 用真琴,音色本身就是穿越)。授權紀錄=public/assets/audio/README.md。 Batch03:title_background/histfacts_banner/card_E1·E3·E4·E5 專圖(card_E2 恆 null=程式 SVG);證據卡解析=card_<code> 優先,缺圖回退 template。 evidenceSummary[證據(+子項)]→手牌白話摘要(語意透明化,不標正解)。",
@@ -29,7 +29,24 @@
   "A3-6": "bg_lecture_hall_audience",
   "E-1": "bg_canal_dusk",
   "E-2": "bg_moon",
-  "SC-R1": "bg_workshop_padua"
+  "SC-R1": "bg_workshop_padua",
+  "B0-1": "bg_workshop_padua",
+  "B0-2": "bg_workshop_padua",
+  "B1-1": "bg_workshop_padua_night",
+  "B1-2": "bg_workshop_padua_night",
+  "B1-3": "bg_ch02_padua_university_arcade_morning",
+  "B1-4": "bg_canal_dusk",
+  "B2-1": "bg_workshop_padua",
+  "B2-2": "bg_workshop_padua",
+  "B2-3": "bg_workshop_padua",
+  "B2-4": "bg_workshop_padua",
+  "B2-5": "bg_workshop_padua_night",
+  "B3-1": "bg_lecture_hall_audience",
+  "B3-D": "bg_lecture_hall_audience",
+  "B3-F": "bg_workshop_padua",
+  "B3-6": "bg_lecture_hall_audience",
+  "BE-1": "bg_canal_dusk",
+  "BE-2": "bg_moon"
  },
  "speakerPortrait": {
   "伽利略": "portrait_galileo",
@@ -606,6 +623,206 @@
    "firstScreen": false,
    "w": 1920,
    "h": 420
+  },
+  {
+   "id": "bg_ch02_padua_university_arcade_morning",
+   "kind": "bg",
+   "label": "bg_ch02_padua_university_arcade_morning",
+   "path": "ch02/backgrounds/ch02_bg_padua_university_arcade_morning_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_galileo44_focused",
+   "kind": "portrait",
+   "label": "dialogue_galileo44_focused",
+   "path": "ch02/characters/ch02_char_galileo44_focused_v01.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_galileo44_deadpan",
+   "kind": "portrait",
+   "label": "dialogue_galileo44_deadpan",
+   "path": "ch02/characters/ch02_char_galileo44_deadpan_v01.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_galileo44_explaining",
+   "kind": "portrait",
+   "label": "dialogue_galileo44_explaining",
+   "path": "ch02/characters/ch02_char_galileo44_explaining_v01.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_simplicio76_formidable_calm",
+   "kind": "portrait",
+   "label": "dialogue_simplicio76_formidable_calm",
+   "path": "ch02/characters/ch02_char_simplicio76_formidable_calm_v01.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_simplicio76_expectant",
+   "kind": "portrait",
+   "label": "dialogue_simplicio76_expectant",
+   "path": "ch02/characters/ch02_char_simplicio76_expectant_v01.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_simplicio76_strikeout",
+   "kind": "portrait",
+   "label": "dialogue_simplicio76_strikeout",
+   "path": "ch02/characters/ch02_char_simplicio76_strikeout_v02.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "dialogue_simplicio76_almost_warm",
+   "kind": "portrait",
+   "label": "dialogue_simplicio76_almost_warm",
+   "path": "ch02/characters/ch02_char_simplicio76_almost_warm_v01.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 1200,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "workshop2_projectile_apparatus_master",
+   "kind": "prop",
+   "label": "workshop2_projectile_apparatus_master",
+   "path": "ch02/props/ch02_prop_projectile_apparatus_master_v01.webp",
+   "firstScreen": false,
+   "w": 1599,
+   "h": 900,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_latchRelease",
+   "kind": "prop",
+   "label": "part_latchRelease",
+   "path": "ch02/props/ch02_prop_release_latch_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_handRelease",
+   "kind": "prop",
+   "label": "part_handRelease",
+   "path": "ch02/props/ch02_prop_release_hand_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_polishedEdge",
+   "kind": "prop",
+   "label": "part_polishedEdge",
+   "path": "ch02/props/ch02_prop_edge_polished_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_roughEdge",
+   "kind": "prop",
+   "label": "part_roughEdge",
+   "path": "ch02/props/ch02_prop_edge_rough_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_rakedSand",
+   "kind": "prop",
+   "label": "part_rakedSand",
+   "path": "ch02/props/ch02_prop_range_raked_sand_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_eyeBoard",
+   "kind": "prop",
+   "label": "part_eyeBoard",
+   "path": "ch02/props/ch02_prop_range_eye_board_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "part_fineSandPlumb",
+   "kind": "prop",
+   "label": "part_fineSandPlumb",
+   "path": "ch02/props/ch02_prop_range_fine_sand_plumb_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "prop_inked_incline_board",
+   "kind": "prop",
+   "label": "prop_inked_incline_board",
+   "path": "ch02/props/ch02_prop_inked_incline_board_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 675,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "card_S3",
+   "kind": "card",
+   "label": "card_S3",
+   "path": "ch02/cards/card_S3.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 500,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "card_S4",
+   "kind": "card",
+   "label": "card_S4",
+   "path": "ch02/cards/card_S4.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 500,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "chapter_thumbnail_ch02",
+   "kind": "cg",
+   "label": "chapter_thumbnail_ch02",
+   "path": "ch02/ui/ch02_chapter_thumbnail.webp",
+   "firstScreen": true,
+   "w": 800,
+   "h": 450,
+   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
   }
  ],
  "sceneDialoguePortrait": {
@@ -674,8 +891,8 @@
    "辛普里奧": "dialogue_simplicio72_formidable_calm"
   },
   "SC-R1": {
-   "伽利略": "dialogue_galileo39_focused",
-   "辛普里奧": "dialogue_simplicio72_formidable_calm"
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
   },
   "A2-5": {
    "伽利略": "dialogue_galileo39_realization",
@@ -707,6 +924,77 @@
   },
   "E-2": {
    "伽利略": "dialogue_galileo39_focused"
+  },
+  "B0-1": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B0-2": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_expectant"
+  },
+  "B1-1": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B1-2": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B1-3": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B1-4": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B2-1": {
+   "伽利略": "dialogue_galileo44_explaining",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B2-2": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B2-3": {
+   "伽利略": "dialogue_galileo44_explaining",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B2-4": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B2-5": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B3-F": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "BE-1": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "BE-2": {
+   "伽利略": "dialogue_galileo44_focused",
+   "辛普里奧": "dialogue_simplicio76_formidable_calm"
+  },
+  "B3-1": {
+   "伽利略": "dialogue_galileo44_explaining",
+   "辛普里奧": "dialogue_simplicio76_expectant",
+   "主持": "dialogue_host_formal"
+  },
+  "B3-D": {
+   "伽利略": "dialogue_galileo44_explaining",
+   "辛普里奧": "dialogue_simplicio76_expectant",
+   "主持": "dialogue_host_formal"
+  },
+  "B3-6": {
+   "伽利略": "dialogue_galileo44_explaining",
+   "辛普里奧": "dialogue_simplicio76_almost_warm",
+   "主持": "dialogue_host_formal"
   }
  },
  "speakerDialoguePortrait": {
@@ -754,6 +1042,27 @@
    "match": "實驗失敗最常見的樣子",
    "asset": "dialogue_galileo39_frustrated",
    "note": "作廢紀錄前的苦笑"
+  },
+  {
+   "scene": "B2-3",
+   "speaker": "伽利略",
+   "match": "下落高度二十五格",
+   "asset": "dialogue_galileo44_deadpan",
+   "note": "ch02-p0p1"
+  },
+  {
+   "scene": "B3-D",
+   "speaker": "辛普里奧",
+   "match": "提筆,在自己的計算紙上劃掉了一行",
+   "asset": "dialogue_simplicio76_strikeout",
+   "note": "ch02-p0p1"
+  },
+  {
+   "scene": "B3-6",
+   "speaker": "辛普里奧",
+   "match": "下一回,老夫出題",
+   "asset": "dialogue_simplicio76_almost_warm",
+   "note": "ch02-p0p1"
   }
  ],
  "sceneFx": {
@@ -795,62 +1104,105 @@
   "A3-D": "hall",
   "A3-6": "silence",
   "E-1": "dusk",
-  "E-2": "travelerMoon"
+  "E-2": "travelerMoon",
+  "B0-1": "workshop",
+  "B0-2": "challenge",
+  "B1-1": "study",
+  "B1-2": "rain",
+  "B1-3": "study",
+  "B1-4": "dusk",
+  "B2-1": "workshop",
+  "B2-2": "workshop",
+  "B2-3": "workshop",
+  "B2-4": "workshop",
+  "B2-5": "challenge",
+  "B3-1": "hall",
+  "B3-D": "hall",
+  "B3-F": "debrief",
+  "B3-6": "silence",
+  "BE-1": "dusk",
+  "BE-2": "travelerMoon"
  },
  "audioBasePath": "../public/assets/audio/",
  "bgmVersion": 2,
  "bgmFiles": {
   "travelerTitle": {
    "mode": "once",
-   "clips": ["Traveler_Theme_Title_A.mp3"]
+   "clips": [
+    "Traveler_Theme_Title_A.mp3"
+   ]
   },
   "travelerMoon": {
    "mode": "once",
-   "clips": ["Traveler_Theme_Moon_B.mp3"]
+   "clips": [
+    "Traveler_Theme_Moon_B.mp3"
+   ]
   },
   "pisa": {
    "mode": "once",
    "ambient": "pisa",
-   "clips": ["Piazza_at_Dawn.mp3"]
+   "clips": [
+    "Piazza_at_Dawn.mp3"
+   ]
   },
   "study": {
    "mode": "once",
    "ambient": "study",
-   "clips": ["Sun_Through_Lattice.mp3"]
+   "clips": [
+    "Sun_Through_Lattice.mp3"
+   ]
   },
   "rain": {
    "mode": "once",
    "ambient": "rain",
-   "clips": ["Midnight_at_the_Casement.mp3"]
+   "clips": [
+    "Midnight_at_the_Casement.mp3"
+   ]
   },
   "timePassage": {
    "mode": "once",
-   "clips": ["Eleven_Years_Time_Passage.mp3"]
+   "clips": [
+    "Eleven_Years_Time_Passage.mp3"
+   ]
   },
   "workshop": {
    "mode": "milestone",
    "ambient": "workshop",
-   "clips": ["Workshop_Inquiry_A.mp3", "Workshop_Inquiry_B.mp3", "Workshop_Inquiry_C.mp3"]
+   "clips": [
+    "Workshop_Inquiry_A.mp3",
+    "Workshop_Inquiry_B.mp3",
+    "Workshop_Inquiry_C.mp3"
+   ]
   },
   "challenge": {
    "mode": "once",
    "ambient": "workshop",
-   "clips": ["Debate_Hall_A.mp3"]
+   "clips": [
+    "Debate_Hall_A.mp3"
+   ]
   },
   "hall": {
    "mode": "milestone",
    "ambient": "hall",
-   "clips": ["Debate_Hall_A.mp3", "Debate_Hall_B.mp3", "Debate_Hall_C.mp3"]
+   "clips": [
+    "Debate_Hall_A.mp3",
+    "Debate_Hall_B.mp3",
+    "Debate_Hall_C.mp3"
+   ]
   },
   "debrief": {
    "mode": "once",
    "ambient": "study",
-   "clips": ["Debate_Debrief.mp3"]
+   "clips": [
+    "Debate_Debrief.mp3"
+   ]
   },
   "dusk": {
    "mode": "once",
    "ambient": "dusk",
-   "clips": ["Where_The_Sun_Rests.mp3"]
+   "clips": [
+    "Where_The_Sun_Rests.mp3"
+   ]
   },
   "silence": {
    "mode": "silence",
@@ -866,9 +1218,29 @@
   "E3c": "換了傾角,規律的形狀仍然不變。",
   "E4": "重量沒變,只改形狀或介質,先後就變了。",
   "S1": "歷史背景——別人也做過,不是你的主證。",
-  "S2": "他也曾卡住——是故事,不是反證。"
+  "S2": "他也曾卡住——是故事,不是反證。",
+  "F1": "船在等速前行時，桅頂落球仍落回桅腳——共同前行不會消失。",
+  "F2": "同一裝置下，射程隨下落高度的開方增長；換同徑木球仍保持。",
+  "F3": "水平拋出與垂直放下的兩顆球，在相同條件下近乎同時觸地。",
+  "F4": "沾墨軌跡從離手第一寸就開始彎，找不到真正的直飛段。",
+  "F5": "低速短程的骨架站得住；長程砲彈的偏離標出空氣開始主導的邊界。",
+  "S3": "砲手的三段圖是真實問題來源，不是證明三段論正確的主證。",
+  "S4": "前人的實驗筆記提供線索，但主張仍須由你自己的裝置與數據成立。"
+ },
+ "workshopApparatusAsset": "workshop2_projectile_apparatus_master",
+ "workshopPartAsset": {
+  "latchRelease": "part_latchRelease",
+  "handRelease": "part_handRelease",
+  "polishedEdge": "part_polishedEdge",
+  "roughEdge": "part_roughEdge",
+  "rakedSand": "part_rakedSand",
+  "eyeBoard": "part_eyeBoard",
+  "fineSandPlumb": "part_fineSandPlumb"
+ },
+ "chapterThumbnail": {
+  "ch02": "chapter_thumbnail_ch02"
  }
 };
-  if (typeof module === "object" && module.exports) { module.exports = data; }
-  else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.assets = data; }
+ if (typeof module === "object" && module.exports) { module.exports = data; }
+ else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.assets = data; }
 })(typeof self !== "undefined" ? self : this);

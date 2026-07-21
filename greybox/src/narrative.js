@@ -14,7 +14,10 @@
 })(typeof self !== "undefined" ? self : this, function (SCENES, Engine, DEBATE) {
   "use strict";
 
-  var SAVE_SCHEMA = 3;
+  /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
+     不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
+  var CHAPTER_ID = SCENES.chapter === "ch2" ? "ch2" : "ch1";
+  var SAVE_SCHEMA = CHAPTER_ID === "ch2" ? 1 : 3;
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = "SC-R1";
   var CH = DEBATE.chapter;
@@ -50,7 +53,7 @@
     return st;
   }
   function initialStateBase(mode) {
-    return {
+    var out = {
       schemaVersion: SAVE_SCHEMA,
       mode: mode === "scholar" ? "scholar" : "explore",
       rep: 3,
@@ -64,6 +67,11 @@
       eventLog: [],
       ended: false
     };
+    if (CHAPTER_ID === "ch2") {
+      out.chapter = "ch2";
+      out.reveals = { sqrt: false, parabola: false };
+    }
+    return out;
   }
 
   function firstNodeId(sceneId) { return sceneMap[sceneId].def.nodes[0].id; }
@@ -106,7 +114,12 @@
     (effects || []).forEach(function (e) {
       if ("rep" in e) applyRep(state, e.rep, sourceId);
       if (e.evidence) grantEvidence(state, e.evidence, sourceId);
-      if (e.flag) { state.flags[e.flag[0]] = e.flag[1]; state.eventLog.push({ t: "flag", k: e.flag[0], v: e.flag[1], at: sourceId }); }
+      if (e.flag) {
+        state.flags[e.flag[0]] = e.flag[1];
+        if (state.reveals && e.flag[0] === "revealSqrt") state.reveals.sqrt = e.flag[1] === "1";
+        if (state.reveals && e.flag[0] === "revealParabola") state.reveals.parabola = e.flag[1] === "1";
+        state.eventLog.push({ t: "flag", k: e.flag[0], v: e.flag[1], at: sourceId });
+      }
       if (e.flagClear) { delete state.flags[e.flagClear]; state.eventLog.push({ t: "flagClear", k: e.flagClear, at: sourceId }); }
       if (e.debate === "init") debateInit(state);
       if (e.debate === "reenter") debateReenter(state);
@@ -175,6 +188,7 @@
     state.debate.persuasion = DEBATE.persuasion;
     if (state.debate.status === "suspended") state.debate.status = "pending";
     state.debate.mistakes = [];
+    if (state.flags) delete state.flags.pendingDebrief;
     state.eventLog.push({ t: "debateReenter" });
   }
   function curPillarId(d) { return CH.order[d.idx]; }
@@ -184,6 +198,7 @@
     state.eventLog.push({ t: "persuasion", d: delta, to: d.persuasion, at: at });
     if (d.persuasion === 0) {
       d.status = "suspended";
+      state.flags.pendingDebrief = "1";
       say(state, "system", CH.texts.suspend);
       state.eventLog.push({ t: "debateSuspend", at: at });
     }
@@ -388,6 +403,7 @@
       if (!t) return { state: state0, error: "選項不存在" };
       say(state, "旅人(你)", t.text);
       if (t.id === "over") {
+        if (d.fr.overTried) return { state: state0, error: "誇大的回答已被駁回——只能回到證據邊界" };
         d.fr.overTried = true;
         rememberMistake(d, { kind: "boundary", label: CH.fr.claim.overMistake });
         say(state, "辛普里奧", t.reply);
@@ -537,7 +553,9 @@
       } else if (d.fr.trapPending) {
         var TP = CH.fr.enemy ? CH.fr.claim : CH.fr.trap;
         v.phase = "trap";
-        v.trap = { prompt: TP.prompt, options: TP.options.map(function (o) { return { id: o.id, text: o.text }; }) };
+        v.trap = { prompt: TP.prompt, options: TP.options
+          .filter(function (o) { return !(CH.fr.enemy && d.fr.overTried && o.id === "over"); })
+          .map(function (o) { return { id: o.id, text: o.text }; }) };
       } else if (state.mode === "explore") {
         var steps0 = CH.fr.enemy ? exploreSteps2(state) : CH.fr.explore.steps;
         var st = steps0[d.fr.step];
@@ -745,6 +763,7 @@
   function deserialize(text) {
     var s = JSON.parse(text);
     if (!s || s.schemaVersion !== SAVE_SCHEMA) throw new Error("存檔版本不符");
+    if (CHAPTER_ID === "ch2" && s.chapter !== "ch2") throw new Error("存檔章別不符");
     if (!sceneMap[s.cursor.scene] || !sceneMap[s.cursor.scene].nodes[s.cursor.node]) throw new Error("存檔游標無效");
     return s;
   }
@@ -754,6 +773,7 @@
     var s;
     try { s = JSON.parse(text); } catch (e) { return { error: "badjson" }; }
     if (!s || s.schemaVersion !== SAVE_SCHEMA) return { error: "schema" };
+    if (CHAPTER_ID === "ch2" && s.chapter !== "ch2") return { error: "chapter" };
     if (!sceneMap[s.cursor.scene] || !sceneMap[s.cursor.scene].nodes[s.cursor.node]) return { error: "cursor" };
     return { state: s };
   }
@@ -769,6 +789,6 @@
     ownsEvidence: ownsEvidence, projectCh1: projectCh1,
     redirectIfLocked: redirectIfLocked,
     serialize: serialize, deserialize: deserialize, loadSave: loadSave,
-    SAVE_SCHEMA: SAVE_SCHEMA, _sceneMap: sceneMap
+    SAVE_SCHEMA: SAVE_SCHEMA, CHAPTER_ID: CHAPTER_ID, _sceneMap: sceneMap
   };
 });

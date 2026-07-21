@@ -630,6 +630,18 @@
     font-family: var(--font-dialogue); font-weight: 700; }
   .pressChoice, .debateSuspend { padding: 12px; border-left: 4px solid var(--color-chapter-accent);
     background: rgba(122,75,42,.08); }
+  .enemyDataCard { margin: 0 0 12px; padding: 12px 14px 10px; border: 1px solid rgba(90,70,56,.42);
+    border-radius: 7px; background: rgba(255,250,236,.72); box-shadow: inset 0 0 28px rgba(115,78,40,.06); }
+  .enemyDataCard header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin-bottom: 4px; border-bottom: 2px solid var(--color-chapter-accent); }
+  .enemyDataCard header small { color: var(--color-ink-secondary); font: 600 11px/1.2 var(--font-ui); letter-spacing: .08em; }
+  .enemyDataCard header h3 { margin: 0 0 4px; font-family: var(--font-dialogue); }
+  .enemyDataCard svg { display: block; width: 100%; height: clamp(170px,34vh,290px); }
+  .enemyGrid { stroke: rgba(83,65,47,.2); stroke-width: 1; }
+  .enemyCurve { fill: none; stroke: #6f3f23; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .enemyPoint { fill: #e2c07b; stroke: #4c2e1d; stroke-width: 2; }
+  .enemySlopeLabel { fill: #38271b; font: 700 17px var(--font-ui); paint-order: stroke; stroke: #f5ead1; stroke-width: 5px; }
+  .enemyNumbers { margin: 2px 0 0; color: var(--color-ink-secondary); font: 12px/1.45 var(--font-ui); overflow-wrap: anywhere; }
   .debateDebrief { max-width: 920px; margin: 0 auto; }
   .debateDebrief h2 { font-family: var(--font-dialogue); }
   .debriefList { padding: 10px 10px 10px 34px; background: rgba(122,75,42,.07); border-radius: 6px; }
@@ -643,7 +655,97 @@
     .statementCard { padding: 8px; }
     .statementCard blockquote { font-size: .94em; }
     .evidenceCard { flex-basis: 145px; min-height: 76px !important; }
+    .enemyDataCard { padding: 7px 9px; }
+    .enemyDataCard header { margin-bottom: 0; }
+    .enemyDataCard svg { height: 190px; }
+    .enemyNumbers { font-size: 10px; }
   }
+  /* 第二章彈射工坊：同一舞台內的器材頁＋實驗簿，不回退成工程表單。 */
+  #controls.catapultWorkshop {
+    --cat-dark: #211912; --cat-paper: #f0e5ca; --cat-line: #8b6138;
+    min-height: 100%; display: grid; grid-template-columns: minmax(340px,.92fr) minmax(430px,1.08fr);
+    grid-template-rows: auto minmax(0,1fr); gap: 10px; color: #2c241b;
+    font-family: var(--font-dialogue); overflow: hidden;
+  }
+  .catHead { grid-column: 1/-1; min-height: 58px; display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 16px; color: #f2e4c8; border: 1px solid rgba(203,161,100,.38);
+    background: linear-gradient(100deg,rgba(31,22,16,.98),rgba(62,43,28,.94)); box-shadow: 0 5px 18px rgba(0,0,0,.25); }
+  .catHead small { color: #caa46c; font: 600 11px/1 var(--font-ui); letter-spacing: .14em; }
+  .catHead h2 { margin: 2px 0 0; font-size: clamp(21px,2.2vw,30px); letter-spacing: .08em; }
+  .catHead p { display: inline; margin: 0 0 0 15px; color: #cfc0aa; font-size: 13px; }
+  .catDay { flex: 0 0 auto; padding: 7px 12px; border: 1px solid #a87a43; color: #e5c38e; font-family: var(--font-ui); }
+  .catApparatus, .catBook { min-width: 0; min-height: 0; overflow-y: auto; border: 1px solid rgba(93,62,35,.68);
+    box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+  .catApparatus { padding: 11px; color: #eee0c5; background:
+    radial-gradient(circle at 28% 0,rgba(135,89,43,.22),transparent 42%), linear-gradient(145deg,#30241b,#17120e); }
+  .catBook { padding: 12px 16px; background:
+    repeating-linear-gradient(0deg,rgba(91,57,28,.055) 0 1px,transparent 1px 34px),
+    linear-gradient(100deg,#eadcbd,#f6edd8 48%,#eadcbd 49%,#f5ebd4 51%,#eadcbd); }
+  .catSectionHead { min-height: 34px; display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; border-bottom: 1px solid currentColor; }
+  .catSectionHead h3 { margin: 0; font-size: 18px; letter-spacing: .06em; }
+  .catReadyTag, .catSequence { font: 600 11px/1.2 var(--font-ui); opacity: .78; }
+  .catMaster { position: relative; height: clamp(105px,19vh,190px); margin: 0 0 8px; overflow: hidden;
+    border: 1px solid rgba(218,184,132,.28); background: rgba(238,219,184,.08); }
+  .catMaster img { width: 100%; height: 100%; object-fit: cover; object-position: center 57%; filter: sepia(.08) contrast(1.03); }
+  .catMaster figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 5px 8px;
+    color: #e9d7b7; background: rgba(20,14,10,.82); font-size: 11px; }
+  .catSlots { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  .catSlot { position: relative; min-height: 78px; display: grid; grid-template-columns: 64px 1fr; gap: 7px;
+    padding: 6px; border: 1px solid rgba(190,150,96,.34); background: rgba(8,6,4,.28); }
+  .catSlot:last-child { grid-column: 1/-1; }
+  .catSlot.isEmpty { grid-template-columns: 1fr; border-style: dashed; }
+  .catPartArt { width: 64px; height: 64px; object-fit: cover; align-self: center; border: 1px solid rgba(221,189,139,.3); }
+  .catSlotCopy { min-width: 0; display: grid; grid-template-columns: 1fr auto; align-content: center; gap: 3px 5px; }
+  .catSlotCopy small, .catSlotCopy b { grid-column: 1/-1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .catSlotCopy small { color: #bd9969; font: 600 10px/1 var(--font-ui); letter-spacing: .08em; }
+  .catSlotCopy b { font-size: 14px; }
+  .catSlot select, .catStartSeries select, .catCompare select { min-width: 0; width: 100%; color: #eadac0;
+    border: 1px solid #765430; background: #211810; font: 13px var(--font-dialogue); }
+  .catPartBtn { min-height: 32px !important; padding: 3px 7px !important; white-space: nowrap; }
+  .catCalibrations { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .catCal { min-height: 42px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 7px;
+    padding: 5px 8px; border-left: 3px solid #946637; background: rgba(0,0,0,.25); }
+  .catCal.isDone { border-color: #7b8f6d; }
+  .catCal b { font-size: 12px; }.catCal em { color: #a9b99a; font-size: 11px; }
+  .catCal button { min-height: 30px !important; padding: 3px 7px !important; }
+  .catMission { margin: 0 0 10px; padding: 10px 12px; border-left: 5px solid var(--cat-line); background: rgba(255,255,255,.3); }
+  .catMission small { color: #8a5730; font: 700 11px var(--font-ui); letter-spacing: .08em; }
+  .catMission p { margin: 3px 0 0; font-size: 17px; }
+  .catStartSeries { display: grid; grid-template-columns: minmax(150px,1fr) auto; gap: 8px; margin: 10px 0; }
+  .catProgress { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; margin: 8px 0; }
+  .catStep { min-height: 55px; display: flex; flex-direction: column; justify-content: center; padding: 6px 8px;
+    border: 1px dashed #9e8569; color: #776653; background: rgba(255,255,255,.18); }
+  .catStep.isDone { border-style: solid; border-color: #855a33; color: #2d251d; background: rgba(174,129,78,.14); }
+  .catStep small { font: 600 10px var(--font-ui); }.catStep b { font-size: 15px; }
+  .catMeasureAction { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 8px 0; }
+  .catMeasureAction label { flex-basis: 100%; }.catMeasureAction input { width: 105px; min-height: 38px; font-size: 17px; }
+  .catPrimary { border-color: #8d5b2c !important; background: linear-gradient(#e2c898,#c89e64) !important; color: #251b13 !important; font-weight: 700; }
+  .catQuiet { margin-left: auto; border-color: transparent !important; background: transparent !important; }
+  .catRecords { margin-top: 10px; padding-top: 7px; border-top: 1px solid #876847; }
+  .catRecords summary { cursor: pointer; font-weight: 700; }.catRecord { padding: 4px 7px; border-bottom: 1px dotted rgba(91,60,32,.35); font-size: 13px; }
+  .catCompare { display: grid; grid-template-columns: auto 1fr 1fr auto; align-items: center; gap: 6px; margin-top: 8px; }
+  .catCompare select { color: #33261b; background: rgba(255,255,255,.44); }
+  .catMessage { min-height: 31px; margin: 8px 0 0; padding: 6px 9px; border-left: 3px solid #8a613b; background: rgba(124,87,50,.08); white-space: pre-wrap; }
+  .catGate { display: flex; justify-content: flex-end; align-items: center; min-height: 45px; margin-top: 7px; border-top: 1px solid rgba(101,72,43,.35); }
+  .catGate.pending p { margin: 7px 0; color: #786753; }.catGateGo { min-width: 230px; }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+    #controls.catapultWorkshop { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 6px; }
+    .catHead { min-height: 42px; padding: 3px 10px; }.catHead h2 { font-size: 19px; }.catHead p { display: none; }.catDay { padding: 4px 8px; }
+    .catApparatus, .catBook { padding: 7px 9px; }.catSectionHead { min-height: 26px; margin-bottom: 4px; }.catSectionHead h3 { font-size: 15px; }
+    .catMaster { height: 76px; margin-bottom: 5px; }.catMaster figcaption { display: none; }
+    .catSlots { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; }.catSlot { grid-column: auto; min-height: 64px; grid-template-columns: 1fr; padding: 4px; }.catSlot:last-child { grid-column: 1/-1; }
+    .catPartArt { display: none; }.catSlotCopy { grid-template-columns: 1fr; }.catSlotCopy b { font-size: 11px; }.catSlot select { font-size: 11px; min-height: 28px; }
+    .catPartBtn { font-size: 11px !important; }.catCalibrations { margin-top: 4px; }.catCal { min-height: 32px; padding: 2px 5px; }.catCal b { font-size: 10px; }
+    .catMission { padding: 5px 8px; margin-bottom: 4px; }.catMission p { margin: 0; font-size: 13px; }
+    .catSequence { flex: 0 1 auto; min-width: 0; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .catStartSeries { grid-template-columns: minmax(0,1fr); gap: 4px; }
+    .catStartSeries .catPrimary { width: 100%; }
+    .catProgress { margin: 4px 0; }.catStep { min-height: 39px; padding: 3px 5px; }.catStep b { font-size: 12px; }
+    .catMeasureAction { margin: 4px 0; }.catRecords { margin-top: 4px; }.catRecord { padding: 2px 5px; font-size: 11px; }
+    .catMessage { margin-top: 4px; min-height: 24px; padding: 3px 6px; font-size: 12px; }.catGate { min-height: 34px; }
+  }
+
   @media (max-width: 760px) and (min-height: 521px) and (pointer: fine) {
     .debatePillars { grid-template-columns: 1fr 1fr; }
     .statementGrid { grid-template-columns: 1fr; }
@@ -1212,7 +1314,7 @@
         <button id="btnRotDismiss" type="button">就這樣玩</button></p>
       </div>
     </div>
-    <div id="nextCard" role="dialog" aria-modal="true" aria-label="第一章結束・下一章預告" hidden>
+    <div id="nextCard" role="dialog" aria-modal="true" aria-label="章節結束・下一章預告" hidden>
       <div id="ncInner">
         <p class="ncSealed">第一章《重物的渴望》——已封存</p>
         <p class="ncNext">下一章</p>
@@ -1327,8 +1429,8 @@
           <button type="button" class="chapterPick isActive" data-chapter="ch01" aria-current="page">
             <span class="chNo">01</span><b>重物的渴望</b><small>可玩</small>
           </button>
-          <button type="button" class="chapterPick" data-chapter="ch02" disabled>
-            <span class="chNo">02</span><b>拋出去的東西</b><small>製作中</small>
+          <button type="button" class="chapterPick" data-chapter="ch02">
+            <span class="chNo">02</span><b>拋出去的東西</b><small>可玩</small>
           </button>
         </nav>
         <fieldset>
@@ -1363,12 +1465,36 @@
 
 <script src="data/patterns.js"></script>
 <script src="data/debate.js"></script>
+<script src="data/debate2.js"></script>
 <script src="data/histfacts.js"></script>
+<script src="data/histfacts2.js"></script>
 <script src="data/assets.js"></script>
 <script src="src/sanitize.js"></script>
+<script src="src/save-envelope.js"></script>
 <script src="src/text-format.js"></script>
 <script src="src/engine.js"></script>
+<script src="src/engine2.js"></script>
 <script src="data/scenes.js"></script>
+<script src="data/scenes2.js"></script>
+<script>
+(function () {
+  "use strict";
+  var data = window.GB.DATA;
+  data.debate1 = data.debate;
+  data.histfacts1 = data.histfacts;
+  data.scenes1 = data.scenes;
+  window.GB.Engine1 = window.GB.Engine;
+  var chapter = new URLSearchParams(location.search).get("chapter") === "ch02" ? "ch02" : "ch01";
+  window.BD_CHAPTER = chapter;
+  if (chapter === "ch02") {
+    data.debate = data.debate2;
+    data.histfacts = data.histfacts2;
+    data.scenes = data.scenes2;
+    window.GB.Engine = window.GB.Engine2;
+    window.BD_SAVE_KEY = "bd_ch2_save";
+  }
+})();
+</script>
 <script src="src/narrative.js"></script>
 <script src="src/chapter-ui.js"></script>
 <script src="src/stage-ui.js"></script>

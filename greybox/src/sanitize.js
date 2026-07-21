@@ -96,7 +96,62 @@
     return { ok: true, state: state };
   }
 
-  var api = { sanitizeImport: sanitizeImport, _scrub: scrub, LIMITS: LIMITS };
+  /* 第二章白名單：工坊資料與第一章 runs/claims 形狀不同，禁止拿第一章 sanitizer 硬套。
+     這裡驗結構與 enum；fixture 成敗仍由 Engine2 重算，不相信匯入檔自稱 accepted。 */
+  function sanitizeImport2(state, scenes, engine2) {
+    if (!state || typeof state !== "object") return fail("state 非物件");
+    var generic = scrub(state, 0, { n: LIMITS.maxNodes });
+    if (generic) return fail(generic);
+    if (state.schemaVersion !== 1 || state.chapter !== "ch2") return fail("章別或 schema 非法");
+    if (state.mode !== "explore" && state.mode !== "scholar") return fail("mode 非法");
+    if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("rep 非法");
+
+    var sceneIds = {}, nodeIds = {};
+    (scenes && scenes.scenes || []).forEach(function (s) {
+      sceneIds[s.id] = 1; nodeIds[s.id] = {};
+      (s.nodes || []).forEach(function (n) { nodeIds[s.id][n.id] = 1; });
+    });
+    if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
+      return fail("cursor 非法");
+
+    var lab = state.lab, parts = engine2 && engine2._PARTS || {}, slots = engine2 && engine2._SLOTS || [];
+    if (!lab || typeof lab !== "object") return fail("lab 缺失");
+    if (!isInt(lab.days) || lab.days < 0 || lab.days > 9999) return fail("days 非法");
+    if (!lab.slots || !lab.calib || !Array.isArray(lab.series)) return fail("工坊結構缺失");
+    if (lab.series.length > 300) return fail("series 過多");
+    for (var si = 0; si < slots.length; si++) {
+      var slot = slots[si], pid = lab.slots[slot];
+      if (pid !== null && (!parts[pid] || parts[pid].slot !== slot)) return fail("slot 零件非法:" + slot);
+    }
+    if (typeof lab.calib.releaseZero !== "boolean" || typeof lab.calib.rangeScale !== "boolean")
+      return fail("校準狀態非法");
+    var profiles = { clean: 1, directionScatter: 1, speedDrift: 1, coarseRead: 1 };
+    for (var i = 0; i < lab.series.length; i++) {
+      var sr = lab.series[i];
+      if (!sr || !isInt(sr.id) || ["open", "complete", "abandoned"].indexOf(sr.status) < 0)
+        return fail("series #" + i + " 結構非法");
+      if (sr.ball !== "copper" && sr.ball !== "wood") return fail("球種非法");
+      if (!profiles[sr.profile] || !isInt(sr.cycle) || sr.cycle < 0 || sr.cycle > 2) return fail("profile/cycle 非法");
+      var readings = sr.readings || {}, hs = [4, 9, 16, 25];
+      for (var hi = 0; hi < hs.length; hi++) if (hs[hi] in readings) {
+        var rd = readings[hs[hi]];
+        if (typeof rd === "number") { if (!isFinite(rd)) return fail("讀值非法"); }
+        else if (!Array.isArray(rd) || rd.length !== 2 || !isFinite(rd[0]) || !isFinite(rd[1]) || rd[0] > rd[1])
+          return fail("區間讀值非法");
+      }
+      if (sr.prediction !== null && (typeof sr.prediction !== "number" || !isFinite(sr.prediction)))
+        return fail("預測非法");
+    }
+    if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("transcript 非法");
+    for (var t = 0; t < state.transcript.length; t++) {
+      var line = state.transcript[t];
+      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2000)
+        return fail("transcript 行非法");
+    }
+    return { ok: true, state: state };
+  }
+
+  var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2, _scrub: scrub, LIMITS: LIMITS };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Sanitize = api; }
 })(typeof self !== "undefined" ? self : this);

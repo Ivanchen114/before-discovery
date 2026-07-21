@@ -50,10 +50,26 @@
 
   /* ---------- 實驗備忘卡(首次進實驗台自動彈;? 鈕可重看)+同配置聚焦 ---------- */
   var labIntroSeen = false;
+  function configureLabIntroCopy() {
+    if (CHAPTER_ID !== "ch2") return;
+    var sheet = $("liSheet"), title = sheet.querySelector("h2"), list = sheet.querySelector("ol");
+    title.textContent = "旅人筆記・彈射工坊備忘";
+    var lines = [
+      "先組裝，再測量——五個槽位缺一不可；裝配順序由你決定。",
+      "器材會留下指紋——手放、毛邊與粗量法造成的異常不同。不要只換數字，要找異常跟著哪個零件走。",
+      "校準也算實驗——發射零位與沙盤標尺各花一天；更換相依零件後，舊校準可能失效。",
+      "連結測量——同一裝置、同一顆球，依序測 4、9、16 格；看過前三筆後，先押 25 格射程再放球。",
+      "兩道門檻——前三筆的形狀與第 25 格預測都須在容許範圍內；失敗紀錄不刪，拿來診斷裝置。",
+      "換球比較——要主張與重量無關，兩組紀錄只能換球；裝置、校準與誤差指紋必須相同。"
+    ];
+    while (list.firstChild) list.removeChild(list.firstChild);
+    lines.forEach(function (text) { var li = document.createElement("li"); li.textContent = text; list.appendChild(li); });
+    $("btnLabIntroGo").textContent = "開始組裝";
+  }
   function fillLabIntroProps() {
     var box = $("liProps");
     if (!box || box.children.length) return;
-    ["prop_water_clock", "prop_ball_groove"].forEach(function (id) {
+    (CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] : ["prop_water_clock", "prop_ball_groove"]).forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;
       var img = document.createElement("img");
@@ -62,6 +78,7 @@
     });
   }
   function showLabIntro() {
+    configureLabIntroCopy();
     fillLabIntroProps();
     $("labIntro").hidden = false;
     $("btnLabIntroGo").focus();
