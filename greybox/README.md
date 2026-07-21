@@ -4,7 +4,7 @@
 
 ## 玩家入口
 
-- `stage.html`：唯一正式入口。系列首頁可選第一章《重物的渴望》或第二章《向前，也向下》。
+- `stage.html`：唯一正式入口。系列首頁可選第一章《重物的渴望》或第二章《向前也向下》。
 - 線上版：<https://before-discovery.vercel.app/>
 
 `chapter.html`、`chapter2.html`、`index.html` 是內部 QA／開發對照殼，不再對玩家公開推薦。

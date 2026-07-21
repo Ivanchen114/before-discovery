@@ -752,9 +752,11 @@ tests.push({
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (stageHtml.includes("灰盒對照版"))
       throw new Error("玩家入口不應顯示內部灰盒對照連結");
-    for (const frag of ['id="nextCard"', "向前，也向下", "第二章現已開放", "書信碼",
+    for (const frag of ['id="nextCard"', "向前也向下", "第二章現已開放", "書信碼",
       'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
       if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);
+    if (stageHtml.includes("向前，也向下"))
+      throw new Error("第二章正式章名仍殘留逗號");
     /* 鉤引語=E-1 凍結原句的子字串(禁引未凍結之第二章劇本;防台詞漂移) */
     const scenesJson = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
     const e1n2 = scenesJson.scenes.find((s) => s.id === "E-1").nodes.find((n) => n.id === "n2").text;
@@ -1363,7 +1365,7 @@ tests.push({
     for (const frag of ["renderEnemyDataCard", 'd.phase === "enemy"', "enemyDataCard", "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"])
       if (!cui.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
-    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "向前，也向下"])
+    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "向前也向下"])
       if (!c2.includes(frag)) throw new Error("第二章殼缺失:" + frag);
     const stage2 = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", "data-chapter=\"ch02\""])

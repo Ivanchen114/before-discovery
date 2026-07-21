@@ -482,7 +482,7 @@
       var nc = $("nextCard");
       if (nc.hidden) {
         if (CHAPTER_ID === "ch2") {
-          nc.querySelector(".ncSealed").textContent = "第二章《向前，也向下》——已封存";
+          nc.querySelector(".ncSealed").textContent = "第二章《向前也向下》——已封存";
           nc.querySelector(".ncNext").textContent = "旅程將繼續";
           nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
           nc.querySelector(".ncHook").textContent = "你已讓兩種運動在同一條墨線上相遇。物理史還有更多看似理所當然的答案，等著重新取得證據。";
