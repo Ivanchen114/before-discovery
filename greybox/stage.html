@@ -814,6 +814,8 @@
     box-shadow: 0 0 0 1px rgba(180,123,36,.16), 0 0 22px rgba(180,123,36,.12); font-weight: 700; }
   .catGate { display: flex; justify-content: flex-end; align-items: center; min-height: 45px; margin-top: 7px; border-top: 1px solid rgba(101,72,43,.35); }
   .catGate p { margin: 7px auto 7px 0; color: #5f4b36; }.catGateGo { min-width: 230px; }
+  .catStagePause { margin: 7px 0; padding: 6px 9px; color: #6b5036; border-left: 3px solid #967044;
+    background: rgba(130,91,52,.08); font: 600 12px/1.4 var(--font-ui); }
   @media (prefers-reduced-motion: reduce) { .catReplayMark { animation: none; opacity: .55; } }
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     #controls.catapultWorkshop { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 6px; }
@@ -826,6 +828,7 @@
     .catMission { padding: 5px 8px; margin-bottom: 4px; }.catMission p { margin: 0; font-size: 13px; }
     .catClaims { gap: 3px; margin-top: 4px; }.catClaim { padding: 3px 5px; }.catClaim b, .catClaim span { font-size: 9px; }
     .catClaimComplete { padding: 2px 5px; font-size: 9px; }
+    .catGate p { font-size: 10px; }.catGateGo { min-width: 0; }.catStagePause { margin: 3px 0; padding: 3px 5px; font-size: 9px; }
     .catSequence { flex: 0 1 auto; min-width: 0; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .catStartSeries { grid-template-columns: minmax(0,1fr); gap: 4px; }
     .catStartSeries .catPrimary { width: 100%; }

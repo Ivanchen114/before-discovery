@@ -1093,7 +1093,7 @@ tests.push({
     for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries",
       "cat2CompareFailure", "r.result.ok === false", "firstCopper", "firstWood",
       "cat2Mission", "cat2DefaultMessage", "mountCatapultReplay", "catReplayTrajectory",
-      "cat2EvidenceFlags", "cat2ClaimGain", "catClaims", "catClaimComplete",
+      "cat2EvidenceFlags", "cat2ClaimGain", "cat2GateLabel", "catClaims", "catClaimComplete", "catStagePause",
       'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
       if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
     if (!(cui.indexOf("catapultGate(sv)") < cui.indexOf("if (!open)")))
@@ -1127,12 +1127,15 @@ tests.push({
     for (const [a, g] of drive) st = N2.labAction(st, a, g).state;
     if (!st.lab.evidence.f2.law || st.lab.evidence.f2.ball || st.evidence.F2)
       throw new Error("銅球押中後應只取得斷言一，不得提前合成 F2");
+    st.cursor.node = "e1";
+    if (!N2.embedReady(st)) throw new Error("已完成 25 格的乾淨銅球紀錄未救援第一步出口");
     st.cursor.node = "e3";
     for (const [a, g] of [["beginSeries", { ball: "wood" }], ["runHeight", { H: 4 }], ["runHeight", { H: 9 }],
       ["runHeight", { H: 16 }], ["predictSeries", { value: 5 }], ["runHeight", { H: 25 }]])
       st = N2.labAction(st, a, g).state;
     st = N2.labAction(st, "compareBalls", { a: 1, b: 2 }).state;
     if (!st.lab.evidence.f2.ball || !st.evidence.F2) throw new Error("換球比較後未合成完整 F2");
+    if (!N2.embedReady(st)) throw new Error("兩項斷言完成後第三步未出現劇情出口");
     const typewriter = readFileSync(path.join(here, "../src/stage/04-typewriter.part.js"), "utf-8");
     if (!typewriter.includes("取得(?:證據| [A-Z]\\d)")) throw new Error("第二章取得 F# 未接入戰利品演出");
   }

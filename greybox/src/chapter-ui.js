@@ -955,6 +955,12 @@
     };
     return { step: "這一輪要完成", text: v.hint || "完成一筆乾淨紀錄。" };
   }
+  function cat2GateLabel(v) {
+    if (v.nodeId === "e1") return "▶ 回到故事，說出你看到的規律";
+    if (v.nodeId === "e2") return "▶ 帶著押中的規律回去";
+    if (v.nodeId === "e3") return "▶ 收下 F2 證據，繼續劇情";
+    return v.scene === "SC-R1" ? "▶ 帶著乾淨紀錄回去" : "▶ 收好數據，回到故事";
+  }
   function cat2DefaultMessage(v, lab2, open, done) {
     if (N.embedReady(state)) return "本段目標已完成。按上方的「收好數據，回到故事」繼續。";
     if (v.nodeId === "e1") return open
@@ -1036,8 +1042,8 @@
     function catapultGate(parent) {
       if (!N.embedReady(state)) return;
       var gate = el("section", "", parent, "catGate ready");
-      el("p", "本段完成，故事可以繼續。", gate);
-      btn(v.scene === "SC-R1" ? "▶ 帶著乾淨紀錄回去" : "▶ 收好數據，回到故事", function () {
+      el("p", "本段目標已完成。先回到故事，下一個問題會在對話後開放。", gate);
+      btn(cat2GateLabel(v), function () {
         var r = N.embedComplete(state);
         if (r.error) { cat2Msg = "✕ " + r.error; renderAll(); return; }
         setState(r.state); addLine("system", "(互動段落完成)", "system"); renderAll();
@@ -1115,7 +1121,10 @@
     if (f2Claims.full) el("strong", "◆ F2 完整證據已收入旅人筆記", claims, "catClaimComplete");
     catapultGate(sv); /* 完成出口固定在目標旁，不再藏在長紀錄簿底端。 */
     mountCatapultReplay(sv);
-    if (!open) {
+    var stageReady = N.embedReady(state);
+    if (stageReady) {
+      el("p", "這一步已收束；額外操作暫停，避免越過下一個劇情提問。", sv, "catStagePause");
+    } else if (!open) {
       var row0 = el("div", "", sv, "catStartSeries");
       var bs = document.createElement("select");
       [["copper", "同徑實心銅球"], ["wood", "同徑實心木球"]].forEach(function (b2) {
@@ -1162,7 +1171,7 @@
           "｜" + (s.status === "abandoned" ? "已放棄" : (s.accepted ? "成立 ✓" : "未成立")), tv, "catRecord");
       });
       var comp = done.filter(function (s) { return s.status === "complete"; });
-      if (comp.length >= 2) {
+      if (comp.length >= 2 && !stageReady) {
         var cr = el("div", "", tv, "catCompare");
         el("b", "換球比較", cr);
         var sa = document.createElement("select"), sb = document.createElement("select");

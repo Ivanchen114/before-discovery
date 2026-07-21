@@ -591,11 +591,12 @@
       return state.lab.evidence.runs.length > base;
     }
     if (until.debateWon) return !!(state.debate && state.debate.status === "won");
-    /* 第二章(規格 v0.1.1):cat=threeH=存在乾淨開放 series 已測 4/9/16(劇情提問門);f2=law/ball 讀引擎證據旗標 */
+    /* 第二章(規格 v0.1.1):cat=threeH=存在未放棄的乾淨銅球 series 已測 4/9/16(劇情提問門)。
+       完成 25 格者仍算達標：玩家超前操作不得反而失去出口(GB-ADR-021 補記)。 */
     if (until.cat === "threeH") {
       var ok3 = false;
       (state.lab.series || []).forEach(function (sr) {
-        if (sr.status === "open" && sr.profile === "clean" &&
+        if (sr.status !== "abandoned" && sr.profile === "clean" && sr.ball === "copper" &&
             typeof sr.readings[4] === "number" && typeof sr.readings[9] === "number" &&
             typeof sr.readings[16] === "number") ok3 = true;
       });
