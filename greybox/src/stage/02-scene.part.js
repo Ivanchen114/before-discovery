@@ -12,7 +12,7 @@
     preloadScene(sceneId);
     var sc = sceneInfo(sceneId);
     $("sceneChip").textContent = sceneId + (sc && sc.title ? "｜" + displayText(sc.title) : "");
-    var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[sceneId]) : null;
+    var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[CHAPTER_ID + ":" + sceneId] || ASSETS.sceneBg[sceneId]) : null;
     var img = $("bgImg"), fb = $("bgFallback");
     if (e) {
       if (curBgId !== e.id) {

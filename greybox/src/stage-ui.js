@@ -49,7 +49,7 @@
     var nextId = (idx >= 0 && SCENES.scenes[idx + 1]) ? SCENES.scenes[idx + 1].id : null;
     [sceneId, nextId].forEach(function (sid) {
       if (!sid) return;
-      if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
+      if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[CHAPTER_ID + ":" + sid] || ASSETS.sceneBg[sid]));
       var m = ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[sid];
       if (m) Object.keys(m).forEach(function (sp) { preloadEntry(assetEntry(m[sp])); });
       (ASSETS.lineFocusVisual || []).forEach(function (r) {
@@ -83,7 +83,7 @@
     preloadScene(sceneId);
     var sc = sceneInfo(sceneId);
     $("sceneChip").textContent = sceneId + (sc && sc.title ? "｜" + displayText(sc.title) : "");
-    var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[sceneId]) : null;
+    var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[CHAPTER_ID + ":" + sceneId] || ASSETS.sceneBg[sceneId]) : null;
     var img = $("bgImg"), fb = $("bgFallback");
     if (e) {
       if (curBgId !== e.id) {
@@ -482,7 +482,7 @@
       var nc = $("nextCard");
       if (nc.hidden) {
         if (CHAPTER_ID === "ch2") {
-          nc.querySelector(".ncSealed").textContent = "第二章《拋出去的東西》——已封存";
+          nc.querySelector(".ncSealed").textContent = "第二章《向前，也向下》——已封存";
           nc.querySelector(".ncNext").textContent = "旅程將繼續";
           nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
           nc.querySelector(".ncHook").textContent = "你已讓兩種運動在同一條墨線上相遇。物理史還有更多看似理所當然的答案，等著重新取得證據。";

@@ -49,7 +49,7 @@
     var nextId = (idx >= 0 && SCENES.scenes[idx + 1]) ? SCENES.scenes[idx + 1].id : null;
     [sceneId, nextId].forEach(function (sid) {
       if (!sid) return;
-      if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
+      if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[CHAPTER_ID + ":" + sid] || ASSETS.sceneBg[sid]));
       var m = ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[sid];
       if (m) Object.keys(m).forEach(function (sp) { preloadEntry(assetEntry(m[sp])); });
       (ASSETS.lineFocusVisual || []).forEach(function (r) {

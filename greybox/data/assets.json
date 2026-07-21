@@ -28,21 +28,22 @@
   "SC-R1": "bg_workshop_padua",
   "B0-1": "bg_workshop_padua",
   "B0-2": "bg_workshop_padua",
-  "B1-1": "bg_workshop_padua_night",
-  "B1-2": "bg_workshop_padua_night",
+  "B1-1": "bg_ch02_workshop_theory_rain_night",
+  "B1-2": "bg_ch02_workshop_theory_rain_night",
   "B1-3": "bg_ch02_padua_university_arcade_morning",
-  "B1-4": "bg_canal_dusk",
-  "B2-1": "bg_workshop_padua",
-  "B2-2": "bg_workshop_padua",
-  "B2-3": "bg_workshop_padua",
-  "B2-4": "bg_workshop_padua",
-  "B2-5": "bg_workshop_padua_night",
-  "B3-1": "bg_lecture_hall_audience",
-  "B3-D": "bg_lecture_hall_audience",
-  "B3-F": "bg_workshop_padua",
-  "B3-6": "bg_lecture_hall_audience",
-  "BE-1": "bg_canal_dusk",
-  "BE-2": "bg_moon"
+  "B1-4": "bg_ch02_canal_dusk_1608",
+  "B2-1": "bg_ch02_ink_experiment_workshop",
+  "B2-2": "bg_ch02_ink_experiment_workshop",
+  "B2-3": "bg_ch02_projectile_workshop",
+  "B2-4": "bg_ch02_projectile_workshop",
+  "B2-5": "bg_ch02_evidence_wall_night",
+  "B3-1": "bg_ch02_lecture_hall_1608",
+  "B3-D": "bg_ch02_lecture_hall_1608",
+  "B3-F": "bg_ch02_evidence_wall_night",
+  "B3-6": "bg_ch02_lecture_hall_1608",
+  "BE-1": "bg_ch02_canal_dusk_1608",
+  "BE-2": "bg_ch02_moon_golf_1971",
+  "ch2:SC-R1": "bg_ch02_projectile_workshop"
  },
  "apparatusBriefings": {
   "ch1:A2-2": {
@@ -725,6 +726,76 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+  },
+  {
+   "id": "bg_ch02_workshop_theory_rain_night",
+   "kind": "bg",
+   "label": "1608 雨夜推演室・船桅思想實驗",
+   "path": "ch02/backgrounds/ch02_bg_workshop_theory_rain_night_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+  },
+  {
+   "id": "bg_ch02_canal_dusk_1608",
+   "kind": "bg",
+   "label": "1608–1609 帕多瓦運河暮色",
+   "path": "ch02/backgrounds/ch02_bg_canal_dusk_1608_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+  },
+  {
+   "id": "bg_ch02_ink_experiment_workshop",
+   "kind": "bg",
+   "label": "墨跡斜板與前人筆記實驗室",
+   "path": "ch02/backgrounds/ch02_bg_ink_experiment_workshop_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+  },
+  {
+   "id": "bg_ch02_projectile_workshop",
+   "kind": "bg",
+   "label": "彈射裝置專用工坊",
+   "path": "ch02/backgrounds/ch02_bg_projectile_workshop_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+  },
+  {
+   "id": "bg_ch02_evidence_wall_night",
+   "kind": "bg",
+   "label": "雨夜證據牆與複盤桌",
+   "path": "ch02/backgrounds/ch02_bg_evidence_wall_night_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+  },
+  {
+   "id": "bg_ch02_lecture_hall_1608",
+   "kind": "bg",
+   "label": "1608 帕多瓦同行辯論講堂",
+   "path": "ch02/backgrounds/ch02_bg_lecture_hall_1608_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+  },
+  {
+   "id": "bg_ch02_moon_golf_1971",
+   "kind": "bg",
+   "label": "1971 阿波羅 14 月球高爾夫尾鏡",
+   "path": "ch02/backgrounds/ch02_bg_moon_golf_1971_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
   },
   {
    "id": "dialogue_galileo44_focused",

@@ -4,18 +4,29 @@
 **機制**:沿第一章 `path=null` 掛點——Sol 轉 WebP 入 `public/assets/ch02/`、照表填檔名,程式零改動即換裝;manifest ch2 槽位由 Claude 於 M2 開好(檔名以本表為準)。
 **交付規格沿 ch1**:bg 1920×1080;對話半身像透明底 ≥660px 高;**永不鏡像**;卡 800×500。
 
-## 〇、沿用資產(零成本,先記帳)
+## 〇、跨章沿用資產（有意識的連續性）
 
 | 用途 | 沿用 | 備註 |
 |---|---|---|
-| 工作室(B0/B1/B2 多場) | bg_workshop_padua(日/夜) | 同一間,四年後 |
-| 講堂(B3 全幕) | bg_lecture_hall_audience | 同一講堂 |
-| 運河邊(B1-4/BE-1) | bg_canal_dusk | ✓ |
-| 月球(BE-2) | bg_moon | 弗拉毛羅口徑一致 |
+| 工作室(B0-1/B0-2) | bg_workshop_padua(日) | 刻意保留第一章空間，讓辛普里奧重返有連續性 |
 | 旅人剪影左右 | dialogue_traveler_silhouette(_right) | ✓ |
 | 主持 | dialogue_host_formal/adjournment | 「白髮更多」可後補差分,P2 |
 | 《物理學》評注本 | prop_physics_tome | 本章核心道具 |
 | 證據卡共用底 | card_template | F 系列內容=HTML/SVG 疊加 |
+
+## 〇之一、正式背景補圖批次（2026-07-22 已交付）
+
+| 場景群 | runtime 背景 | 敘事功能 |
+|---|---|---|
+| B1-1／B1-2 | `bg_ch02_workshop_theory_rain_night` | 雨夜推演、船桅思想實驗 |
+| B1-4／BE-1 | `bg_ch02_canal_dusk_1608` | 丟石死路與 1609 望遠鏡傳聞共用同一運河 |
+| B2-1／B2-2 | `bg_ch02_ink_experiment_workshop` | 前人筆記、墨跡斜板與玩家命名之前的空白紙 |
+| B2-3／B2-4／ch2:SC-R1 | `bg_ch02_projectile_workshop` | 彈射工坊、雙球複驗與乾淨重做 |
+| B2-5／B3-F | `bg_ch02_evidence_wall_night` | 證據組裝與辯論複盤；公式、數據仍由 HTML 疊加 |
+| B3-1／B3-D／B3-6 | `bg_ch02_lecture_hall_1608` | 同行辯論與交換評注，不沿用第一章裁決式講堂 |
+| BE-2 | `bg_ch02_moon_golf_1971` | 阿波羅 14、弗拉毛羅高地、無空氣尾鏡 |
+
+母版與完整提示詞見 `art/source/production/ch02/PROMPTS_BACKGROUNDS_20260722.md`。七張背景皆保留底部約 30% 對話安全區；未把可讀公式、數據或正解畫進點陣圖。
 
 ## 一、P0(擋玩法/高曝光,先畫)
 
@@ -36,9 +47,9 @@
 8. **章節卡 CH02 縮圖**(系列首頁 chapterRail 用;規格請 Sol 依首頁 v2 自訂)。
 9. **card_F1~F5 專底**(可選;缺=回退 card_template+HTML 疊加,不擋玩法)。
 
-## 三、P2(可後補)
+## 三、P2（可後補）
 
-10. 講堂 1608 觀眾差分(白髮更多)、B0-1 門口清晨光線變體、主持年老差分。
+10. B0-1 門口清晨光線變體、主持年老差分。1608 講堂已由正式背景批次完成。
 
 ## 四、鐵律提醒(規格 v0.1.1)
 

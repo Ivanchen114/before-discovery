@@ -747,7 +747,7 @@ tests.push({
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (stageHtml.includes("灰盒對照版"))
       throw new Error("玩家入口不應顯示內部灰盒對照連結");
-    for (const frag of ['id="nextCard"', "拋出去的東西", "第二章現已開放", "書信碼",
+    for (const frag of ['id="nextCard"', "向前，也向下", "第二章現已開放", "書信碼",
       'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
       if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);
     /* 鉤引語=E-1 凍結原句的子字串(禁引未凍結之第二章劇本;防台詞漂移) */
@@ -1355,7 +1355,7 @@ tests.push({
     for (const frag of ["renderEnemyDataCard", 'd.phase === "enemy"', "enemyDataCard", "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"])
       if (!cui.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
-    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "拋出去的東西"])
+    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "向前，也向下"])
       if (!c2.includes(frag)) throw new Error("第二章殼缺失:" + frag);
     const stage2 = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", "data-chapter=\"ch02\""])
@@ -1555,6 +1555,43 @@ tests.push({
       if (!sui.includes(frag)) throw new Error("舞台特寫接線/預載缺失:" + frag);
     if (!html.includes(".scene-focus-e2-art") || !html.includes(".e2-argument-arrows"))
       throw new Error("E2 生圖底板的精確語意疊層樣式缺失");
+  }
+});
+
+tests.push({
+  name: "第二章正式背景|七組專屬場景＋跨章 SC-R1 優先鍵(GB-ADR-023)",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const ids = new Map(assets.entries.map((e) => [e.id, e]));
+    const expected = {
+      "B1-1": "bg_ch02_workshop_theory_rain_night",
+      "B1-2": "bg_ch02_workshop_theory_rain_night",
+      "B1-4": "bg_ch02_canal_dusk_1608",
+      "B2-1": "bg_ch02_ink_experiment_workshop",
+      "B2-2": "bg_ch02_ink_experiment_workshop",
+      "B2-3": "bg_ch02_projectile_workshop",
+      "B2-4": "bg_ch02_projectile_workshop",
+      "B2-5": "bg_ch02_evidence_wall_night",
+      "B3-1": "bg_ch02_lecture_hall_1608",
+      "B3-D": "bg_ch02_lecture_hall_1608",
+      "B3-F": "bg_ch02_evidence_wall_night",
+      "B3-6": "bg_ch02_lecture_hall_1608",
+      "BE-1": "bg_ch02_canal_dusk_1608",
+      "BE-2": "bg_ch02_moon_golf_1971",
+      "ch2:SC-R1": "bg_ch02_projectile_workshop"
+    };
+    for (const [scene, id] of Object.entries(expected)) {
+      if (assets.sceneBg[scene] !== id) throw new Error("第二章背景映射錯誤:" + scene + "→" + assets.sceneBg[scene]);
+      const e = ids.get(id);
+      if (!e || !e.path || !e.path.startsWith("ch02/backgrounds/")) throw new Error("第二章背景未落在章別目錄:" + id);
+      if (e.w !== 1920 || e.h !== 1080) throw new Error("第二章背景尺寸宣告錯誤:" + id);
+    }
+    if (assets.sceneBg["B0-1"] !== "bg_workshop_padua" || assets.sceneBg["B0-2"] !== "bg_workshop_padua")
+      throw new Error("B0 重返同一工作室的空間連續性被破壞");
+    const stageSource = readFileSync(path.join(here, "../src/stage/02-scene.part.js"), "utf-8");
+    const greySource = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const source of [stageSource, greySource])
+      if (!source.includes('CHAPTER_ID + ":" + sceneId')) throw new Error("跨章同名場景未優先解析 chapter:scene");
   }
 });
 

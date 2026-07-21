@@ -1,8 +1,8 @@
 {
-  "version": "0.1",
+  "version": "0.2",
   "chapter": "ch02",
   "generatedBy": "Codex built-in image_gen",
-  "generatedOn": "2026-07-21",
+  "generatedOn": "2026-07-22",
   "runtimeRoot": "public/assets",
   "assets": [
     {
@@ -10,6 +10,62 @@
       "path": "ch02/backgrounds/ch02_bg_padua_university_arcade_morning_v01.webp",
       "role": "background",
       "scene": "B1-3",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_workshop_theory_rain_night",
+      "path": "ch02/backgrounds/ch02_bg_workshop_theory_rain_night_v01.webp",
+      "role": "background",
+      "scene": ["B1-1", "B1-2"],
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_canal_dusk_1608",
+      "path": "ch02/backgrounds/ch02_bg_canal_dusk_1608_v01.webp",
+      "role": "background",
+      "scene": ["B1-4", "BE-1"],
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_ink_experiment_workshop",
+      "path": "ch02/backgrounds/ch02_bg_ink_experiment_workshop_v01.webp",
+      "role": "background",
+      "scene": ["B2-1", "B2-2"],
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_projectile_workshop",
+      "path": "ch02/backgrounds/ch02_bg_projectile_workshop_v01.webp",
+      "role": "background",
+      "scene": ["B2-3", "B2-4", "ch2:SC-R1"],
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_evidence_wall_night",
+      "path": "ch02/backgrounds/ch02_bg_evidence_wall_night_v01.webp",
+      "role": "background",
+      "scene": ["B2-5", "B3-F"],
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_lecture_hall_1608",
+      "path": "ch02/backgrounds/ch02_bg_lecture_hall_1608_v01.webp",
+      "role": "background",
+      "scene": ["B3-1", "B3-D", "B3-6"],
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "bg_ch02_moon_golf_1971",
+      "path": "ch02/backgrounds/ch02_bg_moon_golf_1971_v01.webp",
+      "role": "background",
+      "scene": "BE-2",
       "width": 1920,
       "height": 1080
     },
