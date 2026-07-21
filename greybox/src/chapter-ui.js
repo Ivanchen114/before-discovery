@@ -1092,7 +1092,7 @@
       el("small", slotNames[slot] || slot, copy);
       el("b", cur ? E2._PARTS[cur].label : "尚未裝入", copy);
       if (fixed) {
-        el("span", "固定安裝｜唯一必要件", copy, "catFixedTag");
+        el("span", "已固定｜無須更換", copy, "catFixedTag");
         return;
       }
       var sel = document.createElement("select");

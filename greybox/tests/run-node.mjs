@@ -155,8 +155,10 @@ tests.push({
       if (!stage.includes(frag)) throw new Error("器材踏查 DOM/觸控尺寸缺失:" + frag);
     for (const frag of ["showApparatusSurvey", "apparatusBriefings", "button:not(.visited)"])
       if (!sui.includes(frag)) throw new Error("器材踏查流程/鍵盤守衛缺失:" + frag);
-    if (!cui.includes("E2._FIXED_SLOTS") || !cui.includes("固定安裝｜唯一必要件"))
+    if (!cui.includes("E2._FIXED_SLOTS") || !cui.includes("已固定｜無須更換"))
       throw new Error("固定器材仍被畫成可更換選單");
+    if (!stage.includes(".catSlot.isFixed") || !stage.includes("word-break: keep-all"))
+      throw new Error("固定件標籤可能在窄卡片內逐字斷行");
   }
 });
 

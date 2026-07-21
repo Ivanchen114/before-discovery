@@ -806,11 +806,14 @@
     padding: 6px; border: 1px solid rgba(190,150,96,.34); background: rgba(8,6,4,.28); }
   .catSlot:last-child { grid-column: 1/-1; }
   .catSlot.isEmpty { grid-template-columns: 1fr; border-style: dashed; }
+  .catSlot.isFixed { min-height: 64px; grid-template-columns: 1fr; }
   .catPartArt { width: 64px; height: 64px; object-fit: cover; align-self: center; border: 1px solid rgba(221,189,139,.3); }
   .catSlotCopy { min-width: 0; display: grid; grid-template-columns: 1fr auto; align-content: center; gap: 3px 5px; }
   .catSlotCopy small, .catSlotCopy b { grid-column: 1/-1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .catSlotCopy small { color: #bd9969; font: 600 10px/1 var(--font-ui); letter-spacing: .08em; }
   .catSlotCopy b { font-size: 14px; }
+  .catFixedTag { grid-column: 1/-1; display: block; color: #b7c8a8; font: 600 11px/1.35 var(--font-ui);
+    white-space: nowrap; word-break: keep-all; }
   .catSlot select, .catStartSeries select, .catCompare select { min-width: 0; width: 100%; color: #eadac0;
     border: 1px solid #765430; background: #211810; font: 13px var(--font-dialogue); }
   .catPartBtn { min-height: 32px !important; padding: 3px 7px !important; white-space: nowrap; }
