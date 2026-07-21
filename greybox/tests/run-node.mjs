@@ -375,14 +375,32 @@ tests.push({
     /* 滾球重播:吃真實讀值+可跳過+reduced 直出;破裂 FX;E2 SVG */
     for (const frag of ["labAnim", "run.readings", "animSkip", "fx-shake", 'code === "E2"'])
       if (!sui.includes(frag)) throw new Error("體感層要素缺失:" + frag);
-    /* BGM v2:cue 值域受控+23 場景全覆蓋+場景驅動+總開關 */
-    const BGM_MOODS = ["pisa", "study", "rain", "workshop", "hall", "dusk",
-      "timePassage", "challenge", "debrief", "travelerMoon", "silence"];
+    /* BGM v2:cue 值域受控+雙章場景全覆蓋+場景驅動+總開關 */
     const bgm = assets.sceneBgm || {};
+    const scenes2Bgm = require("../data/scenes2.js");
+    const cueSet = new Set(Object.keys(assets.bgmFiles || {}));
+    const cueFor = (chapter, sceneId) => bgm[chapter + ":" + sceneId] || bgm[sceneId];
     scenes.scenes.forEach((s) => {
-      if (!(s.id in bgm)) throw new Error("場景缺 BGM mood:" + s.id);
-      if (!BGM_MOODS.includes(bgm[s.id])) throw new Error("未知 mood:" + s.id + "→" + bgm[s.id]);
+      const cue = cueFor("ch1", s.id);
+      if (!cue) throw new Error("第一章場景缺 BGM mood:" + s.id);
+      if (!cueSet.has(cue)) throw new Error("未知 mood:" + s.id + "→" + cue);
     });
+    scenes2Bgm.scenes.forEach((s) => {
+      const cue = cueFor("ch2", s.id);
+      if (!cue) throw new Error("第二章場景缺 BGM mood:" + s.id);
+      if (!cueSet.has(cue)) throw new Error("未知 mood:" + s.id + "→" + cue);
+    });
+    scenes.scenes.forEach((s) => {
+      const cue = cueFor("ch1", s.id);
+      if (/^ch2/.test(cue)) throw new Error("第一章誤用第二章 cue:" + s.id + "→" + cue);
+    });
+    scenes2Bgm.scenes.forEach((s) => {
+      const cue = cueFor("ch2", s.id);
+      if (s.id !== "B3-6" && s.id !== "BE-2" && !/^ch2/.test(cue))
+        throw new Error("第二章未使用專屬 cue:" + s.id + "→" + cue);
+    });
+    if (cueFor("ch1", "SC-R1") !== "workshop" || cueFor("ch2", "SC-R1") !== "ch2Catapult")
+      throw new Error("同名 SC-R1 章別音樂覆寫失效");
     for (const frag of ["sceneBgm", "BGM.refresh", 'play("storm")', 'play("travelerTitle")'])
       if (!sui.includes(frag)) throw new Error("BGM 要素缺失:" + frag);
     /* 真音樂檔:once/milestone schema+實檔存在;storm 恆 null;30 秒素材禁止硬循環 */
@@ -395,6 +413,7 @@ tests.push({
       if (!Array.isArray(spec.clips)) throw new Error("bgmFiles clips 非陣列:" + mood);
       if (spec.mode === "silence" && spec.clips.length) throw new Error("silence 不得掛音樂檔");
       for (const f of spec.clips) {
+        if (!/^(common|ch\d{2})\//.test(f)) throw new Error("BGM 未按 common/chXX 分庫:" + mood + "→" + f);
         try { readFileSync(path.join(here, "..", assets.audioBasePath, f)); }
         catch (e) { throw new Error("bgmFiles 檔案不存在:" + mood + "→" + f); }
       }
@@ -404,10 +423,20 @@ tests.push({
       throw new Error("workshop 應為 A/B/C 三段 milestone");
     if ((assets.bgmFiles.hall.clips || []).length !== 3 || assets.bgmFiles.hall.mode !== "milestone")
       throw new Error("hall 應為 A/B/C 三段 milestone");
+    if ((assets.bgmFiles.ch2Catapult.clips || []).length !== 3 || assets.bgmFiles.ch2Catapult.mode !== "milestone")
+      throw new Error("ch2Catapult 應為 A/B/C 三段 milestone");
+    if ((assets.bgmFiles.ch2Debate.clips || []).length !== 3 || assets.bgmFiles.ch2Debate.mode !== "milestone")
+      throw new Error("ch2Debate 應為 A/B/C 三段 milestone");
+    const ch2CueFiles = Object.entries(assets.bgmFiles)
+      .filter(([mood]) => /^ch2/.test(mood))
+      .flatMap(([, spec]) => spec.clips || []);
+    if (ch2CueFiles.length !== 13 || new Set(ch2CueFiles).size !== 13)
+      throw new Error("第二章專屬曲應為 13 首且不得重複引用");
     if (!sui.includes("a.loop = false") || sui.includes("a.loop = true"))
       throw new Error("Gemini 30 秒素材不得無限硬循環");
     for (const frag of ['d.scene === "A2-2"', 'd.scene === "A2-3"', 'd.scene === "A2-4"',
-      'd.phase === "fr"', "BGM.variant(1)", "BGM.variant(2)"])
+      'sceneCue(sceneId)', 'BGM.current() === "ch2Catapult"', 'd.scene === "B2-3"', 'd.scene === "B2-4"',
+      'BGM.current() !== "ch2Debate"', 'd.phase === "fr"', "BGM.variant(1)", "BGM.variant(2)"])
       if (!sui.includes(frag)) throw new Error("BGM milestone 掛點缺失:" + frag);
     if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
       throw new Error("FX 樣式/容器缺失");

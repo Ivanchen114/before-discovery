@@ -1205,23 +1205,34 @@
   document.addEventListener("visibilitychange", function () { /* 背景頁暫停/回前景恢復 */
     if (document.hidden) BGM.stop(false); else BGM.refresh();
   });
-  document.addEventListener("bd:scene", function (ev) { /* 場景→mood(資料驅動),同 mood 不重啟 */
+  function sceneCue(sceneId) { /* 同名共用場景（如 SC-R1）可由章別覆寫，避免跨章誤播。 */
     var map = ASSETS && ASSETS.sceneBgm;
-    var mood = map && map[ev.detail.sceneId];
+    return map && (map[CHAPTER_ID + ":" + sceneId] || map[sceneId]);
+  }
+  document.addEventListener("bd:scene", function (ev) { /* 場景→mood(資料驅動),同 mood 不重啟 */
+    var mood = sceneCue(ev.detail.sceneId);
     if (mood && mood !== BGM.current()) BGM.play(mood);
   });
-  document.addEventListener("bd:view", function (ev) { /* 工坊 A/B/C:依認知里程碑,不按時間輪播 */
+  document.addEventListener("bd:view", function (ev) { /* 雙章工坊 A/B/C:依認知里程碑,不按時間輪播 */
     var d = ev.detail || {};
-    if (BGM.current() !== "workshop") return;
-    if (d.scene === "A2-2" && (d.nodeId === "c1" || d.nodeId === "n3")) BGM.variant(1);
-    else if (d.scene === "A2-3" && d.nodeId !== "nsch" && d.nodeId !== "n6") BGM.variant(1);
-    else if ((d.scene === "A2-3" && (d.nodeId === "nsch" || d.nodeId === "n6")) || d.scene === "A2-4") BGM.variant(2);
+    if (BGM.current() === "workshop") {
+      if (d.scene === "A2-2" && (d.nodeId === "c1" || d.nodeId === "n3")) BGM.variant(1);
+      else if (d.scene === "A2-3" && d.nodeId !== "nsch" && d.nodeId !== "n6") BGM.variant(1);
+      else if ((d.scene === "A2-3" && (d.nodeId === "nsch" || d.nodeId === "n6")) || d.scene === "A2-4") BGM.variant(2);
+      return;
+    }
+    if (BGM.current() === "ch2Catapult") {
+      /* A=裝置與首輪；B=第一組乾淨關係成立後；C=換球複驗與雙球機關。 */
+      if (d.scene === "B2-4" || (d.scene === "B2-3" && ["e3", "n6", "s2", "g1"].indexOf(d.nodeId) >= 0)) BGM.variant(2);
+      else if (d.scene === "B2-3" && ["n1", "n2", "e1"].indexOf(d.nodeId) < 0) BGM.variant(1);
+      else BGM.variant(0);
+    }
   });
-  document.addEventListener("bd:debate", function (ev) { /* 辯論 A/B/C:開庭→第二柱→最後反撲 */
-    if (BGM.current() !== "hall") return;
+  document.addEventListener("bd:debate", function (ev) { /* 雙章辯論 A/B/C:開庭→支柱裂開→最後反撲 */
+    if (BGM.current() !== "hall" && BGM.current() !== "ch2Debate") return;
     var d = ev.detail || {}, n = (d.broken || []).length;
     if (d.phase === "fr" || d.phase === "trap" || d.phase === "won") BGM.variant(2);
-    else if (n >= 2) BGM.variant(1);
+    else if (n >= (BGM.current() === "ch2Debate" ? 1 : 2)) BGM.variant(1);
     else BGM.variant(0);
   });
 

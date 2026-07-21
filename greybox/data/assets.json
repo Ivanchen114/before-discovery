@@ -1283,27 +1283,28 @@
   "A2-5": "challenge",
   "A3-F": "debrief",
   "SC-R1": "workshop",
+  "ch2:SC-R1": "ch2Catapult",
   "A3-1": "hall",
   "A3-D": "hall",
   "A3-6": "silence",
   "E-1": "dusk",
   "E-2": "travelerMoon",
-  "B0-1": "workshop",
-  "B0-2": "challenge",
-  "B1-1": "study",
-  "B1-2": "rain",
-  "B1-3": "study",
-  "B1-4": "dusk",
-  "B2-1": "workshop",
-  "B2-2": "workshop",
-  "B2-3": "workshop",
-  "B2-4": "workshop",
-  "B2-5": "challenge",
-  "B3-1": "hall",
-  "B3-D": "hall",
-  "B3-F": "debrief",
+  "B0-1": "ch2OldPage",
+  "B0-2": "ch2Cannon",
+  "B1-1": "ch2Ink",
+  "B1-2": "ch2Shipmast",
+  "B1-3": "ch2Ink",
+  "B1-4": "ch2Canal",
+  "B2-1": "ch2Ink",
+  "B2-2": "ch2Ink",
+  "B2-3": "ch2Catapult",
+  "B2-4": "ch2Catapult",
+  "B2-5": "ch2Cannon",
+  "B3-1": "ch2Debate",
+  "B3-D": "ch2Debate",
+  "B3-F": "ch2Debrief",
   "B3-6": "silence",
-  "BE-1": "dusk",
+  "BE-1": "ch2Telescope",
   "BE-2": "travelerMoon"
  },
  "audioBasePath": "../public/assets/audio/",
@@ -1312,79 +1313,146 @@
   "travelerTitle": {
    "mode": "once",
    "clips": [
-    "Traveler_Theme_Title_A.mp3"
+    "common/Traveler_Theme_Title_A.mp3"
    ]
   },
   "travelerMoon": {
    "mode": "once",
    "clips": [
-    "Traveler_Theme_Moon_B.mp3"
+    "common/Traveler_Theme_Moon_B.mp3"
    ]
   },
   "pisa": {
    "mode": "once",
    "ambient": "pisa",
    "clips": [
-    "Piazza_at_Dawn.mp3"
+    "ch01/Piazza_at_Dawn.mp3"
    ]
   },
   "study": {
    "mode": "once",
    "ambient": "study",
    "clips": [
-    "Sun_Through_Lattice.mp3"
+    "ch01/Sun_Through_Lattice.mp3"
    ]
   },
   "rain": {
    "mode": "once",
    "ambient": "rain",
    "clips": [
-    "Midnight_at_the_Casement.mp3"
+    "ch01/Midnight_at_the_Casement.mp3"
    ]
   },
   "timePassage": {
    "mode": "once",
    "clips": [
-    "Eleven_Years_Time_Passage.mp3"
+    "ch01/Eleven_Years_Time_Passage.mp3"
    ]
   },
   "workshop": {
    "mode": "milestone",
    "ambient": "workshop",
    "clips": [
-    "Workshop_Inquiry_A.mp3",
-    "Workshop_Inquiry_B.mp3",
-    "Workshop_Inquiry_C.mp3"
+    "ch01/Workshop_Inquiry_A.mp3",
+    "ch01/Workshop_Inquiry_B.mp3",
+    "ch01/Workshop_Inquiry_C.mp3"
    ]
   },
   "challenge": {
    "mode": "once",
    "ambient": "workshop",
    "clips": [
-    "Debate_Hall_A.mp3"
+    "ch01/Debate_Hall_A.mp3"
    ]
   },
   "hall": {
    "mode": "milestone",
    "ambient": "hall",
    "clips": [
-    "Debate_Hall_A.mp3",
-    "Debate_Hall_B.mp3",
-    "Debate_Hall_C.mp3"
+    "ch01/Debate_Hall_A.mp3",
+    "ch01/Debate_Hall_B.mp3",
+    "ch01/Debate_Hall_C.mp3"
    ]
   },
   "debrief": {
    "mode": "once",
    "ambient": "study",
    "clips": [
-    "Debate_Debrief.mp3"
+    "ch01/Debate_Debrief.mp3"
    ]
   },
   "dusk": {
    "mode": "once",
    "ambient": "dusk",
    "clips": [
-    "Where_The_Sun_Rests.mp3"
+    "ch01/Where_The_Sun_Rests.mp3"
+   ]
+  },
+  "ch2OldPage": {
+   "mode": "once",
+   "ambient": "study",
+   "clips": [
+    "ch02/Ch2_Old_Page_Returns.mp3"
+   ]
+  },
+  "ch2Cannon": {
+   "mode": "once",
+   "ambient": "workshop",
+   "clips": [
+    "ch02/Ch2_Cannon_Question.mp3"
+   ]
+  },
+  "ch2Ink": {
+   "mode": "once",
+   "ambient": "study",
+   "clips": [
+    "ch02/Ch2_Ink_And_Motion.mp3"
+   ]
+  },
+  "ch2Shipmast": {
+   "mode": "once",
+   "ambient": "rain",
+   "clips": [
+    "ch02/Ch2_Shipmast_Rain.mp3"
+   ]
+  },
+  "ch2Canal": {
+   "mode": "once",
+   "ambient": "dusk",
+   "clips": [
+    "ch02/Ch2_Canal_Impasse.mp3"
+   ]
+  },
+  "ch2Catapult": {
+   "mode": "milestone",
+   "ambient": "workshop",
+   "clips": [
+    "ch02/Ch2_Catapult_A.mp3",
+    "ch02/Ch2_Catapult_B.mp3",
+    "ch02/Ch2_Catapult_C.mp3"
+   ]
+  },
+  "ch2Debate": {
+   "mode": "milestone",
+   "ambient": "hall",
+   "clips": [
+    "ch02/Ch2_Debate_A.mp3",
+    "ch02/Ch2_Debate_B.mp3",
+    "ch02/Ch2_Debate_C.mp3"
+   ]
+  },
+  "ch2Debrief": {
+   "mode": "once",
+   "ambient": "study",
+   "clips": [
+    "ch02/Ch2_Debate_Debrief.mp3"
+   ]
+  },
+  "ch2Telescope": {
+   "mode": "once",
+   "ambient": "dusk",
+   "clips": [
+    "ch02/Ch2_Telescope_Dusk.mp3"
    ]
   },
   "silence": {

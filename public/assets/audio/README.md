@@ -1,29 +1,49 @@
-# public/assets/audio/ — 真音樂檔投放區(v2)
+# public/assets/audio/ — 真音樂資產庫(v2)
 
 **規則 v2**:`bgmFiles[cue]` 使用 `{mode, clips, ambient}`。`once`=30 秒播一次後回程序環境音；`milestone`=A/B/C 依玩法里程碑交叉淡換；`silence`=刻意留白。`storm:null` 恆用程序合成。禁止再把 Gemini 30 秒素材設成無限硬循環。
+
+## 目錄規則
+
+- `common/`：跨章系列主題，只放確定會被兩章以上共用的音樂。
+- `ch01/`、`ch02/`：章節專屬曲目與該章生成提示詞。往後依序新增 `ch03/`、`ch04/`，不把所有檔案平鋪在根目錄。
+- `README.md`：全系列授權與 runtime 索引；各章不另造一份互相漂移的授權表。
+- 音訊預算以「每章約 10 MB、單檔不超過 3 MB」管理；跨章主題另計。新增章節不應迫使舊章音樂改名或改 cue。
 
 **授權鐵則**:每放入一檔,必須在下表補一列。可收:公共領域(PD)、CC0、CC-BY(需標示)。不可收:CC-NC-ND 以外的限制、來源不明檔。
 
 | 檔名 | mood | 曲目/作曲 | 演奏/來源連結 | 授權 | 記錄人 | 日期 |
 |---|---|---|---|---|---|---|
-| Piazza_at_Dawn.mp3 | pisa | AI 生成(文藝復興魯特琴風) | Google Gemini(Lyria 3)生成 | 生成內容,依 Google 生成式 AI 條款;生成者持用 | 陳育詮(生成)/Claude(記錄) | 2026-07-20 |
-| Sun_Through_Lattice.mp3 | study | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Midnight_at_the_Casement.mp3 | rain | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Beneath_the_Chisel.mp3 | workshop | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Counsel_of_Strings.mp3 | hall | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Where_The_Sun_Rests.mp3 | dusk | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Traveler_Theme_Title_A.mp3 | travelerTitle | AI 生成(BGM v2 提示詞包) | Google Gemini(Lyria)生成 | 同上 | 陳育詮(生成)/Sol(提示詞與整合) | 2026-07-20 |
-| Traveler_Theme_Moon_B.mp3 | travelerMoon | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Eleven_Years_Time_Passage.mp3 | timePassage | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Workshop_Inquiry_A.mp3 | workshop A | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Workshop_Inquiry_B.mp3 | workshop B | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Workshop_Inquiry_C.mp3 | workshop C | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Debate_Hall_A.mp3 | challenge / hall A | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Debate_Hall_B.mp3 | hall B | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Debate_Hall_C.mp3 | hall C | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
-| Debate_Debrief.mp3 | debrief | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Piazza_at_Dawn.mp3` | pisa | AI 生成(文藝復興魯特琴風) | Google Gemini(Lyria 3)生成 | 生成內容,依 Google 生成式 AI 條款;生成者持用 | 陳育詮(生成)/Claude(記錄) | 2026-07-20 |
+| `ch01/Sun_Through_Lattice.mp3` | study | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Midnight_at_the_Casement.mp3` | rain | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Beneath_the_Chisel.mp3` | workshop proof | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Counsel_of_Strings.mp3` | hall proof | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Where_The_Sun_Rests.mp3` | dusk | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `common/Traveler_Theme_Title_A.mp3` | travelerTitle | AI 生成(BGM v2 提示詞包) | Google Gemini(Lyria)生成 | 同上 | 陳育詮(生成)/Sol(提示詞與整合) | 2026-07-20 |
+| `common/Traveler_Theme_Moon_B.mp3` | travelerMoon | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Eleven_Years_Time_Passage.mp3` | timePassage | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Workshop_Inquiry_A.mp3` | workshop A | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Workshop_Inquiry_B.mp3` | workshop B | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Workshop_Inquiry_C.mp3` | workshop C | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Debate_Hall_A.mp3` | challenge / hall A | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Debate_Hall_B.mp3` | hall B | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Debate_Hall_C.mp3` | hall C | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch01/Debate_Debrief.mp3` | debrief | 同上 | 同上 | 同上 | 同上 | 2026-07-20 |
+| `ch02/Ch2_Old_Page_Returns.mp3` | ch2OldPage | AI 生成(第二章提示詞包) | Google Gemini(Lyria)生成 | 同上 | 陳育詮(生成)/Sol(提示詞與整合) | 2026-07-21 |
+| `ch02/Ch2_Cannon_Question.mp3` | ch2Cannon | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Ink_And_Motion.mp3` | ch2Ink | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Shipmast_Rain.mp3` | ch2Shipmast | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Canal_Impasse.mp3` | ch2Canal | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Catapult_A.mp3` | ch2Catapult A | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Catapult_B.mp3` | ch2Catapult B | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Catapult_C.mp3` | ch2Catapult C | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Debate_A.mp3` | ch2Debate A | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Debate_B.mp3` | ch2Debate B | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Debate_C.mp3` | ch2Debate C | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Debate_Debrief.mp3` | ch2Debrief | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch02/Ch2_Telescope_Dusk.mp3` | ch2Telescope | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
 
-`Beneath_the_Chisel.mp3` 與 `Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
+`ch01/Beneath_the_Chisel.mp3` 與 `ch01/Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `ch01/Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
 
 ## BGM v2 runtime（Sol 整合，2026-07-20）
 
@@ -37,7 +57,18 @@
 - A3-F：複盤一次播放；SC-R1 回到工坊 A。
 - E-2：旅人月球版一次播放。
 
-完整提示詞與檔名：`PROMPTS_BGM_V2_GEMINI_20260720.md`。
+完整提示詞與檔名：`ch01/PROMPTS_BGM_V2_GEMINI_20260720.md`。
+
+## 第二章 runtime（Sol 整合，2026-07-21）
+
+- 13 檔均為可解碼 MP3（44.1 kHz／192 kbps）；實際長度約 24.84–30.77 秒。runtime 以 `ended` 事件銜接環境音，不假設檔案必須剛好 30 秒。
+- B0-1 舊紙歸來、B0-2／B2-5 砲術提問：兩個獨立敘事 cue。
+- B1-1／B1-3／B2-1／B2-2 墨跡與觀察共用 `ch2Ink`；B1-2 船桅雨夜、B1-4 運河撞牆各有專屬 cue。
+- 彈射工坊：A=裝置與首輪；B=第一組乾淨關係成立後；C=換球複驗與雙球機關。依認知里程碑換段，不按秒數輪播。
+- 辯論：A=立約開庭；B=首支柱擊破、資料開始上桌；C=最後反撲與資料判讀。
+- B3-F 使用低密度複盤曲；BE-1 使用望遠鏡黃昏；BE-2 沿用跨章旅人月球主題。
+
+完整提示詞與檔名：`ch02/PROMPTS_BGM_CH2_GEMINI_20260721.md`。
 
 ## 生成紀錄(Sol 已審 2026-07-20:**候選、未凍結**)
 
@@ -64,4 +95,4 @@
 
 **擴充裁定 v2**:標題、複盤與 A/B/C 變奏已落地；判定暫用沉默＋既有悶響，不另造假勝利短奏。SC-R1 沿用 workshop A——道歉不是悲情配樂，而是重新做一次乾淨工作。
 
-**選曲指南(Claude 策展 2026-07-20;史實錨定依 Sol 審核修正)**:見專案根 README 連結之裁決檔「二之二、音訊分工」;首選 Vincenzo Galilei(伽利略之父,魯特琴)→ pisa/study;Dowland《Lachrimae》(1604,英國作品——**僅作情緒參考,非帕多瓦現場曲目**)→ rain;Barbetta(帕多瓦魯特琴手)→ workshop;**晚期文藝復興維奧爾琴合奏** → hall(原 Tobias Hume 錨定已刪:其曲集出版於 1605,晚於 1604 判定場);Dowland 式小品 → dusk。單檔 ≤3MB、總量 10MB 內。
+**選曲指南(Claude 策展 2026-07-20;史實錨定依 Sol 審核修正)**:見專案根 README 連結之裁決檔「二之二、音訊分工」;首選 Vincenzo Galilei(伽利略之父,魯特琴)→ pisa/study;Dowland《Lachrimae》(1604,英國作品——**僅作情緒參考,非帕多瓦現場曲目**)→ rain;Barbetta(帕多瓦魯特琴手)→ workshop;**晚期文藝復興維奧爾琴合奏** → hall(原 Tobias Hume 錨定已刪:其曲集出版於 1605,晚於 1604 判定場);Dowland 式小品 → dusk。單檔 ≤3MB、每章約 10MB。
