@@ -740,10 +740,12 @@
     margin-bottom: 8px; border-bottom: 1px solid currentColor; }
   .catSectionHead h3 { margin: 0; font-size: 18px; letter-spacing: .06em; }
   .catReadyTag, .catSequence { font: 600 11px/1.2 var(--font-ui); opacity: .78; }
-  .catMaster { position: relative; height: clamp(105px,19vh,190px); margin: 0 0 8px; overflow: hidden;
-    border: 1px solid rgba(218,184,132,.28); background: rgba(238,219,184,.08); }
-  .catMaster img { width: 100%; height: 100%; object-fit: cover; object-position: center 57%; filter: sepia(.08) contrast(1.03); }
-  .catMaster figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 5px 8px;
+  .catMaster { position: relative; height: clamp(220px,31vh,340px); display: grid; grid-template-rows: minmax(0,1fr) auto;
+    margin: 0 0 8px; overflow: hidden; border: 1px solid rgba(218,184,132,.28);
+    background: radial-gradient(circle at 50% 46%,rgba(238,219,184,.12),rgba(10,7,5,.16) 72%); }
+  .catMaster img { width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: center;
+    filter: sepia(.08) contrast(1.03); }
+  .catMaster figcaption { position: static; padding: 5px 8px;
     color: #e9d7b7; background: rgba(20,14,10,.82); font-size: 11px; }
   .catSlots { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
   .catSlot { position: relative; min-height: 78px; display: grid; grid-template-columns: 64px 1fr; gap: 7px;
@@ -807,7 +809,7 @@
     #controls.catapultWorkshop { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 6px; }
     .catHead { min-height: 42px; padding: 3px 10px; }.catHead h2 { font-size: 19px; }.catHead p { display: none; }.catDay { padding: 4px 8px; }
     .catApparatus, .catBook { padding: 7px 9px; }.catSectionHead { min-height: 26px; margin-bottom: 4px; }.catSectionHead h3 { font-size: 15px; }
-    .catMaster { height: 76px; margin-bottom: 5px; }.catMaster figcaption { display: none; }
+    .catMaster { height: 104px; margin-bottom: 5px; }.catMaster figcaption { display: none; }
     .catSlots { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; }.catSlot { grid-column: auto; min-height: 64px; grid-template-columns: 1fr; padding: 4px; }.catSlot:last-child { grid-column: 1/-1; }
     .catPartArt { display: none; }.catSlotCopy { grid-template-columns: 1fr; }.catSlotCopy b { font-size: 11px; }.catSlot select { font-size: 11px; min-height: 28px; }
     .catPartBtn { font-size: 11px !important; }.catCalibrations { margin-top: 4px; }.catCal { min-height: 32px; padding: 2px 5px; }.catCal b { font-size: 10px; }

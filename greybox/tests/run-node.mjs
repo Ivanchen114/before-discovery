@@ -1099,8 +1099,10 @@ tests.push({
       throw new Error("彈射工坊完成出口仍藏在長紀錄簿底端");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["grid-template-rows: auto auto", "font-family: var(--font-dialogue); overflow: visible",
-      ".catReplay", ".catCompareHint", ".catCompare > button"])
+      ".catReplay", ".catCompareHint", ".catCompare > button", "height: clamp(220px,31vh,340px)",
+      "grid-template-rows: minmax(0,1fr) auto", "object-fit: contain"])
       if (!stage.includes(frag)) throw new Error("彈射工坊捲動/重播/比較提示樣式缺失:" + frag);
+    if (/\.catMaster img[^}]*object-fit:\s*cover/.test(stage)) throw new Error("彈射裝置功能圖不得以 cover 裁切");
     if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("engine2")) throw new Error("灰盒一章殼混入 ch2 引擎");
   }
 });
