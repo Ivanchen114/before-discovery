@@ -122,7 +122,7 @@
                border: 2px solid var(--color-chapter-accent); border-radius: 6px;
                box-shadow: 0 8px 30px rgba(0,0,0,0.5); padding: 14px 18px; line-height: 1.6;
                font-size: clamp(16px, 1.3vw, 18px); }
-  body[data-view="lab"] #panelWrap { display: block; left: 4%; right: 4%; top: 9%; bottom: 6%; }
+  body[data-view="lab"] #panelWrap, body[data-view="ship"] #panelWrap { display: block; left: 4%; right: 4%; top: 9%; bottom: 6%; }
   body[data-view="review"] #panelWrap, body[data-view="histfacts"] #panelWrap {
     display: block; left: 10%; right: 10%; top: 10%; bottom: 8%; }
   body[data-view="debate"] #panelWrap { display: block; left: 3%; right: 3%; top: 9%; bottom: 32%;
@@ -171,7 +171,7 @@
               min-height: 28%; background: rgba(16, 11, 8, 0.88);
               border: 1px solid rgba(230, 215, 189, 0.35); border-top: 2px solid var(--color-chapter-accent);
               border-radius: 6px; padding: 16px 20px 18px; box-sizing: border-box; }
-  body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue,
+  body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue, body[data-view="ship"] #dialogue,
   body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue,
   body[data-view="debate"] #dialogue { display: none; } /* 辯論:台詞演完即退場,讓出證據手牌(總監實玩:對話框壓住手牌) */
   body.queue-active #dialogue { display: block !important; }
@@ -1279,7 +1279,7 @@
   .chapterStatusText span { display: block; color: #cfa96b; font: 600 11px/1.2 var(--font-ui); letter-spacing: .14em; }
   .chapterStatusText strong { display: block; margin-top: 3px; color: #f2e6cf;
     font: 600 clamp(19px,2vw,25px)/1.25 var(--font-dialogue); letter-spacing: .06em; }
-  .chapterRail { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 9px; }
+  .chapterRail { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0 0 9px; }
   .chapterPick { min-width: 0; min-height: 48px; display: grid; grid-template-columns: auto 1fr auto;
     align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid rgba(230,215,189,.23);
     border-radius: 6px; background: rgba(16,11,8,.5); color: rgba(230,215,189,.62);
@@ -1377,6 +1377,51 @@
     #continueMeta { display: none; }
     .titleTools { margin-top: 3px; }
     #titleCard summary { font-size: 11px; }
+  }
+
+  /* 第三章航船實驗：航海圖與實驗紀錄簿，不沿用前兩章的裝置皮膚。 */
+  body[data-view="ship"] #panelWrap { padding: 10px; color: #ede0c6; overflow: auto;
+    border: 1px solid rgba(202,164,104,.58); border-radius: 12px;
+    background: radial-gradient(circle at 16% -18%,rgba(86,116,126,.23),transparent 43%),linear-gradient(145deg,rgba(29,25,20,.98),rgba(12,14,14,.98)); }
+  #controls.shipLab { display: grid; grid-template-rows: auto minmax(0,1fr); gap: 8px; min-height: 100%; font-family: var(--font-dialogue); }
+  .shipHead { display: grid; grid-template-columns: minmax(190px,.65fr) minmax(260px,1.35fr) auto; align-items: center; gap: 9px;
+    min-height: 58px; padding: 7px 13px; border: 1px solid rgba(202,164,104,.34); background: linear-gradient(100deg,#251b14,#3a2c20); }
+  .shipHead small { grid-column: 1; color: #cfaa72; font: 700 10px var(--font-ui); letter-spacing: .13em; }
+  .shipHead h2 { grid-column: 1; margin: -3px 0 0; font-size: clamp(20px,2vw,28px); }
+  .shipHead p { grid-column: 2; grid-row: 1/3; margin: 0; color: #ddd0b9; font-size: clamp(13px,1.05vw,16px); }
+  .shipEvidenceChips { grid-column: 3; grid-row: 1/3; display: flex; gap: 4px; }
+  .shipEvidenceChips span { min-width: 34px; padding: 4px 6px; text-align: center; color: #8f8270; border: 1px solid rgba(205,175,126,.25); font: 700 10px var(--font-ui); }
+  .shipEvidenceChips span.got { color: #e8cf9e; border-color: #b68b4f; background: rgba(170,123,60,.22); }
+  .shipBody { min-height: 0; display: grid; grid-template-columns: minmax(320px,.92fr) minmax(420px,1.08fr); gap: 8px; }
+  .shipVisual, .shipWork { min-width: 0; min-height: 0; padding: 10px 12px; border: 1px solid rgba(190,151,94,.32); }
+  .shipVisual { align-self: start; background: linear-gradient(160deg,rgba(41,52,51,.88),rgba(19,22,21,.96)); }
+  .shipWork { overflow: auto; color: #2e281f; background: repeating-linear-gradient(0deg,rgba(91,57,28,.05) 0 1px,transparent 1px 32px),linear-gradient(96deg,#e8dbc0,#f4ead4 49%,#e4d3b2 50%,#f4ead4 52%,#e8dbc0); }
+  .shipWork h3 { margin: 0 0 9px !important; padding-bottom: 6px; color: #4c3926; border-bottom: 2px solid #785638 !important; }
+  .shipDiagram { margin: 0; }.shipDiagram svg { display: block; width: 100%; max-height: 51vh; }
+  .shipDiagram figcaption { padding: 7px 9px; color: #d9c8a8; background: rgba(0,0,0,.27); font: 600 12px/1.45 var(--font-ui); }
+  .shipHull { fill: #4c3524; stroke: #d0a263; stroke-width: 3; }.shipMast { fill: none; stroke: #d8b67f; stroke-width: 5; }
+  .shipSea { fill: none; stroke: #71909a; stroke-width: 4; }.shipStone { fill: #ccb07b; stroke: #271d15; stroke-width: 3; }
+  .shipDrop { fill: none; stroke: #e7d49f; stroke-width: 3; stroke-dasharray: 7 5; }.shipShorePath { fill: none; stroke: #86a8b0; stroke-width: 3; stroke-dasharray: 7 5; }
+  .shipDiagram:not(.overlay) .shipShorePath { opacity: .28; }.shipDiagram text { fill: #e6d7b8; font: 700 15px var(--font-ui); }.shipRefLabel { font-size: 12px !important; }
+  .shipRow, .shipPredict, .shipChoiceGrid, .shipRefToggle { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 7px 0; }
+  .shipSelect { min-height: 40px; flex: 1 1 180px; padding: 5px 8px; color: #2f241b; border: 1px solid #7f5c38; background: rgba(255,251,239,.58); font: 15px var(--font-dialogue); }
+  .shipLab .shipAction { min-height: 40px; padding: 6px 11px; color: #2e2118; border: 1px solid #91653a; background: linear-gradient(#ead4aa,#cda36f); font: 600 14px var(--font-dialogue); }
+  .shipLab .shipAction:hover { filter: brightness(1.06); }.shipLab .shipAction.active, .shipLab .shipAction.primary { color: #fff0d1; background: linear-gradient(#8c5e32,#65401f); }
+  .shipLab .shipAction.danger { color: #6d3027; background: #ead5c5; border-color: #a06354; }
+  .shipNote, .shipMessage { margin: 7px 0; padding: 7px 9px; border-left: 4px solid #8d653d; background: rgba(132,91,47,.09); }
+  .shipMessage { white-space: pre-line; min-height: 26px; }.shipGate { float: right; min-width: 220px; }
+  .shipTable { width: 100%; margin: 8px 0 !important; font-size: 13px !important; }.shipTable th { background: rgba(112,79,45,.12); }
+  .shipCabinCard, .shipAuditCard { margin: 7px 0; padding: 8px 10px; border: 1px solid rgba(109,77,44,.32); background: rgba(255,255,255,.22); }
+  .shipCabinCard b, .shipAuditCard b { display: block; margin-bottom: 5px; }.shipPredict label { flex: 0 0 115px; font-family: var(--font-ui); }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+    body[data-view="ship"] #panelWrap { top: 12%; bottom: 3%; left: 3%; right: 3%; padding: 6px; }
+    #controls.shipLab { gap: 5px; }.shipHead { min-height: 38px; padding: 3px 8px; grid-template-columns: minmax(155px,.6fr) minmax(220px,1.4fr) auto; }
+    .shipHead h2 { font-size: 17px; }.shipHead p { font-size: 10px; }.shipEvidenceChips span { min-width: 25px; padding: 2px 3px; font-size: 8px; }
+    .shipBody { grid-template-columns: minmax(250px,.8fr) minmax(390px,1.2fr); gap: 5px; }.shipVisual, .shipWork { padding: 6px 8px; }
+    .shipDiagram svg { max-height: 56vh; }.shipDiagram figcaption { font-size: 9px; padding: 3px 5px; }.shipWork h3 { font-size: 14px !important; margin-bottom: 4px !important; padding-bottom: 3px; }
+    .shipLab .shipAction { min-height: 31px; padding: 3px 7px; font-size: 11px; }.shipSelect { min-height: 31px; padding: 2px 5px; font-size: 11px; }
+    .shipTable { font-size: 10px !important; }.shipTable th, .shipTable td { padding: 2px 4px !important; }.shipNote, .shipMessage { margin: 3px 0; padding: 3px 5px; font-size: 10px; }
+    .shipCabinCard, .shipAuditCard { margin: 3px 0; padding: 4px 6px; font-size: 10px; }
   }
 </style>
 </head>
@@ -1619,6 +1664,9 @@
           <button type="button" class="chapterPick" data-chapter="ch02">
             <span class="chNo">02</span><b>向前，也向下</b><small>可玩</small>
           </button>
+          <button type="button" class="chapterPick" data-chapter="ch03">
+            <span class="chNo">03</span><b>不推，也會走</b><small>可玩</small>
+          </button>
         </nav>
         <fieldset>
           <legend>從第一章開始・選擇模式（中途不可換）</legend>
@@ -1655,14 +1703,17 @@
 <script src="data/debate2.js"></script>
 <script src="data/histfacts.js"></script>
 <script src="data/histfacts2.js"></script>
+<script src="data/histfacts3.js"></script>
 <script src="data/assets.js"></script>
 <script src="src/sanitize.js"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
+<script src="src/engine3.js"></script>
 <script src="data/scenes.js"></script>
 <script src="data/scenes2.js"></script>
+<script src="data/scenes3.js"></script>
 <script>
 (function () {
   "use strict";
@@ -1671,7 +1722,8 @@
   data.histfacts1 = data.histfacts;
   data.scenes1 = data.scenes;
   window.GB.Engine1 = window.GB.Engine;
-  var chapter = new URLSearchParams(location.search).get("chapter") === "ch02" ? "ch02" : "ch01";
+  var requested = new URLSearchParams(location.search).get("chapter");
+  var chapter = requested === "ch03" ? "ch03" : (requested === "ch02" ? "ch02" : "ch01");
   window.BD_CHAPTER = chapter;
   if (chapter === "ch02") {
     data.debate = data.debate2;
@@ -1679,6 +1731,11 @@
     data.scenes = data.scenes2;
     window.GB.Engine = window.GB.Engine2;
     window.BD_SAVE_KEY = "bd_ch2_save";
+  } else if (chapter === "ch03") {
+    data.histfacts = data.histfacts3;
+    data.scenes = data.scenes3;
+    window.GB.Engine = window.GB.Engine3;
+    window.BD_SAVE_KEY = "bd_ch3_save";
   }
 })();
 </script>

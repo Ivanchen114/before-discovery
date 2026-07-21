@@ -157,7 +157,46 @@
     return { ok: true, state: state };
   }
 
-  var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2, _scrub: scrub, LIMITS: LIMITS };
+  /* 第三章白名單：船桅 fixture 與雙紙帶狀態。結果欄仍由 Engine3 動作產生；
+     匯入只接受封閉列舉與有限數值，拒絕玩家自稱已取得不存在的場景游標。 */
+  function sanitizeImport3(state, scenes) {
+    if (!state || typeof state !== "object") return fail("state 非物件");
+    var generic = scrub(state, 0, { n: LIMITS.maxNodes });
+    if (generic) return fail(generic);
+    if (state.schemaVersion !== 1 || state.chapter !== "ch3") return fail("章別或 schema 非法");
+    if (state.mode !== "explore" && state.mode !== "scholar") return fail("mode 非法");
+    if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("rep 非法");
+    var sceneIds = {}, nodeIds = {};
+    (scenes && scenes.scenes || []).forEach(function (s) {
+      sceneIds[s.id] = 1; nodeIds[s.id] = {};
+      (s.nodes || []).forEach(function (n) { nodeIds[s.id][n.id] = 1; });
+    });
+    if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
+      return fail("cursor 非法");
+    var lab = state.lab;
+    if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999) return fail("船桅狀態非法");
+    if ([null, "hand", "string", "latch"].indexOf(lab.release) < 0 || typeof lab.plumbCalibrated !== "boolean")
+      return fail("釋放／鉛垂 enum 非法");
+    if (!Array.isArray(lab.baselineRuns) || !Array.isArray(lab.mastRuns) ||
+        lab.baselineRuns.length > 100 || lab.mastRuns.length > 100) return fail("落石紀錄非法");
+    var checkRuns = lab.baselineRuns.concat(lab.mastRuns);
+    for (var i = 0; i < checkRuns.length; i++) {
+      var rr = checkRuns[i];
+      if (!rr || typeof rr.offset !== "number" || !isFinite(rr.offset)) return fail("落點數值非法");
+    }
+    if (!lab.cabin || !lab.predictions || !lab.speedRuns || !lab.overlay || !lab.publicDemo || !lab.audit || !lab.evidence)
+      return fail("第三章狀態欄缺失");
+    if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("transcript 非法");
+    for (var t = 0; t < state.transcript.length; t++) {
+      var line = state.transcript[t];
+      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2000)
+        return fail("transcript 行非法");
+    }
+    return { ok: true, state: state };
+  }
+
+  var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2,
+    sanitizeImport3: sanitizeImport3, _scrub: scrub, LIMITS: LIMITS };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Sanitize = api; }
 })(typeof self !== "undefined" ? self : this);

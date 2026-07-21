@@ -15,7 +15,7 @@
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
   var TEXT = window.GB.TextFormat || null;
-  var CHAPTER_ID = SCENES.chapter === "ch2" ? "ch2" : "ch1";
+  var CHAPTER_ID = /^ch[123]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var TYPE_MS = 40;                    /* 逐字基速 */
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";

@@ -16,11 +16,11 @@
 
   /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
      不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
-  var CHAPTER_ID = SCENES.chapter === "ch2" ? "ch2" : "ch1";
-  var SAVE_SCHEMA = CHAPTER_ID === "ch2" ? 1 : 3;
+  var CHAPTER_ID = /^ch[123]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : 1;
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = "SC-R1";
-  var CH = DEBATE.chapter;
+  var CH = (DEBATE && DEBATE.chapter) || {};
 
   var sceneMap = {};
   SCENES.scenes.forEach(function (s) {
@@ -67,9 +67,9 @@
       eventLog: [],
       ended: false
     };
-    if (CHAPTER_ID === "ch2") {
-      out.chapter = "ch2";
-      out.reveals = { sqrt: false, parabola: false };
+    if (CHAPTER_ID !== "ch1") {
+      out.chapter = CHAPTER_ID;
+      if (CHAPTER_ID === "ch2") out.reveals = { sqrt: false, parabola: false };
     }
     return out;
   }
@@ -606,6 +606,18 @@
       var f2u = state.lab.evidence && state.lab.evidence.f2;
       return !!(f2u && f2u[until.f2]);
     }
+    if (until.ship) {
+      var sh = state.lab || {}, se = sh.evidence || {};
+      if (until.ship === "baseline") return !!(Engine.baselineReady && Engine.baselineReady(sh));
+      if (until.ship === "failure") return !!(sh.mastRuns || []).some(function (r) { return r.state === "accelerating"; });
+      if (until.ship === "g1") return !!se.g1;
+      if (until.ship === "g2") return !!se.g2;
+      if (until.ship === "g3") return !!se.g3;
+      if (until.ship === "g4") return !!se.g4;
+      if (until.ship === "public") return !!(sh.publicDemo && sh.publicDemo.complete);
+      if (until.ship === "audit") return !!(sh.audit && sh.audit.wind && sh.audit.acceleration && sh.audit.paths);
+      if (until.ship === "g5") return !!se.g5;
+    }
     return true;
   }
 
@@ -620,7 +632,7 @@
       v.options = node.options.filter(function (o) { return visible(state, o); })
         .map(function (o) { return { id: o.id, text: o.text }; });
     } else if (node.type === "embed") {
-      v.system = node.system; v.hint = node.hint || ""; v.preset = node.preset || null;
+      v.system = node.system; v.phase = node.phase || null; v.hint = node.hint || ""; v.preset = node.preset || null;
       v.ready = untilMet(state, node.until);
       if (node.system === "debate" || node.system === "debrief") v.debate = debateView(state);
     } else if (node.type === "review") {
@@ -712,6 +724,20 @@
     else if (action === "assertLaw" && Engine.assertLaw) r = Engine.assertLaw(state.lab, args.seriesId, args.conceptId);
     else if (action === "abandonSeries" && Engine.abandonSeries) r = Engine.abandonSeries(state.lab);
     else if (action === "compareBalls" && Engine.compareBalls) r = Engine.compareBalls(state.lab, args.a, args.b);
+    /* 第三章船桅／共同運動引擎：仍走同一個 labAction 邊界，UI 不直接改 state。 */
+    else if (action === "setRelease" && Engine.setRelease) r = Engine.setRelease(state.lab, args.mode);
+    else if (action === "calibratePlumb" && Engine.calibratePlumb) r = Engine.calibratePlumb(state.lab);
+    else if (action === "runBaseline" && Engine.runBaseline) r = Engine.runBaseline(state.lab);
+    else if (action === "runMast" && Engine.runMast) r = Engine.runMast(state.lab, args.window);
+    else if (action === "runCabin" && Engine.runCabin) r = Engine.runCabin(state.lab, args.vesselState, args.test);
+    else if (action === "setSpeedPrediction" && Engine.setSpeedPrediction) r = Engine.setSpeedPrediction(state.lab, args.accelerating, args.decelerating);
+    else if (action === "runSpeedChange" && Engine.runSpeedChange) r = Engine.runSpeedChange(state.lab, args.kind);
+    else if (action === "alignRecords" && Engine.alignRecords) r = Engine.alignRecords(state.lab, args.pair);
+    else if (action === "transformRecords" && Engine.transformRecords) r = Engine.transformRecords(state.lab, args.kind);
+    else if (action === "setReference" && Engine.setReference) r = Engine.setReference(state.lab, args.ref);
+    else if (action === "runPublicStep" && Engine.runPublicStep) r = Engine.runPublicStep(state.lab, args.step);
+    else if (action === "answerAudit" && Engine.answerAudit) r = Engine.answerAudit(state.lab, args.questionId, args.evidenceId);
+    else if (action === "setBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
@@ -719,6 +745,11 @@
     if (e3 && e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
     var f2g = state.lab.evidence.f2;
     if (f2g && f2g.law && f2g.ball && !state.evidence.F2) grantEvidence(state, "F2", "lab2");
+    ["G1", "G2", "G3", "G4", "G5"].forEach(function (id) {
+      if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
+        grantEvidence(state, id, "ship3");
+    });
+    if (r.repDelta) applyRep(state, r.repDelta, "ship3." + action);
     if (action === "judge") {
       if ((r.claim && !r.claim.ok) || r.rejected) {
         state.flags.hadFailure = "1";
@@ -765,7 +796,7 @@
   function deserialize(text) {
     var s = JSON.parse(text);
     if (!s || s.schemaVersion !== SAVE_SCHEMA) throw new Error("存檔版本不符");
-    if (CHAPTER_ID === "ch2" && s.chapter !== "ch2") throw new Error("存檔章別不符");
+    if (CHAPTER_ID !== "ch1" && s.chapter !== CHAPTER_ID) throw new Error("存檔章別不符");
     if (!sceneMap[s.cursor.scene] || !sceneMap[s.cursor.scene].nodes[s.cursor.node]) throw new Error("存檔游標無效");
     return s;
   }
@@ -775,7 +806,7 @@
     var s;
     try { s = JSON.parse(text); } catch (e) { return { error: "badjson" }; }
     if (!s || s.schemaVersion !== SAVE_SCHEMA) return { error: "schema" };
-    if (CHAPTER_ID === "ch2" && s.chapter !== "ch2") return { error: "chapter" };
+    if (CHAPTER_ID !== "ch1" && s.chapter !== CHAPTER_ID) return { error: "chapter" };
     if (!sceneMap[s.cursor.scene] || !sceneMap[s.cursor.scene].nodes[s.cursor.node]) return { error: "cursor" };
     return { state: s };
   }
