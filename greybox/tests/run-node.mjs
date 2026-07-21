@@ -875,6 +875,134 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "第二章 M2a|engine2:profile 支配序+受控自由+校準重置+守衛(R-WS2)",
+  fn: () => {
+    const E2 = require("../src/engine2.js");
+    const build = (parts, cal) => {
+      let s = E2.initialState();
+      for (const [slot, part] of parts) { const r = E2.place(s, slot, part); if (r.error) throw new Error("place " + part + ":" + r.error); s = r.state; }
+      for (const k of cal || []) { const r = E2.calibrate(s, k); if (r.error) throw new Error(r.error); s = r.state; }
+      return s;
+    };
+    const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
+    /* 空槽=notRunnable+run 拒絕 */
+    let s0 = E2.initialState();
+    if (E2.profileOf(s0) !== "notRunnable") throw new Error("空槽 profile 錯");
+    if (!E2.beginSeries(s0, "copper").error) throw new Error("空槽可開 series");
+    /* 支配序四格 */
+    if (E2.profileOf(build(FULL, ["releaseZero", "rangeScale"])) !== "clean") throw new Error("clean 判定錯");
+    if (E2.profileOf(build(FULL, ["releaseZero"])) !== "coarseRead") throw new Error("rangeScale 未校應 coarseRead");
+    const rough = FULL.map((p) => p[0] === "edge" ? ["edge", "roughEdge"] : p);
+    if (E2.profileOf(build(rough, ["releaseZero", "rangeScale"])) !== "directionScatter") throw new Error("毛邊應 directionScatter");
+    const hand = FULL.map((p) => p[0] === "release" ? ["release", "handRelease"] : p);
+    if (E2.profileOf(build(hand, ["releaseZero", "rangeScale"])) !== "speedDrift") throw new Error("手放應 speedDrift");
+    const eye = FULL.map((p) => p[0] === "rangeBed" ? ["rangeBed", "eyeBoard"] : p);
+    if (E2.profileOf(build(eye, ["releaseZero", "rangeScale"])) !== "coarseRead") throw new Error("目測板應 coarseRead(支配序最高)");
+    /* 裝配順序自由:兩種順序→同 profile 同 fixture 讀值 */
+    const rev = [...FULL].reverse();
+    const sA = build(FULL, ["releaseZero", "rangeScale"]), sB = build(rev, ["releaseZero", "rangeScale"]);
+    const runAll = (st) => { let r = E2.beginSeries(st, "copper"); st = r.state; for (const H of [4, 9, 16]) { st = E2.runHeight(st, H).state; } st = E2.predict(st, 5).state; return E2.runHeight(st, 25).state; };
+    const ra = runAll(sA).series[0], rb = runAll(sB).series[0];
+    if (JSON.stringify(ra.readings) !== JSON.stringify(rb.readings) || ra.profile !== rb.profile)
+      throw new Error("裝配順序影響了讀值/профile");
+    /* 校準重置:換 release 只重置 releaseZero */
+    let sc = build(FULL, ["releaseZero", "rangeScale"]);
+    sc = E2.replacePart(sc, "release", "handRelease").state;
+    if (sc.calib.releaseZero !== false || sc.calib.rangeScale !== true) throw new Error("換件重置範圍錯");
+    /* no-op 校準不耗天 */
+    let sd = build(FULL, ["releaseZero"]);
+    const days0 = sd.days;
+    if (E2.calibrate(sd, "releaseZero").noop !== true || E2.calibrate(sd, "releaseZero").state.days !== days0)
+      throw new Error("重複校準應 no-op 零天");
+    /* open series 期間 replace 拒絕;放棄後可換且舊紀錄留 abandoned */
+    let se = build(FULL, ["releaseZero", "rangeScale"]);
+    se = E2.beginSeries(se, "copper").state;
+    if (E2.replacePart(se, "edge", "roughEdge").error !== "series-open") throw new Error("開放 series 未擋換件");
+    se = E2.abandonSeries(se).state;
+    if (se.series[0].status !== "abandoned") throw new Error("放棄未記錄");
+    if (E2.replacePart(se, "edge", "roughEdge").error) throw new Error("放棄後應可換件");
+    /* 未知件/錯槽:state 深等不變 */
+    const before = JSON.stringify(s0);
+    if (!E2.place(s0, "release", "noSuchPart").error || !E2.place(s0, "edge", "latchRelease").error)
+      throw new Error("非法 place 未拒絕");
+    if (JSON.stringify(s0) !== before) throw new Error("拒絕後 state 被污染");
+  }
+});
+
+tests.push({
+  name: "第二章 M2a|engine2:fixture 判定+12.0/12.5 邊界+換球守衛+黃金路徑 10 天(R-LAB2)",
+  fn: () => {
+    const E2 = require("../src/engine2.js");
+    const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
+    const build = () => {
+      let s = E2.initialState();
+      for (const [slot, part] of FULL) s = E2.place(s, slot, part).state;
+      s = E2.calibrate(s, "releaseZero").state;
+      s = E2.calibrate(s, "rangeScale").state;
+      return s;
+    };
+    const runSeries = (s, ball, pred) => {
+      s = E2.beginSeries(s, ball).state;
+      for (const H of [4, 9, 16]) s = E2.runHeight(s, H).state;
+      s = E2.predict(s, pred).state;
+      return E2.runHeight(s, 25).state;
+    };
+    /* clean 三輪全過+cycle 輪替+F2 law(銅) */
+    let s = build();
+    s = runSeries(s, "copper", 5.0);
+    if (!s.series[0].accepted || s.series[0].cycle !== 0) throw new Error("clean cycle1 應過");
+    if (!s.evidence.f2.law) throw new Error("F2 law 未點亮");
+    s = runSeries(s, "copper", 5.0); s = runSeries(s, "copper", 5.0);
+    if (!(s.series[1].accepted && s.series[2].accepted)) throw new Error("clean cycle2/3 應過");
+    if (s.series.map((x) => x.cycle).join(",") !== "0,1,2") throw new Error("cycle 未輪替");
+    /* 黃金路徑天數:2 校準+銅 4 放=6;加木球 4 放=10 */
+    if (s.series[0].dayEnded !== 6) throw new Error("銅球首輪應第 6 天收,得 " + s.series[0].dayEnded);
+    s = runSeries(s, "wood", 5.0);
+    if (s.days !== 2 + 4 * 4) throw new Error("四輪後總天數錯:" + s.days);
+    /* 換球守衛正例 */
+    const cmp = E2.compareBalls(s, 1, 4);
+    if (!cmp.ok || !cmp.state.evidence.f2.ball) throw new Error("換球正例未過:" + JSON.stringify(cmp.diffs));
+    /* 換球負例:不同 edge 指紋 */
+    let bad = E2.replacePart(cmp.state, "edge", "roughEdge").state;
+    bad = E2.calibrate(bad, "rangeScale").noop ? bad : bad; /* rangeScale 未失效 */
+    bad = runSeries(bad, "wood", 5.5);
+    const cmp2 = E2.compareBalls(bad, 1, bad.series.length);
+    if (cmp2.ok || !cmp2.diffs.some((d) => d.includes("指紋"))) throw new Error("指紋守衛未擋");
+    /* 故障 profile 全不過 */
+    let sh = E2.initialState();
+    for (const [slot, part] of FULL) sh = E2.place(sh, slot, part === "latchRelease" ? "handRelease" : part).state;
+    sh = E2.calibrate(sh, "releaseZero").state; sh = E2.calibrate(sh, "rangeScale").state;
+    sh = runSeries(sh, "copper", 5.85);
+    if (sh.series[0].accepted) throw new Error("speedDrift 竟通過(押中 25 也不該過形狀門)");
+    /* coarseRead:區間讀值→拒絕 */
+    let sc2 = E2.initialState();
+    for (const [slot, part] of FULL) sc2 = E2.place(sc2, slot, part === "rakedSand" ? "eyeBoard" : part).state;
+    sc2 = E2.calibrate(sc2, "releaseZero").state; sc2 = E2.calibrate(sc2, "rangeScale").state;
+    sc2 = runSeries(sc2, "copper", 5.0);
+    if (sc2.series[0].accepted || sc2.series[0].rejectReason !== "non-scalar") throw new Error("區間值未被拒");
+    /* 12.0 含等號過/12.5 必不過(合成:二分從兩側夾邊界,kHat 連動故不可線性造值) */
+    const mk = (e) => ({ 4: 2 * (1 + e), 9: 3, 16: 4, 25: 5 });
+    const bisect = (target) => { /* 回傳 [lo,hi]:shape(lo)<=target<shape(hi) */
+      let lo = 0, hi = 0.8;
+      for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; (E2._judgeRaw(mk(m), 5).shapeError <= target) ? lo = m : hi = m; }
+      return [lo, hi];
+    };
+    const [lo120] = bisect(0.12);
+    const jPass = E2._judgeRaw(mk(lo120), 5);
+    if (!(jPass.shapeError <= 0.12 && jPass.accepted)) throw new Error("貼齊 12.0% 應通過,得 " + jPass.shapeError);
+    const [, hi125] = bisect(0.125);
+    const jFail = E2._judgeRaw(mk(hi125), 5);
+    if (!(jFail.shapeError > 0.125 - 1e-9) || jFail.accepted) throw new Error("越過 12.5% 應不過,得 " + jFail.shapeError);
+    /* 順序守衛:跳測 16 拒絕不耗天;25 前必先預測 */
+    let so = build(); so = E2.beginSeries(so, "copper").state;
+    const d0 = so.days;
+    if (E2.runHeight(so, 16).error !== "wrong-order" || so.days !== d0) throw new Error("H 順序守衛失效");
+    so = E2.runHeight(so, 4).state; so = E2.runHeight(so, 9).state; so = E2.runHeight(so, 16).state;
+    if (E2.runHeight(so, 25).error !== "prediction-required") throw new Error("未預測可跑 25");
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
