@@ -1,0 +1,167 @@
+{
+  "version": "0.1",
+  "chapter": "ch02",
+  "generatedBy": "Codex built-in image_gen",
+  "generatedOn": "2026-07-21",
+  "runtimeRoot": "public/assets",
+  "assets": [
+    {
+      "id": "bg_ch02_padua_university_arcade_morning",
+      "path": "ch02/backgrounds/ch02_bg_padua_university_arcade_morning_v01.webp",
+      "role": "background",
+      "scene": "B1-3",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "dialogue_galileo44_focused",
+      "path": "ch02/characters/ch02_char_galileo44_focused_v01.webp",
+      "role": "dialoguePortrait",
+      "age": 44,
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "dialogue_galileo44_deadpan",
+      "path": "ch02/characters/ch02_char_galileo44_deadpan_v01.webp",
+      "role": "dialoguePortrait",
+      "age": 44,
+      "match": "這盤沙在嘲笑我們",
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "dialogue_galileo44_explaining",
+      "path": "ch02/characters/ch02_char_galileo44_explaining_v01.webp",
+      "role": "dialoguePortrait",
+      "age": 44,
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "dialogue_simplicio76_formidable_calm",
+      "path": "ch02/characters/ch02_char_simplicio76_formidable_calm_v01.webp",
+      "role": "dialoguePortrait",
+      "age": 76,
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "dialogue_simplicio76_expectant",
+      "path": "ch02/characters/ch02_char_simplicio76_expectant_v01.webp",
+      "role": "dialoguePortrait",
+      "age": 76,
+      "scene": ["B0-2", "B3-5"],
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "dialogue_simplicio76_strikeout",
+      "path": "ch02/characters/ch02_char_simplicio76_strikeout_v02.webp",
+      "role": "dialogueActionPortrait",
+      "age": 76,
+      "scene": "B3-3",
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "dialogue_simplicio76_almost_warm",
+      "path": "ch02/characters/ch02_char_simplicio76_almost_warm_v01.webp",
+      "role": "dialoguePortrait",
+      "age": 76,
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "id": "workshop2_projectile_apparatus_master",
+      "path": "ch02/props/ch02_prop_projectile_apparatus_master_v01.webp",
+      "role": "persistentApparatusFigure",
+      "width": 1599,
+      "height": 900
+    },
+    {
+      "id": "part_latchRelease",
+      "path": "ch02/props/ch02_prop_release_latch_v01.webp",
+      "role": "slotFigure",
+      "slotId": "release",
+      "partId": "latchRelease"
+    },
+    {
+      "id": "part_handRelease",
+      "path": "ch02/props/ch02_prop_release_hand_v01.webp",
+      "role": "slotFigure",
+      "slotId": "release",
+      "partId": "handRelease"
+    },
+    {
+      "id": "part_polishedEdge",
+      "path": "ch02/props/ch02_prop_edge_polished_v01.webp",
+      "role": "slotFigure",
+      "slotId": "edge",
+      "partId": "polishedEdge"
+    },
+    {
+      "id": "part_roughEdge",
+      "path": "ch02/props/ch02_prop_edge_rough_v01.webp",
+      "role": "slotFigure",
+      "slotId": "edge",
+      "partId": "roughEdge"
+    },
+    {
+      "id": "part_rakedSand",
+      "path": "ch02/props/ch02_prop_range_raked_sand_v01.webp",
+      "role": "slotFigure",
+      "slotId": "rangeBed",
+      "partId": "rakedSand"
+    },
+    {
+      "id": "part_eyeBoard",
+      "path": "ch02/props/ch02_prop_range_eye_board_v01.webp",
+      "role": "slotFigure",
+      "slotId": "rangeBed",
+      "partId": "eyeBoard"
+    },
+    {
+      "id": "part_fineSandPlumb",
+      "path": "ch02/props/ch02_prop_range_fine_sand_plumb_v01.webp",
+      "role": "slotFigure",
+      "slotId": "rangeBed",
+      "partId": "fineSandPlumb"
+    },
+    {
+      "id": "prop_inked_incline_board",
+      "path": "ch02/props/ch02_prop_inked_incline_board_v01.webp",
+      "role": "evidenceProp",
+      "scene": "B2-2",
+      "width": 1200,
+      "height": 675
+    },
+    {
+      "id": "card_S3",
+      "path": "ch02/cards/card_S3.webp",
+      "role": "evidenceCard",
+      "width": 800,
+      "height": 500
+    },
+    {
+      "id": "card_S4",
+      "path": "ch02/cards/card_S4.webp",
+      "role": "evidenceCard",
+      "width": 800,
+      "height": 500
+    },
+    {
+      "id": "chapter_thumbnail_ch02",
+      "path": "ch02/ui/ch02_chapter_thumbnail.webp",
+      "role": "chapterRailThumbnail",
+      "width": 800,
+      "height": 450
+    }
+  ],
+  "deprecatedRuntime": [
+    {
+      "path": "ch02/characters/ch02_char_simplicio76_strikeout_v01.webp",
+      "reason": "只有低頭表情，缺少羽筆劃除動作；保留製程紀錄，不得掛載。"
+    }
+  ]
+}
