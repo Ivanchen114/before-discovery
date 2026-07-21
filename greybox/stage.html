@@ -807,7 +807,7 @@
   .catSlot:last-child { grid-column: 1/-1; }
   .catSlot.isEmpty { grid-template-columns: 1fr; border-style: dashed; }
   .catSlot.isFixed { min-height: 64px; grid-template-columns: 1fr; }
-  .catPartArt { width: 64px; height: 64px; object-fit: cover; align-self: center; border: 1px solid rgba(221,189,139,.3); }
+  .catPartArt { width: 64px; height: 64px; object-fit: contain; align-self: center; border: 1px solid rgba(221,189,139,.3); }
   .catSlotCopy { min-width: 0; display: grid; grid-template-columns: 1fr auto; align-content: center; gap: 3px 5px; }
   .catSlotCopy small, .catSlotCopy b { grid-column: 1/-1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .catSlotCopy small { color: #bd9969; font: 600 10px/1 var(--font-ui); letter-spacing: .08em; }
@@ -817,6 +817,11 @@
   .catSlot select, .catStartSeries select, .catCompare select { min-width: 0; width: 100%; color: #eadac0;
     border: 1px solid #765430; background: #211810; font: 13px var(--font-dialogue); }
   .catPartBtn { min-height: 32px !important; padding: 3px 7px !important; white-space: nowrap; }
+  .catPartBrief { grid-column: 1/-1; display: grid; gap: 3px; margin-top: 1px; padding: 7px 9px;
+    border-left: 3px solid #78909a; background: rgba(16,22,23,.34); }
+  .catPartBrief strong { color: #d7c29c; font: 700 11px/1.35 var(--font-ui); letter-spacing: .04em; }
+  .catPartBrief p { margin: 0; color: #e5d6bd; font: 12px/1.45 var(--font-dialogue); }
+  .catPartBrief blockquote { margin: 1px 0 0; color: #a9c2cc; font: 12px/1.4 var(--font-dialogue); }
   .catCalibrations { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
   .catCal { min-height: 42px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 7px;
     padding: 5px 8px; border-left: 3px solid #946637; background: rgba(0,0,0,.25); }
@@ -882,6 +887,7 @@
     .catSlots { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; }.catSlot { grid-column: auto; min-height: 64px; grid-template-columns: 1fr; padding: 4px; }.catSlot:last-child { grid-column: 1/-1; }
     .catPartArt { display: none; }.catSlotCopy { grid-template-columns: 1fr; }.catSlotCopy b { font-size: 11px; }.catSlot select { font-size: 11px; min-height: 28px; }
     .catPartBtn { font-size: 11px !important; }.catCalibrations { margin-top: 4px; }.catCal { min-height: 32px; padding: 2px 5px; }.catCal b { font-size: 10px; }
+    .catPartBrief { padding: 3px 5px; gap: 1px; }.catPartBrief strong, .catPartBrief p { font-size: 9px; }.catPartBrief blockquote { display: none; }
     .catMission { padding: 5px 8px; margin-bottom: 4px; }.catMission p { margin: 0; font-size: 13px; }
     .catClaims { gap: 3px; margin-top: 4px; }.catClaim { padding: 3px 5px; }.catClaim b, .catClaim span { font-size: 9px; }
     .catClaimComplete { padding: 2px 5px; font-size: 9px; }

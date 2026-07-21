@@ -95,14 +95,14 @@
     },
     {
       "id": "part_polishedEdge",
-      "path": "ch02/props/ch02_prop_edge_polished_v01.webp",
+      "path": "ch02/props/ch02_prop_edge_polished_v02.png",
       "role": "slotFigure",
       "slotId": "edge",
       "partId": "polishedEdge"
     },
     {
       "id": "part_roughEdge",
-      "path": "ch02/props/ch02_prop_edge_rough_v01.webp",
+      "path": "ch02/props/ch02_prop_edge_rough_v02.png",
       "role": "slotFigure",
       "slotId": "edge",
       "partId": "roughEdge"

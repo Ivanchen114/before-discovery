@@ -879,6 +879,7 @@
   var cat2Msg = "";
   var cat2Replay = null;
   var cat2EmbedKey = "";
+  var cat2PartFocus = "latchRelease";
   function cat2EvidenceFlags(s) {
     var f2 = s && s.lab && s.lab.evidence && s.lab.evidence.f2;
     return { law: !!(f2 && f2.law), lawSource: f2 && f2.lawSource,
@@ -976,7 +977,7 @@
     if (N.embedReady(state)) return "本段目標已完成。按上方的「收好數據，回到故事」繼續。";
     if (v.nodeId === "e1") return open
       ? "目前只要完成銅球的 4、9、16 格；25 格會在你先說出規律後再開放。"
-      : "固定骨架已就位；選好釋放、桌沿與落點量法，再校準發射零位、沙盤標尺。";
+      : "踏查已說明每個部位控制什麼；現在真正要選的是各部位的做法。先比較它們的脾氣，再完成兩項校準。";
     if (v.nodeId === "e2") return open
       ? "讀完前三個高度後，先鎖定 25 格預測；看到結果前不能改答案。"
       : (done.some(function (s) { return s.status === "complete"; })
@@ -1082,6 +1083,24 @@
     el("figcaption", "短斜槽、桌沿與升降沙盤——你選的零件會決定數據的脾氣。", master);
     var slotNames = { launcher: "發射槽", release: "釋放", edge: "桌沿", rangeBed: "落點", heightRig: "高度架" };
     var slots = el("div", "", dv, "catSlots");
+    var partBrief = document.createElement("aside");
+    partBrief.className = "catPartBrief";
+    var partBriefTitle = document.createElement("strong");
+    var partBriefText = document.createElement("p");
+    var partBriefCoach = document.createElement("blockquote");
+    partBrief.appendChild(partBriefTitle);
+    partBrief.appendChild(partBriefText);
+    partBrief.appendChild(partBriefCoach);
+    function showPartBrief(pid) {
+      var guides = ASSETS && ASSETS.workshopPartGuide || {};
+      var g = guides[pid];
+      var p = E2._PARTS[pid];
+      if (!g || !p) return;
+      cat2PartFocus = pid;
+      partBriefTitle.textContent = "目前查看｜" + p.label;
+      partBriefText.textContent = g.detail;
+      partBriefCoach.textContent = "伽利略：「" + g.coach + "」";
+    }
     E2._SLOTS.forEach(function (slot) {
       var fixed = E2._FIXED_SLOTS && E2._FIXED_SLOTS[slot];
       var cur = lab2.slots[slot] || fixed;
@@ -1105,10 +1124,15 @@
       });
       if (cur) sel.value = cur;
       copy.appendChild(sel);
+      sel.addEventListener("focus", function () { showPartBrief(sel.value); });
+      sel.addEventListener("change", function () { showPartBrief(sel.value); });
       btn(cur ? "更換零件" : "裝上零件", function () {
         doLab2(cur ? "replacePart" : "place", { slot: slot, part: sel.value });
       }, copy, "catPartBtn");
     });
+    slots.appendChild(partBrief);
+    var guides = ASSETS && ASSETS.workshopPartGuide || {};
+    showPartBrief(guides[cat2PartFocus] ? cat2PartFocus : "latchRelease");
     var cal = el("div", "", dv, "catCalibrations");
     [["releaseZero", "發射零位(同刻度三放重疊)"], ["rangeScale", "沙盤標尺"]].forEach(function (c) {
       var row = el("div", "", cal, "catCal " + (lab2.calib[c[0]] ? "isDone" : ""));

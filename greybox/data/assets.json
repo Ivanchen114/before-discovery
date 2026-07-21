@@ -123,8 +123,8 @@
      "asset": "part_rakedSand",
      "x": 72,
      "y": 58,
-     "function": "沙盤留下落點，升降架改變桌沿到沙面的下落高度；標尺把沙痕轉成射程。",
-     "line": "沙盤接住落點；升降架只改下落高度。每一輪，都得知道自己究竟改了哪件事。",
+     "function": "升降架是固定骨架，只改桌沿到沙面的下落高度；進工坊後真正要選的是落點讀法，例如沙痕、目測板或細沙與鉛垂規。",
+     "line": "沙盤升降不用選；你要選的是怎麼把落點讀成射程。每一輪，都得知道自己改了哪件事。",
      "fixed": true
     },
     {
@@ -830,21 +830,21 @@
    "id": "part_polishedEdge",
    "kind": "prop",
    "label": "part_polishedEdge",
-   "path": "ch02/props/ch02_prop_edge_polished_v01.webp",
+   "path": "ch02/props/ch02_prop_edge_polished_v02.png",
    "firstScreen": false,
    "w": 1200,
    "h": 675,
-   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+   "sourceMaster": "Codex imagegen 重構 v02；透明底 16:9 正規化桌沿零件"
   },
   {
    "id": "part_roughEdge",
    "kind": "prop",
    "label": "part_roughEdge",
-   "path": "ch02/props/ch02_prop_edge_rough_v01.webp",
+   "path": "ch02/props/ch02_prop_edge_rough_v02.png",
    "firstScreen": false,
    "w": 1200,
    "h": 675,
-   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+   "sourceMaster": "Codex imagegen 重構 v02；透明底 16:9 正規化桌沿零件"
   },
   {
    "id": "part_rakedSand",
@@ -1583,6 +1583,36 @@
   "rakedSand": "part_rakedSand",
   "eyeBoard": "part_eyeBoard",
   "fineSandPlumb": "part_fineSandPlumb"
+ },
+ "workshopPartGuide": {
+  "latchRelease": {
+   "detail": "用門閂在同一刻度放球，出手較容易重複；更換釋放方式後，發射零位要重新校準。",
+   "coach": "門閂替手指守住同一個起點。"
+  },
+  "handRelease": {
+   "detail": "直接用手放球最省事，但手指施力和離手時刻可能每次不同；更換後要重新校準發射零位。",
+   "coach": "手很方便，只是每次鬆開，都可能多推一點、少推一點。"
+  },
+  "polishedEdge": {
+   "detail": "桌沿平順，球離桌時的方向較容易一致；適合比較射程隨高度怎麼改變。",
+   "coach": "桌沿齊，球離手的方向才容易一致。"
+  },
+  "roughEdge": {
+   "detail": "桌沿毛邊可能讓球離桌方向散開；可觀察落點是否跟著變寬。",
+   "coach": "一道毛邊不會說話，但會把散布寫進沙裡。"
+  },
+  "rakedSand": {
+   "detail": "先耙平沙面再讀新落點；量測前仍要校準沙盤標尺。",
+   "coach": "先把舊痕耙平，這一輪才不會和上一輪混在一起。"
+  },
+  "eyeBoard": {
+   "detail": "靠目測板快速估讀落點，但每筆只會得到較寬的讀值區間；量測前仍要校準標尺。",
+   "coach": "眼睛很快，可惜每次『差不多』的邊界都不太一樣。"
+  },
+  "fineSandPlumb": {
+   "detail": "細沙留下清楚落點，鉛垂規定義桌沿正下方；能分辨較小差異，量測前仍要校準標尺。",
+   "coach": "鉛垂線告訴我們從哪裡起算，細沙把落點留下。"
+  }
  },
  "chapterThumbnail": {
   "ch02": "chapter_thumbnail_ch02"

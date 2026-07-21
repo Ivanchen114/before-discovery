@@ -148,6 +148,13 @@ tests.push({
     const c2 = assets.apparatusBriefings["ch2:B2-3"];
     for (const id of ["shortGroove", "sandbed"])
       if (!c2.items.find((item) => item.id === id && item.fixed === true)) throw new Error("第二章固定器材未標示:" + id);
+    const sandbed = c2.items.find((item) => item.id === "sandbed");
+    for (const frag of ["固定骨架", "真正要選的是落點讀法"])
+      if (!sandbed.function.includes(frag)) throw new Error("升降沙盤與量測選項仍混為一談:" + frag);
+    for (const partId of Object.keys(assets.workshopPartAsset || {})) {
+      const guide = (assets.workshopPartGuide || {})[partId];
+      if (!guide || !guide.detail || !guide.coach) throw new Error("第二章可選零件缺工坊差異說明:" + partId);
+    }
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
@@ -1227,15 +1234,17 @@ tests.push({
       "cat2CompareFailure", "r.result.ok === false", "firstCopper", "firstWood",
       "cat2Mission", "cat2DefaultMessage", "mountCatapultReplay", "catReplayTrajectory",
       "cat2EvidenceFlags", "cat2ClaimGain", "cat2GateLabel", "catClaims", "catClaimComplete", "catStagePause",
-      "用這組數據提出斷言", "選擇數據支持的概念", 'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
+      "用這組數據提出斷言", "選擇數據支持的概念", "workshopPartGuide", "catPartBrief",
+      "目前查看｜", 'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
       if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
     if (!(cui.indexOf("catapultGate(sv)") < cui.indexOf("if (!open)")))
       throw new Error("彈射工坊完成出口仍藏在長紀錄簿底端");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["grid-template-rows: auto auto", "font-family: var(--font-dialogue); overflow: visible",
       ".catReplay", ".catCompareHint", ".catCompare > button", ".catMessage.gain", ".catClaims",
+      ".catPartBrief",
       "height: clamp(220px,31vh,340px)",
-      "grid-template-rows: minmax(0,1fr) auto", "object-fit: contain"])
+      "grid-template-rows: minmax(0,1fr) auto", ".catPartArt { width: 64px; height: 64px; object-fit: contain"])
       if (!stage.includes(frag)) throw new Error("彈射工坊捲動/重播/比較提示樣式缺失:" + frag);
     if (/\.catMaster img[^}]*object-fit:\s*cover/.test(stage)) throw new Error("彈射裝置功能圖不得以 cover 裁切");
     if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("engine2")) throw new Error("灰盒一章殼混入 ch2 引擎");
