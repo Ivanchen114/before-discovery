@@ -865,6 +865,30 @@ tests.push({
 });
 
 tests.push({
+  name: "GB-ADR-022|獨立性順序:F2 假說→F3 直測→B2-5 玩家三步組模型",
+  fn: () => {
+    const scenes = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const byId = (sid, nid) => scenes.scenes.find((s) => s.id === sid).nodes.find((n) => n.id === nid);
+    const f2 = byId("B2-3", "n4").text;
+    if (!f2.includes("像是在說") || !f2.includes("一組射程還不夠") || f2.includes("兩種運動各走各的——合起來"))
+      throw new Error("F2 未維持待驗假說語氣");
+    const f3 = byId("B2-4", "n3").text;
+    if (!f3.includes("現在才有資格說") || !f3.includes("沒有拖慢垂直下墜") || !f3.includes("聽得出的範圍內"))
+      throw new Error("F3 缺限定式獨立性結論");
+    const b25 = scenes.scenes.find((s) => s.id === "B2-5");
+    for (const qid of ["q1", "q2", "q3"]) {
+      const q = b25.nodes.find((n) => n.id === qid);
+      if (!q || q.type !== "choice" || !q.options.find((o) => o.id === "a"))
+        throw new Error("B2-5 模型組裝缺步驟:" + qid);
+    }
+    if (byId("B2-5", "q1").options.find((o) => o.id === "b").next !== "w1b" || byId("B2-5", "w1b").next !== "q1")
+      throw new Error("B2-5 證據邊界錯答未原地修正");
+    if (!byId("B2-5", "n5").text.includes("射程才會符合下落高度的平方根關係"))
+      throw new Error("B2-5 組模型未收束至 F2 定量預測");
+  }
+});
+
+tests.push({
   name: "第二章 M1|R-NAR2 三軌 lint:真實文本零受管詞+六組負向變異",
   fn: () => {
     const data = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
