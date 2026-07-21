@@ -28,7 +28,28 @@
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
 
-  function initialState(mode) {
+  /* R-XCH-02(M3a 結構版):第一章 schema 3 唯讀投影;sanitize 整合與瀏覽器端接線列 M3b */
+  function projectCh1(raw) {
+    var invalid = { source: "ch1-schema3", certified: false, invalid: true };
+    try {
+      var s = JSON.parse(raw);
+      if (!s || s.schemaVersion !== 3 || !s.lab || !s.lab.evidence || !s.lab.evidence.e3) return invalid;
+      var e3 = s.lab.evidence.e3;
+      return {
+        source: "ch1-schema3",
+        certified: s.ended === true && e3.a === true && e3.b === true && e3.c === true,
+        e3: { a: !!e3.a, b: !!e3.b, c: !!e3.c },
+        limitation: "vertical-not-directly-measured"
+      };
+    } catch (e) { return invalid; }
+  }
+
+  function initialState(mode, xch) {
+    var st = initialStateBase(mode);
+    if (xch) st.crossChapter = xch; /* 只在明確提供時掛載(第二章);ch1 狀態形狀零改動 */
+    return st;
+  }
+  function initialStateBase(mode) {
     return {
       schemaVersion: SAVE_SCHEMA,
       mode: mode === "scholar" ? "scholar" : "explore",
@@ -140,6 +161,13 @@
       mistakes: [],
       status: "pending"
     };
+    if (CH.fr.enemy) { /* 第二章 FR(R-DEB2-06):兩步敵方判讀→claim→F5 組裝 */
+      state.debate.fr.enemyStep = "slope";
+      state.debate.fr.enemySlopeRead = false;
+      state.debate.fr.enemyClassified = false;
+      state.debate.fr.claimDone = false;
+      state.debate.fr.overTried = false;
+    }
     state.eventLog.push({ t: "debateInit" });
   }
   function debateReenter(state) {
@@ -302,8 +330,112 @@
     d.fr.trapPending = false;
     d.fr.resolved = true;
     d.status = "won";
-    grantEvidence(state, "E5", "debate.fr");
+    grantEvidence(state, CH.fr.grant || "E5", "debate.fr");
     state.eventLog.push({ t: "debateWon" });
+  }
+
+  /* ---------- 第二章 FR(CH2-CR-001/R-DEB2-06):slope→classify→claim(over/honest)→F5 組裝 ---------- */
+  function frResolve2(state) {
+    var d = state.debate;
+    say(state, "辛普里奧", CH.fr.closeReply);
+    d.fr.resolved = true;
+    d.status = "won";
+    grantEvidence(state, CH.fr.grant || "E5", "debate.fr");
+    state.eventLog.push({ t: "debateWon" });
+    return { state: state, outcome: "resolved" };
+  }
+  function scholarCorrect2(state) {
+    var x = state.crossChapter && state.crossChapter.ch1;
+    return (x && x.certified) ? CH.fr.scholar.correctInherited : CH.fr.scholar.correctLocal;
+  }
+  function exploreSteps2(state) {
+    var x = state.crossChapter && state.crossChapter.ch1;
+    return (x && x.certified) ? CH.fr.explore.stepsInherited : CH.fr.explore.stepsLocal;
+  }
+  function debateFr2(state, state0, optionId) {
+    var d = state.debate;
+    for (var i = 0; i < CH.fr.requires.length; i++)
+      if (!state.evidence[CH.fr.requires[i]])
+        return { state: state0, error: "證據未齊:" + CH.fr.requires[i] };
+    var E = CH.fr.enemy;
+    if (d.fr.enemyStep === "slope" || d.fr.enemyStep === "classify") {
+      var stepDef = d.fr.enemyStep === "slope" ? E.slope : E.classify;
+      var opt = null;
+      stepDef.options.forEach(function (o) { if (o.id === optionId) opt = o; });
+      if (!opt) return { state: state0, error: "選項不存在" };
+      say(state, "旅人(你)", opt.text);
+      if (!opt.correct) { /* FR 錯選不豁免(R-DEB2-06):−1,留原步 */
+        say(state, "system", opt.reply);
+        rememberMistake(d, { kind: "enemy", label: stepDef.mistake });
+        debatePersuasion(state, -1, "debate.fr2." + d.fr.enemyStep);
+        return { state: state, outcome: d.status === "suspended" ? "suspended" : "retry" };
+      }
+      if (d.fr.enemyStep === "slope") {
+        d.fr.enemySlopeRead = true;
+        d.fr.enemyStep = "classify";
+        say(state, "system", E.slope.doneNote);
+        return { state: state, outcome: "step" };
+      }
+      d.fr.enemyClassified = true;
+      d.fr.enemyStep = null;
+      say(state, "辛普里奧", E.reask);
+      d.fr.trapPending = true;
+      return { state: state, outcome: "step" };
+    }
+    if (d.fr.trapPending) { /* claim:over/honest(over 強制轉 honest,代價照 CH2-CR-001) */
+      var t = null;
+      CH.fr.claim.options.forEach(function (o) { if (o.id === optionId) t = o; });
+      if (!t) return { state: state0, error: "選項不存在" };
+      say(state, "旅人(你)", t.text);
+      if (t.id === "over") {
+        d.fr.overTried = true;
+        rememberMistake(d, { kind: "boundary", label: CH.fr.claim.overMistake });
+        say(state, "辛普里奧", t.reply);
+        if (t.penalty.rep) applyRep(state, t.penalty.rep, "debate.fr2.over");
+        if (t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.fr2.over");
+        if (d.status !== "pending") return { state: state, outcome: "suspended" };
+      }
+      say(state, "旅人(你)", CH.fr.claim.honestText);
+      d.fr.trapPending = false;
+      d.fr.claimDone = true;
+      say(state, "system", CH.texts.frUnlocked);
+      return { state: state, outcome: t.id === "over" ? "forcedHonest" : "honest" };
+    }
+    if (!d.fr.claimDone) return { state: state0, error: "先完成敵方資料判讀" };
+    if (state.mode === "explore") {
+      var steps = exploreSteps2(state);
+      var stp = steps[d.fr.step];
+      var op = null;
+      stp.options.forEach(function (o) { if (o.id === optionId) op = o; });
+      if (!op) return { state: state0, error: "選項不存在" };
+      say(state, "旅人(你)", op.text);
+      if (!op.correct) { say(state, "system", op.reply); return { state: state, outcome: "retry" }; }
+      d.fr.step += 1;
+      if (d.fr.step >= steps.length) return frResolve2(state);
+      return { state: state, outcome: "step" };
+    }
+    var correct = scholarCorrect2(state);
+    var sch = CH.fr.scholar;
+    var pc = null, pd2 = null;
+    correct.forEach(function (o) { if (o.id === optionId) pc = o; });
+    sch.distractors.forEach(function (o) { if (o.id === optionId) pd2 = o; });
+    if (!pc && !pd2) return { state: state0, error: "選項不存在" };
+    if (pd2) {
+      say(state, "旅人(你)", pd2.text);
+      say(state, "system", sch.distractorReply);
+      rememberMistake(d, { kind: "chain", label: "論證鏈選入『" + pd2.text + "』,這一環撐不住。" });
+      debatePersuasion(state, -1, "debate.fr2.distractor");
+      return { state: state, outcome: d.status === "suspended" ? "suspended" : "distractor" };
+    }
+    if (d.fr.slots.indexOf(optionId) >= 0) return { state: state0, error: "此環已入鏈" };
+    if (optionId !== correct[d.fr.slots.length].id) {
+      say(state, "system", sch.wrongOrderReply);
+      return { state: state, outcome: "wrongOrder" };
+    }
+    d.fr.slots.push(optionId);
+    say(state, "旅人(你)", "【論證第 " + d.fr.slots.length + " 環】" + pc.text);
+    if (d.fr.slots.length === correct.length) return frResolve2(state);
+    return { state: state, outcome: "slot" };
   }
 
   function debateFr(state0, optionId) {
@@ -311,6 +443,7 @@
     var d = state.debate;
     var g = guardDebate(state); if (g) return { state: state0, error: g };
     if (!d.fr.opened || d.fr.resolved) return { state: state0, error: "尚未進入最後反撲" };
+    if (CH.fr.enemy) return debateFr2(state, state0, optionId); /* 第二章 FR 全流程 */
     /* A-1:外推論證之前提=玩家親手驗過「隨傾角形式不變」(E3.c);未持有不得組鏈 */
     if (!state.lab.evidence.e3.c) {
       return { state: state0, error: "缺 E3.c(隨傾角形式不變)——沒親手驗過變傾角,這條鏈不能組" };
@@ -396,15 +529,25 @@
         v.pressChoice = { prompt: stmt.pressChoice.prompt, options: stmt.pressChoice.options.map(function (o) { return { id: o.id, text: o.text }; }) };
       }
     } else if (!d.fr.resolved) {
-      v.phase = d.fr.trapPending ? "trap" : "fr";
-      if (v.phase === "trap") {
-        v.trap = { prompt: CH.fr.trap.prompt, options: CH.fr.trap.options.map(function (o) { return { id: o.id, text: o.text }; }) };
+      if (CH.fr.enemy && (d.fr.enemyStep === "slope" || d.fr.enemyStep === "classify")) {
+        var Ed = d.fr.enemyStep === "slope" ? CH.fr.enemy.slope : CH.fr.enemy.classify;
+        v.phase = "enemy";
+        v.enemy = { step: d.fr.enemyStep, card: CH.fr.enemy.card, prompt: Ed.prompt,
+                    options: Ed.options.map(function (o) { return { id: o.id, text: o.text }; }) };
+      } else if (d.fr.trapPending) {
+        var TP = CH.fr.enemy ? CH.fr.claim : CH.fr.trap;
+        v.phase = "trap";
+        v.trap = { prompt: TP.prompt, options: TP.options.map(function (o) { return { id: o.id, text: o.text }; }) };
       } else if (state.mode === "explore") {
-        var st = CH.fr.explore.steps[d.fr.step];
+        var steps0 = CH.fr.enemy ? exploreSteps2(state) : CH.fr.explore.steps;
+        var st = steps0[d.fr.step];
+        v.phase = "fr";
         v.fr = { kind: "explore", prompt: st.prompt, options: st.options.map(function (o) { return { id: o.id, text: o.text }; }) };
       } else {
+        var corr0 = CH.fr.enemy ? scholarCorrect2(state) : CH.fr.scholar.correct;
+        v.phase = "fr";
         v.fr = { kind: "scholar", prompt: CH.fr.scholar.slotPrompt, slots: d.fr.slots.slice(),
-                 pool: CH.fr.scholar.correct.concat(CH.fr.scholar.distractors).map(function (o) { return { id: o.id, text: o.text }; }) };
+                 pool: corr0.concat(CH.fr.scholar.distractors).map(function (o) { return { id: o.id, text: o.text }; }) };
       }
     } else { v.phase = "won"; }
     return v;
@@ -420,6 +563,13 @@
     }
     if (until.repairRun) {
       var base = parseInt(state.flags.scr1_baseline || "0", 10);
+      if (state.lab.series) { /* 第二章:乾淨 profile series 之讀值數超過基線=一次乾淨的球 */
+        var cnt2 = 0;
+        state.lab.series.forEach(function (sr) {
+          if (sr.profile === "clean") cnt2 += Object.keys(sr.readings).length;
+        });
+        return cnt2 > base;
+      }
       return state.lab.evidence.runs.length > base;
     }
     if (until.debateWon) return !!(state.debate && state.debate.status === "won");
@@ -583,7 +733,9 @@
     var state = clone(state0);
     state.flags.returnScene = state.cursor.scene;
     state.flags.returnNode = state.cursor.node;
-    state.flags.scr1_baseline = String(state.lab.evidence.runs.length);
+    state.flags.scr1_baseline = String(state.lab.series
+      ? state.lab.series.reduce(function (a, sr) { return a + (sr.profile === "clean" ? Object.keys(sr.readings).length : 0); }, 0)
+      : state.lab.evidence.runs.length);
     state.eventLog.push({ t: "repairEnter", from: state.cursor.scene + "/" + state.cursor.node });
     moveTo(state, REPAIR_SCENE);
     return { state: state, redirected: true };
@@ -614,7 +766,7 @@
     debatePress: debatePress, debatePressChoice: debatePressChoice,
     debatePresent: debatePresent, debateFr: debateFr,
     debateExitSuspended: debateExitSuspended, debateView: debateView,
-    ownsEvidence: ownsEvidence,
+    ownsEvidence: ownsEvidence, projectCh1: projectCh1,
     redirectIfLocked: redirectIfLocked,
     serialize: serialize, deserialize: deserialize, loadSave: loadSave,
     SAVE_SCHEMA: SAVE_SCHEMA, _sceneMap: sceneMap

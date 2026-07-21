@@ -1,5 +1,5 @@
 /* data/scenes2.js — 第二章執行載體(file:// 相容)。規範鏡像:scenes2.json(深等測試把關)。
-   台詞逐字=凍結劇本 v0.1.3(M2 範圍:B0-1~B2-5);lint=R-NAR2 三軌(規格 v0.1.1 §七)。 */
+   台詞逐字=凍結劇本 v0.1.3(M3 範圍:B0-1~BE-2 全章);lint=R-NAR2 三軌(規格 v0.1.1 §七)。 */
 (function (root) {
   "use strict";
   var data = {
@@ -71,6 +71,36 @@
     "term": "同時落地",
     "class": "resolution-qualified",
     "conditionText": "在這機關聽得出的範圍內"
+   },
+   {
+    "nodeId": "debate2.pillars.P3.playerCorrect",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.explore.stepsLocal.0.options.a.text",
+    "term": "開方",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.explore.stepsInherited.0.options.a.text",
+    "term": "開方",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.scholar.correctInherited.c1.text",
+    "term": "開方",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.scholar.correctLocal.c1.text",
+    "term": "開方",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
    }
   ]
  },
@@ -887,7 +917,345 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "第二幕終。證據齊備:F1/F2/F3/F4(+S3/S4)。\n(M2 灰盒切片至此;第三幕辯論於 M3 接續。)",
+     "text": "第二幕終。證據齊備:F1/F2/F3/F4(+S3/S4)。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B3-1"
+    }
+   ]
+  },
+  {
+   "id": "B3-1",
+   "title": "他帶數字來(大學講堂,1608 夏)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "座無虛席。白髮更多的長老主持。辛普里奧入席——這次,他自己帶了一疊計算紙,壓在《物理學》下面。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "主持",
+     "text": "今日論題:論拋體之運動。辛普里奧教授立論;伽利萊教授與其同伴質詢。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "(環視,把數據紙的批註頁攤開在講台)先立一約:今日,誰的話出了證據之外——無論是誰——皆算失分。(看向旅人,眼裡有一點四年前沒有的東西,像是期待)此約,老夫從爾等處學來。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "說服力量表:5。錯誤出示 −1;歸零中止 → 與伽利略複盤論證後再入(已破支柱保留;非缺實驗,是配對失準)。",
+     "next": "g1",
+     "effects": [
+      {
+       "debate": "init"
+      }
+     ]
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B3-D"
+    }
+   ]
+  },
+  {
+   "id": "B3-D",
+   "title": "論拋體之運動(辯論)",
+   "nodes": [
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "debate",
+     "until": {
+      "debateWon": true
+     },
+     "suspendNext": "gF",
+     "hint": "追問找線索,出示(證據×目標證詞)擊破三柱;最後反撲:先讀他的資料,再答他的問題。",
+     "next": "gW"
+    },
+    {
+     "id": "gF",
+     "type": "goto",
+     "scene": "B3-F"
+    },
+    {
+     "id": "gW",
+     "type": "goto",
+     "scene": "B3-6"
+    }
+   ]
+  },
+  {
+   "id": "B3-F",
+   "title": "辯論中止(複盤)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "主持",
+     "text": "今日論辯,質詢方失序,到此為止。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "(收拾計算紙,語氣平平)爾等的證據,老夫都看見了——就擺在爾等桌上。(離席前,留下一句)只是出示錯了地方。配對,爾且回去想想。想清楚了,老夫隨時再來。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把玩家的證據一字排開,對齊三根支柱的抄錄)東西都在。剛剛亂的不是手,是對位。再走一遍——這句話,哪張紙咬得住?",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "debrief",
+     "until": {},
+     "hint": "複盤剛才用錯的證據與證詞配對;證據、已破支柱與判讀成功步完整保留。整理好就重返辯論會。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "system",
+     "speaker": "system",
+     "text": "(複盤完成——說服力重置;已破的支柱與敵方資料判讀成功步,不必重做。)",
+     "next": "g1",
+     "effects": [
+      {
+       "debate": "reenter"
+      }
+     ]
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B3-D"
+    }
+   ]
+  },
+  {
+   "id": "SC-R1",
+   "title": "修復:用乾淨紀錄道歉",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "(關鍵人物暫時拒絕與你交談。)伽利略把彈射台的沙盤耙平,推到旅人面前。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "在這座城市,道歉不用嘴。(指彈射台)我要重新做一次乾淨的紀錄——你來放球。校準過的裝置、老老實實的沙痕,拿來。",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "catapult",
+     "until": {
+      "repairRun": true
+     },
+     "hint": "用乾淨(全件到位+雙校準)的裝置放一次球,把紀錄帶回,劇情繼續。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "system",
+     "speaker": "system",
+     "text": "信譽回復至 1。筆記:「話說錯了可以收回;數據不會。所以他們只信數據。」",
+     "next": "r1",
+     "effects": [
+      {
+       "rep": 1
+      },
+      {
+       "flagClear": "repLocked"
+      }
+     ]
+    },
+    {
+     "id": "r1",
+     "type": "return"
+    }
+   ]
+  },
+  {
+   "id": "B3-6",
+   "title": "判定:交換批註",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "辛普里奧沒有坐下。他把自己那疊計算紙——整整齊齊——推過講台,推向伽利略。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "老夫的數。爾等拿去核。(整袍)有錯——來信。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(起身,鄭重接過)教授的批註,我也核。有錯,來信。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "辛普里奧",
+     "text": "(點頭。走到門口,停步,沒有回頭)下一回——(頓)下一回,老夫出題,會再快些。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "stage",
+     "text": "他離場。背影挺直。學生們沒有先鼓掌——他們湧向講台,翻看那兩疊交換的紙。看懂的人,先是一兩聲敲桌;敲桌聲逐漸連成一片。他沒有停步,但諸位都看見:他把那頁批註滿的數據紙,重新夾回了《物理學》。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "辯論勝利。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "BE-1"
+    }
+   ]
+  },
+  {
+   "id": "BE-1",
+   "title": "望遠鏡的傳聞(翌年夏・1609,運河邊,黃昏)",
+   "nodes": [
+    {
+     "id": "n0",
+     "type": "system",
+     "speaker": "system",
+     "text": "(短轉場)一年過去。桌緣的沙盤換了三盤新沙;批註往返了四封信。",
+     "next": "n1"
+    },
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "學生跑來,氣喘吁吁:威尼斯傳來消息——荷蘭人造出一種鏡筒,兩片鏡片,能把遠處拉到眼前;已有人在威尼斯親眼見過。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(拋著手裡的石子,忽然停住)兩片鏡片……(石子落回掌心)地上的事,量完了嗎?",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "沒有。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "沒有。(望向天邊第一顆星)可是天上在叫。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "stage",
+     "text": "他快步離去。這次,連袖口都來不及寫。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "第三章鉤子:望遠鏡(1609)。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "BE-2"
+    }
+   ]
+  },
+  {
+   "id": "BE-2",
+   "title": "旅人筆記・末頁(月球)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人獨坐橋頭。筆記末頁透出微光——灰色的塵原。黑色的天。一個穿臃腫白甲的人——這次,手裡是一支球桿。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "揮桿。小白球飛出一道弧——乾乾淨淨,不搖,不飄。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "system",
+     "speaker": "system",
+     "text": "三百六十三年後・月球・弗拉毛羅高地\n那裡沒有空氣。球飛出的那道彎,只聽兩件事的話:前行,和下墜。",
+     "next": "rv"
+    },
+    {
+     "id": "rv",
+     "type": "review",
+     "prompts": [
+      "為什麼拋出去的東西,不是「力用完了才掉」?",
+      "桌上的小球,憑什麼替砲彈說話?——說到哪裡為止?"
+     ],
+     "next": "hf"
+    },
+    {
+     "id": "hf",
+     "type": "histfacts",
+     "next": "fin"
+    },
+    {
+     "id": "fin",
+     "type": "system",
+     "speaker": "system",
+     "text": "——第二章 終——\n感謝遊玩完整第二章。總耗天數與你的筆記已存檔。",
      "next": "end"
     },
     {

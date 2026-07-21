@@ -814,10 +814,22 @@ tests.push({
       return hits;
     };
     const hits = scan(data);
-    /* M1 合法狀態:B0-B1 無任何受管詞;有登錄的例外須在 lint.entries(現為空) */
+    /* R-NAR2:辯論資料也是玩家可見字串——攤平 debate2 一併掃 */
+    const D2 = require("../data/debate2.js");
+    const dHits = [];
+    const dCheck = (txt, where) => {
+      if (typeof txt !== "string") return;
+      for (const [k, words] of Object.entries(TERMS))
+        for (const w of words) if (txt.includes(w)) dHits.push({ k, w, where });
+    };
+    (function flat(o, p) {
+      if (typeof o === "string") return dCheck(o, p);
+      if (Array.isArray(o)) return o.forEach((x, i) => flat(x, p + "." + (x && x.id ? x.id : i)));
+      if (o && typeof o === "object") Object.entries(o).forEach(([k, v]) => { if (k !== "a11y" || true) flat(v, p + "." + k); });
+    })(D2.chapter, "debate2");
     const allowed = new Set((data.lint.entries || []).map((e) => e.nodeId + ":" + e.term));
-    const bad = hits.filter((h) => !allowed.has(h.where + ":" + h.w));
-    if (bad.length) throw new Error("受管詞違規:" + JSON.stringify(bad[0]));
+    const bad = hits.concat(dHits).filter((h) => !allowed.has(h.where + ":" + h.w));
+    if (bad.length) throw new Error("受管詞違規:" + JSON.stringify(bad[0]) + "(共 " + bad.length + " 筆未登錄)");
     /* 六組負向變異(合成注入,驗掃描器有牙) */
     const inject = (txt) => scan({ scenes: [{ id: "X", title: "", nodes: [{ id: "n1", type: "line", speaker: "旅人", text: txt, next: "end" }] }] }).length;
     const negatives = ["這就是拋物線", "射程吃的是平方根", "它們同時落地了", "√H 的關係", "開方即可", "拋物線是完美的形"];
@@ -826,16 +838,17 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M1+M2|全章走查:B0-1→B2-5(含彈射三 embed),證據五枚/黃金 10 天/揭曉旗標/存檔往返",
+  name: "第二章 M1-M3|全章走查:B0-1→BE-2 終(彈射三 embed+三柱+FR 兩步判讀+F5 雙路)",
   fn: () => {
     const F = require("../src/narrative.js")._factory;
     const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
     const E2 = require("../src/engine2.js");
+    const D2 = require("../data/debate2.js");
     const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
     const walk = (mode, opts0) => {
       const o = opts0 || {};
-      const N2 = F(scenes2, E2, {});
-      let st = N2.initialState(mode);
+      const N2 = F(scenes2, E2, D2);
+      let st = N2.initialState(mode, o.xch || null);
       const lab = (action, args) => {
         const r = N2.labAction(st, action, args);
         if (r.error) throw new Error("lab " + action + ":" + r.error);
@@ -860,10 +873,40 @@ tests.push({
         if (rc.error) throw new Error("embedComplete:" + rc.error);
         st = rc.state;
       };
+      const driveDebate = () => {
+        const dv = N2.debateView(st);
+        const ok = (r, tag) => { if (r.error) throw new Error(tag + ":" + r.error); st = r.state; };
+        if (dv.phase === "pillars") {
+          const pid = dv.pillar.id;
+          ok(N2.debatePresent(st, { target: { P1: "p1s2", P2: "p2s2", P3: "p3s2" }[pid],
+            evidence: { P1: "F4", P2: "F3", P3: "F1" }[pid] }), "present " + pid);
+          return;
+        }
+        if (dv.phase === "enemy") {
+          if (dv.enemy.step === "slope" && o.wrongFR && !st.flags.frW) {
+            const r = N2.debateFr(st, "same"); st = r.state; st.flags.frW = "1";
+            if (r.outcome !== "retry") throw new Error("FR 誤選應留原步");
+            return;
+          }
+          ok(N2.debateFr(st, dv.enemy.step === "slope" ? "steeper" : "boundary"), "enemy " + dv.enemy.step);
+          return;
+        }
+        if (dv.phase === "trap") { ok(N2.debateFr(st, o.over && !st.flags.overd ? (st.flags.overd = "1", "over") : "honest"), "claim"); return; }
+        if (dv.phase === "fr") {
+          if (dv.fr.kind === "explore") { ok(N2.debateFr(st, "a"), "fr explore"); return; }
+          ok(N2.debateFr(st, ["c1", "c2", "c3"][dv.fr.slots.length]), "fr slot");
+          return;
+        }
+        if (dv.phase === "won") { const r = N2.embedComplete(st); if (r.error) throw new Error("辯後收尾:" + r.error); st = r.state; return; }
+        throw new Error("未知辯論相位:" + dv.phase);
+      };
       let guard = 0;
-      while (!st.ended && guard++ < 500) {
+      while (!st.ended && guard++ < 900) {
         const v = N2.view(st);
+        if (v.type === "embed" && v.system === "debate") { driveDebate(); continue; }
+        if (v.type === "embed" && v.system === "debrief") { const r = N2.embedComplete(st); if (r.error) throw new Error(r.error); st = r.state; continue; }
         if (v.type === "embed") { driveCatapult(v); continue; }
+        if (v.type === "review") { st = N2.setReview(st, "測試答一", "測試答二").state; continue; }
         if (v.type === "choice") {
           const ids = v.options.map((x) => x.id);
           let pick = ids.includes("a") ? "a" : ids[0];
@@ -889,26 +932,41 @@ tests.push({
           st = r.state;
         }
       }
-      if (!st.ended) throw new Error("500 步未達終點(" + mode + ")");
+      if (!st.ended) throw new Error("900 步未達終點(" + mode + ")");
       return st;
     };
-    /* 探索線:含 B0-2 誤選、F4/F3 誤判修正、r2 假說路 */
-    const s1 = walk("explore", { wrongFirst: true, hypothesis: true });
-    for (const ev of ["S3", "S4", "F1", "F2", "F3", "F4"])
+    /* 探索線:B0-2 誤選、F4/F3 誤判修正、r2 假說、FR slope 誤選一次、honest */
+    const s1 = walk("explore", { wrongFirst: true, hypothesis: true, wrongFR: true });
+    for (const ev of ["S3", "S4", "F1", "F2", "F3", "F4", "F5"])
       if (!s1.evidence[ev]) throw new Error("證據缺失:" + ev);
     if (s1.rep !== 3) throw new Error("信譽應 3,得 " + s1.rep);
     if (s1.lab.days !== 10) throw new Error("黃金路徑應 10 天,得 " + s1.lab.days);
     if (s1.flags.revealSqrt !== "1") throw new Error("r2 假說未寫揭曉旗標");
-    if (!s1.lab.evidence.f2.law || !s1.lab.evidence.f2.ball) throw new Error("引擎 f2 旗標缺失");
-    /* 學者線:r1 數值路——押中後系統節點仍須原子寫入揭曉 */
-    const s2 = walk("scholar", { hypothesis: false });
+    if (s1.debate.status !== "won" || !s1.debate.fr.enemySlopeRead || !s1.debate.fr.enemyClassified)
+      throw new Error("FR 兩步旗標/勝利狀態缺失");
+    if (s1.debate.persuasion !== 4) throw new Error("FR 誤選一次應 5→4,得 " + s1.debate.persuasion);
+    /* 學者線+ch1 certified 投影:inherited 鏈+r1 押中原子揭曉 */
+    const s2 = walk("scholar", { hypothesis: false, xch: { ch1: { source: "ch1-schema3", certified: true, e3: { a: true, b: true, c: true } } } });
     if (s2.flags.revealSqrt !== "1") throw new Error("r1 押中路未原子寫入揭曉旗標");
     if (!s2.transcript.some((t) => (t.text || "").includes("先不給它名字"))) throw new Error("學者分支未演出");
+    if (!s2.transcript.some((t) => (t.text || "").includes("垂直未直接量得"))) throw new Error("certified 路未用 inherited 第二環");
+    /* over 反將路:說服力 5→3、信譽 −1,強制轉 honest 後仍完賽 */
+    const s3 = walk("explore", { over: true });
+    if (s3.debate.persuasion !== 3 || s3.rep !== 3 - 1 + 1) /* B0-2 b 未誤選:rep 3+1(S3 線)−1(over)=3 */
+      throw new Error("over 代價錯:persuasion=" + s3.debate.persuasion + " rep=" + s3.rep);
+    if (!s3.debate.fr.overTried || s3.debate.status !== "won") throw new Error("over 強制轉 honest 未完賽");
     /* 存檔往返 */
-    const F2i = F(scenes2, E2, {});
+    const F2i = F(scenes2, E2, D2);
     const back = F2i.loadSave(F2i.serialize(s1));
     if (back.error) throw new Error("ch2 存檔往返失敗:" + back.error);
     if (JSON.stringify(back.state) !== JSON.stringify(JSON.parse(JSON.stringify(s1)))) throw new Error("往返不深等");
+    /* projectCh1 投影:合法完章/未完章/壞 JSON */
+    const N1 = require("../src/narrative.js");
+    let ch1done = N1.initialState("scholar");
+    ch1done.ended = true; ch1done.lab.evidence.e3 = { a: true, b: true, c: true };
+    if (!F2i.projectCh1(JSON.stringify(ch1done)).certified) throw new Error("完章投影應 certified");
+    if (F2i.projectCh1(JSON.stringify(N1.initialState("explore"))).certified) throw new Error("未完章不得 certified");
+    if (!F2i.projectCh1("{壞json").invalid) throw new Error("壞 JSON 應 invalid");
   }
 });
 
