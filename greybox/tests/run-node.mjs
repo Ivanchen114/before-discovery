@@ -1093,17 +1093,48 @@ tests.push({
     for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries",
       "cat2CompareFailure", "r.result.ok === false", "firstCopper", "firstWood",
       "cat2Mission", "cat2DefaultMessage", "mountCatapultReplay", "catReplayTrajectory",
+      "cat2EvidenceFlags", "cat2ClaimGain", "catClaims", "catClaimComplete",
       'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
       if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
     if (!(cui.indexOf("catapultGate(sv)") < cui.indexOf("if (!open)")))
       throw new Error("彈射工坊完成出口仍藏在長紀錄簿底端");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["grid-template-rows: auto auto", "font-family: var(--font-dialogue); overflow: visible",
-      ".catReplay", ".catCompareHint", ".catCompare > button", "height: clamp(220px,31vh,340px)",
+      ".catReplay", ".catCompareHint", ".catCompare > button", ".catMessage.gain", ".catClaims",
+      "height: clamp(220px,31vh,340px)",
       "grid-template-rows: minmax(0,1fr) auto", "object-fit: contain"])
       if (!stage.includes(frag)) throw new Error("彈射工坊捲動/重播/比較提示樣式缺失:" + frag);
     if (/\.catMaster img[^}]*object-fit:\s*cover/.test(stage)) throw new Error("彈射裝置功能圖不得以 cover 裁切");
     if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("engine2")) throw new Error("灰盒一章殼混入 ch2 引擎");
+  }
+});
+
+tests.push({
+  name: "第二章工坊成果節拍|F2 先得兩項斷言再合成完整證據，取得 F# 觸發戰利品演出",
+  fn: () => {
+    const F = require("../src/narrative.js")._factory;
+    const scenes2 = require("../data/scenes2.js");
+    const E2 = require("../src/engine2.js");
+    const N2 = F(scenes2, E2, {});
+    let st = N2.initialState("explore");
+    st.cursor = { scene: "B2-3", node: "e2" };
+    const drive = [["place", { slot: "launcher", part: "shortGroove" }], ["place", { slot: "release", part: "latchRelease" }],
+      ["place", { slot: "edge", part: "polishedEdge" }], ["place", { slot: "rangeBed", part: "rakedSand" }],
+      ["place", { slot: "heightRig", part: "liftSandbed" }], ["calibrate", { kind: "releaseZero" }],
+      ["calibrate", { kind: "rangeScale" }], ["beginSeries", { ball: "copper" }],
+      ["runHeight", { H: 4 }], ["runHeight", { H: 9 }], ["runHeight", { H: 16 }],
+      ["predictSeries", { value: 5 }], ["runHeight", { H: 25 }]];
+    for (const [a, g] of drive) st = N2.labAction(st, a, g).state;
+    if (!st.lab.evidence.f2.law || st.lab.evidence.f2.ball || st.evidence.F2)
+      throw new Error("銅球押中後應只取得斷言一，不得提前合成 F2");
+    st.cursor.node = "e3";
+    for (const [a, g] of [["beginSeries", { ball: "wood" }], ["runHeight", { H: 4 }], ["runHeight", { H: 9 }],
+      ["runHeight", { H: 16 }], ["predictSeries", { value: 5 }], ["runHeight", { H: 25 }]])
+      st = N2.labAction(st, a, g).state;
+    st = N2.labAction(st, "compareBalls", { a: 1, b: 2 }).state;
+    if (!st.lab.evidence.f2.ball || !st.evidence.F2) throw new Error("換球比較後未合成完整 F2");
+    const typewriter = readFileSync(path.join(here, "../src/stage/04-typewriter.part.js"), "utf-8");
+    if (!typewriter.includes("取得(?:證據| [A-Z]\\d)")) throw new Error("第二章取得 F# 未接入戰利品演出");
   }
 });
 

@@ -879,6 +879,17 @@
   var cat2Msg = "";
   var cat2Replay = null;
   var cat2EmbedKey = "";
+  function cat2EvidenceFlags(s) {
+    var f2 = s && s.lab && s.lab.evidence && s.lab.evidence.f2;
+    return { law: !!(f2 && f2.law), ball: !!(f2 && f2.ball), full: !!(s && s.evidence && s.evidence.F2) };
+  }
+  function cat2ClaimGain(before, after) {
+    var out = [];
+    if (!before.law && after.law) out.push("◆ 取得斷言一：下落高度變成 4 倍，射程約變成 2 倍。");
+    if (!before.ball && after.ball) out.push("◆ 取得斷言二：只換球重，射程規律不變。");
+    if (!before.full && after.full) out.push("◆ 合成完整證據：F2 桌緣彈射・平方根律。");
+    return out.join("\n");
+  }
   function cat2CompareFailure(diffs) {
     diffs = diffs || [];
     if (diffs.indexOf("球種須一銅一木") >= 0)
@@ -912,6 +923,7 @@
     return "✕ " + text;
   }
   function doLab2(action, args, okText) {
+    var beforeClaims = cat2EvidenceFlags(state);
     var r = N.labAction(state, action, args);
     if (r.error) { cat2Msg = cat2ErrorText(r.error, r.result); }
     else {
@@ -920,9 +932,11 @@
         var rd = r.result.series.readings[args.H];
         cat2Replay = { H: args.H, reading: rd, ball: r.result.series.ball };
       }
-      cat2Msg = r.result && r.result.ok === false
+      var feedback = r.result && r.result.ok === false
         ? "✕ " + cat2CompareFailure(r.result.diffs)
         : (okText ? okText(r.result) : "");
+      var gain = cat2ClaimGain(beforeClaims, cat2EvidenceFlags(r.state));
+      cat2Msg = gain ? gain + (feedback ? "\n" + feedback : "") : feedback;
     }
     renderAll();
   }
@@ -1089,6 +1103,16 @@
     var mission = el("div", "", sv, "catMission");
     el("small", missionCopy.step, mission);
     el("p", missionCopy.text, mission);
+    var f2Claims = cat2EvidenceFlags(state);
+    var claims = el("div", "", mission, "catClaims");
+    claims.setAttribute("aria-label", "本實驗可取得的兩項斷言");
+    var lawClaim = el("div", "", claims, "catClaim " + (f2Claims.law ? "earned" : "locked"));
+    el("b", (f2Claims.law ? "✓" : "○") + " 斷言一", lawClaim);
+    el("span", f2Claims.law ? "高度 ×4，射程約 ×2" : "押中 25 格後取得", lawClaim);
+    var ballClaim = el("div", "", claims, "catClaim " + (f2Claims.ball ? "earned" : "locked"));
+    el("b", (f2Claims.ball ? "✓" : "○") + " 斷言二", ballClaim);
+    el("span", f2Claims.ball ? "只換球重，規律不變" : "完成銅球／木球比較後取得", ballClaim);
+    if (f2Claims.full) el("strong", "◆ F2 完整證據已收入旅人筆記", claims, "catClaimComplete");
     catapultGate(sv); /* 完成出口固定在目標旁，不再藏在長紀錄簿底端。 */
     mountCatapultReplay(sv);
     if (!open) {
@@ -1172,6 +1196,7 @@
       }
     }
     var mp = el("p", cat2Msg || cat2DefaultMessage(v, lab2, open, done), sv, "catMessage");
+    if (/^◆/.test(cat2Msg)) mp.classList.add("gain");
     mp.setAttribute("role", "status");
   }
 
