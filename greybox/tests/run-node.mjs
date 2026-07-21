@@ -797,8 +797,11 @@ tests.push({
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     for (const frag of [
       'class="titleIdentity"', 'class="chapterRail"', 'data-chapter="ch01"',
-      'data-chapter="ch02"', 'id="continueMeta"', 'overflow: hidden'
+      'data-chapter="ch02"', 'id="continueMeta"', 'overflow: hidden',
+      '卡住時同行科學家會主動追問'
     ]) if (!stageHtml.includes(frag)) throw new Error("系列首頁契約缺失:" + frag);
+    if (stageHtml.includes("卡住時伽利略會主動追問"))
+      throw new Error("系列首頁把跨章引導角色寫死為伽利略");
     if (/data-chapter="ch02"[^>]*disabled/.test(stageHtml)) throw new Error("第二章已完成卻仍 disabled");
     if (!stageHtml.includes("font-family: var(--font-ui); font-weight: 600"))
       throw new Error("首頁操作字未使用黑體聲部");
