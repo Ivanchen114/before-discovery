@@ -57,18 +57,9 @@
       var s = document.createElement("span"); s.textContent = name;
       card.appendChild(b); card.appendChild(s);
       if (code === "E2") { /* 綁縛悖論示意圖:HTML/SVG 鐵律(點陣不承載物理資訊) */
-        card.insertAdjacentHTML("beforeend",
-          '<svg viewBox="0 0 200 96" xmlns="http://www.w3.org/2000/svg" aria-label="綁縛悖論示意:大小二石以鏈相繫">' +
-          '<circle cx="60" cy="40" r="24" fill="#5a4638"/>' +
-          '<circle cx="112" cy="52" r="12" fill="#8a7658"/>' +
-          '<path d="M 82 46 Q 92 42 100 49" stroke="#241b16" stroke-width="3" fill="none" stroke-dasharray="4 3"/>' +
-          '<text x="60" y="80" font-size="11" text-anchor="middle" fill="#241b16">重石</text>' +
-          '<text x="112" y="80" font-size="11" text-anchor="middle" fill="#241b16">輕石</text>' +
-          '<text x="158" y="34" font-size="11" fill="#8a4f14">拖慢它?</text>' +
-          '<text x="158" y="58" font-size="11" fill="#244a63">合體更快?</text>' +
-          '<path d="M 150 30 L 128 42" stroke="#8a4f14" stroke-width="1.5" fill="none"/>' +
-          '<path d="M 150 54 L 130 54" stroke="#244a63" stroke-width="1.5" fill="none"/>' +
-          "</svg>");
+        card.insertAdjacentHTML("beforeend", e2DiagramMarkup());
+        card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
+        card.lastElementChild.removeAttribute("aria-hidden");
       }
       wrap.appendChild(card);
     });

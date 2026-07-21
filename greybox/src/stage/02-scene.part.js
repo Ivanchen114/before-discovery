@@ -7,6 +7,7 @@
   }
   function setScene(sceneId) {
     if (sceneId === curSceneId) return;
+    clearFocusVisual();
     curSceneId = sceneId;
     preloadScene(sceneId);
     var sc = sceneInfo(sceneId);

@@ -72,6 +72,31 @@
   #sceneChip { position: absolute; top: 46px; left: 10px; z-index: 29; font-size: 12px;
                color: rgba(230, 215, 189, 0.55); background: rgba(20,14,10,0.45); padding: 2px 8px; border-radius: 3px; }
 
+  /* 台詞情境特寫：圖像是角色正在看的實物，不是另開的百科卡。置於選項後方、對話框上方。 */
+  #sceneFocus { position: absolute; z-index: 18; top: 10.5%; left: 4%;
+    width: min(48%, 780px); max-height: 50%; box-sizing: border-box; margin: 0;
+    padding: 7px; color: #e8dbc2; background: rgba(18,12,8,.9);
+    border: 1px solid rgba(220,181,111,.62); border-radius: 7px;
+    box-shadow: 0 12px 34px rgba(0,0,0,.58), inset 0 0 0 1px rgba(255,245,220,.08);
+    opacity: 0; transform: translateY(8px); transition: opacity var(--motion-fast) ease, transform var(--motion-fast) ease;
+    pointer-events: none; }
+  #sceneFocus[hidden] { display: none; }
+  #sceneFocus.on { opacity: 1; transform: translateY(0); }
+  #sceneFocusMedia { display: grid; place-items: center; gap: 6px; }
+  #sceneFocusMedia img { display: block; width: 100%; max-height: 39vh; object-fit: contain;
+    border-radius: 3px; background: rgba(239,228,201,.12); }
+  #sceneFocusMedia .scene-focus-evidence { display: flex; align-items: center; justify-content: center;
+    width: 100%; aspect-ratio: 8 / 5; padding: clamp(12px,2vw,26px); box-sizing: border-box;
+    border-radius: 3px; background: rgba(239,228,201,.96); }
+  #sceneFocusMedia .scene-focus-evidence svg { display: block; width: 100%; height: 100%; }
+  #sceneFocus.multi { width: min(58%, 940px); }
+  #sceneFocus.multi #sceneFocusMedia { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #sceneFocus.multi #sceneFocusMedia img { max-height: 32vh; }
+  #sceneFocus.quad { width: min(64%, 1020px); left: 6%; }
+  #sceneFocus.quad #sceneFocusMedia img { max-height: 18vh; }
+  #sceneFocusCaption { display: block; padding: 6px 7px 2px; font: 500 clamp(13px,1.05vw,16px)/1.4 var(--font-ui);
+    color: rgba(239,226,201,.9); letter-spacing: .02em; }
+
   /* --- 中央面板(實驗台/辯論/回顧/史實) --- */
   #panelWrap { position: absolute; z-index: 20; display: none; overflow-y: auto;
                background: var(--color-surface-notebook); color: var(--color-ink-primary);
@@ -171,6 +196,17 @@
     #bgImg, #bust { transition: none; }
     #dlgText.narr, #dlgText.sys { animation: none; }
     #dlgCue { animation: none; }
+    #sceneFocus { transition: none; }
+  }
+
+  @media (max-height:520px), (orientation:portrait) and (pointer:coarse) and (max-width:520px) {
+    #sceneFocus { top: 13%; left: 2.5%; width: 45%; max-height: 50%; padding: 4px; }
+    #sceneFocusMedia img { max-height: 34vh; }
+    #sceneFocus.multi { width: 51%; }
+    #sceneFocus.multi #sceneFocusMedia img { max-height: 25vh; }
+    #sceneFocus.quad { left: 2.5%; width: 57%; }
+    #sceneFocus.quad #sceneFocusMedia img { max-height: 15vh; }
+    #sceneFocusCaption { padding: 3px 4px 1px; font-size: 11px; line-height: 1.25; }
   }
 
   /* --- 旅人筆記(v2:全畫面筆記本模式,取代側抽屜) --- */
@@ -1252,6 +1288,11 @@
       <button id="btnDrawer" type="button" aria-haspopup="dialog" aria-expanded="false">旅人筆記</button>
       <button id="btnBackTitle">回標題</button>
     </div>
+
+    <figure id="sceneFocus" aria-live="polite" hidden>
+      <div id="sceneFocusMedia"></div>
+      <figcaption id="sceneFocusCaption"></figcaption>
+    </figure>
 
     <div id="panelWrap">
       <div id="lab" style="display:none" aria-label="實驗台">

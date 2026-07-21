@@ -52,6 +52,10 @@
       if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
       var m = ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[sid];
       if (m) Object.keys(m).forEach(function (sp) { preloadEntry(assetEntry(m[sp])); });
+      (ASSETS.lineFocusVisual || []).forEach(function (r) {
+        if (r.scene !== sid) return;
+        (r.items || []).forEach(function (item) { preloadEntry(assetEntry(item.asset)); });
+      });
     });
     var def = ASSETS.speakerDialoguePortrait || {};
     Object.keys(def).forEach(function (sp) { preloadEntry(assetEntry(def[sp])); });

@@ -782,7 +782,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M1|scenes2 雙載體深等+劇本 v0.1.3 逐字抽查+存檔鍵隔離",
+  name: "第二章 M1|scenes2 雙載體深等+劇本 v0.1.3/CR-002 逐字抽查+存檔鍵隔離",
   fn: () => {
     const fromJs = require("../data/scenes2.js");
     const fromJson = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
@@ -796,10 +796,10 @@ tests.push({
     hist2Json.rows.forEach((row) => {
       if (!hist2Json.labels.includes(row.label)) throw new Error("histfacts2 未宣告標籤:" + row.label);
     });
-    /* 逐字抽查(凍結劇本 v0.1.3) */
+    /* 逐字抽查(凍結劇本 v0.1.3+總監核准 CH2-CR-002) */
     const flat = JSON.stringify(fromJson);
-    for (const frag of ["老夫讀了。(抬眼)有一問。", "此乃前章舊案,老夫已錄於冊", "答非所問",
-      "那才是 impetus 押的注", "先不給它名字", "這一回,老夫也帶數字來"])
+    for (const frag of ["老夫讀完了。(抬眼)有一個問題。", "這是四年前的舊案,老夫早已記在書裡", "你們答錯題了",
+      "那才是「推力(impetus)」理論押的注", "先不給它名字", "這一回,老夫也帶數字來"])
       if (!flat.includes(frag)) throw new Error("劇本逐字缺失:" + frag);
     /* 效果抽查:B0-2 a=rep-1/b 線 S3+rep+1;B1-2 F1 */
     const b02 = fromJson.scenes.find((s) => s.id === "B0-2");
@@ -815,6 +815,24 @@ tests.push({
     if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("BD_SAVE_KEY")) throw new Error("chapter.html 混入 ch2 覆寫");
     if (!readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8").includes('window.BD_SAVE_KEY || "bd_ch1_save"'))
       throw new Error("存檔鍵預設回退缺失");
+  }
+});
+
+tests.push({
+  name: "第二章語言檔位|老派書面語可直讀，半文言只留伽利略刻意模仿",
+  fn: () => {
+    const scenes = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const mimic = scenes.scenes.find((s) => s.id === "B2-3").nodes.find((n) => n.id === "n5");
+    if (!mimic.text.includes("然此乃") || !mimic.text.includes("焉知"))
+      throw new Error("B2-3 刻意模仿腔遺失");
+    mimic.text = ""; /* 唯一核准例外，不讓例外反過來污染全章檢查。 */
+    const visible = JSON.stringify(scenes) + JSON.stringify(JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8")));
+    const banned = ["爾等", "爾之", "爾且", "然則", "此乃", "焉知", "安從", "不盈尺", "婦孺", "皆然", "皆算", "乃止", "力注於物", "一物一時"];
+    banned.forEach((word) => { if (visible.includes(word)) throw new Error("非模仿台詞仍有半文言門檻:" + word); });
+    if ((visible.match(/老夫/g) || []).length < 8) throw new Error("白話化過頭：辛普里奧的老派聲線遺失");
+    const script = readFileSync(path.join(here, "../../04_劇本/第二章完整劇本_拋出去的東西_v0.1.3.md"), "utf-8");
+    for (const frag of ["CH2-CR-002", "一件物體在同一時間,只能有一種運動", "你們這套骨架,敢延伸到哪裡"])
+      if (!script.includes(frag)) throw new Error("劇本未同步語氣修正:" + frag);
   }
 });
 
@@ -1248,6 +1266,40 @@ tests.push({
     if (E2.runHeight(so, 16).error !== "wrong-order" || so.days !== d0) throw new Error("H 順序守衛失效");
     so = E2.runHeight(so, 4).state; so = E2.runHeight(so, 9).state; so = E2.runHeight(so, 16).state;
     if (E2.runHeight(so, 25).error !== "prediction-required") throw new Error("未預測可跑 25");
+  }
+});
+
+tests.push({
+  name: "雙章舞台特寫|角色指圖時自動展示證據，換場清除且手機不擋選項",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const scenes1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const ids = new Set(assets.entries.map((e) => e.id));
+    const byScene = new Map([...scenes1.scenes, ...scenes2.scenes].map((s) => [s.id, JSON.stringify(s)]));
+    const rules = assets.lineFocusVisual || [];
+    for (const sid of ["P0-2", "A1-2", "A1-5", "A1-7", "A2-2", "A2-4", "E-2"])
+      if (!rules.some((r) => r.scene === sid)) throw new Error("第一章關鍵證據場景缺特寫規則:" + sid);
+    for (const sid of ["B0-2", "B1-1", "B2-1", "B2-2", "B2-4", "B2-5"])
+      if (!rules.some((r) => r.scene === sid)) throw new Error("第二章關鍵指圖場景缺特寫規則:" + sid);
+    for (const r of rules) {
+      if (!byScene.has(r.scene)) throw new Error("特寫規則指向不存在場景:" + r.scene);
+      if (!r.match || !byScene.get(r.scene).includes(r.match))
+        throw new Error("特寫 match 不在指定場景文本:" + r.scene + "→" + r.match);
+      if (!r.caption || !(r.items || []).length) throw new Error("特寫缺 caption/items:" + r.scene);
+      for (const item of r.items) {
+        if (item.asset && !ids.has(item.asset)) throw new Error("特寫指向不存在資產:" + item.asset);
+        if (!item.asset && item.evidence !== "E2") throw new Error("特寫 item 缺合法 asset/evidence:" + r.scene);
+        if (!item.alt) throw new Error("特寫圖片缺替代文字:" + (item.asset || item.evidence));
+      }
+    }
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ['id="sceneFocus"', 'id="sceneFocusMedia"', 'id="sceneFocusCaption"',
+      "#sceneFocus.quad", "(orientation:portrait) and (pointer:coarse)"])
+      if (!html.includes(frag)) throw new Error("舞台特寫 DOM/CSS 缺失:" + frag);
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    for (const frag of ["showFocusVisualForLine", "clearFocusVisual", "lineFocusVisual", "e2DiagramMarkup", "r.scene !== sid"])
+      if (!sui.includes(frag)) throw new Error("舞台特寫接線/預載缺失:" + frag);
   }
 });
 

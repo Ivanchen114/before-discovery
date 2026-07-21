@@ -7,6 +7,7 @@
     /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
     $("srLine").textContent =
       (d.speaker && d.cls !== "stage" && d.cls !== "system" ? displayText(d.speaker) + "：" : "") + displayText(d.text);
+    showFocusVisualForLine(d.text);
     enqueue(d);
   });
   var needKickoff = false;
@@ -94,6 +95,7 @@
     $("labIntro").hidden = true;
     $("debIntro").hidden = true;
     $("repToast").hidden = true;
+    clearFocusVisual();
     clearSlot("left"); clearSlot("right");
     npcSide = null;
     $("dialogue").setAttribute("data-active", "none");
@@ -103,6 +105,7 @@
     /* 開場語境:讀檔→最後一句即顯(不重播序幕);全新開局→P0-0「螢幕前」cinematic,收場後 kickoff */
     if (lastReplay) {
       $("prologueCard").hidden = true;
+      showFocusVisualForLine(lastReplay.text);
       startLine(lastReplay, true); lastReplay = null; needKickoff = false;
     } else if (CHAPTER_ID === "ch2") {
       /* 現代穿越只演一次：從系列首頁直接進第二章，不重播第一章序幕。 */

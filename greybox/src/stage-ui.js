@@ -52,6 +52,10 @@
       if (ASSETS.sceneBg) preloadEntry(assetEntry(ASSETS.sceneBg[sid]));
       var m = ASSETS.sceneDialoguePortrait && ASSETS.sceneDialoguePortrait[sid];
       if (m) Object.keys(m).forEach(function (sp) { preloadEntry(assetEntry(m[sp])); });
+      (ASSETS.lineFocusVisual || []).forEach(function (r) {
+        if (r.scene !== sid) return;
+        (r.items || []).forEach(function (item) { preloadEntry(assetEntry(item.asset)); });
+      });
     });
     var def = ASSETS.speakerDialoguePortrait || {};
     Object.keys(def).forEach(function (sp) { preloadEntry(assetEntry(def[sp])); });
@@ -68,6 +72,7 @@
   }
   function setScene(sceneId) {
     if (sceneId === curSceneId) return;
+    clearFocusVisual();
     curSceneId = sceneId;
     preloadScene(sceneId);
     var sc = sceneInfo(sceneId);
@@ -207,6 +212,72 @@
     fillSlot(side, entry, speaker, masked);
     if (travelerOn) ensureTraveler(); else clearSlot(otherSide(side));
     setLit(side);
+  }
+
+  /* ---------- 台詞情境特寫：角色說「看這張圖」時，鏡頭真的給玩家看 ---------- */
+  function clearFocusVisual() {
+    var fig = $("sceneFocus");
+    if (!fig) return;
+    fig.classList.remove("on", "multi", "quad");
+    fig.hidden = true;
+    $("sceneFocusMedia").innerHTML = "";
+    $("sceneFocusCaption").textContent = "";
+  }
+  function focusRuleForLine(text) {
+    var rules = ASSETS && ASSETS.lineFocusVisual;
+    if (!rules || !text) return null;
+    for (var i = 0; i < rules.length; i++) {
+      var r = rules[i];
+      if (r.scene === curSceneId && text.indexOf(r.match) >= 0) return r;
+    }
+    return null;
+  }
+  function e2DiagramMarkup() {
+    return '<svg viewBox="0 0 200 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      '<circle cx="60" cy="40" r="24" fill="#5a4638"/>' +
+      '<circle cx="112" cy="52" r="12" fill="#8a7658"/>' +
+      '<path d="M 82 46 Q 92 42 100 49" stroke="#241b16" stroke-width="3" fill="none" stroke-dasharray="4 3"/>' +
+      '<text x="60" y="80" font-size="11" text-anchor="middle" fill="#241b16">重石</text>' +
+      '<text x="112" y="80" font-size="11" text-anchor="middle" fill="#241b16">輕石</text>' +
+      '<text x="158" y="34" font-size="11" fill="#8a4f14">拖慢它？</text>' +
+      '<text x="158" y="58" font-size="11" fill="#244a63">合體更快？</text>' +
+      '<path d="M 150 30 L 128 42" stroke="#8a4f14" stroke-width="1.5" fill="none"/>' +
+      '<path d="M 150 54 L 130 54" stroke="#244a63" stroke-width="1.5" fill="none"/>' +
+      '</svg>';
+  }
+  function showFocusVisualForLine(text) {
+    var rule = focusRuleForLine(text);
+    if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
+    var fig = $("sceneFocus"), media = $("sceneFocusMedia");
+    if (!fig || !media) return;
+    media.innerHTML = "";
+    var shown = 0;
+    (rule.items || []).forEach(function (item) {
+      if (item.evidence === "E2") {
+        var diagram = document.createElement("div");
+        diagram.className = "scene-focus-evidence";
+        diagram.setAttribute("role", "img");
+        diagram.setAttribute("aria-label", item.alt || "綁縛悖論示意圖");
+        diagram.innerHTML = e2DiagramMarkup();
+        media.appendChild(diagram);
+        shown++;
+        return;
+      }
+      var e = assetEntry(item.asset);
+      if (!e) return;
+      var img = document.createElement("img");
+      img.src = assetUrl(e);
+      img.alt = item.alt || e.label || e.id;
+      img.loading = "eager";
+      media.appendChild(img);
+      shown++;
+    });
+    if (!shown) { clearFocusVisual(); return; }
+    fig.classList.toggle("multi", shown > 1);
+    fig.classList.toggle("quad", shown > 2);
+    $("sceneFocusCaption").textContent = displayText(rule.caption || "");
+    fig.hidden = false;
+    requestAnimationFrame(function () { fig.classList.add("on"); });
   }
 
   /* ---------- 打字機:分頁+標點停頓 ---------- */
@@ -362,6 +433,7 @@
     /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
     $("srLine").textContent =
       (d.speaker && d.cls !== "stage" && d.cls !== "system" ? displayText(d.speaker) + "：" : "") + displayText(d.text);
+    showFocusVisualForLine(d.text);
     enqueue(d);
   });
   var needKickoff = false;
@@ -449,6 +521,7 @@
     $("labIntro").hidden = true;
     $("debIntro").hidden = true;
     $("repToast").hidden = true;
+    clearFocusVisual();
     clearSlot("left"); clearSlot("right");
     npcSide = null;
     $("dialogue").setAttribute("data-active", "none");
@@ -458,6 +531,7 @@
     /* 開場語境:讀檔→最後一句即顯(不重播序幕);全新開局→P0-0「螢幕前」cinematic,收場後 kickoff */
     if (lastReplay) {
       $("prologueCard").hidden = true;
+      showFocusVisualForLine(lastReplay.text);
       startLine(lastReplay, true); lastReplay = null; needKickoff = false;
     } else if (CHAPTER_ID === "ch2") {
       /* 現代穿越只演一次：從系列首頁直接進第二章，不重播第一章序幕。 */
@@ -794,18 +868,9 @@
       var s = document.createElement("span"); s.textContent = name;
       card.appendChild(b); card.appendChild(s);
       if (code === "E2") { /* 綁縛悖論示意圖:HTML/SVG 鐵律(點陣不承載物理資訊) */
-        card.insertAdjacentHTML("beforeend",
-          '<svg viewBox="0 0 200 96" xmlns="http://www.w3.org/2000/svg" aria-label="綁縛悖論示意:大小二石以鏈相繫">' +
-          '<circle cx="60" cy="40" r="24" fill="#5a4638"/>' +
-          '<circle cx="112" cy="52" r="12" fill="#8a7658"/>' +
-          '<path d="M 82 46 Q 92 42 100 49" stroke="#241b16" stroke-width="3" fill="none" stroke-dasharray="4 3"/>' +
-          '<text x="60" y="80" font-size="11" text-anchor="middle" fill="#241b16">重石</text>' +
-          '<text x="112" y="80" font-size="11" text-anchor="middle" fill="#241b16">輕石</text>' +
-          '<text x="158" y="34" font-size="11" fill="#8a4f14">拖慢它?</text>' +
-          '<text x="158" y="58" font-size="11" fill="#244a63">合體更快?</text>' +
-          '<path d="M 150 30 L 128 42" stroke="#8a4f14" stroke-width="1.5" fill="none"/>' +
-          '<path d="M 150 54 L 130 54" stroke="#244a63" stroke-width="1.5" fill="none"/>' +
-          "</svg>");
+        card.insertAdjacentHTML("beforeend", e2DiagramMarkup());
+        card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
+        card.lastElementChild.removeAttribute("aria-hidden");
       }
       wrap.appendChild(card);
     });
@@ -940,6 +1005,7 @@
       }
     };
   })();
+
   /* ---------- 程序化環境音樂(BGM):Web Audio 即席合成,零資產零版權 ----------
      音訊分工裁決(總監 20260720):v1=程式合成;真實錄音/生成音樂=未來選項(掛點相容)。
      每個 mood=低音 drone+調式撥弦(隨機稀疏)+環境噪音層;場景切換交叉淡入;非確定性=氛圍非 fixture。 */
