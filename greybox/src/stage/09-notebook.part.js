@@ -129,6 +129,13 @@
     if (!$("fxJump").hidden) { ev.preventDefault(); endSceneFx(); return; }
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
+    if (!$("apparatusSurvey").hidden) {
+      /* 必要器材不能靠 Esc 跳過；把焦點送回尚未檢查的亮點。 */
+      ev.preventDefault();
+      var next = $("asHotspots").querySelector("button:not(.visited)") || $("btnApparatusGo");
+      if (next) next.focus();
+      return;
+    }
     if (!$("labIntro").hidden) { ev.preventDefault(); $("labIntro").hidden = true; $("btnLabHelp").focus(); return; }
     if (!$("debIntro").hidden) { ev.preventDefault(); $("debIntro").hidden = true; $("btnDebHelp").focus(); }
   });
@@ -136,7 +143,12 @@
     var nb = $("notebook");
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");
-    if (!pc.hidden && !pc.contains(ev.target)) pc.focus();
+    if (!pc.hidden && !pc.contains(ev.target)) { pc.focus(); return; }
+    var survey = $("apparatusSurvey");
+    if (!survey.hidden && !survey.contains(ev.target)) {
+      var first = $("asHotspots").querySelector("button") || $("btnApparatusGo");
+      if (first) first.focus();
+    }
   });
   function selectTab(which) {
     $("notebook").setAttribute("data-tab", which);

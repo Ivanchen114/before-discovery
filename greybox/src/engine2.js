@@ -17,6 +17,8 @@
     liftSandbed:   { slot: "heightRig", label: "升降沙盤",    invalidates: [] }
   };
   var SLOTS = ["launcher", "release", "edge", "rangeBed", "heightRig"];
+  /* CR-器材踏查：唯一必要件不是選擇題。舊存檔若仍為 null，也以固定件解讀。 */
+  var FIXED_SLOTS = { launcher: "shortGroove", heightRig: "liftSandbed" };
   var CAL_DEP = { releaseZero: "release", rangeScale: "rangeBed" };
   var HS = [4, 9, 16, 25], ROOTS = [2, 3, 4];
 
@@ -39,7 +41,7 @@
 
   function initialState() {
     return {
-      slots: { launcher: null, release: null, edge: null, rangeBed: null, heightRig: null },
+      slots: { launcher: "shortGroove", release: null, edge: null, rangeBed: null, heightRig: "liftSandbed" },
       revision: 0,
       calib: { releaseZero: false, rangeScale: false },
       series: [], seriesSeq: 0,
@@ -49,7 +51,8 @@
     };
   }
 
-  function assembled(s) { return SLOTS.every(function (k) { return !!s.slots[k]; }); }
+  function effectivePart(s, slot) { return s.slots[slot] || FIXED_SLOTS[slot] || null; }
+  function assembled(s) { return SLOTS.every(function (k) { return !!effectivePart(s, k); }); }
   function openSeries(s) {
     for (var i = s.series.length - 1; i >= 0; i--) if (s.series[i].status === "open") return s.series[i];
     return null;
@@ -57,19 +60,20 @@
   /* R-WS2-04 支配序(唯一壓縮規則) */
   function profileOf(s) {
     if (!assembled(s)) return "notRunnable";
-    if (!s.calib.rangeScale || s.slots.rangeBed === "eyeBoard") return "coarseRead";
-    if (s.slots.edge === "roughEdge") return "directionScatter";
-    if (!s.calib.releaseZero || s.slots.release === "handRelease") return "speedDrift";
+    if (!s.calib.rangeScale || effectivePart(s, "rangeBed") === "eyeBoard") return "coarseRead";
+    if (effectivePart(s, "edge") === "roughEdge") return "directionScatter";
+    if (!s.calib.releaseZero || effectivePart(s, "release") === "handRelease") return "speedDrift";
     return "clean";
   }
   function fingerprint(s) {
-    return SLOTS.map(function (k) { return s.slots[k]; }).join("|") +
+    return SLOTS.map(function (k) { return effectivePart(s, k); }).join("|") +
       "#z" + (s.calib.releaseZero ? 1 : 0) + "s" + (s.calib.rangeScale ? 1 : 0);
   }
 
   function place(state0, slot, part) {
     var p = PARTS[part];
     if (SLOTS.indexOf(slot) < 0) return err(state0, "unknown-slot");
+    if (FIXED_SLOTS[slot]) return err(state0, "fixed-slot");
     if (!p) return err(state0, "unknown-part");
     if (p.slot !== slot) return err(state0, "wrong-slot");
     if (state0.slots[slot]) return err(state0, "slot-occupied");
@@ -81,6 +85,7 @@
   function replacePart(state0, slot, part) {
     var p = PARTS[part];
     if (SLOTS.indexOf(slot) < 0) return err(state0, "unknown-slot");
+    if (FIXED_SLOTS[slot]) return err(state0, "fixed-slot");
     if (!p || p.slot !== slot) return err(state0, !p ? "unknown-part" : "wrong-slot");
     if (!state0.slots[slot]) return err(state0, "slot-empty");
     if (openSeries(state0)) return err(state0, "series-open"); /* 未完成 series 須先明確放棄 */
@@ -235,7 +240,7 @@
     calibrate: calibrate, beginSeries: beginSeries, runHeight: runHeight,
     predict: predict, assertLaw: assertLaw, abandonSeries: abandonSeries, compareBalls: compareBalls,
     profileOf: profileOf, fingerprint: fingerprint,
-    _judgeRaw: judgeRaw, _FIXTURE: FIXTURE, _PARTS: PARTS, _SLOTS: SLOTS
+    _judgeRaw: judgeRaw, _FIXTURE: FIXTURE, _PARTS: PARTS, _SLOTS: SLOTS, _FIXED_SLOTS: FIXED_SLOTS
   };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Engine2 = api; }

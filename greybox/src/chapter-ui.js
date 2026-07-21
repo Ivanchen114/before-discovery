@@ -914,7 +914,8 @@
   }
   function cat2ErrorText(code, result) {
     var map = {
-      "not-assembled": "裝置還沒組完整：五個槽位都要有零件。",
+      "not-assembled": "裝置還沒組完整：固定骨架之外，三個可選部位都要裝好。",
+      "fixed-slot": "這是唯一必要的固定骨架，不需要更換；請把判斷留給真正有差異的零件。",
       "series-open": "目前這組還沒結束；請先完成或明確放棄，再換零件或開新組。",
       "no-open-series": "先選一顆球，開始一組連續測量。",
       "wrong-order": "高度要依 4 → 9 → 16 → 25 格進行，才能形成可比較的一組紀錄。",
@@ -975,7 +976,7 @@
     if (N.embedReady(state)) return "本段目標已完成。按上方的「收好數據，回到故事」繼續。";
     if (v.nodeId === "e1") return open
       ? "目前只要完成銅球的 4、9、16 格；25 格會在你先說出規律後再開放。"
-      : "先組滿五個槽位並校準發射零位、沙盤標尺，再用銅球開始。";
+      : "固定骨架已就位；選好釋放、桌沿與落點量法，再校準發射零位、沙盤標尺。";
     if (v.nodeId === "e2") return open
       ? "讀完前三個高度後，先鎖定 25 格預測；看到結果前不能改答案。"
       : (done.some(function (s) { return s.status === "complete"; })
@@ -1082,13 +1083,18 @@
     var slotNames = { launcher: "發射槽", release: "釋放", edge: "桌沿", rangeBed: "落點", heightRig: "高度架" };
     var slots = el("div", "", dv, "catSlots");
     E2._SLOTS.forEach(function (slot) {
-      var row = el("article", "", slots, "catSlot " + (lab2.slots[slot] ? "isFilled" : "isEmpty"));
-      var cur = lab2.slots[slot];
+      var fixed = E2._FIXED_SLOTS && E2._FIXED_SLOTS[slot];
+      var cur = lab2.slots[slot] || fixed;
+      var row = el("article", "", slots, "catSlot " + (cur ? "isFilled" : "isEmpty") + (fixed ? " isFixed" : ""));
       var partAsset = cur && ASSETS && ASSETS.workshopPartAsset ? ASSETS.workshopPartAsset[cur] : null;
       if (partAsset) art(partAsset, "", row, "catPartArt");
       var copy = el("div", "", row, "catSlotCopy");
       el("small", slotNames[slot] || slot, copy);
       el("b", cur ? E2._PARTS[cur].label : "尚未裝入", copy);
+      if (fixed) {
+        el("span", "固定安裝｜唯一必要件", copy, "catFixedTag");
+        return;
+      }
       var sel = document.createElement("select");
       sel.setAttribute("aria-label", (slotNames[slot] || slot) + "零件");
       Object.keys(E2._PARTS).forEach(function (pid) {

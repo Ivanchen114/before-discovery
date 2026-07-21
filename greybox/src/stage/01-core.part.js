@@ -56,6 +56,12 @@
         if (r.scene !== sid) return;
         (r.items || []).forEach(function (item) { preloadEntry(assetEntry(item.asset)); });
       });
+      var briefs = ASSETS.apparatusBriefings || {};
+      var brief = briefs[CHAPTER_ID + ":" + sid] || briefs[sid];
+      if (brief) {
+        preloadEntry(assetEntry(brief.plateAsset));
+        (brief.items || []).forEach(function (item) { preloadEntry(assetEntry(item.asset)); });
+      }
     });
     var def = ASSETS.speakerDialoguePortrait || {};
     Object.keys(def).forEach(function (sp) { preloadEntry(assetEntry(def[sp])); });

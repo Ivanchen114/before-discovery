@@ -510,6 +510,60 @@
     background: var(--color-surface-world); cursor: pointer; font-family: var(--font-dialogue); }
   body[data-view="debate"] #btnDebHelp { display: block; }
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { #diSheet { max-height: 92%; overflow-y: auto; } }
+  /* --- 器材踏查：不是像素狩獵；亮點清楚、逐件理解、集齊才進實驗 --- */
+  #apparatusSurvey { position: absolute; inset: 0; z-index: 47; display: flex; align-items: center;
+    justify-content: center; background: rgba(8,6,4,.91); }
+  #apparatusSurvey[hidden] { display: none; }
+  #asShell { width: min(1180px,94%); height: min(700px,90%); display: grid;
+    grid-template-rows: auto minmax(0,1fr); color: #eee0c5; border: 1px solid rgba(213,174,113,.58);
+    border-radius: 10px; overflow: hidden; background: #17110c; box-shadow: 0 22px 70px rgba(0,0,0,.72); }
+  #asHead { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 18px; align-items: center;
+    padding: 12px 18px; border-bottom: 1px solid rgba(213,174,113,.45);
+    background: linear-gradient(90deg,#322116,#1a130e); }
+  #asTitle { grid-column: 1; margin: 0; font: 600 clamp(21px,2.1vw,30px)/1.2 var(--font-dialogue); letter-spacing: .08em; }
+  #asSubtitle { grid-column: 1; margin: 0; color: #cdbb9f; font: 500 13px/1.45 var(--font-ui); }
+  #asCount { grid-column: 2; grid-row: 1/3; min-width: 92px; padding: 7px 11px; text-align: center;
+    color: #eac98e; border: 1px solid rgba(213,174,113,.45); font: 700 14px var(--font-ui); }
+  #asBody { min-height: 0; display: grid; grid-template-columns: minmax(0,1.55fr) minmax(280px,.75fr); }
+  #asCanvas { position: relative; min-height: 0; overflow: hidden; background: #090705; }
+  #asPlate { width: 100%; height: 100%; display: block; object-fit: cover; opacity: .84; }
+  #asHotspots { position: absolute; inset: 0; }
+  .asHotspot { position: absolute; width: 52px; height: 52px; min-width: 52px; min-height: 52px;
+    transform: translate(-50%,-50%); border: 2px solid #f0ca7d; border-radius: 50%; color: #24170d;
+    background: rgba(237,194,112,.9); box-shadow: 0 0 0 7px rgba(232,181,88,.17),0 0 28px rgba(245,199,108,.65);
+    font: 800 16px var(--font-ui); cursor: pointer; animation: asPulse 1.8s ease-in-out infinite; }
+  .asHotspot:hover, .asHotspot:focus-visible { outline: 3px solid #fff0c7; outline-offset: 3px; transform: translate(-50%,-50%) scale(1.08); }
+  .asHotspot.visited { color: #eff0df; border-color: #a5b894; background: rgba(66,83,57,.92);
+    box-shadow: 0 0 0 5px rgba(143,167,127,.16); animation: none; }
+  @keyframes asPulse { 50% { box-shadow: 0 0 0 11px rgba(232,181,88,.08),0 0 38px rgba(245,199,108,.75); } }
+  #asDetail { min-width: 0; display: grid; grid-template-rows: minmax(120px,42%) auto auto auto minmax(0,1fr) auto auto;
+    gap: 7px; padding: 14px 16px; color: #2c2117; background:
+    repeating-linear-gradient(0deg,rgba(91,57,28,.055) 0 1px,transparent 1px 31px),#efe4c9; }
+  #asArtWrap { min-height: 0; margin: 0; border: 1px solid rgba(98,69,41,.32); background: rgba(255,250,236,.45); }
+  #asArtWrap[hidden] { display: none; }
+  #asArt { width: 100%; height: 100%; display: block; object-fit: contain; }
+  #asPrompt { align-self: center; margin: 0; color: #715c44; font: 600 14px/1.55 var(--font-ui); }
+  #asItemName { margin: 0; font: 600 23px/1.25 var(--font-dialogue); }
+  #asFunction { margin: 0; color: #3e3022; font: 500 15px/1.55 var(--font-ui); }
+  #asLine { min-height: 0; margin: 0; padding: 9px 11px; overflow-y: auto; border-left: 4px solid #9a6736;
+    color: #483322; background: rgba(128,85,43,.1); font: 500 17px/1.6 var(--font-dialogue); }
+  #asTray { display: flex; flex-wrap: wrap; gap: 5px; min-height: 26px; }
+  .asTrayItem { padding: 3px 7px; color: #7b6b59; border: 1px dashed rgba(92,65,39,.35); font: 600 11px var(--font-ui); }
+  .asTrayItem.found { color: #40513b; border-style: solid; border-color: #738568; background: rgba(103,126,91,.12); }
+  #btnApparatusGo { min-height: 44px; border: 1px solid #8f602e; border-radius: 5px; color: #f7ecd8;
+    background: #845321; font: 600 16px var(--font-dialogue); letter-spacing: .06em; cursor: pointer; }
+  #btnApparatusGo:disabled { cursor: not-allowed; color: #8b7c69; border-color: #b8aa94; background: #d8cbb3; }
+  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+    #asShell { width: 96%; height: 94%; }.asHotspot { width: 46px; height: 46px; min-width: 46px; min-height: 46px; }
+    #asHead { padding: 6px 10px; }#asTitle { font-size: 18px; }#asSubtitle { font-size: 10px; }#asCount { min-width: 72px; padding: 4px 6px; font-size: 11px; }
+    #asBody { grid-template-columns: minmax(0,1.45fr) minmax(250px,.85fr); }
+    #asDetail { display: flex; flex-direction: column; gap: 3px; padding: 7px 9px; overflow: hidden; }
+    #asArtWrap { display: none !important; } /* 左頁全景已持續可見；手機高度優先保住說明與出口。 */
+    #asPrompt { flex: 0 0 auto; font-size: 10px; }#asItemName { flex: 0 0 auto; font-size: 17px; }#asFunction { flex: 0 0 auto; font-size: 11px; line-height: 1.35; }
+    #asLine { flex: 1 1 auto; min-height: 34px; padding: 4px 6px; font-size: 12px; line-height: 1.35; }
+    #asTray { flex: 0 0 auto; max-height: 39px; overflow: hidden; }.asTrayItem { font-size: 9px; }#btnApparatusGo { flex: 0 0 auto; min-height: 36px; font-size: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .asHotspot { animation: none; } }
   /* --- 首次實驗備忘卡 --- */
   #labIntro { position: absolute; inset: 0; z-index: 45; background: rgba(10, 7, 5, 0.7);
     display: flex; align-items: center; justify-content: center; }
@@ -1469,6 +1523,31 @@
         </ol>
         <button id="btnLabIntroGo" type="button">開始動手</button>
       </div>
+    </div>
+
+    <div id="apparatusSurvey" role="dialog" aria-modal="true" aria-label="器材踏查" hidden>
+      <section id="asShell">
+        <header id="asHead">
+          <h2 id="asTitle">器材踏查</h2>
+          <p id="asSubtitle">先看懂器材，再開始實驗。</p>
+          <span id="asCount" aria-live="polite">0 / 0</span>
+        </header>
+        <div id="asBody">
+          <div id="asCanvas">
+            <img id="asPlate" alt="實驗器材所在的工作場景">
+            <div id="asHotspots" aria-label="可檢查的器材"></div>
+          </div>
+          <aside id="asDetail">
+            <figure id="asArtWrap" hidden><img id="asArt" alt=""></figure>
+            <p id="asPrompt">點選場景中的亮點，伽利略會說明這件器材負責什麼。</p>
+            <h3 id="asItemName">器材尚未檢查</h3>
+            <p id="asFunction">必要器材不會藏在陰影裡；請逐一點開。</p>
+            <blockquote id="asLine"></blockquote>
+            <div id="asTray" aria-label="已檢查器材"></div>
+            <button id="btnApparatusGo" type="button" disabled>器材尚未齊全</button>
+          </aside>
+        </div>
+      </section>
     </div>
 
     <button id="btnEmbark" hidden>▸ 前往實驗台</button>

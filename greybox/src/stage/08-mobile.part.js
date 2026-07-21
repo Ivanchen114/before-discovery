@@ -3,6 +3,7 @@
     if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己的快轉 */
     if (!$("notebook").hidden) return;
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
+    if (!$("apparatusSurvey").hidden) return;
     if (!$("labIntro").hidden) return;
     if (!$("debIntro").hidden) return;
     if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast, #nextCard, #rotateHint")) return;
@@ -19,6 +20,7 @@
       mzNext();
       return;
     }
+    if (!$("apparatusSurvey").hidden) return; /* 器材踏查只接受其可見按鈕，禁止鍵盤穿透到底層劇情 */
     if (!$("labIntro").hidden) return; /* 備忘卡開啟:交還原生(按鈕 Enter 即關閉) */
     if (!$("debIntro").hidden) return;
     if (typing || waiting || ackPending) { /* 演出未完/待收隊:先消化演出,不觸底層按鈕 */

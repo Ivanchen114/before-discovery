@@ -48,6 +48,100 @@
   "BE-1": "bg_canal_dusk",
   "BE-2": "bg_moon"
  },
+ "apparatusBriefings": {
+  "ch1:A2-2": {
+   "title": "把量時間的東西找齊",
+   "subtitle": "點開三個亮起的器材。先知道各自管什麼，再開始量。",
+   "plateAsset": "bg_workshop_padua",
+   "speaker": "伽利略",
+   "enterLabel": "帶齊器材，開始斜面實驗",
+   "items": [
+    {
+     "id": "waterClock",
+     "label": "水鐘",
+     "asset": "prop_water_clock",
+     "x": 12,
+     "y": 38,
+     "function": "滴下等量的水，代表經過等長的時間；它把看不見的時間切成可以比較的片段。",
+     "line": "鐘不會替我們回答。它只負責把時間切得一樣大。"
+    },
+    {
+     "id": "groove",
+     "label": "斜槽與刻度",
+     "asset": "prop_ball_groove",
+     "x": 46,
+     "y": 50,
+     "function": "讓太快的下落變慢，並用槽上的刻度記下球在每個等時段走過的距離。",
+     "line": "斜面不是拿來冒充自由落體；它是把太快的運動攤開，讓我們量得到。"
+    },
+    {
+     "id": "balls",
+     "label": "實驗球",
+     "asset": "prop_ball_groove",
+     "x": 50,
+     "y": 66,
+     "function": "先用同一顆球建立基準；後續換球時，才能檢查改變球重會不會改變量到的規律。",
+     "line": "先讓一顆球把規律說清楚。等骨架固定，再換球追問重量。"
+    }
+   ]
+  },
+  "ch2:B2-3": {
+   "title": "把彈射裝置看懂，再動手",
+   "subtitle": "這不是找藏起來的東西。沿著亮點檢查裝置，每一件都控制一個實驗條件。",
+   "plateAsset": "workshop2_projectile_apparatus_master",
+   "speaker": "伽利略",
+   "enterLabel": "器材齊了，走進彈射工坊",
+   "items": [
+    {
+     "id": "shortGroove",
+     "label": "短斜槽（固定骨架）",
+     "asset": "workshop2_projectile_apparatus_master",
+     "x": 30,
+     "y": 31,
+     "function": "固定球的起始高度，讓每次出手有可重複的基準。只有一種合法短斜槽，因此不需要選。",
+     "line": "這段斜槽是骨架，不是選項。它只管一件事：讓球每次從同一個高度出發。",
+     "fixed": true
+    },
+    {
+     "id": "release",
+     "label": "釋放機構",
+     "asset": "part_latchRelease",
+     "x": 8,
+     "y": 12,
+     "function": "決定球能否在相同刻度、相近時刻離手；不同釋放方式可能留下不同的重複性。",
+     "line": "手能放，門閂也能放。哪一種更穩，不先猜——讓重複紀錄說話。"
+    },
+    {
+     "id": "edge",
+     "label": "桌沿",
+     "asset": "part_polishedEdge",
+     "x": 48,
+     "y": 46,
+     "function": "決定球離開桌面時的方向是否一致；桌沿狀態會反映在落點的散布上。",
+     "line": "球離桌那一刻，桌沿若不齊，方向就會散。這裡的一道毛邊，也會寫進沙裡。"
+    },
+    {
+     "id": "sandbed",
+     "label": "升降沙盤與落點量測",
+     "asset": "part_rakedSand",
+     "x": 72,
+     "y": 58,
+     "function": "沙盤留下落點，升降架改變桌沿到沙面的下落高度；標尺把沙痕轉成射程。",
+     "line": "沙盤接住落點；升降架只改下落高度。每一輪，都得知道自己究竟改了哪件事。",
+     "fixed": true
+    },
+    {
+     "id": "balls",
+     "label": "同徑銅球與木球",
+     "asset": "workshop2_projectile_apparatus_master",
+     "x": 16,
+     "y": 82,
+     "function": "兩球外形相同、重量不同；裝置固定後只換球，才有資格追問重量是否改變規律。",
+     "line": "先把裝置固定。最後只換這兩顆球——那時，我們才是在問重量。"
+    }
+   ]
+  }
+ },
  "speakerPortrait": {
   "伽利略": "portrait_galileo",
   "年輕人": "portrait_galileo",

@@ -129,6 +129,38 @@ tests.push({
 });
 
 tests.push({
+  name: "器材踏查|雙章配置完備+亮點可及+固定器材非假選擇+舊存檔相容",
+  fn: () => {
+    const assets = require("../data/assets.js");
+    const ids = new Set(assets.entries.map((e) => e.id));
+    for (const key of ["ch1:A2-2", "ch2:B2-3"]) {
+      const cfg = (assets.apparatusBriefings || {})[key];
+      if (!cfg || !cfg.title || !cfg.enterLabel || !ids.has(cfg.plateAsset) || !Array.isArray(cfg.items) || cfg.items.length < 3)
+        throw new Error("器材踏查配置不完整:" + key);
+      const seen = new Set();
+      for (const item of cfg.items) {
+        if (!item.id || seen.has(item.id) || !item.label || !item.function || !item.line) throw new Error("器材條目不完整/重複:" + key);
+        seen.add(item.id);
+        if (!ids.has(item.asset)) throw new Error("器材條目指向不存在資產:" + key + "/" + item.id);
+        if (!(item.x >= 0 && item.x <= 100 && item.y >= 0 && item.y <= 100)) throw new Error("器材亮點座標越界:" + key + "/" + item.id);
+      }
+    }
+    const c2 = assets.apparatusBriefings["ch2:B2-3"];
+    for (const id of ["shortGroove", "sandbed"])
+      if (!c2.items.find((item) => item.id === id && item.fixed === true)) throw new Error("第二章固定器材未標示:" + id);
+    const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of ['id="apparatusSurvey"', 'id="asHotspots"', 'id="btnApparatusGo"', "width: 52px", "height: 52px"])
+      if (!stage.includes(frag)) throw new Error("器材踏查 DOM/觸控尺寸缺失:" + frag);
+    for (const frag of ["showApparatusSurvey", "apparatusBriefings", "button:not(.visited)"])
+      if (!sui.includes(frag)) throw new Error("器材踏查流程/鍵盤守衛缺失:" + frag);
+    if (!cui.includes("E2._FIXED_SLOTS") || !cui.includes("固定安裝｜唯一必要件"))
+      throw new Error("固定器材仍被畫成可更換選單");
+  }
+});
+
+tests.push({
   name: "舞台殼|stage.html DOM 契約:chapter-ui 引用之 id 全數存在;stage-ui 純表現層",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
@@ -1000,7 +1032,7 @@ tests.push({
     const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
     const E2 = require("../src/engine2.js");
     const D2 = require("../data/debate2.js");
-    const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
+    const FULL = [["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"]];
     const walk = (mode, opts0) => {
       const o = opts0 || {};
       const N2 = F(scenes2, E2, D2);
@@ -1164,9 +1196,9 @@ tests.push({
       if (v.type === "choice") st = N2.choose(st, v.options[0].id === "a" ? (v.scene === "B0-2" ? "b" : "a") : v.options[0].id).state;
       else st = N2.advance(st).state;
     }
-    const drive = [["place", { slot: "launcher", part: "shortGroove" }], ["place", { slot: "release", part: "handRelease" }],
+    const drive = [["place", { slot: "release", part: "handRelease" }],
       ["place", { slot: "edge", part: "polishedEdge" }], ["place", { slot: "rangeBed", part: "rakedSand" }],
-      ["place", { slot: "heightRig", part: "liftSandbed" }], ["calibrate", { kind: "releaseZero" }], ["calibrate", { kind: "rangeScale" }],
+      ["calibrate", { kind: "releaseZero" }], ["calibrate", { kind: "rangeScale" }],
       ["beginSeries", { ball: "copper" }], ["runHeight", { H: 4 }], ["runHeight", { H: 9 }], ["runHeight", { H: 16 }]];
     for (const [a, g] of drive) st = N2.labAction(st, a, g).state;
     if (!N2.embedComplete(st).error) throw new Error("speedDrift 裝置竟通過 threeH 劇情門(需 clean)");
@@ -1206,9 +1238,9 @@ tests.push({
     const N2 = F(scenes2, E2, {});
     let st = N2.initialState("explore");
     st.cursor = { scene: "B2-3", node: "e2" };
-    const drive = [["place", { slot: "launcher", part: "shortGroove" }], ["place", { slot: "release", part: "latchRelease" }],
+    const drive = [["place", { slot: "release", part: "latchRelease" }],
       ["place", { slot: "edge", part: "polishedEdge" }], ["place", { slot: "rangeBed", part: "rakedSand" }],
-      ["place", { slot: "heightRig", part: "liftSandbed" }], ["calibrate", { kind: "releaseZero" }],
+      ["calibrate", { kind: "releaseZero" }],
       ["calibrate", { kind: "rangeScale" }], ["beginSeries", { ball: "copper" }],
       ["runHeight", { H: 4 }], ["runHeight", { H: 9 }], ["runHeight", { H: 16 }],
       ["predictSeries", { value: 5 }], ["runHeight", { H: 25 }]];
@@ -1319,11 +1351,22 @@ tests.push({
       for (const k of cal || []) { const r = E2.calibrate(s, k); if (r.error) throw new Error(r.error); s = r.state; }
       return s;
     };
-    const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
+    const FULL = [["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"]];
     /* 空槽=notRunnable+run 拒絕 */
     let s0 = E2.initialState();
+    if (s0.slots.launcher !== "shortGroove" || s0.slots.heightRig !== "liftSandbed")
+      throw new Error("固定器材未隨新遊戲自動安裝");
+    if (E2.place(s0, "launcher", "shortGroove").error !== "fixed-slot" ||
+        E2.replacePart(s0, "heightRig", "liftSandbed").error !== "fixed-slot")
+      throw new Error("唯一必要件仍可被當成假選擇操作");
     if (E2.profileOf(s0) !== "notRunnable") throw new Error("空槽 profile 錯");
     if (!E2.beginSeries(s0, "copper").error) throw new Error("空槽可開 series");
+    /* 舊存檔相容：固定槽為 null 時，以現行固定件解讀，不要求玩家補選。 */
+    let legacy = E2.initialState(); legacy.slots.launcher = null; legacy.slots.heightRig = null;
+    for (const [slot, part] of FULL) legacy = E2.place(legacy, slot, part).state;
+    legacy = E2.calibrate(E2.calibrate(legacy, "releaseZero").state, "rangeScale").state;
+    if (E2.profileOf(legacy) !== "clean" || E2.fingerprint(legacy).indexOf("shortGroove") < 0 || E2.fingerprint(legacy).indexOf("liftSandbed") < 0)
+      throw new Error("legacy 固定槽 null 未被補成現行固定骨架");
     /* 支配序四格 */
     if (E2.profileOf(build(FULL, ["releaseZero", "rangeScale"])) !== "clean") throw new Error("clean 判定錯");
     if (E2.profileOf(build(FULL, ["releaseZero"])) !== "coarseRead") throw new Error("rangeScale 未校應 coarseRead");
@@ -1368,7 +1411,7 @@ tests.push({
   name: "第二章 M2a|engine2:fixture 判定+12.0/12.5 邊界+換球守衛+黃金路徑 10 天(R-LAB2)",
   fn: () => {
     const E2 = require("../src/engine2.js");
-    const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
+    const FULL = [["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"]];
     const build = () => {
       let s = E2.initialState();
       for (const [slot, part] of FULL) s = E2.place(s, slot, part).state;

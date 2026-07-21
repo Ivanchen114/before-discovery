@@ -50,6 +50,7 @@
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
+      pendingEmbarkScene = d.scene || null;
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
         : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
@@ -61,7 +62,7 @@
       setTimeout(showLabIntro, 0);
     }
     if (view !== "lab" && view !== "debate") {
-      pendingEmbarkView = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
+      pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
     }
     if (view === "debate" && !debIntroSeen && !body.classList.contains("embarkGate")) { /* 讀檔直落辯論 */
       debIntroSeen = true;
@@ -69,15 +70,24 @@
     }
     prevView = view;
   });
-  var prevView = null, pendingEmbarkView = null;
+  var prevView = null, pendingEmbarkView = null, pendingEmbarkScene = null;
   $("btnEmbark").addEventListener("click", function () {
     var target = pendingEmbarkView;
+    var targetScene = pendingEmbarkScene;
     pendingEmbarkView = null;
+    pendingEmbarkScene = null;
     body.classList.remove("embarkGate");
     $("btnEmbark").hidden = true;
     if (target === "debate") {
       if (!debIntroSeen) { debIntroSeen = true; $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }
       else { var db = $("controls").querySelector("button"); if (db) db.focus(); }
+    } else if (targetScene && apparatusBriefing(targetScene) && !apparatusSurveySeen[apparatusBriefingKey(targetScene)]) {
+      /* 首次進主實驗先做器材踏查；踏查本身取代自動彈出的長備忘卡，? 仍可重看。 */
+      showApparatusSurvey(targetScene, function () {
+        labIntroSeen = true;
+        var b = CHAPTER_ID === "ch2" ? $("controls").querySelector("button") : $("labRun");
+        if (b) b.focus();
+      });
     } else if (!labIntroSeen) { labIntroSeen = true; showLabIntro(); }
     else {
       var b = CHAPTER_ID === "ch2" ? $("controls").querySelector("button") : $("labRun");
@@ -91,8 +101,11 @@
     labIntroSeen = false;
     debIntroSeen = false;
     pendingEmbarkView = null;
+    pendingEmbarkScene = null;
+    apparatusSurveySeen = {}; apparatusSurveyActive = null; apparatusSurveyDone = null;
     repHinted = false; repPrev = null;
     $("labIntro").hidden = true;
+    $("apparatusSurvey").hidden = true;
     $("debIntro").hidden = true;
     $("repToast").hidden = true;
     clearFocusVisual();
