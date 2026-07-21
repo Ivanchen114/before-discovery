@@ -667,7 +667,7 @@ tests.push({
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (stageHtml.includes("灰盒對照版"))
       throw new Error("玩家入口不應顯示內部灰盒對照連結");
-    for (const frag of ['id="nextCard"', "拋出去的東西", "第二章製作中", "書信碼",
+    for (const frag of ['id="nextCard"', "拋出去的東西", "第二章現已開放", "書信碼",
       'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
       if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);
     /* 鉤引語=E-1 凍結原句的子字串(禁引未凍結之第二章劇本;防台詞漂移) */
