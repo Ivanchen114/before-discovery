@@ -966,6 +966,7 @@ tests.push({
         check(n.text, s.id + "/" + n.id);
         (n.options || []).forEach((o) => check(o.text, s.id + "/" + n.id + "." + o.id));
       }); });
+      (sc.lab2LawConcepts || []).forEach((c) => check(c.label, "lab2LawConcepts." + c.id + ".label"));
       return hits;
     };
     const hits = scan(data);
@@ -1018,6 +1019,7 @@ tests.push({
           for (const H of [4, 9, 16]) lab("runHeight", { H });
         } else if (u.f2 === "law") {
           lab("predictSeries", { value: 5.0 }); lab("runHeight", { H: 25 });
+          lab("assertLaw", { seriesId: 1, conceptId: "sqrtScale" });
         } else if (u.f2 === "ball") {
           lab("beginSeries", { ball: "wood" });
           for (const H of [4, 9, 16]) lab("runHeight", { H });
@@ -1176,11 +1178,11 @@ tests.push({
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
     if (!c2.includes("engine2.js") || !c2.includes("GB.Engine = window.GB.Engine2")) throw new Error("chapter2 引擎重指缺失");
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries",
+    for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "assertLaw", "abandonSeries",
       "cat2CompareFailure", "r.result.ok === false", "firstCopper", "firstWood",
       "cat2Mission", "cat2DefaultMessage", "mountCatapultReplay", "catReplayTrajectory",
       "cat2EvidenceFlags", "cat2ClaimGain", "cat2GateLabel", "catClaims", "catClaimComplete", "catStagePause",
-      'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
+      "用這組數據提出斷言", "選擇數據支持的概念", 'bs.value = v.nodeId === "e3" ? "wood" : "copper"'] )
       if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
     if (!(cui.indexOf("catapultGate(sv)") < cui.indexOf("if (!open)")))
       throw new Error("彈射工坊完成出口仍藏在長紀錄簿底端");
@@ -1211,8 +1213,14 @@ tests.push({
       ["runHeight", { H: 4 }], ["runHeight", { H: 9 }], ["runHeight", { H: 16 }],
       ["predictSeries", { value: 5 }], ["runHeight", { H: 25 }]];
     for (const [a, g] of drive) st = N2.labAction(st, a, g).state;
-    if (!st.lab.evidence.f2.law || st.lab.evidence.f2.ball || st.evidence.F2)
-      throw new Error("銅球押中後應只取得斷言一，不得提前合成 F2");
+    if (st.lab.evidence.f2.law || st.lab.evidence.f2.ball || st.evidence.F2)
+      throw new Error("銅球押中後不得自動取得斷言或合成 F2");
+    const wrong = N2.labAction(st, "assertLaw", { seriesId: 1, conceptId: "linearScale" });
+    if (!wrong.result || wrong.result.ok !== false || wrong.state.lab.evidence.f2.law)
+      throw new Error("錯誤概念未留在可重試狀態");
+    st = N2.labAction(st, "assertLaw", { seriesId: 1, conceptId: "sqrtScale" }).state;
+    if (!st.lab.evidence.f2.law || st.lab.evidence.f2.lawSource !== 1 || st.lab.evidence.f2.lawConcept !== "sqrtScale" || st.evidence.F2)
+      throw new Error("手動選數據+概念後未只取得斷言一");
     st.cursor.node = "e1";
     if (!N2.embedReady(st)) throw new Error("已完成 25 格的乾淨銅球紀錄未救援第一步出口");
     st.cursor.node = "e3";
@@ -1275,6 +1283,7 @@ tests.push({
       (s) => { s.cursor.node = "不存在"; },
       (s) => { s.lab.slots.release = "roughEdge"; },
       (s) => { s.lab.days = NaN; },
+      (s) => { s.lab.evidence.f2.lawConcept = "linearScale"; },
       (s) => { s.lab.series = [{ id: 1, status: "complete", ball: "copper", profile: "clean", cycle: 0, readings: { 4: Infinity }, prediction: 5 }]; },
       (s) => { s.transcript = [{ scene: "B0-1", text: "x".repeat(2001) }]; }
     ];
@@ -1373,11 +1382,26 @@ tests.push({
       s = E2.predict(s, pred).state;
       return E2.runHeight(s, 25).state;
     };
-    /* clean 三輪全過+cycle 輪替+F2 law(銅) */
+    /* clean 三輪全過+cycle 輪替；資料通過不得自動形成斷言 */
     let s = build();
     s = runSeries(s, "copper", 5.0);
     if (!s.series[0].accepted || s.series[0].cycle !== 0) throw new Error("clean cycle1 應過");
-    if (!s.evidence.f2.law) throw new Error("F2 law 未點亮");
+    if (s.evidence.f2.law) throw new Error("accepted copper series 不得自動點亮 F2 law");
+    let incomplete = build();
+    incomplete = E2.beginSeries(incomplete, "copper").state;
+    if (E2.assertLaw(incomplete, 1, "sqrtScale").error !== "series-not-complete")
+      throw new Error("未完成紀錄未被手動斷言守衛擋下");
+    let woodOnly = runSeries(build(), "wood", 5.0);
+    if (E2.assertLaw(woodOnly, 1, "sqrtScale").error !== "law-source-ball")
+      throw new Error("木球紀錄誤被受理為斷言一來源");
+    const wrongConcept = E2.assertLaw(s, 1, "linearScale");
+    if (wrongConcept.ok !== false || wrongConcept.state !== s || s.evidence.f2.law)
+      throw new Error("錯誤概念不得寫入斷言");
+    const missingConcept = E2.assertLaw(s, 1, "");
+    if (missingConcept.error !== "unknown-law-concept") throw new Error("未選概念未被拒絕");
+    s = E2.assertLaw(s, 1, "sqrtScale").state;
+    if (!s.evidence.f2.law || s.evidence.f2.lawSource !== 1 || s.evidence.f2.lawConcept !== "sqrtScale")
+      throw new Error("選可用銅球數據+平方根概念後 F2 law 未點亮");
     s = runSeries(s, "copper", 5.0); s = runSeries(s, "copper", 5.0);
     if (!(s.series[1].accepted && s.series[2].accepted)) throw new Error("clean cycle2/3 應過");
     if (s.series.map((x) => x.cycle).join(",") !== "0,1,2") throw new Error("cycle 未輪替");
@@ -1402,6 +1426,8 @@ tests.push({
     sh = E2.calibrate(sh, "releaseZero").state; sh = E2.calibrate(sh, "rangeScale").state;
     sh = runSeries(sh, "copper", 5.85);
     if (sh.series[0].accepted) throw new Error("speedDrift 竟通過(押中 25 也不該過形狀門)");
+    if (E2.assertLaw(sh, 1, "sqrtScale").error !== "series-not-accepted")
+      throw new Error("未通過雙門檻的紀錄誤被受理為斷言來源");
     /* coarseRead:區間讀值→拒絕 */
     let sc2 = E2.initialState();
     for (const [slot, part] of FULL) sc2 = E2.place(sc2, slot, part === "rakedSand" ? "eyeBoard" : part).state;

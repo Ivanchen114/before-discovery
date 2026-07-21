@@ -45,7 +45,7 @@
       series: [], seriesSeq: 0,
       days: 0,
       assemblyLog: [],
-      evidence: { f2: { law: false, ball: false } }
+      evidence: { f2: { law: false, lawSource: null, lawConcept: null, ball: false } }
     };
   }
 
@@ -168,7 +168,6 @@
         sr.kHat = j.kHat; sr.shapeError = j.shapeError; sr.predictionError = j.predictionError;
         sr.accepted = j.accepted;
       }
-      if (sr.accepted && sr.ball === "copper") s.evidence.f2.law = true; /* R-LAB2-04 */
     }
     return { state: s, series: clone(sr) };
   }
@@ -181,6 +180,27 @@
     var s = clone(state0);
     openSeries(s).prediction = value;
     return { state: s };
+  }
+  /* CH2-CR-005/R-LAB2-04：資料通過只代表「可引用」，不替玩家形成斷言。
+     玩家必須親自選一組完整銅球紀錄，再選它支持的概念。 */
+  function assertLaw(state0, seriesId, conceptId) {
+    var concepts = { sqrtScale: 1, linearScale: 1, constantRange: 1 };
+    if (!concepts[conceptId]) return err(state0, "unknown-law-concept");
+    if (state0.evidence && state0.evidence.f2 && state0.evidence.f2.law)
+      return { state: state0, ok: true, noop: true };
+    var sr = null;
+    (state0.series || []).forEach(function (x) { if (x.id === seriesId) sr = x; });
+    if (!sr) return err(state0, "series-not-found");
+    if (sr.status !== "complete") return err(state0, "series-not-complete");
+    if (!sr.accepted) return err(state0, "series-not-accepted");
+    if (sr.ball !== "copper") return err(state0, "law-source-ball");
+    if (conceptId !== "sqrtScale")
+      return { state: state0, ok: false, reason: "concept-mismatch", seriesId: seriesId, conceptId: conceptId };
+    var s = clone(state0);
+    s.evidence.f2.law = true;
+    s.evidence.f2.lawSource = seriesId;
+    s.evidence.f2.lawConcept = conceptId;
+    return { state: s, ok: true, seriesId: seriesId, conceptId: conceptId };
   }
   /* R-LAB2-05 換球比較五守衛 */
   function compareBalls(state0, idA, idB) {
@@ -213,7 +233,7 @@
   var api = {
     initialState: initialState, place: place, replacePart: replacePart,
     calibrate: calibrate, beginSeries: beginSeries, runHeight: runHeight,
-    predict: predict, abandonSeries: abandonSeries, compareBalls: compareBalls,
+    predict: predict, assertLaw: assertLaw, abandonSeries: abandonSeries, compareBalls: compareBalls,
     profileOf: profileOf, fingerprint: fingerprint,
     _judgeRaw: judgeRaw, _FIXTURE: FIXTURE, _PARTS: PARTS, _SLOTS: SLOTS
   };

@@ -125,6 +125,12 @@
     }
     if (typeof lab.calib.releaseZero !== "boolean" || typeof lab.calib.rangeScale !== "boolean")
       return fail("校準狀態非法");
+    if (!lab.evidence || !lab.evidence.f2 || typeof lab.evidence.f2.law !== "boolean" ||
+        typeof lab.evidence.f2.ball !== "boolean") return fail("F2 證據狀態非法");
+    if (lab.evidence.f2.lawSource != null && !isInt(lab.evidence.f2.lawSource))
+      return fail("F2 斷言來源非法");
+    if (lab.evidence.f2.lawConcept != null && lab.evidence.f2.lawConcept !== "sqrtScale")
+      return fail("F2 斷言概念非法");
     var profiles = { clean: 1, directionScatter: 1, speedDrift: 1, coarseRead: 1 };
     for (var i = 0; i < lab.series.length; i++) {
       var sr = lab.series[i];

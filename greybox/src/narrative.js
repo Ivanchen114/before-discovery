@@ -709,6 +709,7 @@
     else if (action === "beginSeries" && Engine.beginSeries) r = Engine.beginSeries(state.lab, args.ball);
     else if (action === "runHeight" && Engine.runHeight) r = Engine.runHeight(state.lab, args.H);
     else if (action === "predictSeries" && Engine.predict) r = Engine.predict(state.lab, args.value);
+    else if (action === "assertLaw" && Engine.assertLaw) r = Engine.assertLaw(state.lab, args.seriesId, args.conceptId);
     else if (action === "abandonSeries" && Engine.abandonSeries) r = Engine.abandonSeries(state.lab);
     else if (action === "compareBalls" && Engine.compareBalls) r = Engine.compareBalls(state.lab, args.a, args.b);
     else return { state: state0, error: "未知實驗台動作:" + action };

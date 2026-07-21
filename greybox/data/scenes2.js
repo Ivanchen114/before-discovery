@@ -14,6 +14,20 @@
   "S3": "塔爾塔利亞砲術圖",
   "S4": "Guidobaldo 的實驗筆記(抄頁)"
  },
+ "lab2LawConcepts": [
+  {
+   "id": "sqrtScale",
+   "label": "平方根關係：高度 ×4，射程約 ×2"
+  },
+  {
+   "id": "linearScale",
+   "label": "正比關係：高度 ×4，射程約 ×4"
+  },
+  {
+   "id": "constantRange",
+   "label": "無關：高度改變，射程仍差不多"
+  }
+ ],
  "lint": {
   "note": "R-NAR2 三軌(規格 v0.1.1 §七):player-naming=拋物線(命名前全字串禁)/player-hypothesis=√・平方根・開方(僅 B2-3.r2 或押中事件)/resolution-qualified=同時落地(須條件句)。M1(B0–B1)合法狀態=零受管詞;entries 於 M2 起隨節點登錄。",
   "terms": {
@@ -53,6 +67,12 @@
     "term": "平方根",
     "class": "revealed-after-player",
     "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "lab2LawConcepts.sqrtScale.label",
+    "term": "平方根",
+    "class": "player-hypothesis",
+    "revealKey": "revealSqrt"
    },
    {
     "nodeId": "B2-3/s2",
@@ -714,14 +734,14 @@
      "until": {
       "f2": "law"
      },
-     "hint": "對 25 格押出你的預測,親手放球——押中且形狀成立,主張才算你的",
+     "hint": "先押 25 格並親手放球;結果通過後,再選一組數據與它支持的概念提出斷言",
      "next": "s1"
     },
     {
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "(玩家已親手押中——系統記下這一刻。)",
+     "text": "(玩家已選定一組可用數據,並親自提出斷言——系統記下引用來源。)",
      "next": "n4",
      "effects": [
       {

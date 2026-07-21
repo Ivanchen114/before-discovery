@@ -881,7 +881,8 @@
   var cat2EmbedKey = "";
   function cat2EvidenceFlags(s) {
     var f2 = s && s.lab && s.lab.evidence && s.lab.evidence.f2;
-    return { law: !!(f2 && f2.law), ball: !!(f2 && f2.ball), full: !!(s && s.evidence && s.evidence.F2) };
+    return { law: !!(f2 && f2.law), lawSource: f2 && f2.lawSource,
+      ball: !!(f2 && f2.ball), full: !!(s && s.evidence && s.evidence.F2) };
   }
   function cat2ClaimGain(before, after) {
     var out = [];
@@ -906,6 +907,11 @@
       return "兩球的射程差超過容許範圍；先檢查是否真的只換了球。";
     return diffs.length ? "這兩組還不能形成乾淨比較：" + diffs.join("、") : "這兩組還不能形成乾淨比較。";
   }
+  function cat2LawFailure(reason) {
+    if (reason === "concept-mismatch")
+      return "這句和所選數據對不上。比較下落高度 4 → 16 格與射程約 2 → 4 尺：兩邊各放大了幾倍？";
+    return "這組數據還不能支持這項斷言。";
+  }
   function cat2ErrorText(code, result) {
     var map = {
       "not-assembled": "裝置還沒組完整：五個槽位都要有零件。",
@@ -916,7 +922,11 @@
       "too-early": "先完成 4、9、16 格，才有足夠線索預測 25 格。",
       "bad-prediction": "請輸入一個有效的射程數字。",
       "dependency-missing": "這項校準缺少對應零件，先把裝置組好。",
-      "series-not-found": "找不到那組紀錄，請重新選擇。"
+      "series-not-found": "找不到那組紀錄，請重新選擇。",
+      "series-not-complete": "這組紀錄還沒完成 4、9、16、25 格，不能拿來斷言。",
+      "series-not-accepted": "這組紀錄沒有同時通過形狀與預測門檻；請選標示為「可用」的紀錄，或改善裝置後重做。",
+      "law-source-ball": "斷言一要引用本輪的銅球基準；木球紀錄留給下一步檢驗重量。",
+      "unknown-law-concept": "先選擇這組數據支持的物理關係。"
     };
     var text = map[code] || code;
     if (result && result.diffs && result.diffs.length) text += "——" + cat2CompareFailure(result.diffs);
@@ -933,7 +943,7 @@
         cat2Replay = { H: args.H, reading: rd, ball: r.result.series.ball };
       }
       var feedback = r.result && r.result.ok === false
-        ? "✕ " + cat2CompareFailure(r.result.diffs)
+        ? "✕ " + (action === "assertLaw" ? cat2LawFailure(r.result.reason) : cat2CompareFailure(r.result.diffs))
         : (okText ? okText(r.result) : "");
       var gain = cat2ClaimGain(beforeClaims, cat2EvidenceFlags(r.state));
       cat2Msg = gain ? gain + (feedback ? "\n" + feedback : "") : feedback;
@@ -947,7 +957,7 @@
     };
     if (v.nodeId === "e2") return {
       step: "第二步｜先押再看",
-      text: "根據 4、9、16 格的紀錄，先押出 25 格的射程，再放球檢驗你的規律。"
+      text: "先押出 25 格射程並放球；結果出來後，親自選一組數據與它支持的概念，提出斷言。"
     };
     if (v.nodeId === "e3") return {
       step: "第三步｜只換球",
@@ -968,7 +978,9 @@
       : "先組滿五個槽位並校準發射零位、沙盤標尺，再用銅球開始。";
     if (v.nodeId === "e2") return open
       ? "讀完前三個高度後，先鎖定 25 格預測；看到結果前不能改答案。"
-      : "選擇剛才尚未完成的銅球紀錄，或以同一裝置重做一組乾淨銅球紀錄。";
+      : (done.some(function (s) { return s.status === "complete"; })
+        ? "結果只是一組可引用的紀錄。請在紀錄簿選數據、選概念，再由你提出斷言。"
+        : "選擇剛才尚未完成的銅球紀錄，或以同一裝置重做一組乾淨銅球紀錄。");
     if (v.nodeId === "e3") {
       var hasWood = done.some(function (s) { return s.status === "complete" && s.ball === "wood"; });
       if (!hasWood && !open) return "保持零件與校準不變，選木球開始一組完整測量。";
@@ -1114,7 +1126,8 @@
     claims.setAttribute("aria-label", "本實驗可取得的兩項斷言");
     var lawClaim = el("div", "", claims, "catClaim " + (f2Claims.law ? "earned" : "locked"));
     el("b", (f2Claims.law ? "✓" : "○") + " 斷言一", lawClaim);
-    el("span", f2Claims.law ? "高度 ×4，射程約 ×2" : "押中 25 格後取得", lawClaim);
+    el("span", f2Claims.law ? "高度 ×4，射程約 ×2" +
+      (f2Claims.lawSource != null ? "（引用 #" + f2Claims.lawSource + "）" : "") : "選一組可用數據＋概念後取得", lawClaim);
     var ballClaim = el("div", "", claims, "catClaim " + (f2Claims.ball ? "earned" : "locked"));
     el("b", (f2Claims.ball ? "✓" : "○") + " 斷言二", ballClaim);
     el("span", f2Claims.ball ? "只換球重，規律不變" : "完成銅球／木球比較後取得", ballClaim);
@@ -1153,8 +1166,8 @@
         doLab2("runHeight", { H: 25 }, function (res) {
           var s = res.series;
           if (s.rejectReason === "non-scalar") return "這個範圍太寬,還不能押一個數——量法得再講究。";
-          return s.accepted ? "主張成立:形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% ✓|預測偏差 " + (s.predictionError * 100).toFixed(1) + "% ✓"
-            : "未成立:形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% " + (s.shapeError <= 0.12 ? "✓" : "✕") +
+          return s.accepted ? "這組紀錄可用：形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% ✓｜預測偏差 " + (s.predictionError * 100).toFixed(1) + "% ✓。接著選數據與概念，提出你的斷言。"
+            : "這組紀錄不可用：形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% " + (s.shapeError <= 0.12 ? "✓" : "✕") +
               "|預測偏差 " + (s.predictionError * 100).toFixed(1) + "% " + (s.predictionError <= 0.12 ? "✓" : "✕");
         });
       }, act, "catPrimary");
@@ -1168,9 +1181,40 @@
       done.forEach(function (s) {
         el("div", "#" + s.id + "｜" + (s.ball === "copper" ? "銅球" : "木球") + "｜" +
           [4, 9, 16, 25].map(function (h) { var rd = s.readings[h]; return typeof rd === "number" ? rd.toFixed(1) : (rd ? "[" + rd[0] + "-" + rd[1] + "]" : "—"); }).join("/") +
-          "｜" + (s.status === "abandoned" ? "已放棄" : (s.accepted ? "成立 ✓" : "未成立")), tv, "catRecord");
+          "｜" + (s.status === "abandoned" ? "已放棄" : (s.accepted ? "可用 ✓" : "不可用")), tv, "catRecord");
       });
       var comp = done.filter(function (s) { return s.status === "complete"; });
+      if (comp.length && v.nodeId === "e2" && !f2Claims.law && !stageReady) {
+        var lr = el("div", "", tv, "catCompare catLawAssert");
+        el("b", "從數據提出斷言一", lr);
+        var sourceSel = document.createElement("select");
+        var sourcePlaceholder = document.createElement("option");
+        sourcePlaceholder.value = ""; sourcePlaceholder.textContent = "選一組完整紀錄"; sourceSel.appendChild(sourcePlaceholder);
+        comp.forEach(function (s) {
+          var o = document.createElement("option"); o.value = s.id;
+          o.textContent = "#" + s.id + "・" + (s.ball === "copper" ? "銅球" : "木球") + "・" + (s.accepted ? "可用" : "不可用");
+          sourceSel.appendChild(o);
+        });
+        var conceptSel = document.createElement("select");
+        var conceptPlaceholder = document.createElement("option");
+        conceptPlaceholder.value = ""; conceptPlaceholder.textContent = "選擇數據支持的概念"; conceptSel.appendChild(conceptPlaceholder);
+        (SCENES.lab2LawConcepts || []).forEach(function (c) {
+          var o = document.createElement("option"); o.value = c.id; o.textContent = c.label; conceptSel.appendChild(o);
+        });
+        lr.appendChild(sourceSel); lr.appendChild(conceptSel);
+        var lawHint = el("small", "先選你要引用的完整紀錄，再判斷它支持哪一種關係。", lr, "catCompareHint");
+        function updateLawHint() {
+          var picked = comp.find(function (s) { return s.id === parseInt(sourceSel.value, 10); });
+          if (!picked) lawHint.textContent = "先選你要引用的完整紀錄，再判斷它支持哪一種關係。";
+          else if (picked.ball !== "copper") lawHint.textContent = "這是木球紀錄；斷言一先引用銅球基準，木球留給斷言二。";
+          else if (!picked.accepted) lawHint.textContent = "這組沒有通過兩道資料門檻，不能拿來支持物理斷言。";
+          else lawHint.textContent = "✓ 這組數據可引用。現在選出它真正支持的物理關係。";
+        }
+        sourceSel.onchange = updateLawHint; updateLawHint();
+        btn("用這組數據提出斷言", function () {
+          doLab2("assertLaw", { seriesId: parseInt(sourceSel.value, 10), conceptId: conceptSel.value });
+        }, lr, "catPrimary");
+      }
       if (comp.length >= 2 && !stageReady) {
         var cr = el("div", "", tv, "catCompare");
         el("b", "換球比較", cr);
