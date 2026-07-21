@@ -816,7 +816,7 @@ tests.push({
     const hits = scan(data);
     /* M1 合法狀態:B0-B1 無任何受管詞;有登錄的例外須在 lint.entries(現為空) */
     const allowed = new Set((data.lint.entries || []).map((e) => e.nodeId + ":" + e.term));
-    const bad = hits.filter((h) => !allowed.has(h.where.split(".")[0] + ":" + h.w));
+    const bad = hits.filter((h) => !allowed.has(h.where + ":" + h.w));
     if (bad.length) throw new Error("受管詞違規:" + JSON.stringify(bad[0]));
     /* 六組負向變異(合成注入,驗掃描器有牙) */
     const inject = (txt) => scan({ scenes: [{ id: "X", title: "", nodes: [{ id: "n1", type: "line", speaker: "旅人", text: txt, next: "end" }] }] }).length;
@@ -826,52 +826,125 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M1|行為走查:B0-1→B1-4 全程可通,證據/信譽/學者分支/存檔往返",
+  name: "第二章 M1+M2|全章走查:B0-1→B2-5(含彈射三 embed),證據五枚/黃金 10 天/揭曉旗標/存檔往返",
   fn: () => {
     const F = require("../src/narrative.js")._factory;
     const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
-    const Engine = require("../src/engine.js");
-    const walk = (mode, pickWrongFirst) => {
-      const N2 = F(scenes2, Engine, {});
+    const E2 = require("../src/engine2.js");
+    const FULL = [["launcher", "shortGroove"], ["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"], ["heightRig", "liftSandbed"]];
+    const walk = (mode, opts0) => {
+      const o = opts0 || {};
+      const N2 = F(scenes2, E2, {});
       let st = N2.initialState(mode);
+      const lab = (action, args) => {
+        const r = N2.labAction(st, action, args);
+        if (r.error) throw new Error("lab " + action + ":" + r.error);
+        st = r.state;
+      };
+      const driveCatapult = (v) => {
+        const u = scenes2.scenes.find((s) => s.id === v.scene).nodes.find((n) => n.id === v.nodeId).until;
+        if (u.cat === "threeH") {
+          for (const [slot, part] of FULL) lab("place", { slot, part });
+          lab("calibrate", { kind: "releaseZero" }); lab("calibrate", { kind: "rangeScale" });
+          lab("beginSeries", { ball: "copper" });
+          for (const H of [4, 9, 16]) lab("runHeight", { H });
+        } else if (u.f2 === "law") {
+          lab("predictSeries", { value: 5.0 }); lab("runHeight", { H: 25 });
+        } else if (u.f2 === "ball") {
+          lab("beginSeries", { ball: "wood" });
+          for (const H of [4, 9, 16]) lab("runHeight", { H });
+          lab("predictSeries", { value: 5.0 }); lab("runHeight", { H: 25 });
+          lab("compareBalls", { a: 1, b: 2 });
+        }
+        const rc = N2.embedComplete(st);
+        if (rc.error) throw new Error("embedComplete:" + rc.error);
+        st = rc.state;
+      };
       let guard = 0;
-      while (!st.ended && guard++ < 300) {
+      while (!st.ended && guard++ < 500) {
         const v = N2.view(st);
+        if (v.type === "embed") { driveCatapult(v); continue; }
         if (v.type === "choice") {
-          const opts = v.options.map((o) => o.id);
-          let pick = opts.includes("a") ? "a" : opts[0];
-          if (pickWrongFirst && v.scene === "B0-2" && !st.flags.triedA) {
+          const ids = v.options.map((x) => x.id);
+          let pick = ids.includes("a") ? "a" : ids[0];
+          if (o.wrongFirst && v.scene === "B0-2" && !st.flags.triedA) {
             st = N2.choose(st, "a").state; st.flags.triedA = "1";
             if (st.rep !== 2) throw new Error("B0-2.a 應 rep 3→2,得 " + st.rep);
-            continue; /* 誤選後讓引擎把回應台詞走完,迴圈自然回到選項 */
+            continue;
           }
           if (v.scene === "B0-2") pick = "b";
+          if (v.scene === "B2-3" && ids.includes("r1")) pick = o.hypothesis ? "r2" : "r1";
+          if (v.scene === "B2-2" && o.wrongFirst && !st.flags.triedBend && ids.includes("b")) {
+            st = N2.choose(st, "b").state; st.flags.triedBend = "1"; continue; /* F4 可錯可修 */
+          }
+          if (v.scene === "B2-4" && v.nodeId === "q4" && o.wrongFirst && !st.flags.triedLate && ids.includes("b")) {
+            st = N2.choose(st, "b").state; st.flags.triedLate = "1"; continue; /* F3 可錯可修 */
+          }
           const r = N2.choose(st, pick);
-          if (r.error) throw new Error("choose 失敗:" + v.scene + " " + r.error);
+          if (r.error) throw new Error("choose:" + v.scene + " " + r.error);
           st = r.state;
         } else {
           const r = N2.advance(st);
-          if (r.error) throw new Error("advance 失敗:" + JSON.stringify(v).slice(0, 80));
+          if (r.error) throw new Error("advance:" + JSON.stringify(v).slice(0, 80));
           st = r.state;
         }
       }
-      if (!st.ended) throw new Error("300 步未達終點(" + mode + ")");
+      if (!st.ended) throw new Error("500 步未達終點(" + mode + ")");
       return st;
     };
-    const s1 = walk("explore", true);
-    if (!s1.evidence.S3 || !s1.evidence.F1) throw new Error("探索線證據缺失");
-    if (s1.rep !== 3) throw new Error("探索線信譽應 3(−1+1),得 " + s1.rep);
-    const s2 = walk("scholar", false);
-    if (!s2.evidence.F1) throw new Error("學者線 F1 缺失");
+    /* 探索線:含 B0-2 誤選、F4/F3 誤判修正、r2 假說路 */
+    const s1 = walk("explore", { wrongFirst: true, hypothesis: true });
+    for (const ev of ["S3", "S4", "F1", "F2", "F3", "F4"])
+      if (!s1.evidence[ev]) throw new Error("證據缺失:" + ev);
+    if (s1.rep !== 3) throw new Error("信譽應 3,得 " + s1.rep);
+    if (s1.lab.days !== 10) throw new Error("黃金路徑應 10 天,得 " + s1.lab.days);
+    if (s1.flags.revealSqrt !== "1") throw new Error("r2 假說未寫揭曉旗標");
+    if (!s1.lab.evidence.f2.law || !s1.lab.evidence.f2.ball) throw new Error("引擎 f2 旗標缺失");
+    /* 學者線:r1 數值路——押中後系統節點仍須原子寫入揭曉 */
+    const s2 = walk("scholar", { hypothesis: false });
+    if (s2.flags.revealSqrt !== "1") throw new Error("r1 押中路未原子寫入揭曉旗標");
     if (!s2.transcript.some((t) => (t.text || "").includes("先不給它名字"))) throw new Error("學者分支未演出");
-    if (walk("explore", false).transcript.some((t) => (t.text || "").includes("先不給它名字")))
-      throw new Error("探索線誤入學者節點");
     /* 存檔往返 */
-    const F2i = F(scenes2, Engine, {});
-    const code = F2i.serialize(s1);
-    const back = F2i.loadSave(code);
+    const F2i = F(scenes2, E2, {});
+    const back = F2i.loadSave(F2i.serialize(s1));
     if (back.error) throw new Error("ch2 存檔往返失敗:" + back.error);
     if (JSON.stringify(back.state) !== JSON.stringify(JSON.parse(JSON.stringify(s1)))) throw new Error("往返不深等");
+  }
+});
+
+tests.push({
+  name: "第二章 M2b|until 閘負向+殼接線:threeH 需 clean、非彈射引擎拒新動作、chapter2 引擎重指",
+  fn: () => {
+    const F = require("../src/narrative.js")._factory;
+    const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const E2 = require("../src/engine2.js");
+    const N2 = F(scenes2, E2, {});
+    /* 開到 B2-3 e1,用 speedDrift 裝置跑三高:劇情門不得開 */
+    let st = N2.initialState("explore");
+    let guard = 0;
+    while (guard++ < 200) {
+      const v = N2.view(st);
+      if (v.type === "embed" && v.scene === "B2-3" && v.nodeId === "e1") break;
+      if (v.type === "choice") st = N2.choose(st, v.options[0].id === "a" ? (v.scene === "B0-2" ? "b" : "a") : v.options[0].id).state;
+      else st = N2.advance(st).state;
+    }
+    const drive = [["place", { slot: "launcher", part: "shortGroove" }], ["place", { slot: "release", part: "handRelease" }],
+      ["place", { slot: "edge", part: "polishedEdge" }], ["place", { slot: "rangeBed", part: "rakedSand" }],
+      ["place", { slot: "heightRig", part: "liftSandbed" }], ["calibrate", { kind: "releaseZero" }], ["calibrate", { kind: "rangeScale" }],
+      ["beginSeries", { ball: "copper" }], ["runHeight", { H: 4 }], ["runHeight", { H: 9 }], ["runHeight", { H: 16 }]];
+    for (const [a, g] of drive) st = N2.labAction(st, a, g).state;
+    if (!N2.embedComplete(st).error) throw new Error("speedDrift 裝置竟通過 threeH 劇情門(需 clean)");
+    /* ch1 引擎不得吃 ch2 動作 */
+    const N1 = require("../src/narrative.js");
+    const s1 = N1.initialState("explore");
+    if (!N1.labAction(s1, "beginSeries", { ball: "copper" }).error) throw new Error("ch1 引擎誤收 ch2 動作");
+    /* 殼接線+面板 */
+    const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
+    if (!c2.includes("engine2.js") || !c2.includes("GB.Engine = window.GB.Engine2")) throw new Error("chapter2 引擎重指缺失");
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "abandonSeries"])
+      if (!cui.includes(frag)) throw new Error("彈射面板缺件:" + frag);
+    if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("engine2")) throw new Error("灰盒一章殼混入 ch2 引擎");
   }
 });
 

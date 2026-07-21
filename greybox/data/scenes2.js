@@ -1,5 +1,5 @@
 /* data/scenes2.js — 第二章執行載體(file:// 相容)。規範鏡像:scenes2.json(深等測試把關)。
-   台詞逐字=凍結劇本 v0.1.3(M1 範圍:B0-1~B1-4);lint=R-NAR2 三軌(規格 v0.1.1 §七)。 */
+   台詞逐字=凍結劇本 v0.1.3(M2 範圍:B0-1~B2-5);lint=R-NAR2 三軌(規格 v0.1.1 §七)。 */
 (function (root) {
   "use strict";
   var data = {
@@ -29,7 +29,50 @@
     "同時落地"
    ]
   },
-  "entries": []
+  "entries": [
+   {
+    "nodeId": "B2-3/q1.r2",
+    "term": "開方",
+    "class": "player-hypothesis",
+    "revealKey": "revealSqrt"
+   },
+   {
+    "nodeId": "B2-3/n4",
+    "term": "√",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "B2-3/n4",
+    "term": "平方",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "B2-3/s2",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "B2-5/n2",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "B2-3/s2",
+    "term": "√",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "B2-4/q4.a",
+    "term": "同時落地",
+    "class": "resolution-qualified",
+    "conditionText": "在這機關聽得出的範圍內"
+   }
+  ]
  },
  "scenes": [
   {
@@ -418,7 +461,433 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "第一幕終。筆記:「打正面。要軌跡,要射程。」\n(M1 灰盒切片至此;第二幕實驗於 M2 接續。)",
+     "text": "第一幕終。筆記:「打正面。要軌跡,要射程。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B2-1"
+    }
+   ]
+  },
+  {
+   "id": "B2-1",
+   "title": "Guidobaldo 的筆記(抄頁)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "伽利略在木箱底翻出一冊手抄的筆記頁——邊角磨圓了。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "十六年前。Guidobaldo 侯爵——我的老恩主,引我到帕多瓦的人,也是我見過最捨得弄髒手的貴族。(翻開一頁)那年我們把球沾了墨,沿一塊立得近乎直、卻仍托得住球的斜板,斜斜推上去。墨跡拖出一道彎——他在筆記裡記:「像倒掛的鏈子。」這一頁,是我離開前抄下的。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "你們早就畫過它了。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "畫過,沒算過。(把抄頁拍在桌上)現在,補課。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 S4 Guidobaldo 的實驗筆記(抄頁)。筆記:「又一次——不是一個人在想。」",
+     "next": "g1",
+     "effects": [
+      {
+       "evidence": "S4"
+      }
+     ]
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B2-2"
+    }
+   ]
+  },
+  {
+   "id": "B2-2",
+   "title": "墨跡(F4)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "重做:斜板立得近乎直,仍托著球。沾墨的球沿板面斜推而上、彎回、落下。墨線蜿蜒——",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(退開一步,把尺遞給旅人)別問我。你看——這條線,從哪裡開始彎?",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你持尺,沿墨線比對——最早開始彎的位置在:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「從離手第一寸,就在彎。」",
+       "next": "na1"
+      },
+      {
+       "id": "b",
+       "text": "「前段有一小段直,之後才彎。」",
+       "next": "nb1"
+      }
+     ]
+    },
+    {
+     "id": "nb1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(不說話,把直尺貼上墨線起段)尺不會客氣。你再看。(尺與墨線之間,漏進一線光)",
+     "next": "q1"
+    },
+    {
+     "id": "na1",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "(用指節沿線比到底)……彎的。整條線,找不到一段直。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "一寸都沒有。(把砲術圖拿下來,並排釘上)砲手的第一段直線——是眼睛替匠人省略的筆畫。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 F4 墨跡曲線(玩家標定彎點)。筆記:「曲線,從第一寸開始——是我用尺量過才敢說的。」",
+     "next": "g1",
+     "effects": [
+      {
+       "evidence": "F4"
+      }
+     ]
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B2-3"
+    }
+   ]
+  },
+  {
+   "id": "B2-3",
+   "title": "桌緣彈射(核心實驗,連日)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "裝置:短斜槽接平桌,球自槽上固定刻度釋放、滾過桌面、飛離桌緣,落在鋪細沙的長盤裡。沙盤可升降——改的是桌沿到沙面的下落高度。沙上留痕,量水平射程。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "先讓發射器閉嘴:同一刻度,出手就是同一個速度。它穩了,才輪得到真正的問題——(搖動沙盤的升降架)掉得愈深,飛得愈遠——遠多少?",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "catapult",
+     "until": {
+      "cat": "threeH"
+     },
+     "hint": "組好五槽、完成兩項校準,用同一顆銅球放完 4、9、16 格三個下落高度",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "伽利略",
+     "text": "(把紀錄推過來)你看出什麼?",
+     "options": [
+      {
+       "id": "r1",
+       "text": "「高度翻四倍……射程翻兩倍。」",
+       "next": "n3"
+      },
+      {
+       "id": "r2",
+       "text": "「射程,像是下落高度的開方。」",
+       "next": "n3",
+       "effects": [
+        {
+         "flag": [
+          "revealSqrt",
+          "1"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "是嗎?(把沙盤又降下一段,新釘一格)下落高度二十五格——射程,你說多少?",
+     "next": "e2"
+    },
+    {
+     "id": "e2",
+     "type": "embed",
+     "system": "catapult",
+     "until": {
+      "f2": "law"
+     },
+     "hint": "對 25 格押出你的預測,親手放球——押中且形狀成立,主張才算你的",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "(玩家已親手押中——系統記下這一刻。)",
+     "next": "n4",
+     "effects": [
+      {
+       "flag": [
+        "revealSqrt",
+        "1"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(盯著沙盤,很久)出手的速度沒變——變的只有「掉多深」。掉,聽時間的平方;前行,聽時間的一次。掉得愈久,前行就替它跑愈遠——射程吃的是√。(抬頭)兩條路各走各的——合起來,就是墨跡那道彎。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(忽然壓低嗓子,學那個熟悉的腔調)——「妙哉。然此乃銅球之弧。焉知非重者獨有之飛法?」(拋來一顆同樣大小的木球)他真的會這樣問。同一個尺寸,重量差七倍——接好。",
+     "next": "e3"
+    },
+    {
+     "id": "e3",
+     "type": "embed",
+     "system": "catapult",
+     "until": {
+      "f2": "ball"
+     },
+     "hint": "同裝置、同刻度,木球走完 4/9/16、押 25;完成後在紀錄簿對兩組成立紀錄斷言比較",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "銅的這道彎,木的這道彎——同一副骨架。",
+     "next": "s2"
+    },
+    {
+     "id": "s2",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 F2 桌緣彈射・平方根律(含換球複驗)。筆記大字:「同介質、同外形同徑、同發射設定下:射程∝√下落高度,形式不隨球重改變。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B2-4"
+    }
+   ]
+  },
+  {
+   "id": "B2-4",
+   "title": "雙球同落・正式版(F3)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "機關:桌緣一座小門閂——扳下,同時做兩件事:把一球水平推離桌緣、放另一球原地自由落下。兩球同高、同形、低速短程。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把門閂讓出來)還是老規矩——不是看,是聽。你來扳。",
+     "next": "q1"
+    },
+    {
+     "id": "q1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "第一輪。",
+     "options": [
+      {
+       "id": "a",
+       "text": "(扳下門閂)",
+       "next": "np1"
+      }
+     ]
+    },
+    {
+     "id": "np1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "一顆飛出老遠,一顆直墜腳邊——兩聲,近得分不開。",
+     "next": "q2"
+    },
+    {
+     "id": "q2",
+     "type": "choice",
+     "speaker": "system",
+     "text": "墊高。第二輪。",
+     "options": [
+      {
+       "id": "a",
+       "text": "(扳下門閂)",
+       "next": "np2"
+      }
+     ]
+    },
+    {
+     "id": "np2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "仍分不開。",
+     "next": "q3"
+    },
+    {
+     "id": "q3",
+     "type": "choice",
+     "speaker": "system",
+     "text": "再墊高。第三輪。",
+     "options": [
+      {
+       "id": "a",
+       "text": "(扳下門閂)",
+       "next": "np3"
+      }
+     ]
+    },
+    {
+     "id": "np3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "在這座機關聽得出的範圍裡,還是分不開。",
+     "next": "q4"
+    },
+    {
+     "id": "q4",
+     "type": "choice",
+     "speaker": "system",
+     "text": "三輪紀錄在案——你的判讀:",
+     "options": [
+      {
+       "id": "a",
+       "text": "「在這機關聽得出的範圍內,兩球同時落地。」",
+       "next": "na1"
+      },
+      {
+       "id": "b",
+       "text": "「飛遠的那顆,晚了一點。」",
+       "next": "nb1"
+      }
+     ]
+    },
+    {
+     "id": "nb1",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "(把紀錄推回)你的耳朵記的是「分不開」,三輪都是。晚了一點——是聽見的,還是猜的?",
+     "next": "q4"
+    },
+    {
+     "id": "na1",
+     "type": "line",
+     "speaker": "旅人",
+     "text": "前行得再遠,下墜也沒有量得出的遲到。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "若墜真要等力竭,飛得遠的那顆該給我們一個聽得見的「晚」——三輪,一次都沒有。所以「力竭而後墜」是倒果為因——墜,從離手那一刻就開始了。它不等誰。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 F3 雙球同落(玩家扳閂三輪+判讀)。筆記:「下墜不等力竭。它從第一瞬就在場,照舊走它的時間平方。(同高、同形、低速短程;本機關解析度內)」",
+     "next": "g1",
+     "effects": [
+      {
+       "evidence": "F3"
+      }
+     ]
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "B2-5"
+    }
+   ]
+  },
+  {
+   "id": "B2-5",
+   "title": "幕間(工作室,夜)",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "牆上:砲術圖、墨跡板、沙盤紀錄、批註滿的舊數據紙——並排。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "船桅、墨跡、平方根、分不開的兩聲。(逐一點過去)四樣都在了。(把辛普里奧的講堂告示拍上牆——是教授自己貼的,字跡端正)他等這場,比我們還久。",
+     "next": "s1"
+    },
+    {
+     "id": "s1",
+     "type": "system",
+     "speaker": "system",
+     "text": "第二幕終。證據齊備:F1/F2/F3/F4(+S3/S4)。\n(M2 灰盒切片至此;第三幕辯論於 M3 接續。)",
      "next": "end"
     },
     {

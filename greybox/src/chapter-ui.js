@@ -776,6 +776,108 @@
     });
   }
 
+  /* ---------- 第二章彈射工坊面板(R-WS2/R-LAB2;僅 system="catapult" 時渲染,ch1 零觸發) ---------- */
+  var cat2Msg = "";
+  function doLab2(action, args, okText) {
+    var r = N.labAction(state, action, args);
+    if (r.error) { cat2Msg = "✕ " + r.error + (r.result && r.result.diffs ? "——" + r.result.diffs.join("、") : ""); }
+    else { setState(r.state); cat2Msg = okText ? okText(r.result) : ""; }
+    renderAll();
+  }
+  function renderCatapult(v, box) {
+    var E2 = window.GB.Engine2, lab2 = state.lab;
+    var open = null;
+    (lab2.series || []).forEach(function (s) { if (s.status === "open") open = s; });
+    function el(tag, txt, parent) { var e = document.createElement(tag); if (txt) e.textContent = displayText(txt); (parent || box).appendChild(e); return e; }
+    function btn(txt, fn, parent) { var b = el("button", txt, parent); b.type = "button"; b.onclick = fn; return b; }
+    el("h3", "彈射工坊|" + (v.hint || "組裝置→校準→連結測量"));
+    /* 裝置(持續可見) */
+    var dv = el("div"); dv.style.border = "1px solid #999"; dv.style.padding = "6px 10px";
+    el("b", "裝置", dv);
+    E2._SLOTS.forEach(function (slot) {
+      var row = el("div", "", dv);
+      var cur = lab2.slots[slot];
+      el("span", slot + ":" + (cur ? E2._PARTS[cur].label : "(空)") + " ", row);
+      var sel = document.createElement("select");
+      Object.keys(E2._PARTS).forEach(function (pid) {
+        var p = E2._PARTS[pid];
+        if (p.slot !== slot) return;
+        if (p.scholar && state.mode !== "scholar") return;
+        var o = document.createElement("option"); o.value = pid; o.textContent = p.label; sel.appendChild(o);
+      });
+      row.appendChild(sel);
+      btn(cur ? "更換" : "裝上", function () { doLab2(cur ? "replacePart" : "place", { slot: slot, part: sel.value }); }, row);
+    });
+    var cal = el("div", "", dv);
+    [["releaseZero", "發射零位(同刻度三放重疊)"], ["rangeScale", "沙盤標尺"]].forEach(function (c) {
+      var row = el("div", "", cal);
+      el("span", "校準・" + c[1] + ":" + (lab2.calib[c[0]] ? "✓ 已校" : "未校 "), row);
+      if (!lab2.calib[c[0]]) btn("校準(1 天)", function () { doLab2("calibrate", { kind: c[0] }); }, row);
+    });
+    /* 連結測量 */
+    var sv = el("div"); sv.style.border = "1px dashed #666"; sv.style.padding = "6px 10px"; sv.style.marginTop = "8px";
+    el("b", "連結測量(同裝置同球:4→9→16 格,押注,再放 25 格)", sv);
+    if (!open) {
+      var row0 = el("div", "", sv);
+      var bs = document.createElement("select");
+      [["copper", "同徑實心銅球"], ["wood", "同徑實心木球"]].forEach(function (b2) {
+        var o = document.createElement("option"); o.value = b2[0]; o.textContent = b2[1]; bs.appendChild(o);
+      });
+      row0.appendChild(bs);
+      btn("開始一組連結測量", function () { doLab2("beginSeries", { ball: bs.value }); }, row0);
+    } else {
+      el("div", "進行中 #" + open.id + "(" + (open.ball === "copper" ? "銅" : "木") + "球)——已測:" +
+        [4, 9, 16, 25].filter(function (h) { return h in open.readings; }).map(function (h) {
+          var rd = open.readings[h];
+          return h + "格→" + (typeof rd === "number" ? rd.toFixed(1) + "尺" : "範圍 " + rd[0] + "–" + rd[1] + " 尺");
+        }).join(";") || "(尚未放球)", sv);
+      var nh = [4, 9, 16, 25].filter(function (h) { return !(h in open.readings); })[0];
+      var act = el("div", "", sv);
+      if (nh && nh < 25) btn("放球:下落高度 " + nh + " 格(1 天)", function () { doLab2("runHeight", { H: nh }); }, act);
+      else if (nh === 25 && (typeof open.prediction !== "number")) {
+        el("span", "掉得愈深,飛得愈遠——25 格,你押射程幾尺:", act);
+        var inp = document.createElement("input"); inp.type = "number"; inp.step = "0.1"; inp.style.width = "80px";
+        act.appendChild(inp);
+        btn("押注", function () { doLab2("predictSeries", { value: parseFloat(inp.value) }); }, act);
+      } else if (nh === 25) btn("放球:25 格——見真章(1 天)", function () {
+        doLab2("runHeight", { H: 25 }, function (res) {
+          var s = res.series;
+          if (s.rejectReason === "non-scalar") return "這個範圍太寬,還不能押一個數——量法得再講究。";
+          return s.accepted ? "主張成立:形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% ✓|預測偏差 " + (s.predictionError * 100).toFixed(1) + "% ✓"
+            : "未成立:形狀偏差 " + (s.shapeError * 100).toFixed(1) + "% " + (s.shapeError <= 0.12 ? "✓" : "✕") +
+              "|預測偏差 " + (s.predictionError * 100).toFixed(1) + "% " + (s.predictionError <= 0.12 ? "✓" : "✕");
+        });
+      }, act);
+      btn("放棄這組(紀錄保留)", function () { doLab2("abandonSeries", {}); }, act);
+    }
+    /* 完成紀錄+換球比較 */
+    var done = (lab2.series || []).filter(function (s) { return s.status !== "open"; });
+    if (done.length) {
+      var tv = el("div"); tv.style.marginTop = "8px";
+      el("b", "紀錄簿(不可刪)", tv);
+      done.forEach(function (s) {
+        el("div", "#" + s.id + " " + (s.ball === "copper" ? "銅" : "木") + " " +
+          [4, 9, 16, 25].map(function (h) { var rd = s.readings[h]; return typeof rd === "number" ? rd.toFixed(1) : (rd ? "[" + rd[0] + "-" + rd[1] + "]" : "—"); }).join("/") +
+          "|" + (s.status === "abandoned" ? "已放棄" : (s.accepted ? "成立" : "未成立")), tv);
+      });
+      var comp = done.filter(function (s) { return s.status === "complete"; });
+      if (comp.length >= 2) {
+        var cr = el("div", "", tv);
+        el("span", "換球比較(勾兩組):", cr);
+        var sa = document.createElement("select"), sb = document.createElement("select");
+        comp.forEach(function (s) { [sa, sb].forEach(function (sel2) { var o = document.createElement("option"); o.value = s.id; o.textContent = "#" + s.id + (s.ball === "copper" ? "銅" : "木"); sel2.appendChild(o.cloneNode(true)); }); });
+        cr.appendChild(sa); cr.appendChild(sb);
+        btn("斷言:與球重無關", function () {
+          doLab2("compareBalls", { a: parseInt(sa.value, 10), b: parseInt(sb.value, 10) }, function (res) {
+            return res.ok ? "同一副骨架——與球重無關,成立。" : "";
+          });
+        }, cr);
+      }
+    }
+    var mp = el("p", cat2Msg); mp.className = "labmsg"; mp.setAttribute("role", "status");
+    renderEmbedGate(v);
+  }
+
   /* ---------- 主渲染 ---------- */
   function renderAll() {
     renderStatus();
@@ -811,6 +913,10 @@
       return;
     }
     $("lab").style.display = "none";
+    if (v.type === "embed" && v.system === "catapult") {
+      renderCatapult(v, box);
+      return;
+    }
     if (v.type === "embed" && v.system === "debrief") {
       renderDebrief(v, box);
       return;

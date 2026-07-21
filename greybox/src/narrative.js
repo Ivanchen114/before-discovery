@@ -423,6 +423,20 @@
       return state.lab.evidence.runs.length > base;
     }
     if (until.debateWon) return !!(state.debate && state.debate.status === "won");
+    /* 第二章(規格 v0.1.1):cat=threeH=存在乾淨開放 series 已測 4/9/16(劇情提問門);f2=law/ball 讀引擎證據旗標 */
+    if (until.cat === "threeH") {
+      var ok3 = false;
+      (state.lab.series || []).forEach(function (sr) {
+        if (sr.status === "open" && sr.profile === "clean" &&
+            typeof sr.readings[4] === "number" && typeof sr.readings[9] === "number" &&
+            typeof sr.readings[16] === "number") ok3 = true;
+      });
+      return ok3;
+    }
+    if (until.f2) {
+      var f2u = state.lab.evidence && state.lab.evidence.f2;
+      return !!(f2u && f2u[until.f2]);
+    }
     return true;
   }
 
@@ -519,10 +533,22 @@
       r = Engine.assertE3(state.lab, args.type, args.claimIds);
     }
     else if (action === "compare") r = Engine.compareRuns(state.lab, args.runIds);
+    /* 第二章彈射工坊(R-WS2/R-LAB2):依引擎能力分派,ch1 引擎無此方法=維持未知動作拒絕 */
+    else if (action === "place" && Engine.place) r = Engine.place(state.lab, args.slot, args.part);
+    else if (action === "replacePart" && Engine.replacePart) r = Engine.replacePart(state.lab, args.slot, args.part);
+    else if (action === "calibrate" && Engine.calibrate) r = Engine.calibrate(state.lab, args.kind);
+    else if (action === "beginSeries" && Engine.beginSeries) r = Engine.beginSeries(state.lab, args.ball);
+    else if (action === "runHeight" && Engine.runHeight) r = Engine.runHeight(state.lab, args.H);
+    else if (action === "predictSeries" && Engine.predict) r = Engine.predict(state.lab, args.value);
+    else if (action === "abandonSeries" && Engine.abandonSeries) r = Engine.abandonSeries(state.lab);
+    else if (action === "compareBalls" && Engine.compareBalls) r = Engine.compareBalls(state.lab, args.a, args.b);
     else return { state: state0, error: "未知實驗台動作:" + action };
+    if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
     var e3 = state.lab.evidence.e3;
-    if (e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
+    if (e3 && e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
+    var f2g = state.lab.evidence.f2;
+    if (f2g && f2g.law && f2g.ball && !state.evidence.F2) grantEvidence(state, "F2", "lab2");
     if (action === "judge") {
       if ((r.claim && !r.claim.ok) || r.rejected) {
         state.flags.hadFailure = "1";

@@ -115,10 +115,12 @@
 <script src="src/sanitize.js"></script>
 <script src="src/text-format.js"></script>
 <script src="src/engine.js"></script>
+<script src="src/engine2.js"></script>
 <script src="data/scenes2.js"></script>
 <script>/* 第二章灰盒:重指場景資料+獨立存檔鍵(R-SAV2),narrative/chapter-ui 零改動 */
 window.GB.DATA.scenes = window.GB.DATA.scenes2;
-window.BD_SAVE_KEY = "bd_ch2_save";</script>
+window.BD_SAVE_KEY = "bd_ch2_save";
+window.GB.Engine = window.GB.Engine2; /* 第二章引擎=彈射工坊(R-WS2/R-LAB2) */</script>
 <script src="src/narrative.js"></script>
 <script src="src/chapter-ui.js"></script>
 </body>
