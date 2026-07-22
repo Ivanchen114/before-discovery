@@ -1493,22 +1493,35 @@
     ship3ClaimDraft[cfg.key] = draft;
     var panel = ship3El("section", null, parent, "shipClaimPanel");
     ship3El("h4", cfg.title, panel);
-    ship3El("p", "先勾選真正支持主張的紀錄，再選你認為成立的解釋。", panel, "shipNote");
+    ship3El("p", cfg.instruction || "先勾選真正支持主張的紀錄，再選你認為成立的解釋。", panel, "shipNote");
     var sourceList = ship3El("div", null, panel, "shipClaimSources");
+    var selectionStatus = cfg.selectionStatus ? ship3El("p", "", panel, "shipNote shipSelectionStatus") : null;
+    if (selectionStatus) selectionStatus.setAttribute("aria-live", "polite");
+    function pickedIds() {
+      return Object.keys(draft.picked).filter(function (id) { return draft.picked[id]; });
+    }
+    function updateSelectionStatus() {
+      if (selectionStatus) selectionStatus.textContent = cfg.selectionStatus(pickedIds());
+    }
     cfg.sources.forEach(function (src) {
       var label = ship3El("label", null, sourceList, "shipClaimSource");
       var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!draft.picked[src.id];
-      cb.onchange = function () { draft.picked[src.id] = cb.checked; };
+      cb.onchange = function () { draft.picked[src.id] = cb.checked; updateSelectionStatus(); };
       label.appendChild(cb); label.appendChild(document.createTextNode(" " + displayText(src.label)));
     });
+    updateSelectionStatus();
     var conceptRow = ship3El("div", null, panel, "shipClaimConcept");
     ship3El("label", "這組資料比較支持：", conceptRow);
     var concept = ship3Select(conceptRow, cfg.concepts.map(function (x) { return x[0]; }),
       Object.fromEntries(cfg.concepts), draft.concept);
     concept.onchange = function () { draft.concept = concept.value; };
     ship3Btn(conceptRow, "用所選紀錄提出斷言", function () {
-      var picked = Object.keys(draft.picked).filter(function (id) { return draft.picked[id]; });
+      var picked = pickedIds();
       if (!picked.length) { ship3Msg = "✕ 先勾選你要引用的紀錄。斷言必須指出自己的證據來源。"; renderAll(); return; }
+      if (cfg.selectionReady && !cfg.selectionReady(picked)) {
+        ship3Msg = cfg.incomplete || "✕ 比較資料還沒選齊。請依上方的選取進度補足兩組紀錄。";
+        renderAll(); return;
+      }
       doShip(cfg.action, cfg.args(picked, concept.value), cfg.success);
     }, "shipAction primary");
     return panel;
@@ -1673,7 +1686,25 @@
         }).concat((lab.mastRuns || []).map(function (r) {
           return { id: "m" + r.id, label: (r.state === "steady" ? "穩速" : "加速") + " #" + r.id + "｜" + (r.offset > 0 ? "+" : "") + r.offset.toFixed(2) + " 掌寬" };
         }));
+        function g1SelectionCounts(picked) {
+          var baseIds = picked.filter(function (x) { return x[0] === "b"; }).map(function (x) { return parseInt(x.slice(1), 10); });
+          var mastIds = picked.filter(function (x) { return x[0] === "m"; }).map(function (x) { return parseInt(x.slice(1), 10); });
+          var baseline = (lab.baselineRuns || []).filter(function (r) { return r.clean && baseIds.indexOf(r.id) >= 0; }).length;
+          var steady = (lab.mastRuns || []).filter(function (r) { return r.state === "steady" && mastIds.indexOf(r.id) >= 0; }).length;
+          return { baseline: baseline, steady: steady, disturbed: picked.length - baseline - steady };
+        }
         ship3ClaimPanel(work, { key: "g1", title: "提出第一項主張：船近似穩速時，石頭落在哪裡？", sources: g1Sources,
+          instruction: "這是兩組資料的比較：至少選 3 筆「停船・可用」和 3 筆「近似穩速」。不要混入手放擾動或加速紀錄。",
+          selectionStatus: function (picked) {
+            var count = g1SelectionCounts(picked);
+            return "選取進度｜停船基準 " + Math.min(count.baseline, 3) + "/3　近似穩速 " + Math.min(count.steady, 3) + "/3" +
+              (count.disturbed ? "　受干擾 " + count.disturbed + " 筆（不可引用）" : "");
+          },
+          selectionReady: function (picked) {
+            var count = g1SelectionCounts(picked);
+            return count.baseline >= 3 && count.steady >= 3;
+          },
+          incomplete: "✕ 這是停船與穩速的比較；請先各選至少 3 筆紀錄。尚未選齊不算斷言失敗。",
           concepts: [["mast-pulls-stone", "桅杆把石頭拉回來"], ["steady-shares-motion", "石頭離手後仍保有船原先的前行"], ["weight-finds-foot", "石頭會主動尋找桅腳"]],
           action: "assertG1", args: function (picked, concept) { return {
             baselineIds: picked.filter(function (x) { return x[0] === "b"; }).map(function (x) { return parseInt(x.slice(1), 10); }),

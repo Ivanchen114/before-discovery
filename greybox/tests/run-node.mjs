@@ -1737,6 +1737,8 @@ tests.push({
     if (s.evidence.g1) throw new Error("只做完落石就自動取得 G1");
     let claim = Engine3.assertG1(s, [1,2,3], [1,2,3,4], "steady-shares-motion");
     if (claim.ok || claim.state.evidence.g1) throw new Error("混入加速紀錄仍可取得 G1");
+    claim = Engine3.assertG1(s, [], [2,3,4], "steady-shares-motion");
+    if (claim.ok || claim.state.evidence.g1) throw new Error("只選穩速紀錄、缺停船基準仍可取得 G1");
     claim = Engine3.assertG1(s, [1,2,3], [2,3,4], "mast-pulls-stone");
     if (claim.ok || claim.state.evidence.g1) throw new Error("錯誤 G1 概念仍可成立");
     s = Engine3.assertG1(s, [1,2,3], [2,3,4], "steady-shares-motion").state;
@@ -1902,6 +1904,9 @@ tests.push({
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
       '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
       if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
+    for (const frag of ["至少選 3 筆「停船・可用」和 3 筆「近似穩速」", "選取進度｜停船基準 ",
+      "這是停船與穩速的比較", "cfg.selectionReady"])
+      if (!ui.includes(frag)) throw new Error("G1 兩組資料比較提示缺失:" + frag);
     if (!ui.includes('x = dock ? 450 : (phase === "steady-mast" ? 376 : 300)'))
       throw new Error("停船鉛垂線未對準桅頂石球與落點沙盤");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
