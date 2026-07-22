@@ -1567,8 +1567,10 @@ tests.push({
     const ids = new Set(assets.entries.map((e) => e.id));
     const byScene = new Map([...scenes1.scenes, ...scenes2.scenes].map((s) => [s.id, JSON.stringify(s)]));
     const rules = assets.lineFocusVisual || [];
-    for (const sid of ["P0-2", "A1-2", "A1-5", "A1-7", "A2-2", "A2-4", "E-2"])
+    for (const sid of ["P0-2", "A1-2", "A1-5", "A1-7", "A2-2", "A2-4"])
       if (!rules.some((r) => r.scene === sid)) throw new Error("第一章關鍵證據場景缺特寫規則:" + sid);
+    if (rules.some((r) => r.scene === "E-2" && r.items.some((x) => x.asset === "card_E5")))
+      throw new Error("月球滿版尾聲不得重複疊上斜面外推證據卡");
     for (const sid of ["B0-2", "B1-1", "B2-1", "B2-2", "B2-4", "B2-5"])
       if (!rules.some((r) => r.scene === sid)) throw new Error("第二章關鍵指圖場景缺特寫規則:" + sid);
     const f3 = assets.entries.find((e) => e.id === "card_F3");
