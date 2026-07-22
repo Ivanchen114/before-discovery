@@ -1904,9 +1904,10 @@ tests.push({
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
       '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
       if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
-    for (const frag of ["至少選 3 筆「停船・可用」和 3 筆「近似穩速」", "選取進度｜停船基準 ",
-      "這是停船與穩速的比較", "cfg.selectionReady"])
+    for (const frag of ["先用紀錄組成一個公平比較", "單看行船紀錄夠嗎", "還無法回答它『和什麼相同』",
+      "一次接近可能只是巧合", "cfg.selectionReady", 'typeof cfg.incomplete === "function"'])
       if (!ui.includes(frag)) throw new Error("G1 兩組資料比較提示缺失:" + frag);
+    if (ui.includes("至少選 3 筆「停船・可用」")) throw new Error("G1 把資料門檻直接洩漏成勾選答案");
     if (!ui.includes('x = dock ? 450 : (phase === "steady-mast" ? 376 : 300)'))
       throw new Error("停船鉛垂線未對準桅頂石球與落點沙盤");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");

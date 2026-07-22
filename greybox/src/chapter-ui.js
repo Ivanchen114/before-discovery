@@ -1519,7 +1519,8 @@
       var picked = pickedIds();
       if (!picked.length) { ship3Msg = "✕ 先勾選你要引用的紀錄。斷言必須指出自己的證據來源。"; renderAll(); return; }
       if (cfg.selectionReady && !cfg.selectionReady(picked)) {
-        ship3Msg = cfg.incomplete || "✕ 比較資料還沒選齊。請依上方的選取進度補足兩組紀錄。";
+        ship3Msg = typeof cfg.incomplete === "function" ? cfg.incomplete(picked) :
+          (cfg.incomplete || "✕ 這組資料還沒有形成可比較的證據。再檢查一次條件與重複紀錄。");
         renderAll(); return;
       }
       doShip(cfg.action, cfg.args(picked, concept.value), cfg.success);
@@ -1693,18 +1694,23 @@
           var steady = (lab.mastRuns || []).filter(function (r) { return r.state === "steady" && mastIds.indexOf(r.id) >= 0; }).length;
           return { baseline: baseline, steady: steady, disturbed: picked.length - baseline - steady };
         }
+        function g1SelectionClue(picked) {
+          var count = g1SelectionCounts(picked);
+          if (count.disturbed) return "選集中有條件改變的紀錄。它適合追查例外，不適合拿來做這次的公平比較。";
+          if (!count.baseline && count.steady) return "你已描述行船時的落點，但還無法回答它『和什麼相同』。少了一種可以對照的船況。";
+          if (count.baseline && !count.steady) return "你手上只有沒有前進時的基準；還缺真正要檢驗的行船情況。";
+          if (!count.baseline && !count.steady) return "思考題：要判斷石頭是否保有船的前行，單看行船紀錄夠嗎？";
+          if (count.baseline < 3 || count.steady < 3) return "兩種船況都有了，但其中一組仍只是零星結果。一次接近可能只是巧合。";
+          return "兩組可重複、條件乾淨的紀錄已經成形。現在判斷它們共同支持哪一種解釋。";
+        }
         ship3ClaimPanel(work, { key: "g1", title: "提出第一項主張：船近似穩速時，石頭落在哪裡？", sources: g1Sources,
-          instruction: "這是兩組資料的比較：至少選 3 筆「停船・可用」和 3 筆「近似穩速」。不要混入手放擾動或加速紀錄。",
-          selectionStatus: function (picked) {
-            var count = g1SelectionCounts(picked);
-            return "選取進度｜停船基準 " + Math.min(count.baseline, 3) + "/3　近似穩速 " + Math.min(count.steady, 3) + "/3" +
-              (count.disturbed ? "　受干擾 " + count.disturbed + " 筆（不可引用）" : "");
-          },
+          instruction: "先用紀錄組成一個公平比較，再選擇最能解釋結果的說法。別只找最接近零的數字；想想哪些船況應該互相比。",
+          selectionStatus: g1SelectionClue,
           selectionReady: function (picked) {
             var count = g1SelectionCounts(picked);
-            return count.baseline >= 3 && count.steady >= 3;
+            return count.baseline >= 3 && count.steady >= 3 && count.disturbed === 0;
           },
-          incomplete: "✕ 這是停船與穩速的比較；請先各選至少 3 筆紀錄。尚未選齊不算斷言失敗。",
+          incomplete: function (picked) { return "✕ " + g1SelectionClue(picked) + " 這次不記為斷言失敗。"; },
           concepts: [["mast-pulls-stone", "桅杆把石頭拉回來"], ["steady-shares-motion", "石頭離手後仍保有船原先的前行"], ["weight-finds-foot", "石頭會主動尋找桅腳"]],
           action: "assertG1", args: function (picked, concept) { return {
             baselineIds: picked.filter(function (x) { return x[0] === "b"; }).map(function (x) { return parseInt(x.slice(1), 10); }),
