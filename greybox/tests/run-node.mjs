@@ -1580,6 +1580,21 @@ tests.push({
     for (const match of ["三輪紀錄在案", "如果物體真的要等推力用盡才下墜"])
       if (!rules.some((r) => r.scene === "B2-4" && r.match === match && r.items.some((x) => x.asset === "card_F3")))
         throw new Error("F3 判讀／回述缺專用圖:" + match);
+    const viewRules = assets.viewFocusVisual || [];
+    const mechanismView = viewRules.find((r) => r.scene === "B2-4" && r.match === "機關:桌緣一座小門閂");
+    const resultView = viewRules.find((r) => r.scene === "B2-4" && r.match === "三輪紀錄在案");
+    if (!mechanismView || ["q1", "q2", "q3"].some((id) => !mechanismView.nodeIds.includes(id)))
+      throw new Error("B2-4 三輪操作未持續展示雙球機關");
+    if (!resultView || resultView.nodeIds.length !== 1 || resultView.nodeIds[0] !== "q4")
+      throw new Error("B2-4 結果圖未鎖在玩家判讀之前");
+    for (const vr of viewRules) {
+      const source = rules.find((r) => r.scene === vr.scene && r.match === vr.match);
+      if (!source) throw new Error("互動節點特寫找不到單一來源:" + vr.scene + "→" + vr.match);
+      for (const nodeId of vr.nodeIds || []) {
+        if (!byScene.get(vr.scene).includes('"id":"' + nodeId + '"'))
+          throw new Error("互動節點特寫指向不存在節點:" + vr.scene + "/" + nodeId);
+      }
+    }
     for (const r of rules) {
       if (!byScene.has(r.scene)) throw new Error("特寫規則指向不存在場景:" + r.scene);
       if (!r.match || !byScene.get(r.scene).includes(r.match))
@@ -1596,7 +1611,7 @@ tests.push({
       "#sceneFocus.quad", "(orientation:portrait) and (pointer:coarse)"])
       if (!html.includes(frag)) throw new Error("舞台特寫 DOM/CSS 缺失:" + frag);
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const frag of ["showFocusVisualForLine", "clearFocusVisual", "lineFocusVisual", "e2DiagramMarkup",
+    for (const frag of ["showFocusVisualForLine", "showFocusVisualForView", "clearFocusVisual", "lineFocusVisual", "viewFocusVisual", "e2DiagramMarkup",
       "mountE2FocusVisual", "scene-focus-e2-art", "拖慢大石？", "合在一起更快？", "r.scene !== sid"])
       if (!sui.includes(frag)) throw new Error("舞台特寫接線/預載缺失:" + frag);
     if (!html.includes(".scene-focus-e2-art") || !html.includes(".e2-argument-arrows"))

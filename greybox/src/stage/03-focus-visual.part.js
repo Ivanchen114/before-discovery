@@ -97,6 +97,18 @@
     if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
     showFocusVisual(rule);
   }
+  function showFocusVisualForView(sceneId, nodeId) {
+    var views = ASSETS && ASSETS.viewFocusVisual;
+    if (!views || !sceneId || !nodeId) return;
+    for (var i = 0; i < views.length; i++) {
+      var view = views[i];
+      if (view.scene !== sceneId || (view.nodeIds || []).indexOf(nodeId) < 0) continue;
+      /* match 指向既有 lineFocusVisual：同一張圖、說明與替代文字只維護一份。 */
+      var rule = focusRuleForLine(view.match, sceneId);
+      if (rule) showFocusVisual(rule);
+      return;
+    }
+  }
   function showEvidenceFocus(code, name) {
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
     if (!rule) return;

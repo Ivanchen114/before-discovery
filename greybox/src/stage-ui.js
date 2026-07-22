@@ -323,6 +323,18 @@
     if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
     showFocusVisual(rule);
   }
+  function showFocusVisualForView(sceneId, nodeId) {
+    var views = ASSETS && ASSETS.viewFocusVisual;
+    if (!views || !sceneId || !nodeId) return;
+    for (var i = 0; i < views.length; i++) {
+      var view = views[i];
+      if (view.scene !== sceneId || (view.nodeIds || []).indexOf(nodeId) < 0) continue;
+      /* match 指向既有 lineFocusVisual：同一張圖、說明與替代文字只維護一份。 */
+      var rule = focusRuleForLine(view.match, sceneId);
+      if (rule) showFocusVisual(rule);
+      return;
+    }
+  }
   function showEvidenceFocus(code, name) {
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
     if (!rule) return;
@@ -504,6 +516,9 @@
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
+    /* 互動選項不是台詞事件：操作前的裝置圖、判讀前的結果圖要由節點主動叫回。
+       讀檔直接落在選項時也成立，不依賴玩家曾經看過前一行台詞。 */
+    showFocusVisualForView(d.scene, d.nodeId);
     if (view === "end") { /* 終幕預告卡(GB-ADR-013):戲劇卡+角落系統行,只在真結局亮 */
       var nc = $("nextCard");
       if (nc.hidden) {
