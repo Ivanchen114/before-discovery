@@ -1747,6 +1747,11 @@ tests.push({
     if (!html.includes("船艙裡的靜止")) throw new Error("玩家入口缺第三章正式章名");
     for (const x of ["renderShip", "ship3Mission", 'v.system === "ship"']) if (!ui.includes(x)) throw new Error("chapter-ui 缺船實驗:" + x);
     if (!stage.includes('d.system === "ship" ? "ship"')) throw new Error("stage-ui 未辨識 ship 視圖");
+    if (!stage.includes("ship: 1")) throw new Error("ship 視圖未納入逐字台詞收隊確認；會在玩家讀完前自動讓位");
+    const opening = scenes3.scenes.find((s) => s.id === "C0-1");
+    const openingText = (opening && opening.nodes || []).map((n) => n.text || "").join("\n");
+    for (const phrase of ["問題沒有跟著他離場", "1632 年", "這次接過問題的人，不是伽利略"])
+      if (!openingText.includes(phrase)) throw new Error("第二章→第三章同行者接棒缺句:" + phrase);
   }
 });
 

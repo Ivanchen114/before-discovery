@@ -325,7 +325,9 @@
   /* 收隊確認:在對話框會讓位的視圖(辯論/實驗台等),最後一句演完先亮 ▼ 等玩家點掉——
      打字完成≠讀完(總監實玩)。narration 視圖對話框常駐,不需確認。 */
   var ackPending = false;
-  var YIELD_VIEWS = { debate: 1, lab: 1, review: 1, histfacts: 1 };
+  /* 任何會讓對話框退場、把畫面交給大型互動的視圖，都必須等玩家親手收掉最後一句。
+     ship 曾漏列，造成第三章台詞一播完就自動切進航船實驗。 */
+  var YIELD_VIEWS = { debate: 1, lab: 1, ship: 1, review: 1, histfacts: 1 };
   function syncFlags() {
     var active = typing || waiting || queue.length > 0 || ackPending;
     body.classList.toggle("held", active);
