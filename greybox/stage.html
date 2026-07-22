@@ -1457,6 +1457,13 @@
   .shipNote, .shipMessage { margin: 7px 0; padding: 7px 9px; border-left: 4px solid #8d653d; background: rgba(132,91,47,.09); }
   .shipMessage { white-space: pre-line; min-height: 26px; }.shipGate { float: right; min-width: 220px; }
   .shipTable { width: 100%; margin: 8px 0 !important; font-size: 13px !important; }.shipTable th { background: rgba(112,79,45,.12); }
+  .shipClaimPanel { margin: 10px 0 4px; padding: 10px; border: 1px solid rgba(116,77,42,.5); background: rgba(255,250,235,.38); box-shadow: inset 4px 0 #8f6338; }
+  .shipClaimPanel h4 { margin: 0 0 4px; color: #4c3420; font-size: 16px; }
+  .shipClaimSources { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; margin: 7px 0; }
+  .shipClaimSource { min-width: 0; padding: 6px 8px; border: 1px solid rgba(103,73,43,.28); background: rgba(255,255,255,.3); font-size: 13px; line-height: 1.35; }
+  .shipClaimSource input { width: 18px; height: 18px; vertical-align: middle; accent-color: #79502c; }
+  .shipClaimConcept { display: grid; grid-template-columns: max-content minmax(0,1fr) max-content; align-items: center; gap: 7px; }
+  .shipClaimConcept .shipSelect { min-width: 0; }
   .shipCabinCard, .shipAuditCard { margin: 7px 0; padding: 8px 10px; border: 1px solid rgba(109,77,44,.32); background: rgba(255,255,255,.22); }
   .shipCabinCard b, .shipAuditCard b { display: block; margin-bottom: 5px; }.shipPredict label { flex: 0 0 115px; font-family: var(--font-ui); }
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
@@ -1467,6 +1474,9 @@
     .shipSceneVisual { max-height: 58vh; }.shipDiagram figcaption { font-size: 9px; padding: 3px 5px; }.shipWork h3 { font-size: 14px !important; margin-bottom: 4px !important; padding-bottom: 3px; }
     .shipLab .shipAction { min-height: 31px; padding: 3px 7px; font-size: 11px; }.shipSelect { min-height: 31px; padding: 2px 5px; font-size: 11px; }
     .shipTable { font-size: 10px !important; }.shipTable th, .shipTable td { padding: 2px 4px !important; }.shipNote, .shipMessage { margin: 3px 0; padding: 3px 5px; font-size: 10px; }
+    .shipClaimPanel { margin: 5px 0 2px; padding: 5px; }.shipClaimPanel h4 { font-size: 12px; }.shipClaimSources { gap: 3px; margin: 3px 0; }
+    .shipClaimSource { padding: 3px 4px; font-size: 9px; }.shipClaimSource input { width: 14px; height: 14px; }
+    .shipClaimConcept { grid-template-columns: minmax(0,1fr) max-content; gap: 4px; }.shipClaimConcept > label { grid-column: 1/-1; font-size: 9px; }
     .shipCabinCard, .shipAuditCard { margin: 3px 0; padding: 4px 6px; font-size: 10px; }
   }
 </style>

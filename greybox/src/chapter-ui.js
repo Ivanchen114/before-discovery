@@ -1380,6 +1380,7 @@
   var ship3Msg = "";
   var ship3EmbedKey = "";
   var ship3VisualRun = null; /* 純表現層：最近一次實驗動畫，不入存檔、不改 fixture。 */
+  var ship3ClaimDraft = {}; /* 純 UI 草稿：錯答重繪後保留勾選，不偷寫進實驗紀錄。 */
   function ship3El(tag, text, parent, cls) {
     var node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -1433,6 +1434,7 @@
           "beats-mismatch": "兩張紙沒有對齊同一聲鼓。先讓同一時刻相認。",
           "wrong-transform": "只拉大或縮小圖形不能換參考物；要扣除每一拍桅杆向前的位移。",
           "evidence-mismatch": "這張證據沒有直接回答這道質詢。換一張真正做過相應對照的紀錄。",
+          "claim-mismatch": "這組紀錄還不足以支持你選的說法。檢查是否混入受干擾的紀錄，或把現象解釋成了資料沒有測量的原因。",
           "overclaim": "這場實驗排除一個反對，卻沒有直接量到地球正在運動。把結論收回證據邊界。"
         };
         ship3Msg = "✕ " + (why[rr.reason] || "這一步還不能成立。");
@@ -1485,6 +1487,31 @@
       var tr = document.createElement("tr"); row.forEach(function (x) { ship3El("td", x, tr); }); table.appendChild(tr);
     });
     return table;
+  }
+  function ship3ClaimPanel(parent, cfg) {
+    var draft = ship3ClaimDraft[cfg.key] || { picked: {}, concept: cfg.concepts[0][0] };
+    ship3ClaimDraft[cfg.key] = draft;
+    var panel = ship3El("section", null, parent, "shipClaimPanel");
+    ship3El("h4", cfg.title, panel);
+    ship3El("p", "先勾選真正支持主張的紀錄，再選你認為成立的解釋。", panel, "shipNote");
+    var sourceList = ship3El("div", null, panel, "shipClaimSources");
+    cfg.sources.forEach(function (src) {
+      var label = ship3El("label", null, sourceList, "shipClaimSource");
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!draft.picked[src.id];
+      cb.onchange = function () { draft.picked[src.id] = cb.checked; };
+      label.appendChild(cb); label.appendChild(document.createTextNode(" " + displayText(src.label)));
+    });
+    var conceptRow = ship3El("div", null, panel, "shipClaimConcept");
+    ship3El("label", "這組資料比較支持：", conceptRow);
+    var concept = ship3Select(conceptRow, cfg.concepts.map(function (x) { return x[0]; }),
+      Object.fromEntries(cfg.concepts), draft.concept);
+    concept.onchange = function () { draft.concept = concept.value; };
+    ship3Btn(conceptRow, "用所選紀錄提出斷言", function () {
+      var picked = Object.keys(draft.picked).filter(function (id) { return draft.picked[id]; });
+      if (!picked.length) { ship3Msg = "✕ 先勾選你要引用的紀錄。斷言必須指出自己的證據來源。"; renderAll(); return; }
+      doShip(cfg.action, cfg.args(picked, concept.value), cfg.success);
+    }, "shipAction primary");
+    return panel;
   }
   function ship3VisualId(phase) {
     var map = ASSETS && ASSETS.shipExperimentVisuals;
@@ -1639,6 +1666,19 @@
       ship3Table(work, ["#", "窗口", "船況", "相對桅腳"], (lab.mastRuns || []).map(function (r) {
         return [r.id, r.window === "stable" ? "岸標等距" : (r.window === "depart" ? "離岸" : "單拍鼓"), r.state === "steady" ? "近似穩速" : "加速", (r.offset > 0 ? "+" : "") + r.offset.toFixed(2)];
       }));
+      if (!ev.g1 && (lab.mastRuns || []).filter(function (r) { return r.state === "steady"; }).length >= 3) {
+        var g1Sources = (lab.baselineRuns || []).map(function (r) {
+          return { id: "b" + r.id, label: "停船 #" + r.id + "｜" + (r.offset > 0 ? "+" : "") + r.offset.toFixed(2) + " 掌寬｜" + (r.clean ? "可用" : "手放擾動") };
+        }).concat((lab.mastRuns || []).map(function (r) {
+          return { id: "m" + r.id, label: (r.state === "steady" ? "穩速" : "加速") + " #" + r.id + "｜" + (r.offset > 0 ? "+" : "") + r.offset.toFixed(2) + " 掌寬" };
+        }));
+        ship3ClaimPanel(work, { key: "g1", title: "提出第一項主張：船近似穩速時，石頭落在哪裡？", sources: g1Sources,
+          concepts: [["mast-pulls-stone", "桅杆把石頭拉回來"], ["steady-shares-motion", "石頭離手後仍保有船原先的前行"], ["weight-finds-foot", "石頭會主動尋找桅腳"]],
+          action: "assertG1", args: function (picked, concept) { return {
+            baselineIds: picked.filter(function (x) { return x[0] === "b"; }).map(function (x) { return parseInt(x.slice(1), 10); }),
+            mastIds: picked.filter(function (x) { return x[0] === "m"; }).map(function (x) { return parseInt(x.slice(1), 10); }), concept: concept
+          }; }, success: "◆ 第一項主張成立：停船與近似穩速的乾淨紀錄都聚在桅腳附近。" });
+      }
     }
     if (v.phase === "cabin") {
       ship3El("h3", "四、封閉船艙四格", work);
@@ -1650,6 +1690,19 @@
           }, "shipAction", lab.cabin[vs[0]][t[0]]);
         });
       });
+      var cabinRows = [];
+      [["dock", "停船"], ["steady", "近似穩速"]].forEach(function (vs) {
+        [["drip", "滴水"], ["toss", "拋接"]].forEach(function (t) {
+          var rr = lab.cabinResults && lab.cabinResults[vs[0]] && lab.cabinResults[vs[0]][t[0]];
+          if (rr) cabinRows.push([vs[1], t[1], (rr.offset > 0 ? "+" : "") + rr.offset.toFixed(2), rr.spread.toFixed(2)]);
+        });
+      });
+      if (cabinRows.length) ship3Table(work, ["船況", "操作", "平均偏移（掌寬）", "散布"], cabinRows);
+      if (!ev.g2 && cabinRows.length === 4) ship3ClaimPanel(work, { key: "g2", title: "提出第二項主張：停船與穩速船艙能否分辨？",
+        sources: [["dock:drip", "停船・滴水"], ["dock:toss", "停船・拋接"], ["steady:drip", "穩速・滴水"], ["steady:toss", "穩速・拋接"]].map(function (x) { return { id: x[0], label: x[1] }; }),
+        concepts: [["air-is-gone", "船艙裡沒有空氣，所以結果相同"], ["ship-too-slow", "船走得太慢，差異還沒出現"], ["steady-matches-dock", "在這些局部操作裡，停船與近似穩速的結果相近"]],
+        action: "assertG2", args: function (picked, concept) { return { cells: picked, concept: concept }; },
+        success: "◆ 第二項主張成立：四格資料沒有提供分辨停船與近似穩速的可靠差異。" });
     }
     if (v.phase === "speed-change") {
       ship3El("h3", "五、先押加速與減速", work);
@@ -1663,6 +1716,15 @@
         ship3Btn(work, (lab.speedRuns.accelerating ? "✓ " : "") + "放手後加槳", function () { doShip("runSpeedChange", { kind: "accelerating" }, "加速結果已揭曉：石頭相對船偏後。"); }, "shipAction", !!lab.speedRuns.accelerating);
         ship3Btn(work, (lab.speedRuns.decelerating ? "✓ " : "") + "放手後收槳", function () { doShip("runSpeedChange", { kind: "decelerating" }, "減速結果已揭曉：石頭相對船偏前。"); }, "shipAction", !!lab.speedRuns.decelerating);
       }
+      var speedRows = ["accelerating", "decelerating"].filter(function (k) { return !!lab.speedRuns[k]; }).map(function (k) {
+        var r = lab.speedRuns[k]; return [k === "accelerating" ? "放手後加速" : "放手後減速", (r.offset > 0 ? "+" : "") + r.offset.toFixed(2), r.outcome === "behind" ? "偏船尾" : "偏船頭", r.matched ? "押中" : "未押中"];
+      });
+      if (speedRows.length) ship3Table(work, ["船況", "相對桅腳", "方向", "預測"], speedRows);
+      if (!ev.g3 && speedRows.length === 2) ship3ClaimPanel(work, { key: "g3", title: "提出第三項主張：為什麼加速與減速留下相反偏移？",
+        sources: [{ id: "accelerating", label: "放手後加速：落點偏船尾" }, { id: "decelerating", label: "放手後減速：落點偏船頭" }],
+        concepts: [["speed-change-breaks-shared-motion", "石頭保留離手時的速度；船後來變速，才拉開相對位置"], ["stone-loses-force", "石頭的推力先耗盡，所以落後"], ["wind-reverses", "風向在兩次實驗中恰好相反"]],
+        action: "assertG3", args: function (picked, concept) { return { kinds: picked, concept: concept }; },
+        success: "◆ 第三項主張成立：改變共同運動，才會留下有方向的相對偏移。" });
     }
     if (v.phase === "overlay") {
       ship3El("h3", "六、同一事件，兩張紙", work);
@@ -1676,6 +1738,16 @@
         var refs = ship3El("div", null, work, "shipRefToggle");
         ship3Btn(refs, "以岸為參考", function () { doShip("setReference", { ref: "shore" }, "現在看岸上紙：石頭向前且下落。"); }, "shipAction " + (lab.overlay.activeReference === "shore" ? "active" : ""));
         ship3Btn(refs, "以船為參考", function () { doShip("setReference", { ref: "ship" }, "現在看船上紙：石頭相對桅杆近乎直落。"); }, "shipAction " + (lab.overlay.activeReference === "ship" ? "active" : ""));
+        var paper = window.GB.Engine3._FIXTURE.paper;
+        var paperRows = (paper.beats || []).map(function (beat, i) {
+          return [beat, paper.mastX[i], paper.shoreStoneX[i], paper.y[i], paper.shipStoneX[i]];
+        });
+        ship3Table(work, ["鼓點", "岸上：桅杆 x", "岸上：石頭 x", "下落 y", "船上：石頭 x"], paperRows);
+        if (!ev.g4) ship3ClaimPanel(work, { key: "g4", title: "提出第四項主張：兩張路徑圖為何能同時成立？",
+          sources: [{ id: "shore", label: "岸上紙：石頭向前，同時下落" }, { id: "ship", label: "船上紙：石頭相對桅杆近乎直落" }],
+          concepts: [["one-record-false", "只有其中一張圖是真的"], ["same-event-different-reference", "同一事件相對不同參考物，會留下不同路徑"], ["paper-distorts-path", "紙帶比例改變了石頭真正的路"]],
+          action: "assertG4", args: function (picked, concept) { return { records: picked, concept: concept }; },
+          success: "◆ 第四項主張成立：兩張紙不是互相否定，而是在回答『相對誰』。" });
       }
     }
     if (v.phase === "public-demo") {

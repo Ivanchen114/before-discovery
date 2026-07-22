@@ -188,6 +188,34 @@
     }
     if (!lab.cabin || !lab.predictions || !lab.speedRuns || !lab.overlay || !lab.publicDemo || !lab.audit || !lab.evidence)
       return fail("航船實驗有必要紀錄缺失");
+    /* v1.1 追加欄位採可選驗證，讓 v1 舊存檔仍可匯入；引擎第一次相關動作會補齊。 */
+    if (lab.cabinResults != null) {
+      for (var vessel of ["dock", "steady"]) for (var test of ["drip", "toss"]) {
+        var cell = lab.cabinResults[vessel] && lab.cabinResults[vessel][test];
+        if (cell != null && (!cell || typeof cell.offset !== "number" || !isFinite(cell.offset) ||
+            typeof cell.spread !== "number" || !isFinite(cell.spread) || cell.spread < 0 || cell.spread > 10))
+          return fail("船艙比較紀錄含無法辨識的讀值");
+      }
+    }
+    if (lab.claims != null) {
+      var allowedConcepts = {
+        g1: ["mast-pulls-stone", "steady-shares-motion", "weight-finds-foot"],
+        g2: ["air-is-gone", "ship-too-slow", "steady-matches-dock"],
+        g3: ["speed-change-breaks-shared-motion", "stone-loses-force", "wind-reverses"],
+        g4: ["one-record-false", "same-event-different-reference", "paper-distorts-path"]
+      };
+      for (var claimId of ["g1", "g2", "g3", "g4"]) {
+        var claimRows = lab.claims[claimId];
+        if (!Array.isArray(claimRows) || claimRows.length > 100) return fail("航船斷言紀錄格式錯誤");
+        for (var ci = 0; ci < claimRows.length; ci++) {
+          var claim = claimRows[ci];
+          if (!claim || !Array.isArray(claim.sources) || claim.sources.length > 20 ||
+              claim.sources.some(function (source) { return typeof source !== "string" || source.length > 120; }) ||
+              allowedConcepts[claimId].indexOf(claim.concept) < 0 || typeof claim.ok !== "boolean")
+            return fail("航船斷言紀錄含無法辨識的資料");
+        }
+      }
+    }
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
     for (var t = 0; t < state.transcript.length; t++) {
       var line = state.transcript[t];

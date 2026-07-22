@@ -135,11 +135,11 @@ tests.push({
 });
 
 tests.push({
-  name: "器材踏查|雙章配置完備+亮點可及+固定器材非假選擇+舊存檔相容",
+  name: "器材踏查|三章配置完備+亮點可及+固定器材非假選擇+舊存檔相容",
   fn: () => {
     const assets = require("../data/assets.js");
     const ids = new Set(assets.entries.map((e) => e.id));
-    for (const key of ["ch1:A2-2", "ch2:B2-3"]) {
+    for (const key of ["ch1:A2-2", "ch2:B2-3", "ch3:C1-1"]) {
       const cfg = (assets.apparatusBriefings || {})[key];
       if (!cfg || !cfg.title || !cfg.enterLabel || !ids.has(cfg.plateAsset) || !Array.isArray(cfg.items) || cfg.items.length < 3)
         throw new Error("器材踏查配置不完整:" + key);
@@ -150,6 +150,9 @@ tests.push({
         if (!ids.has(item.asset)) throw new Error("器材條目指向不存在資產:" + key + "/" + item.id);
         if (!(item.x >= 0 && item.x <= 100 && item.y >= 0 && item.y <= 100)) throw new Error("器材亮點座標越界:" + key + "/" + item.id);
       }
+      const plate = assets.entries.find((entry) => entry.id === cfg.plateAsset);
+      if (!plate.path || !existsSync(path.join(here, "../../public/assets", plate.path)))
+        throw new Error("器材踏查底板檔案不存在:" + key);
     }
     const c2 = assets.apparatusBriefings["ch2:B2-3"];
     for (const id of ["shortGroove", "sandbed"])
@@ -177,6 +180,9 @@ tests.push({
       throw new Error("第一章器材踏查未保住左側水鐘取景");
     if (!sui.includes("platePosition") || !sui.includes("style.objectPosition"))
       throw new Error("器材踏查未套用場景個別取景位置");
+    const c3 = assets.apparatusBriefings["ch3:C1-1"];
+    for (const id of ["release", "plumb", "sandTray", "timing", "cabin", "paperTapes"])
+      if (!c3.items.find((item) => item.id === id)) throw new Error("第三章航船踏查缺器材:" + id);
   }
 });
 
@@ -1728,17 +1734,43 @@ tests.push({
     s = Engine3.runMast(s, "depart").state;
     if (!(s.mastRuns[0].offset < 0)) throw new Error("加速時應相對偏後");
     for (let i = 0; i < 3; i++) s = Engine3.runMast(s, "stable").state;
-    if (!s.evidence.g1) throw new Error("三次穩速未取得 G1");
+    if (s.evidence.g1) throw new Error("只做完落石就自動取得 G1");
+    let claim = Engine3.assertG1(s, [1,2,3], [1,2,3,4], "steady-shares-motion");
+    if (claim.ok || claim.state.evidence.g1) throw new Error("混入加速紀錄仍可取得 G1");
+    claim = Engine3.assertG1(s, [1,2,3], [2,3,4], "mast-pulls-stone");
+    if (claim.ok || claim.state.evidence.g1) throw new Error("錯誤 G1 概念仍可成立");
+    s = Engine3.assertG1(s, [1,2,3], [2,3,4], "steady-shares-motion").state;
+    if (!s.evidence.g1) throw new Error("玩家選對資料與概念後未取得 G1");
     for (const vs of ["dock", "steady"]) for (const t of ["drip", "toss"]) s = Engine3.runCabin(s, vs, t).state;
-    if (!s.evidence.g2) throw new Error("船艙四格未取得 G2");
+    if (s.evidence.g2) throw new Error("船艙四格完成後自動取得 G2");
+    const cabinCells = ["dock:drip", "dock:toss", "steady:drip", "steady:toss"];
+    claim = Engine3.assertG2(s, cabinCells.slice(0, 3), "steady-matches-dock");
+    if (claim.ok || claim.state.evidence.g2) throw new Error("船艙資料不足仍可取得 G2");
+    claim = Engine3.assertG2(s, cabinCells, "ship-too-slow");
+    if (claim.ok || claim.state.evidence.g2) throw new Error("錯誤 G2 概念仍可成立");
+    s = Engine3.assertG2(s, cabinCells, "steady-matches-dock").state;
+    if (!s.evidence.g2) throw new Error("船艙四格斷言未取得 G2");
     s = Engine3.setSpeedPrediction(s, "behind", "ahead").state;
     s = Engine3.runSpeedChange(s, "accelerating").state; s = Engine3.runSpeedChange(s, "decelerating").state;
-    if (!s.evidence.g3 || !s.speedRuns.accelerating.matched || !s.speedRuns.decelerating.matched) throw new Error("變速對照未完成");
+    if (s.evidence.g3) throw new Error("變速對照完成後自動取得 G3");
+    if (!s.speedRuns.accelerating.matched || !s.speedRuns.decelerating.matched) throw new Error("變速預測未押中");
+    claim = Engine3.assertG3(s, ["accelerating"], "speed-change-breaks-shared-motion");
+    if (claim.ok || claim.state.evidence.g3) throw new Error("只引用單一船況仍可取得 G3");
+    claim = Engine3.assertG3(s, ["accelerating", "decelerating"], "stone-loses-force");
+    if (claim.ok || claim.state.evidence.g3) throw new Error("錯誤 G3 概念仍可成立");
+    s = Engine3.assertG3(s, ["accelerating", "decelerating"], "speed-change-breaks-shared-motion").state;
+    if (!s.evidence.g3) throw new Error("變速斷言未取得 G3");
     if (Engine3.alignRecords(s, "thirdFourth").ok !== false) throw new Error("錯誤對齊未被拒");
     s = Engine3.alignRecords(s, "sameBeats").state;
     if (Engine3.transformRecords(s, "scaleOnly").ok !== false) throw new Error("錯誤換參考物未被拒");
     s = Engine3.transformRecords(s, "subtractMast").state;
-    if (!s.evidence.g4) throw new Error("雙紙帶未取得 G4");
+    if (s.evidence.g4) throw new Error("換算兩張紙後自動取得 G4");
+    claim = Engine3.assertG4(s, ["ship"], "same-event-different-reference");
+    if (claim.ok || claim.state.evidence.g4) throw new Error("只引用單一參考系仍可取得 G4");
+    claim = Engine3.assertG4(s, ["shore", "ship"], "one-record-false");
+    if (claim.ok || claim.state.evidence.g4) throw new Error("錯誤 G4 概念仍可成立");
+    s = Engine3.assertG4(s, ["shore", "ship"], "same-event-different-reference").state;
+    if (!s.evidence.g4) throw new Error("雙紙帶斷言未取得 G4");
     for (const step of ["baseline", "stable-window", "no-push", "repeat"]) s = Engine3.runPublicStep(s, step).state;
     for (const [q, e] of [["wind", "G2"], ["acceleration", "G3"], ["paths", "G4"]]) s = Engine3.answerAudit(s, q, e).state;
     const before = JSON.stringify(s);
@@ -1764,10 +1796,10 @@ tests.push({
       if (v.type === "embed" && v.system === "ship") {
         if (v.phase === "baseline") { act("setRelease", { mode: "latch" }); act("calibratePlumb"); for (let i=0;i<3;i++) act("runBaseline"); }
         else if (v.phase === "first-failure") act("runMast", { window: "depart" });
-        else if (v.phase === "steady-mast") for (let i=0;i<3;i++) act("runMast", { window: "stable" });
-        else if (v.phase === "cabin") for (const vs of ["dock","steady"]) for (const t of ["drip","toss"]) act("runCabin", { vesselState: vs, test: t });
-        else if (v.phase === "speed-change") { act("setSpeedPrediction", { accelerating: "behind", decelerating: "ahead" }); act("runSpeedChange", { kind: "accelerating" }); act("runSpeedChange", { kind: "decelerating" }); }
-        else if (v.phase === "overlay") { act("alignRecords", { pair: "sameBeats" }); act("transformRecords", { kind: "subtractMast" }); }
+        else if (v.phase === "steady-mast") { for (let i=0;i<3;i++) act("runMast", { window: "stable" }); act("assertG1", { baselineIds:[1,2,3], mastIds:[2,3,4], concept:"steady-shares-motion" }); }
+        else if (v.phase === "cabin") { for (const vs of ["dock","steady"]) for (const t of ["drip","toss"]) act("runCabin", { vesselState: vs, test: t }); act("assertG2", { cells:["dock:drip","dock:toss","steady:drip","steady:toss"], concept:"steady-matches-dock" }); }
+        else if (v.phase === "speed-change") { act("setSpeedPrediction", { accelerating: "behind", decelerating: "ahead" }); act("runSpeedChange", { kind: "accelerating" }); act("runSpeedChange", { kind: "decelerating" }); act("assertG3", { kinds:["accelerating","decelerating"], concept:"speed-change-breaks-shared-motion" }); }
+        else if (v.phase === "overlay") { act("alignRecords", { pair: "sameBeats" }); act("transformRecords", { kind: "subtractMast" }); act("assertG4", { records:["shore","ship"], concept:"same-event-different-reference" }); }
         else if (v.phase === "public-demo") for (const step of ["baseline","stable-window","no-push","repeat"]) act("runPublicStep", { step });
         else if (v.phase === "audit") for (const [q,e] of [["wind","G2"],["acceleration","G3"],["paths","G4"]]) act("answerAudit", { questionId:q, evidenceId:e });
         else if (v.phase === "boundary") act("setBoundary", { choice: "honest" });
@@ -1792,6 +1824,11 @@ tests.push({
     if (!San.sanitizeImport3(JSON.parse(N3.serialize(good)), scenes3).ok) throw new Error("合法 ch3 存檔遭拒");
     const bad = JSON.parse(N3.serialize(good)); bad.lab.release = "teleport";
     if (San.sanitizeImport3(bad, scenes3).ok) throw new Error("非法 release 未被拒");
+    const badClaim = JSON.parse(N3.serialize(good));
+    badClaim.lab.claims.g1.push({ sources:["baseline:1,2,3"], concept:"teleport", ok:false });
+    if (San.sanitizeImport3(badClaim, scenes3).ok) throw new Error("非法航船斷言未被拒");
+    const legacy = JSON.parse(N3.serialize(good)); delete legacy.lab.claims; delete legacy.lab.cabinResults;
+    if (!San.sanitizeImport3(legacy, scenes3).ok) throw new Error("追加斷言欄位後舊存檔失去相容性");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");

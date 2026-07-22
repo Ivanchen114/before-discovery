@@ -729,11 +729,15 @@
     else if (action === "calibratePlumb" && Engine.calibratePlumb) r = Engine.calibratePlumb(state.lab);
     else if (action === "runBaseline" && Engine.runBaseline) r = Engine.runBaseline(state.lab);
     else if (action === "runMast" && Engine.runMast) r = Engine.runMast(state.lab, args.window);
+    else if (action === "assertG1" && Engine.assertG1) r = Engine.assertG1(state.lab, args.baselineIds, args.mastIds, args.concept);
     else if (action === "runCabin" && Engine.runCabin) r = Engine.runCabin(state.lab, args.vesselState, args.test);
+    else if (action === "assertG2" && Engine.assertG2) r = Engine.assertG2(state.lab, args.cells, args.concept);
     else if (action === "setSpeedPrediction" && Engine.setSpeedPrediction) r = Engine.setSpeedPrediction(state.lab, args.accelerating, args.decelerating);
     else if (action === "runSpeedChange" && Engine.runSpeedChange) r = Engine.runSpeedChange(state.lab, args.kind);
+    else if (action === "assertG3" && Engine.assertG3) r = Engine.assertG3(state.lab, args.kinds, args.concept);
     else if (action === "alignRecords" && Engine.alignRecords) r = Engine.alignRecords(state.lab, args.pair);
     else if (action === "transformRecords" && Engine.transformRecords) r = Engine.transformRecords(state.lab, args.kind);
+    else if (action === "assertG4" && Engine.assertG4) r = Engine.assertG4(state.lab, args.records, args.concept);
     else if (action === "setReference" && Engine.setReference) r = Engine.setReference(state.lab, args.ref);
     else if (action === "runPublicStep" && Engine.runPublicStep) r = Engine.runPublicStep(state.lab, args.step);
     else if (action === "answerAudit" && Engine.answerAudit) r = Engine.answerAudit(state.lab, args.questionId, args.evidenceId);

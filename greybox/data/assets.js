@@ -159,6 +159,70 @@
      "line": "先把裝置固定。最後只換這兩顆球——那時，我們才是在問重量。"
     }
    ]
+  },
+  "ch3:C1-1": {
+   "title": "先把一場航船實驗準備好",
+   "subtitle": "這不是找藏物。逐一確認每件器材控制哪個條件，之後的數據才知道該怎麼讀。",
+   "plateAsset": "ship3_apparatus_survey",
+   "platePosition": "center center",
+   "speaker": "伽桑狄",
+   "enterLabel": "檢查完成，開始停船基準",
+   "items": [
+    {
+     "id": "release",
+     "label": "桅頂釋放機構",
+     "asset": "ship3_g1_mast_dock",
+     "x": 54,
+     "y": 16,
+     "function": "讓石球在桅頂放手時不被額外推動；手放、剪繩與抽扣會留下不同的落點散布。",
+     "line": "先管住放手。若離手那一刻多了一推，後面量得再精也只是在精確記錯。"
+    },
+    {
+     "id": "plumb",
+     "label": "鉛垂線與桅腳標記",
+     "asset": "ship3_g1_mast_dock",
+     "x": 55,
+     "y": 45,
+     "function": "把桅頂正下方標到甲板，提供每次比較落點前後偏移的共同零點。",
+     "line": "先決定零點，才談得上偏前或偏後。沒有基準，方向只是故事。"
+    },
+    {
+     "id": "sandTray",
+     "label": "落點沙盤",
+     "asset": "ship3_g1_mast_steady",
+     "x": 55,
+     "y": 78,
+     "function": "保留石球落點與散布；它記的是一群結果，不假裝每次都會落在完全相同的一點。",
+     "line": "沙盤不替我們挑漂亮的一次。每個落點都留下，散布本身也是結果。"
+    },
+    {
+     "id": "timing",
+     "label": "鼓點與岸標",
+     "asset": "ship3_g1_mast_steady",
+     "x": 18,
+     "y": 72,
+     "function": "鼓點提供共同時刻，岸上等距標記用來判斷船是否已進入近似穩速，而不是仍在加速。",
+     "line": "聽鼓只是計時，還要看每一拍走過多少岸標。等距，才有資格說近似穩速。"
+    },
+    {
+     "id": "cabin",
+     "label": "封閉船艙",
+     "asset": "ship3_g2_cabin",
+     "x": 85,
+     "y": 57,
+     "function": "隔開甲板上的風，讓停船與穩速時的滴水、拋接能在較相近的環境中比較。",
+     "line": "甲板上的風太愛插嘴。把問題帶進艙裡，先看沒有明顯外擾時還剩下什麼差別。"
+    },
+    {
+     "id": "paperTapes",
+     "label": "同步紙帶與直尺",
+     "asset": "ship3_g4_reference_tapes",
+     "x": 76,
+     "y": 88,
+     "function": "用同一串鼓點對齊船上與岸上的紀錄，再逐拍比較石頭相對桅杆與岸邊的位置。",
+     "line": "兩張紙先讓同一聲鼓相認。對齊時刻之後，才能問它們為何畫出不同的路。"
+    }
+   ]
   }
  },
  "shipExperimentVisuals": {
@@ -1112,6 +1176,16 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_public_demonstration_master_v01.png"
+  },
+  {
+   "id": "ship3_apparatus_survey",
+   "kind": "cg",
+   "label": "第三章航船實驗器材踏查底板",
+   "path": "ch03/experiments/ch03_lab_apparatus_survey_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_apparatus_survey_master_v01.png"
   },
   {
    "id": "ship3_g1_mast_dock",
