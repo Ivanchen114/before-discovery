@@ -577,7 +577,7 @@
     s2.lab.evidence.e3.c = false;                     /* 竄改:移除 E3.c */
     var frozen = JSON.stringify(s2);
     var rr = Narrative.debateFr(s2, "a");
-    ok(rr.error && rr.error.indexOf("E3.c") >= 0, "缺 E3.c 必拒");
+    ok(rr.error && rr.error.indexOf("變換傾角") >= 0, "缺少傾角複驗時須用玩家看得懂的理由拒絕");
     eq(JSON.stringify(rr.state), frozen, "state 不變");
   });
 

@@ -3,13 +3,13 @@
   function buildBustImg(e, alt) { /* ART-ADR-001 混合制;高度貼容器,不裁不鏡像 */
     if (!e.layers || !e.layers.length) {
       var img = document.createElement("img");
-      img.src = assetUrl(e); img.alt = alt || e.label || e.id;
+      img.src = assetUrl(e); img.alt = alt || "角色立繪";
       return img;
     }
     var wrap = document.createElement("span");
     wrap.style.position = "relative"; wrap.style.display = "inline-block"; wrap.style.height = "100%";
     var base = document.createElement("img");
-    base.src = assetUrl(e); base.alt = alt || e.label || e.id;
+    base.src = assetUrl(e); base.alt = alt || "角色立繪";
     base.style.height = "100%"; base.style.width = "auto"; base.style.display = "block";
     wrap.appendChild(base);
     e.layers.forEach(function (L) {

@@ -30,7 +30,7 @@
     {"id":"n5","type":"line","speaker":"伽桑狄","text":"伽利略，《對話》。第二日。船。","next":"n6"},
     {"id":"n6","type":"line","speaker":"旅人(你)","text":"他把船寫進書裡。","next":"n7"},
     {"id":"n7","type":"line","speaker":"伽桑狄","text":"我想把書帶到海上。那顆石頭從桅頂鬆手，船若正在前進，它會落在哪裡？","next":"s1"},
-    {"id":"s1","type":"system","speaker":"system","text":"取得 S5《對話》的船艙頁。它提出可受審的條件，尚不是實驗證據。","effects":[{"evidence":"S5"}],"next":"g1"},
+    {"id":"s1","type":"system","speaker":"system","text":"取得《對話》的船艙頁。它提出可受審的條件，尚不是實驗證據。","effects":[{"evidence":"S5"}],"next":"g1"},
     {"id":"g1","type":"goto","scene":"C0-2"}
    ]
   },

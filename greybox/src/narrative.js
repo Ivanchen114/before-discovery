@@ -462,7 +462,7 @@
     if (CH.fr.enemy) return debateFr2(state, state0, optionId); /* 第二章 FR 全流程 */
     /* A-1:外推論證之前提=玩家親手驗過「隨傾角形式不變」(E3.c);未持有不得組鏈 */
     if (!state.lab.evidence.e3.c) {
-      return { state: state0, error: "缺 E3.c(隨傾角形式不變)——沒親手驗過變傾角,這條鏈不能組" };
+      return { state: state0, error: "尚未完成變換傾角的複驗——沒親手確認規律在不同傾角下仍保持同一形式，這段論證還不能成立。" };
     }
     if (d.fr.trapPending) {
       var t = null;

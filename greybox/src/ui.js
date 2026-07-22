@@ -54,10 +54,10 @@
   function renderHeader() {
     $("dayCount").textContent = state.days;
     var e3 = state.evidence.e3;
-    $("e3State").textContent = "E3:a" + (e3.a ? "●" : "○") + " b" + (e3.b ? "●" : "○") + " c" + (e3.c ? "●" : "○") + (Engine.e3Established(state) ? "(確立)" : "");
+    $("e3State").textContent = "斜面主張：規律" + (e3.a ? "●" : "○") + " 重量" + (e3.b ? "●" : "○") + " 傾角" + (e3.c ? "●" : "○") + (Engine.e3Established(state) ? "（確立）" : "");
     var P3 = state.belief.P3;
     $("persuasion").textContent = "說服力:" + Array(P3.persuasion + 1).join("●") + Array(5 - P3.persuasion + 1).join("○");
-    $("p3Status").textContent = "支柱P3:" + ({ pending: "未決", suspended: "辯論中止", broken: "已破裂" })[P3.status];
+    $("p3Status").textContent = "目的論支柱：" + ({ pending: "未決", suspended: "辯論中止", broken: "已破裂" })[P3.status];
   }
 
   function renderRuns() {
@@ -67,7 +67,7 @@
     state.evidence.runs.forEach(function (r) {
       var vals = viewMode === "inc" ? r.readings : Engine.cumulative(r.readings);
       var tr = document.createElement("tr");
-      var name = "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")";
+      var name = "選取實驗紀錄 #" + r.id + "（" + cfgLabel(r.config) + "）";
       tr.innerHTML = "<td><input type='checkbox' class='runSel' data-id='" + r.id + "' aria-label='" + name + "'></td>" +
         "<td>#" + r.id + "</td><td>" + cfgLabel(r.config) + "</td>" +
         vals.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") +
@@ -95,17 +95,17 @@
   function renderStatements() {
     var box = $("statements");
     box.innerHTML = "";
-    DEBATE.statements.forEach(function (st) {
+    DEBATE.statements.forEach(function (st, idx) {
       var stateTag = state.belief.P3.statements[st.id];
       var div = document.createElement("div");
       var extra = (st.id === "s2" && state.belief.P3.s2NeedFlag && stateTag !== "broken")
         ? "<div class='hint'>(證詞追加)" + st.insufficient.reply + "</div>" : "";
-      div.innerHTML = "<p class='" + (stateTag === "broken" ? "broken" : "") + "'><b>" + st.id + "</b> " + st.text +
-        " <button class='pressBtn' data-id='" + st.id + "' aria-label='追問證詞 " + st.id + "'>追問</button></p>" + extra;
+      div.innerHTML = "<p class='" + (stateTag === "broken" ? "broken" : "") + "'><b>證詞 " + (idx + 1) + "</b> " + st.text +
+        " <button class='pressBtn' data-id='" + st.id + "' data-no='" + (idx + 1) + "' aria-label='追問第 " + (idx + 1) + " 句證詞'>追問</button></p>" + extra;
       box.appendChild(div);
     });
     Array.prototype.forEach.call(document.querySelectorAll(".pressBtn"), function (b) {
-      b.onclick = function () { log("【追問 " + b.dataset.id + "】" + Engine.press(b.dataset.id)); };
+      b.onclick = function () { log("【追問第 " + b.dataset.no + " 句】" + Engine.press(b.dataset.id)); };
     });
   }
 
@@ -116,7 +116,7 @@
     if (P3.status === "broken" && $("victory").style.display === "none") {
       $("victory").style.display = "";
       $("victory").innerHTML = "<p>" + DEBATE.texts.victory + "</p>" +
-        "<p><b>支柱 P3 破裂——本切片結束。總耗天數:" + state.days + " 天。</b></p>" +
+        "<p><b>目的論支柱破裂——本切片結束。總耗天數：" + state.days + " 天。</b></p>" +
         "<p><label>你改了什麼讓數據變好?<br><textarea id='q1' rows='2'></textarea></label></p>" +
         "<p><label>這組證據還不能證明什麼?<br><textarea id='q2' rows='2'></textarea></label></p>" +
         "<p class='hint'>(自由作答,僅存於本次記憶體,不評分——供形成性試玩之因果回述觀察)</p>";
@@ -147,7 +147,7 @@
     var res = Engine.runExperiment(state, config);
     state = res.state;
     var r = res.run;
-    $("labMsg").textContent = "run #" + r.id + " 完成(" + cfgLabel(r.config) + ",第 " + r.seq + " 次)。讀值已存入旅人筆記。";
+    $("labMsg").textContent = "實驗紀錄 #" + r.id + " 完成（" + cfgLabel(r.config) + "，第 " + r.seq + " 次）。讀值已存入旅人筆記。";
     $("lastRun").innerHTML = "<table><thead><tr><th>四段等時距</th><th>Δ1</th><th>Δ2</th><th>Δ3</th><th>Δ4</th></tr></thead>" +
       "<tbody><tr><td>增量讀值(刻度)</td>" + r.readings.map(function (v) { return "<td>" + fmt(v) + "</td>"; }).join("") + "</tr></tbody></table>";
     renderAll();
@@ -160,18 +160,18 @@
 
   $("btnCompare").onclick = function () {
     var ids = checkedIds("runSel");
-    if (ids.length !== 2) { $("compareMsg").textContent = "請恰好勾選兩筆 run。"; return; }
+    if (ids.length !== 2) { $("compareMsg").textContent = "請恰好勾選兩筆實驗紀錄。"; return; }
     var res = Engine.compareRuns(state, ids);
     if (res.error) { $("compareMsg").textContent = res.error; return; }
     state = res.state;
-    $("compareMsg").textContent = "run #" + ids[0] + " vs #" + ids[1] + " 相異變因:" +
+    $("compareMsg").textContent = "實驗紀錄 #" + ids[0] + " 與 #" + ids[1] + " 的相異變因：" +
       (res.comparison.diff.length ? res.comparison.diff.join("、") : "無(配置完全相同)");
   };
 
   $("btnJudge").onclick = function () {
     var ids = checkedIds("runSel");
     var pred = parseFloat($("prediction").value);
-    if (!ids.length) { $("judgeMsg").textContent = "請先勾選 1–3 筆 run 作為判定選集。"; return; }
+    if (!ids.length) { $("judgeMsg").textContent = "請先勾選 1–3 筆實驗紀錄作為判定依據。"; return; }
     if (isNaN(pred)) { $("judgeMsg").textContent = "請輸入第五段增量之預測值。"; return; }
     var res = Engine.judge(state, ids, pred);
     if (res.rejected) {
@@ -198,7 +198,9 @@
     state = res.state;
     var a = res.assertion;
     if (a.ok) {
-      $("assertMsg").textContent = "斷言成立:E3." + type + " 點亮。";
+      $("assertMsg").textContent = type === "b"
+        ? "斷言成立：只換球重，規律仍然不變。"
+        : "斷言成立：換了傾角，規律的形式仍然不變。";
     } else {
       $("assertMsg").textContent = "斷言不成立:" + a.reason + (a.diff.length ? "——實際相異變因:" + a.diff.join("、") : "");
     }
@@ -218,10 +220,13 @@
     var target = $("selTarget").value;
     var res = Engine.present(state, { evidence: ev, subitem: sub, target: target });
     state = res.state;
-    var label = "【出示】" + ev + (sub ? "." + sub : "") + " → " + target + ":";
+    var evidenceName = $("selEvidence").options[$("selEvidence").selectedIndex].textContent;
+    var subName = sub ? $("selSubitem").options[$("selSubitem").selectedIndex].textContent.replace(/^[abc]\s+/, "") : "";
+    var targetName = $("selTarget").options[$("selTarget").selectedIndex].textContent;
+    var label = "【出示】" + evidenceName + (subName ? "・" + subName : "") + " → " + targetName + "：";
     switch (res.outcome) {
       case "correct":
-        log(label + " 命中要害。s2 破裂,支柱 P3 崩塌。");
+        log(label + " 命中要害。第二句證詞被擊破，目的論支柱崩塌。");
         break;
       case "insufficient":
         log(label + " 方向對,但不足。" + DEBATE.statements[1].insufficient.reply + "(量表不減)");

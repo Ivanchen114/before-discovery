@@ -32,6 +32,12 @@
 
   function $(id) { return document.getElementById(id); }
   function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
+  function sceneTitleText(value) {
+    if (TEXT && TEXT.playerSceneTitle) return TEXT.playerSceneTitle(value);
+    return String(value || "故事進行中")
+      .replace(/^死路\s*[A-ZＡ-Ｚ]\s*[：:]\s*/, "")
+      .replace(/^修復\s*[：:]\s*/, "");
+  }
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
   function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
 
@@ -64,7 +70,7 @@
     } catch (e) { return null; }
   }
   function sanitizeLoaded(s) {
-    if (!window.GB.Sanitize) return { ok: false, reason: "sanitizer 缺失" };
+    if (!window.GB.Sanitize) return { ok: false, reason: "進度檢查功能未就緒" };
     if (CHAPTER_ID === "ch2") return window.GB.Sanitize.sanitizeImport2(s, SCENES, window.GB.Engine2);
     if (CHAPTER_ID === "ch3") return window.GB.Sanitize.sanitizeImport3(s, SCENES, window.GB.Engine3);
     return window.GB.Sanitize.sanitizeImport(s, PATTERNS, SCENES);
@@ -117,7 +123,7 @@
   function buildPortrait(e, alt) { /* ART-ADR-001 混合制:base+臉層(母版座標→百分比定位) */
     if (!e.layers || !e.layers.length) {
       var img = document.createElement("img");
-      img.src = assetUrl(e); img.alt = alt || e.label || e.id; img.className = "portrait";
+      img.src = assetUrl(e); img.alt = alt || "角色立繪"; img.className = "portrait";
       img.loading = "lazy";
       return img;
     }
@@ -125,7 +131,7 @@
     wrap.className = "composite";
     wrap.style.position = "relative"; wrap.style.display = "inline-block";
     var base = document.createElement("img");
-    base.src = assetUrl(e); base.alt = alt || e.label || e.id;
+    base.src = assetUrl(e); base.alt = alt || "角色立繪";
     base.style.display = "block"; base.style.width = "100%";
     wrap.appendChild(base);
     e.layers.forEach(function (L) {
@@ -166,6 +172,11 @@
     if (speaker === "旅人(你)") return "player";
     return "";
   }
+  function playerSceneTitle(sceneId) {
+    var sc = null;
+    SCENES.scenes.forEach(function (s) { if (s.id === sceneId) sc = s; });
+    return sc && sc.title ? sceneTitleText(sc.title) : "故事進行中";
+  }
   function sceneHeading(sceneId) {
     emit("bd:scene", { sceneId: sceneId });
     if (sceneId === lastSceneShown) return;
@@ -174,13 +185,13 @@
     SCENES.scenes.forEach(function (s) { if (s.id === sceneId) sc = s; });
     var div = document.createElement("div");
     div.className = "scene-title";
-    div.textContent = "◆ " + sceneId + (sc && sc.title ? "｜" + sc.title : "");
+    div.textContent = "◆ " + (sc && sc.title ? sceneTitleText(sc.title) : "故事進行中");
     $("log").appendChild(div);
     if (ASSETS && ASSETS.sceneBg) { /* 場景橫幅:資產落地即顯示 */
       var bg = assetEntry(ASSETS.sceneBg[CHAPTER_ID + ":" + sceneId] || ASSETS.sceneBg[sceneId]);
       if (bg) {
         var img = document.createElement("img");
-        img.src = assetUrl(bg); img.alt = bg.label || "";
+        img.src = assetUrl(bg); img.alt = (sc && sc.title ? sceneTitleText(sc.title) : "故事") + "場景";
         img.className = "scene-banner";
         img.loading = "lazy";
         $("log").appendChild(img);
@@ -234,11 +245,11 @@
       $("perVal").textContent = sealed ? ("公開質詢：" + sealed + "/3") : "";
     } else $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
     $("modeVal").textContent = "模式：" + (state.mode === "scholar" ? "學者" : "探索");
-    $("sceneVal").textContent = "場景：" + state.cursor.scene;
+    $("sceneVal").textContent = "場景：" + playerSceneTitle(state.cursor.scene);
     var names = SCENES.evidenceNames || {};
     var got = Object.keys(state.evidence).filter(function (k) { return state.evidence[k]; });
     $("evidenceList").textContent = got.length
-      ? got.map(function (k) { return k + " " + (names[k] || ""); }).join("、")
+      ? got.map(function (k) { return names[k] || "已取得的證據"; }).join("、")
       : "(尚無)";
   }
 
@@ -380,7 +391,7 @@
         var cb = document.createElement("input");
         cb.type = "checkbox"; cb.className = "labRunSel";
         cb.dataset.id = String(r.id);
-        cb.setAttribute("aria-label", "選取 run #" + r.id + "(" + cfgLabel(r.config) + ")");
+        cb.setAttribute("aria-label", "選取實驗紀錄 #" + r.id + "（" + cfgLabel(r.config) + "）");
         tdSel.appendChild(cb); tr.appendChild(tdSel);
         [("#" + r.id), cfgLabel(r.config)].concat(r.readings.map(fmt)).concat([String(r.day)])
           .forEach(function (cell) {
@@ -529,7 +540,7 @@
     $("labRun").onclick = function () {
       var config = { ball: $("labBall").value, surface: $("labSurface").value, incline: $("labIncline").value, timer: $("labTimer").value };
       var out = doLab("run", { config: config }, "labMsg", function (res) {
-        return "run #" + res.run.id + " 完成(" + cfgLabel(res.run.config) + ",第 " + res.run.seq + " 次):" +
+        return "實驗紀錄 #" + res.run.id + " 完成（" + cfgLabel(res.run.config) + "，第 " + res.run.seq + " 次）：" +
           res.run.readings.map(fmt).join(" / ");
       });
       if (out && out.run) emit("bd:run", { run: out.run }); /* 表現層重播動畫掛點(無訂閱者=灰盒不變) */
@@ -588,7 +599,7 @@
       var subs = { a: "規律成立", b: "與球重無關", c: "隨傾角形式不變" };
       return (names.E3 || "斜面奇數律") + "・" + (subs[subitem] || subitem || "");
     }
-    return names[code] || code;
+    return names[code] || "未命名證據";
   }
   function availableEvidenceCards() {
     var out = [];
@@ -614,7 +625,7 @@
       var el = document.createElement("div");
       el.className = "debatePillar " + (p.broken ? "isBroken" : (d.pillar && d.pillar.id === p.id ? "isCurrent" : ""));
       var no = document.createElement("span"); no.textContent = "第" + (i + 1) + "柱";
-      var title = document.createElement("b"); title.textContent = (p.title || p.id).replace(/^第.支柱:/, "");
+      var title = document.createElement("b"); title.textContent = (p.title || "未命名支柱").replace(/^第.支柱:/, "");
       el.appendChild(no); el.appendChild(title); track.appendChild(el);
     });
     var meter = document.createElement("div");
@@ -950,7 +961,7 @@
       "law-source-ball": "斷言一要引用本輪的銅球基準；木球紀錄留給下一步檢驗重量。",
       "unknown-law-concept": "先選擇這組數據支持的物理關係。"
     };
-    var text = map[code] || code;
+    var text = map[code] || "這一步目前無法完成，請檢查眼前的裝置與任務條件。";
     if (result && result.diffs && result.diffs.length) text += "——" + cat2CompareFailure(result.diffs);
     return "✕ " + text;
   }
@@ -1070,7 +1081,7 @@
     function btn(txt, fn, parent, cls) { var b = el("button", txt, parent, cls); b.type = "button"; b.onclick = fn; return b; }
     function art(id, alt, parent, cls) {
       var e = assetEntry(id); if (!e) return null;
-      var img = document.createElement("img"); img.src = assetUrl(e); img.alt = alt || e.label || "";
+      var img = document.createElement("img"); img.src = assetUrl(e); img.alt = alt || "實驗器材圖";
       if (cls) img.className = cls; (parent || box).appendChild(img); return img;
     }
     function catapultGate(parent) {
@@ -1135,7 +1146,7 @@
         return;
       }
       var sel = document.createElement("select");
-      sel.setAttribute("aria-label", (slotNames[slot] || slot) + "零件");
+      sel.setAttribute("aria-label", (slotNames[slot] || "裝置部位") + "零件");
       Object.keys(E2._PARTS).forEach(function (pid) {
         var p = E2._PARTS[pid];
         if (p.slot !== slot) return;
@@ -1346,7 +1357,7 @@
       "evidence-not-owned": "這張證據尚未取得，不能拿來回答。",
       "audit-incomplete": "三道質詢尚未全部封存。"
     };
-    return map[code] || code;
+    return map[code] || "這一步目前無法完成，請檢查眼前的實驗條件。";
   }
   function doShip(action, args, okText) {
     var before = JSON.stringify(state.lab.evidence || {});
@@ -1384,7 +1395,7 @@
       if (before !== JSON.stringify(after)) {
         ["g1", "g2", "g3", "g4", "g5"].forEach(function (k) {
           var old = JSON.parse(before || "{}");
-          if (!old[k] && after[k]) ship3Msg = "◆ 取得 " + k.toUpperCase() + "：" + (SCENES.evidenceNames[k.toUpperCase()] || "新證據") + "\n" + ship3Msg;
+          if (!old[k] && after[k]) ship3Msg = "◆ 取得證據：" + (SCENES.evidenceNames[k.toUpperCase()] || "新證據") + "\n" + ship3Msg;
         });
       }
     }
@@ -1882,7 +1893,8 @@
         var blob = new Blob([text], { type: "application/json" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "發現之前_" + CHAPTER_ID + "_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
+        var chapterFileLabel = CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章");
+        a.download = "發現之前_" + chapterFileLabel + "_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e3) {} }, 3000);
       } catch (e4) {}

@@ -31,6 +31,10 @@ tests.push({
     const technical = "等時距 1:3:5:7；E3.a；(De Motu)";
     if (TextFormat.normalizeZhPunctuation(technical) !== technical)
       throw new Error("技術字串遭誤改");
+    if (TextFormat.playerSceneTitle("死路 A:歸檔(大學迴廊,翌日)") !== "歸檔（大學迴廊，翌日）")
+      throw new Error("場景製作術語未在呈現邊界移除");
+    if (TextFormat.playerSceneTitle("修復:用證據道歉") !== "用證據道歉")
+      throw new Error("修復節點標籤未在呈現邊界移除");
   }
 });
 
@@ -1813,7 +1817,7 @@ tests.push({
 });
 
 tests.push({
-  name: "玩家介面語言|證據製作代碼不外洩、最後論證以白話呈現",
+  name: "玩家介面語言|內部資料 ID 不外洩、系統語句以白話呈現",
   fn: () => {
     const sceneSets = [
       JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8")),
@@ -1821,10 +1825,15 @@ tests.push({
       JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8")),
       JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"))
     ];
-    const visibleKeys = new Set(["text", "title", "label", "prompt", "reply", "slotPrompt", "frUnlocked"]);
+    const visibleKeys = new Set([
+      "text", "title", "label", "prompt", "reply", "slotPrompt", "frUnlocked",
+      "hint", "description", "summary", "name", "alt"
+    ]);
     const leaks = [];
+    /* 實驗紀錄 #1、主張 #1 是玩家親手產生且需要引用的流水號，刻意不列為內部 ID。 */
+    const internalId = /(?:^|[^A-Za-z0-9])(?:E[1-9](?:\.[a-z])?|F[1-9]|G[1-9]|S[1-9]|P[1-9]|(?:P0|INT|[ABC][0-9]+|BE|CE|SC)-[A-Za-z0-9-]+|GB-ADR-\d+|R-[A-Z0-9-]+|run\s*#)(?:$|[^A-Za-z0-9])/;
     function walk(value, key) {
-      if (typeof value === "string" && visibleKeys.has(key) && /(?:^|[^A-Za-z0-9])(?:E[1-5](?:\.[abc])?|F[1-5]|G[1-5]|S[1-4])(?:$|[^A-Za-z0-9])/.test(value)) leaks.push(value);
+      if (typeof value === "string" && visibleKeys.has(key) && internalId.test(value)) leaks.push(value);
       else if (Array.isArray(value)) value.forEach((x) => walk(x, ""));
       else if (value && typeof value === "object") Object.entries(value).forEach(([k, v]) => walk(v, k));
     }
@@ -1834,6 +1843,26 @@ tests.push({
     if (!debate2.chapter.fr.scholar.slotPrompt.includes("依序選三句")) throw new Error("學者模式未改成白話任務");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     if (ui.includes('d.fr.slots.join(" → ")')) throw new Error("介面仍把內部槽位 id 顯示給玩家");
+    for (const frag of [
+      '"場景：" + state.cursor.scene', 'k + " " + (names[k]', '"run #"', '"取得 " + k.toUpperCase()',
+      'return names[code] || code', '(p.title || p.id)', '_" + CHAPTER_ID + "_書信碼_'
+    ]) if (ui.includes(frag)) throw new Error("章節介面仍可能顯示內部資料 ID：" + frag);
+    const stageScene = readFileSync(path.join(here, "../src/stage/02-scene.part.js"), "utf-8");
+    if (stageScene.includes('sceneId + "') || stageScene.includes(': sceneId'))
+      throw new Error("舞台場景標籤仍可能回退為場景 ID");
+    const sliceUi = readFileSync(path.join(here, "../src/ui.js"), "utf-8");
+    const sliceHtml = readFileSync(path.join(here, "../index.html"), "utf-8");
+    for (const frag of ["E3:a", "run #", "支柱P3", "支柱 P3"]) {
+      if (sliceUi.includes(frag) || sliceHtml.includes(frag)) throw new Error("內部 QA 介面仍顯示規格代碼：" + frag);
+    }
+    const sanitize = readFileSync(path.join(here, "../src/sanitize.js"), "utf-8");
+    for (const frag of ["F2 證據", "F2 斷言", "series #", "cursor 非法", "schema 非法", "enum 非法", "profile/cycle", "run #", "claim #"])
+      if (sanitize.includes(frag)) throw new Error("匯入錯誤訊息仍顯示技術欄位：" + frag);
+    const narrative = readFileSync(path.join(here, "../src/narrative.js"), "utf-8");
+    if (narrative.includes('error: "缺 E3.c')) throw new Error("引擎拒絕訊息仍顯示證據 ID");
+    const format = readFileSync(path.join(here, "../src/text-format.js"), "utf-8");
+    if (!format.includes("playerSceneTitle") || !format.includes("死路"))
+      throw new Error("場景標題缺少製作術語隔離層");
     for (const label of ["落石", "船艙", "變速", "雙視角", "邊界"]) if (!ui.includes(label)) throw new Error("第三章進度缺白話名稱：" + label);
   }
 });

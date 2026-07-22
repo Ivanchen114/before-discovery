@@ -82,7 +82,11 @@
     curSceneId = sceneId;
     preloadScene(sceneId);
     var sc = sceneInfo(sceneId);
-    $("sceneChip").textContent = sceneId + (sc && sc.title ? "｜" + displayText(sc.title) : "");
+    var publicTitle = "故事進行中";
+    if (sc && sc.title) publicTitle = TEXT && TEXT.playerSceneTitle
+      ? TEXT.playerSceneTitle(sc.title)
+      : String(sc.title).replace(/^死路\s*[A-ZＡ-Ｚ]\s*[：:]\s*/, "").replace(/^修復\s*[：:]\s*/, "");
+    $("sceneChip").textContent = publicTitle;
     var e = (ASSETS && ASSETS.sceneBg) ? assetEntry(ASSETS.sceneBg[CHAPTER_ID + ":" + sceneId] || ASSETS.sceneBg[sceneId]) : null;
     var img = $("bgImg"), fb = $("bgFallback");
     if (e) {
@@ -91,7 +95,7 @@
         img.style.opacity = 0;
         img.onload = function () { img.style.opacity = 1; };
         img.src = assetUrl(e);
-        img.alt = e.label || "";
+        img.alt = publicTitle + "場景";
         if (img.complete) img.style.opacity = 1;
       }
       img.style.display = "";
@@ -101,7 +105,7 @@
       img.style.display = "none";
       img.removeAttribute("src");
       fb.classList.remove("off");
-      $("fbTitle").textContent = (sc && sc.title) ? sc.title : sceneId;
+      $("fbTitle").textContent = publicTitle;
     }
   }
 
@@ -110,13 +114,13 @@
   function buildBustImg(e, alt) { /* ART-ADR-001 混合制;高度貼容器,不裁不鏡像 */
     if (!e.layers || !e.layers.length) {
       var img = document.createElement("img");
-      img.src = assetUrl(e); img.alt = alt || e.label || e.id;
+      img.src = assetUrl(e); img.alt = alt || "角色立繪";
       return img;
     }
     var wrap = document.createElement("span");
     wrap.style.position = "relative"; wrap.style.display = "inline-block"; wrap.style.height = "100%";
     var base = document.createElement("img");
-    base.src = assetUrl(e); base.alt = alt || e.label || e.id;
+    base.src = assetUrl(e); base.alt = alt || "角色立繪";
     base.style.height = "100%"; base.style.width = "auto"; base.style.display = "block";
     wrap.appendChild(base);
     e.layers.forEach(function (L) {
@@ -302,7 +306,7 @@
       if (!e) return;
       var img = document.createElement("img");
       img.src = assetUrl(e);
-      img.alt = item.alt || e.label || e.id;
+      img.alt = item.alt || "證據圖";
       img.loading = "eager";
       media.appendChild(img);
       shown++;

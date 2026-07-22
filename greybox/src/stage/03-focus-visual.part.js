@@ -80,7 +80,7 @@
       if (!e) return;
       var img = document.createElement("img");
       img.src = assetUrl(e);
-      img.alt = item.alt || e.label || e.id;
+      img.alt = item.alt || "證據圖";
       img.loading = "eager";
       media.appendChild(img);
       shown++;

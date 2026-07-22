@@ -80,7 +80,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "取得 S5《對話》的船艙頁。它提出可受審的條件，尚不是實驗證據。",
+     "text": "取得《對話》的船艙頁。它提出可受審的條件，尚不是實驗證據。",
      "effects": [
       {
        "evidence": "S5"
