@@ -145,7 +145,7 @@
     {"id":"e1","type":"embed","system":"ship","phase":"overlay","hint":"先讓同一聲鼓相認，再扣除每個時刻桅杆向前的位移。","until":{"ship":"g4"},"next":"n5"},
     {"id":"n5","type":"line","speaker":"旅人(你)","text":"兩張圖沒有互相推翻。它們只是各自把不同的東西當作不動。","next":"n6"},
     {"id":"n6","type":"line","speaker":"伽桑狄","text":"一句話若沒先回答『相對誰』，通常只說了一半。","next":"s1"},
-    {"id":"s1","type":"system","speaker":"system","text":"取得 G4。解鎖操作詞：切換參考物。現代整理詞「參考系」留到史實頁。","effects":[{"flag":["referenceNamed","1"]}],"next":"g1"},
+    {"id":"s1","type":"system","speaker":"system","text":"取得證據：雙參考物疊圖。解鎖操作詞：切換參考物。現代整理詞「參考系」留到史實頁。","effects":[{"flag":["referenceNamed","1"]}],"next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-4"}
    ]
   },

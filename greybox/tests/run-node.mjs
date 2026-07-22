@@ -1204,7 +1204,7 @@ tests.push({
     const s2 = walk("scholar", { hypothesis: false, xch: { ch1: { source: "ch1-schema3", certified: true, e3: { a: true, b: true, c: true } } } });
     if (s2.flags.revealSqrt !== "1") throw new Error("r1 押中路未原子寫入揭曉旗標");
     if (!s2.transcript.some((t) => (t.text || "").includes("先不給它名字"))) throw new Error("學者分支未演出");
-    if (!s2.transcript.some((t) => (t.text || "").includes("垂直未直接量得"))) throw new Error("certified 路未用 inherited 第二環");
+    if (!s2.transcript.some((t) => (t.text || "").includes("沒有直接量過垂直落下"))) throw new Error("certified 路未用 inherited 第二環");
     /* over 反將路:說服力 5→3、信譽 −1,強制轉 honest 後仍完賽 */
     const s3 = walk("explore", { over: true });
     if (s3.debate.persuasion !== 3 || s3.rep !== 3 - 1 + 1) /* B0-2 b 未誤選:rep 3+1(S3 線)−1(over)=3 */
@@ -1809,6 +1809,32 @@ tests.push({
     const intro = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");
     for (const frag of ["共同運動實驗備忘", "停船、近似穩速、加速與減速", "ship3_g1_mast_dock", "ship3_g2_cabin", "登上實驗船"])
       if (!intro.includes(frag)) throw new Error("第三章仍沿用第一章實驗備忘:" + frag);
+  }
+});
+
+tests.push({
+  name: "玩家介面語言|證據製作代碼不外洩、最後論證以白話呈現",
+  fn: () => {
+    const sceneSets = [
+      JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8")),
+      JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8")),
+      JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8")),
+      JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"))
+    ];
+    const visibleKeys = new Set(["text", "title", "label", "prompt", "reply", "slotPrompt", "frUnlocked"]);
+    const leaks = [];
+    function walk(value, key) {
+      if (typeof value === "string" && visibleKeys.has(key) && /(?:^|[^A-Za-z0-9])(?:E[1-5](?:\.[abc])?|F[1-5]|G[1-5]|S[1-4])(?:$|[^A-Za-z0-9])/.test(value)) leaks.push(value);
+      else if (Array.isArray(value)) value.forEach((x) => walk(x, ""));
+      else if (value && typeof value === "object") Object.entries(value).forEach(([k, v]) => walk(v, k));
+    }
+    sceneSets.forEach((x) => walk(x, ""));
+    if (leaks.length) throw new Error("玩家可見字串仍含製作代碼：" + leaks[0]);
+    const debate2 = sceneSets[3];
+    if (!debate2.chapter.fr.scholar.slotPrompt.includes("依序選三句")) throw new Error("學者模式未改成白話任務");
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (ui.includes('d.fr.slots.join(" → ")')) throw new Error("介面仍把內部槽位 id 顯示給玩家");
+    for (const label of ["落石", "船艙", "變速", "雙視角", "邊界"]) if (!ui.includes(label)) throw new Error("第三章進度缺白話名稱：" + label);
   }
 });
 

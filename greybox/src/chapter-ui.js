@@ -555,7 +555,9 @@
       if (ids.length !== 2) { $("assertMsg").textContent = "請恰好勾選兩筆主張。"; return; }
       doLab("assert", { type: type, claimIds: ids }, "assertMsg", function (res) {
         var a = res.assertion;
-        if (a.ok) return "斷言成立:E3." + type + " 點亮。";
+        if (a.ok) return type === "b"
+          ? "斷言成立：只換球重，量到的規律沒有改變。"
+          : "斷言成立：換了傾角，規律的形式仍然不變。";
         return "斷言不成立:" + a.reason + (a.diff.length ? "——實際相異變因:" + a.diff.join("、") : "");
       });
     }
@@ -844,7 +846,7 @@
         });
       } else {
         var slotP = document.createElement("p");
-        slotP.textContent = "已組:" + (d.fr.slots.length ? d.fr.slots.join(" → ") : "(空)") + "/3";
+        slotP.textContent = "已選：" + d.fr.slots.length + "／3";
         box.appendChild(slotP);
         d.fr.pool.forEach(function (o) {
           mkBtn(box, o.text, function () { doDebate("debateFr", [o.id]); }, d.fr.slots.indexOf(o.id) >= 0);
@@ -907,7 +909,7 @@
     var out = [];
     if (!before.law && after.law) out.push("◆ 取得斷言一：下落高度變成 4 倍，射程約變成 2 倍。");
     if (!before.ball && after.ball) out.push("◆ 取得斷言二：只換球重，射程規律不變。");
-    if (!before.full && after.full) out.push("◆ 合成完整證據：F2 桌緣彈射・平方根律。");
+    if (!before.full && after.full) out.push("◆ 合成完整證據：桌緣彈射・平方根律。");
     return out.join("\n");
   }
   function cat2CompareFailure(diffs) {
@@ -988,7 +990,7 @@
   function cat2GateLabel(v) {
     if (v.nodeId === "e1") return "▶ 回到故事，說出你看到的規律";
     if (v.nodeId === "e2") return "▶ 帶著押中的規律回去";
-    if (v.nodeId === "e3") return "▶ 收下 F2 證據，繼續劇情";
+    if (v.nodeId === "e3") return "▶ 收下完整證據，繼續劇情";
     return v.scene === "SC-R1" ? "▶ 帶著乾淨紀錄回去" : "▶ 收好數據，回到故事";
   }
   function cat2DefaultMessage(v, lab2, open, done) {
@@ -1179,7 +1181,7 @@
     var ballClaim = el("div", "", claims, "catClaim " + (f2Claims.ball ? "earned" : "locked"));
     el("b", (f2Claims.ball ? "✓" : "○") + " 斷言二", ballClaim);
     el("span", f2Claims.ball ? "只換球重，規律不變" : "完成銅球／木球比較後取得", ballClaim);
-    if (f2Claims.full) el("strong", "◆ F2 完整證據已收入旅人筆記", claims, "catClaimComplete");
+    if (f2Claims.full) el("strong", "◆ 完整證據已收入旅人筆記", claims, "catClaimComplete");
     catapultGate(sv); /* 完成出口固定在目標旁，不再藏在長紀錄簿底端。 */
     mountCatapultReplay(sv);
     var stageReady = N.embedReady(state);
@@ -1520,8 +1522,9 @@
     ship3El("h2", mission[0], head);
     ship3El("p", mission[1], head);
     var chips = ship3El("div", null, head, "shipEvidenceChips");
+    var evidenceSteps = { G1: "落石", G2: "船艙", G3: "變速", G4: "雙視角", G5: "邊界" };
     ["G1", "G2", "G3", "G4", "G5"].forEach(function (id) {
-      ship3El("span", (ev[id.toLowerCase()] ? "✓ " : "○ ") + id, chips, ev[id.toLowerCase()] ? "got" : "");
+      ship3El("span", (ev[id.toLowerCase()] ? "✓ " : "○ ") + evidenceSteps[id], chips, ev[id.toLowerCase()] ? "got" : "");
     });
     var body = ship3El("div", null, box, "shipBody");
     var visual = ship3El("section", null, body, "shipVisual");
@@ -1622,7 +1625,7 @@
         ship3El("b", (lab.audit[q[0]] ? "✓ " : "") + q[1], card);
         if (!lab.audit[q[0]]) {
           var owned = ["G1", "G2", "G3", "G4"].filter(function (id) { return state.evidence[id]; });
-          var labels = {}; owned.forEach(function (id) { labels[id] = id + "・" + SCENES.evidenceNames[id]; });
+          var labels = {}; owned.forEach(function (id) { labels[id] = SCENES.evidenceNames[id]; });
           var pick = ship3Select(card, owned, labels, owned[0]);
           ship3Btn(card, "用這張證據回答", function () { doShip("answerAudit", { questionId: q[0], evidenceId: pick.value }, "✓ 這道質詢已有可追查的回答。"); });
         }

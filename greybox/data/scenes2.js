@@ -130,15 +130,21 @@
    },
    {
     "nodeId": "debate2.fr.scholar.correctInherited.c1.text",
-    "term": "開方",
+    "term": "平方根",
     "class": "revealed-after-player",
     "requiresReveal": "revealSqrt"
    },
    {
     "nodeId": "debate2.fr.scholar.correctLocal.c1.text",
-    "term": "開方",
+    "term": "平方根",
     "class": "revealed-after-player",
     "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.scholar.correctLocal.c2.text",
+    "term": "同時落地",
+    "class": "resolution-qualified",
+    "conditionText": "近乎;裝置能分辨"
    }
   ]
  },
@@ -262,7 +268,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "信譽 +1。取得 S3 塔爾塔利亞砲術圖。",
+     "text": "信譽 +1。取得證據：塔爾塔利亞砲術圖。",
      "next": "n2",
      "effects": [
       {
@@ -446,7 +452,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "取得 F1 船桅思想實驗。筆記:「前行與下墜,可以同時發生。」",
+     "text": "取得證據：船桅思想實驗。筆記：「前行與下墜，可以同時發生。」",
      "next": "g1",
      "effects": [
       {
@@ -575,7 +581,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "取得 S4 Guidobaldo 的實驗筆記(抄頁)。筆記:「又一次——不是一個人在想。」",
+     "text": "取得證據：Guidobaldo 的實驗筆記（抄頁）。筆記：「又一次——不是一個人在想。」",
      "next": "g1",
      "effects": [
       {
@@ -592,7 +598,7 @@
   },
   {
    "id": "B2-2",
-   "title": "墨跡(F4)",
+   "title": "墨跡曲線",
    "nodes": [
     {
      "id": "n1",
@@ -651,7 +657,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "取得 F4 墨跡曲線(玩家標定彎點)。筆記:「曲線,從第一寸開始——是我用尺量過才敢說的。」",
+     "text": "取得證據：墨跡曲線。筆記：「曲線，從第一寸開始——是我用尺量過才敢說的。」",
      "next": "g1",
      "effects": [
       {
@@ -787,7 +793,7 @@
      "id": "s2",
      "type": "system",
      "speaker": "system",
-     "text": "取得 F2 桌緣彈射・平方根律(含換球複驗)。筆記大字:「同介質、同外形同徑、同發射設定下:射程∝√下落高度,形式不隨球重改變。」",
+     "text": "取得證據：桌緣彈射・平方根律（含換球複驗）。筆記大字：「同介質、同外形同徑、同發射設定下：射程∝√下落高度，形式不隨球重改變。」",
      "next": "g1"
     },
     {
@@ -799,7 +805,7 @@
   },
   {
    "id": "B2-4",
-   "title": "一拋一放・落地比較(F3)",
+   "title": "一拋一放・落地比較",
    "nodes": [
     {
      "id": "n1",
@@ -918,7 +924,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "取得 F3 一拋一放・近乎同時落地(玩家扳閂三輪+判讀)。筆記:「如果下墜需要等待,向前飛的球就該晚落;但三輪都量不到延後。下墜從離手時就開始。(同高、同形、低速短程;本機關解析度內)」",
+     "text": "取得證據：一拋一放・近乎同時落地。筆記：「如果下墜需要等待，向前飛的球就該晚落；但三輪都量不到延後。下墜從離手時就開始。（同高、同形、低速短程；本裝置能分辨的範圍內）」",
      "next": "g1",
      "effects": [
       {
@@ -1070,7 +1076,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "第二幕終。證據齊備:F1/F2/F3/F4(+S3/S4)。",
+     "text": "第二幕終。船桅思想實驗、桌緣彈射、一拋一放與墨跡曲線都已收入旅人筆記。",
      "next": "g1"
     },
     {
