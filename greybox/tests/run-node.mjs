@@ -2000,6 +2000,12 @@ tests.push({
           throw new Error("證據圖無法解析：" + code + " → " + item.asset);
       }
     }
+    const s5Visual = assets.evidenceVisual.S5;
+    const s5Asset = entries.get(s5Visual.items[0].asset);
+    if (s5Visual.items[0].asset === "bg_ch03_marseille_harbor_dawn" || s5Asset?.kind !== "card" || !s5Asset?.path?.startsWith("ch03/cards/"))
+      throw new Error("S5 不得以馬賽港場景背景冒充《對話》的證據圖");
+    if (!s5Visual.caption.includes("史料意象圖") || !s5Visual.caption.includes("非原書插圖"))
+      throw new Error("S5 必須揭露為史料意象圖，不得冒充《對話》原書插圖");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const focus = readFileSync(path.join(here, "../src/stage/03-focus-visual.part.js"), "utf-8");
     const events = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");

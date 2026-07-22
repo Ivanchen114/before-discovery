@@ -1118,6 +1118,16 @@
    "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_marseille_harbor_dawn_master_v01.png"
   },
   {
+   "id": "card_S5",
+   "kind": "card",
+   "label": "S5 《對話》的船艙論證（史料意象圖）",
+   "path": "ch03/cards/ch03_card_S5_dialogue_ship_cabin_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch03/cards/ch03_card_S5_dialogue_ship_cabin_master_v01.png"
+  },
+  {
    "id": "bg_ch03_moored_mast_deck",
    "kind": "bg",
    "label": "繫泊船桅甲板",
@@ -2286,11 +2296,11 @@
   "S5": {
    "items": [
     {
-     "asset": "bg_ch03_marseille_harbor_dawn",
-     "alt": "馬賽港邊翻開的船艙頁"
+     "asset": "card_S5",
+     "alt": "打開的十七世紀書頁，右頁以史料意象呈現船艙滴水、拋接、魚缸、飛蟲與桅頂落石"
     }
    ],
-   "caption": "取得待驗線索：《對話》的船艙頁。"
+   "caption": "取得待驗線索：《對話》的船艙論證（史料意象圖，非原書插圖）。"
   },
   "G1": {
    "items": [
