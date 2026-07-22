@@ -426,6 +426,16 @@
    "h": 500
   },
   {
+   "id": "prop_paper_shape_balance",
+   "kind": "prop",
+   "label": "同一張紙的形狀與重量對照",
+   "path": "ch01/props/prop_paper_shape_balance_v01.jpg",
+   "firstScreen": false,
+   "sourceMaster": "OpenAI imagegen 2026-07-22；攤平紙／紙團置於水平天平兩端，不呈現落下快慢",
+   "w": 1586,
+   "h": 992
+  },
+  {
    "id": "prop_physics_tome",
    "kind": "prop",
    "label": "《物理學》評注本",
@@ -1604,6 +1614,17 @@
     }
    ],
    "caption": "把第一段當成一個單位，玩家量出的四段數字開始說話。"
+  },
+  {
+   "scene": "A2-4",
+   "match": "從桌上抓起一張寫壞的稿紙",
+   "items": [
+    {
+     "asset": "prop_paper_shape_balance",
+     "alt": "同樣份量的紙，一邊攤平、一邊揉成紙團，放在水平天平兩端"
+    }
+   ],
+   "caption": "同一張紙，只改變形狀；先別猜哪一種落得快。"
   },
   {
    "scene": "A2-4",
