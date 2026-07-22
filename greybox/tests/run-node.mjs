@@ -1902,6 +1902,8 @@ tests.push({
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
       '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
       if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
+    if (!ui.includes('x = dock ? 450 : (phase === "steady-mast" ? 376 : 300)'))
+      throw new Error("停船鉛垂線未對準桅頂石球與落點沙盤");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["@keyframes ship-drop", "@keyframes ship-drip", "@keyframes ship-toss", "@keyframes ship-draw-path", "prefers-reduced-motion"])
       if (!html.includes(frag)) throw new Error("第三章互動模擬動畫／無障礙樣式缺失:" + frag);

@@ -1544,7 +1544,8 @@
     }
 
     if (phase === "baseline" || phase === "first-failure" || phase === "steady-mast") {
-      var dock = phase === "baseline", x = dock ? 300 : (phase === "steady-mast" ? 376 : 300);
+      /* 停船底板的桅頂石球與沙盤基準位於 x≈450；穩速底板另有自己的桅心。 */
+      var dock = phase === "baseline", x = dock ? 450 : (phase === "steady-mast" ? 376 : 300);
       var drop = ship3VisualRun && /^mast-/.test(anim);
       var dx = drop ? Math.max(-58, Math.min(58, (ship3VisualRun.offset || 0) * 72)) : 0;
       draw("line", "shipSimPlumb", { x1: x, y1: 70, x2: x, y2: 462 });
