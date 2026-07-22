@@ -1253,6 +1253,7 @@ tests.push({
     for (const frag of ["grid-template-rows: auto auto", "font-family: var(--font-dialogue); overflow: visible",
       ".catReplay", ".catCompareHint", ".catCompare > button", ".catMessage.gain", ".catClaims",
       ".catPartBrief",
+      "#controls.catapultWorkshop::after", "env(safe-area-inset-bottom)",
       "height: clamp(220px,31vh,340px)",
       "grid-template-rows: minmax(0,1fr) auto", ".catPartArt { width: 64px; height: 64px; object-fit: contain"])
       if (!stage.includes(frag)) throw new Error("彈射工坊捲動/重播/比較提示樣式缺失:" + frag);
