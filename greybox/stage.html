@@ -465,9 +465,13 @@
     line-height: 1.9; margin: 0 0 30px; }
   .ncSys { font-family: var(--font-ui); color: rgba(180, 190, 205, 0.66);
     font-size: clamp(12px, 1.05vw, 14px); line-height: 1.7; margin: 0 0 18px; }
-  #ncTitleBtn { background: none; color: rgba(207,169,107,0.85); border: 1px solid rgba(207,169,107,0.45);
-    border-radius: 999px; min-height: 44px; padding: 6px 30px; letter-spacing: 0.2em;
+  #ncActions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  #ncNextBtn, #ncTitleBtn { border-radius: 999px; min-height: 44px; padding: 6px 30px; letter-spacing: 0.2em;
     font-size: clamp(14px, 1.3vw, 17px); cursor: pointer; font-family: var(--font-dialogue); }
+  #ncNextBtn { background: #8a5a22; color: #fff4df; border: 1px solid rgba(238,195,122,0.8); }
+  #ncNextBtn:hover { background: #a36b27; }
+  #ncTitleBtn { background: none; color: rgba(207,169,107,0.85); border: 1px solid rgba(207,169,107,0.45);
+    }
   #ncTitleBtn:hover { background: rgba(122, 75, 42, 0.4); color: #f3e9d5; }
   @media (prefers-reduced-motion: reduce) { #nextCard { transition: none; } }
 
@@ -1569,8 +1573,11 @@
         <p class="ncNext">下一章</p>
         <h2 class="ncTitle">第一寸的弧線</h2>
         <p class="ncHook">「它往前,又往下——兩件事,同時發生。」<br>帕多瓦的運河邊,有人整晚睡不著。</p>
-        <p class="ncSys">第二章現已開放。你的第一章進度與筆記已封存；回到系列首頁即可繼續旅程，也可匯出旅人書信碼。</p>
-        <button id="ncTitleBtn" type="button">回到標題</button>
+        <p class="ncSys">第二章現已開放。第一章進度與筆記已封存於這台裝置。</p>
+        <div id="ncActions">
+          <button id="ncNextBtn" type="button">進入第二章</button>
+          <button id="ncTitleBtn" type="button">回到系列首頁</button>
+        </div>
       </div>
     </div>
     <div id="prologueCard" role="dialog" aria-modal="true" aria-label="序幕:螢幕前" tabindex="-1" hidden>

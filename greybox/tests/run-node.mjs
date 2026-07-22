@@ -776,7 +776,7 @@ tests.push({
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (stageHtml.includes("灰盒對照版"))
       throw new Error("玩家入口不應顯示內部灰盒對照連結");
-    for (const frag of ['id="nextCard"', "第一寸的弧線", "第二章現已開放", "書信碼",
+    for (const frag of ['id="nextCard"', 'id="ncNextBtn"', "第一寸的弧線", "第二章現已開放", "書信碼",
       'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
       if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);
     for (const oldTitle of ["向前，也向下", "向前也向下", "不推，也會走"])
@@ -813,6 +813,33 @@ tests.push({
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const frag of ["requestFullscreen", 'orientation.lock("landscape")', "nextCard", "btnRotDismiss"])
       if (!sui.includes(frag)) throw new Error("stage-ui 行動殼邏輯缺失:" + frag);
+  }
+});
+
+tests.push({
+  name: "三章章尾接力|史實回聲→未解問題→下一章出口(GB-ADR-028)",
+  fn: () => {
+    const ch1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const ch2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const ch3 = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
+    const e2 = ch1.scenes.find((s) => s.id === "E-2");
+    const be2 = ch2.scenes.find((s) => s.id === "BE-2");
+    const ce2 = ch3.scenes.find((s) => s.id === "CE-2");
+    const e2Text = e2.nodes.map((n) => n.text || "").join("\n");
+    const be2Text = be2.nodes.map((n) => n.text || "").join("\n");
+    const ce2Text = ce2.nodes.map((n) => n.text || "").join("\n");
+    if (!e2Text.includes("羽毛不再被空氣拖慢") || !e2Text.includes("重量沒有替鎚子換來更早的落地"))
+      throw new Error("第一章月球鎚羽未說清無空氣與重量邊界");
+    if (!be2Text.includes("球桿早已留在身後") || !be2Text.includes("沒有東西繼續推它,它為什麼還在走"))
+      throw new Error("第二章月球高爾夫未接到第三章共同運動問題");
+    if (!ce2Text.includes("月亮為什麼沒有沿直線離開"))
+      throw new Error("第三章 runtime 漏接凍結劇本的月亮未解問題");
+    const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    for (const frag of ["進入第二章", "stage.html?chapter=ch02", "進入第三章", "stage.html?chapter=ch03", "船艙裡的靜止"])
+      if (!sui.includes(frag)) throw new Error("章末直接接力缺失:" + frag);
+    for (const placeholder of ["下一頁，仍未寫定", "旅程將繼續"])
+      if (sui.includes(placeholder)) throw new Error("章末仍殘留通用佔位句:" + placeholder);
+    if (sui.includes("月亮一直在掉")) throw new Error("第三章章末提前公布未核准的第四章章名");
   }
 });
 

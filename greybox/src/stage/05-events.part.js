@@ -26,23 +26,37 @@
     if (view === "end") { /* 終幕預告卡(GB-ADR-013):戲劇卡+角落系統行,只在真結局亮 */
       var nc = $("nextCard");
       if (nc.hidden) {
-        if (CHAPTER_ID === "ch2") {
+        var nextBtn = $("ncNextBtn");
+        var nextHref = null;
+        if (CHAPTER_ID === "ch1") {
+          nc.querySelector(".ncSealed").textContent = "第一章《重物的渴望》——已封存";
+          nc.querySelector(".ncNext").textContent = "下一章";
+          nc.querySelector(".ncTitle").textContent = "第一寸的弧線";
+          nc.querySelector(".ncHook").textContent = "它往前,又往下——兩件事,同時發生。帕多瓦的運河邊,有人整晚睡不著。";
+          nc.querySelector(".ncSys").textContent = "第二章現已開放。第一章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第二章";
+          nextHref = "stage.html?chapter=ch02";
+        } else if (CHAPTER_ID === "ch2") {
           nc.querySelector(".ncSealed").textContent = "第二章《第一寸的弧線》——已封存";
-          nc.querySelector(".ncNext").textContent = "旅程將繼續";
-          nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
-          nc.querySelector(".ncHook").textContent = "你已讓兩種運動在同一條墨線上相遇。物理史還有更多看似理所當然的答案，等著重新取得證據。";
-          nc.querySelector(".ncSys").textContent = "第二章進度與筆記已封存於這台裝置。你可回到系列首頁重玩任一章，或匯出旅人書信碼。";
+          nc.querySelector(".ncNext").textContent = "下一章";
+          nc.querySelector(".ncTitle").textContent = "船艙裡的靜止";
+          nc.querySelector(".ncHook").textContent = "球桿早已離開,小白球仍向前。若整艘船也在前進,桅頂鬆手的石頭會落在哪裡?";
+          nc.querySelector(".ncSys").textContent = "第三章現已開放。第二章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第三章";
+          nextHref = "stage.html?chapter=ch03";
         } else if (CHAPTER_ID === "ch3") {
           nc.querySelector(".ncSealed").textContent = "第三章《船艙裡的靜止》——已封存";
-          nc.querySelector(".ncNext").textContent = "旅程將繼續";
-          nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
-          nc.querySelector(".ncHook").textContent = "你已讓船上與岸上的兩條路彼此相認。下一次，世界將不只改變位置，還會改變速度。";
-          nc.querySelector(".ncSys").textContent = "第三章進度與筆記已封存於這台裝置。";
+          nc.querySelector(".ncNext").textContent = "下一個問題";
+          nc.querySelector(".ncTitle").textContent = "月亮為什麼沒有沿直線離開?";
+          nc.querySelector(".ncHook").textContent = "船上的石頭保留前行;如果月亮也在前行,究竟是什麼讓它不斷轉彎?";
+          nc.querySelector(".ncSys").textContent = "第四章仍在製作。第三章進度與筆記已封存於這台裝置。";
         }
+        nextBtn.hidden = !nextHref;
+        nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
         nc.hidden = false;
         requestAnimationFrame(function () { nc.classList.add("on"); });
-        $("ncTitleBtn").onclick = function () { location.reload(); };
-        setTimeout(function () { try { $("ncTitleBtn").focus(); } catch (e) {} }, 950);
+        $("ncTitleBtn").onclick = function () { location.href = "stage.html"; };
+        setTimeout(function () { try { (nextHref ? nextBtn : $("ncTitleBtn")).focus(); } catch (e) {} }, 950);
       }
     }
     if (needKickoff && view === "narration" && $("prologueCard").hidden) {
