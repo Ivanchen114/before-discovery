@@ -1297,6 +1297,8 @@
   .chapterPick small { font-size: 10px; white-space: nowrap; }
   .chapterPick.isActive { border-color: rgba(207,169,107,.72); color: #f2e6cf;
     background: rgba(122,75,42,.32); box-shadow: inset 3px 0 #cfa96b; }
+  .chapterPick.isComplete small { color: #d9c277; font-weight: 700; }
+  .chapterPick.isComplete:not(.isActive) { border-color: rgba(128,151,102,.58); }
   .chapterPick:disabled { cursor: default; opacity: .72; }
   #titleCard fieldset { border: 1px solid rgba(230,215,189,0.22); background: rgba(230,215,189,0.045);
     border-radius: 8px; text-align: left; padding: 8px 10px 10px; margin: 0; }

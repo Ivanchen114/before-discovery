@@ -12,6 +12,7 @@
   var ENVELOPE = window.GB.SaveEnvelope || null;
   var CHAPTER_ID = N.CHAPTER_ID || (/^ch[123]$/.test(SCENES.chapter) ? SCENES.chapter : "ch1");
   var KEY = window.BD_SAVE_KEY || "bd_ch1_save"; /* R-SAV2:chapter2.html 覆寫為 bd_ch2_save;未設=第一章原值,灰盒零差異 */
+  var SERIES_KEY = "bd_series_progress_v1";
   var state = null;
   var lastSceneShown = null;
   var lastEmbedKey = null;
@@ -75,33 +76,81 @@
     if (CHAPTER_ID === "ch3") return window.GB.Sanitize.sanitizeImport3(s, SCENES, window.GB.Engine3);
     return window.GB.Sanitize.sanitizeImport(s, PATTERNS, SCENES);
   }
+  function showNewWarn(text) {
+    var warn = $("newWarn");
+    if (!warn) return;
+    warn.style.display = "";
+    warn.textContent = displayText(text);
+  }
+  function inspectSaveText(text) {
+    if (!text) return { empty: true };
+    var migrated = migrateLegacyCh2(text);
+    var r = N.loadSave(migrated || text);
+    if (r.empty) return { empty: true };
+    if (r.error) return { error: r.error === "schema" ? "版本不符" : "檔案損壞" };
+    var chk = sanitizeLoaded(r.state);
+    if (!chk.ok) return { error: chk.reason };
+    return { state: chk.state, migrated: !!migrated };
+  }
+  function restoreBackup() {
+    var backup = null;
+    try { backup = localStorage.getItem(KEY + "_corrupt"); } catch (e) { return null; }
+    var checked = inspectSaveText(backup);
+    if (!checked.state) return null; /* 真壞檔仍留作人工診斷，不冒險匯入。 */
+    try { localStorage.setItem(KEY, N.serialize(checked.state)); } catch (e2) {}
+    showNewWarn("已恢復先前被誤判並備份的進度，可以繼續遊戲。");
+    return checked.state;
+  }
   function tryLoad() { /* B-3/R-SAV-02:壞檔備份+一次性非阻塞提示 */
     var text = null;
     try { text = localStorage.getItem(KEY); } catch (e) { return null; }
-    var migrated = migrateLegacyCh2(text);
-    var r = N.loadSave(migrated || text);
-    if (r.empty) return null;
-    if (r.error) {
+    if (!text) return restoreBackup();
+    var checked = inspectSaveText(text);
+    if (checked.empty) return restoreBackup();
+    if (checked.error) {
       try { localStorage.setItem(KEY + "_corrupt", text); localStorage.removeItem(KEY); } catch (e2) {}
-      var warn = $("newWarn");
-      warn.style.display = "";
-      warn.textContent = "偵測到無法讀取的舊進度(" + (r.error === "schema" ? "版本不符" : "檔案損壞") + "),已備份;請開新遊戲。";
+      showNewWarn("偵測到無法安全讀取的舊進度（" + checked.error + "），已備份；請開新遊戲。");
       return null;
     }
-    var chk = sanitizeLoaded(r.state);
-    if (!chk.ok) {
-      try { localStorage.setItem(KEY + "_corrupt", text); localStorage.removeItem(KEY); } catch (e3) {}
-      var warn2 = $("newWarn");
-      warn2.style.display = "";
-      warn2.textContent = "偵測到不合法的進度(" + chk.reason + "),已備份；請開新遊戲。";
-      return null;
+    if (checked.migrated) {
+      try { localStorage.setItem(KEY, N.serialize(checked.state)); } catch (e3) {}
     }
-    if (migrated) {
-      try { localStorage.setItem(KEY, N.serialize(chk.state)); } catch (e4) {}
-    }
-    return chk.state;
+    return checked.state;
+  }
+  function readSeriesProgress() {
+    var empty = { schemaVersion: 1, chapters: {} };
+    try {
+      var parsed = JSON.parse(localStorage.getItem(SERIES_KEY) || "null");
+      if (!parsed || parsed.schemaVersion !== 1 || !parsed.chapters || typeof parsed.chapters !== "object") return empty;
+      ["ch1", "ch2", "ch3"].forEach(function (id) {
+        var v = parsed.chapters[id];
+        if (!v || v.completed !== true) delete parsed.chapters[id];
+      });
+      return parsed;
+    } catch (e) { return empty; }
+  }
+  function markChapterComplete(s) {
+    if (!s || !s.ended) return;
+    var progress = readSeriesProgress();
+    var prev = progress.chapters[CHAPTER_ID] || {};
+    progress.chapters[CHAPTER_ID] = {
+      completed: true,
+      completedAt: prev.completedAt || new Date().toISOString(),
+      mode: s.mode,
+      days: s.lab && typeof s.lab.days === "number" ? s.lab.days : 0
+    };
+    try { localStorage.setItem(SERIES_KEY, JSON.stringify(progress)); } catch (e) {}
+  }
+  function emitNewEvidence(before, after) {
+    var old = before && before.evidence || {};
+    var now = after && after.evidence || {};
+    var names = SCENES.evidenceNames || {};
+    Object.keys(now).forEach(function (code) {
+      if (now[code] && !old[code]) emit("bd:evidence", { code: code, name: names[code] || "新證據", sceneId: after.cursor && after.cursor.scene });
+    });
   }
   function setState(s) {
+    var before = state;
     state = s;
     var rd = N.redirectIfLocked(state);
     if (rd.redirected) {
@@ -109,7 +158,9 @@
       addLine("system", "(信譽歸零——關鍵人物暫時拒絕與你交談。)", "system");
       lastSceneShown = null;
     }
+    markChapterComplete(state);
     save();
+    emitNewEvidence(before, state);
   }
 
   /* ---------- 美術資產掛點(§5.9;path=null 全面 fallback,灰盒不變) ---------- */
@@ -1837,6 +1888,10 @@
       ? "《發現之前》第三章：船艙裡的靜止（舞台版）"
       : (CHAPTER_ID === "ch2" ? "《發現之前》第二章：第一寸的弧線（舞台版）"
         : "《發現之前》第一章：重物的渴望（舞台版）");
+    var progress = readSeriesProgress();
+    var completedCount = ["ch1", "ch2", "ch3"].filter(function (id) { return progress.chapters[id]; }).length;
+    var status = document.querySelector(".chapterStatusText span");
+    if (status) status.textContent = "系列進度 " + completedCount + "/3";
     var meta = document.querySelector(".chapterStatusText strong");
     if (meta) meta.textContent = CHAPTER_ID === "ch3" ? "第三章・船艙裡的靜止" : (CHAPTER_ID === "ch2" ? "第二章・第一寸的弧線" : "第一章・重物的渴望");
     var legend = document.querySelector("#titleCard fieldset legend");
@@ -1847,8 +1902,11 @@
       var mine = b.getAttribute("data-chapter") === ("ch0" + CHAPTER_ID.slice(2));
       b.disabled = false;
       b.classList.toggle("isActive", mine);
+      var id = "ch" + String(parseInt(b.getAttribute("data-chapter").slice(2), 10));
+      var complete = !!progress.chapters[id];
+      b.classList.toggle("isComplete", complete);
       if (mine) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
-      var sm = b.querySelector("small"); if (sm) sm.textContent = "可玩";
+      var sm = b.querySelector("small"); if (sm) sm.textContent = complete ? "✓ 已完成" : "可玩";
       b.onclick = function () { if (!mine) routeToChapter(b.getAttribute("data-chapter")); };
     });
   }
@@ -1864,6 +1922,7 @@
     if (TEXT) TEXT.normalizeTextNodes(document.getElementById("stage"));
     configureSeriesTitle();
     var loaded = tryLoad();
+    if (loaded && loaded.ended) { markChapterComplete(loaded); configureSeriesTitle(); }
     var projection = readProjection();
     try {
       var pending = sessionStorage.getItem("bd_pending_letter");
@@ -1879,7 +1938,7 @@
     $("btnNew").onclick = function () {
       if (loaded && !newConfirm) {
         newConfirm = true;
-        $("newWarn").style.display = "";
+        showNewWarn("注意：開始新遊戲將覆蓋本章存檔，但不會刪除首頁的通關章印。再按一次確認。");
         return;
       }
       var mode = document.querySelector("input[name=mode]:checked").value;

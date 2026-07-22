@@ -2038,7 +2038,211 @@
   "F4": "沾墨軌跡從離手第一寸就開始彎，找不到真正的直飛段。",
   "F5": "桌上規律只適用於低速、短程，而且空氣阻力還不明顯的情況。",
   "S3": "砲手的三段圖是真實問題來源，不是證明三段論正確的主證。",
-  "S4": "前人的實驗筆記提供線索，但主張仍須由你自己的裝置與數據成立。"
+  "S4": "前人的實驗筆記提供線索，但主張仍須由你自己的裝置與數據成立。",
+  "S5": "書中提出船直線穩速、無額外推石頭時的待驗預測；它不是實驗結果。",
+  "G1": "停船基準與三次穩速落石：石頭相對船落在桅腳附近。",
+  "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
+  "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
+  "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
+  "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。"
+ },
+ "evidenceVisual": {
+  "E1": {
+   "items": [
+    {
+     "asset": "card_E1",
+     "alt": "高塔落球紀錄"
+    }
+   ],
+   "caption": "取得證據：高塔落球紀錄。"
+  },
+  "E2": {
+   "items": [
+    {
+     "evidence": "E2",
+     "alt": "綁縛悖論示意圖"
+    }
+   ],
+   "caption": "取得證據：綁縛悖論。"
+  },
+  "E3": {
+   "items": [
+    {
+     "asset": "card_E3",
+     "alt": "斜面奇數律紀錄"
+    }
+   ],
+   "caption": "取得證據：斜面奇數律。"
+  },
+  "E4": {
+   "items": [
+    {
+     "asset": "card_E4",
+     "alt": "介質與形狀對照實驗"
+    }
+   ],
+   "caption": "取得證據：介質阻力辨析。"
+  },
+  "E5": {
+   "items": [
+    {
+     "asset": "card_E5",
+     "alt": "外推論證鏈"
+    }
+   ],
+   "caption": "取得證據：外推論證鏈。"
+  },
+  "S1": {
+   "items": [
+    {
+     "asset": "card_S1",
+     "alt": "德爾夫特來信"
+    }
+   ],
+   "caption": "取得史料：德爾夫特來信。"
+  },
+  "S2": {
+   "items": [
+    {
+     "asset": "card_S2",
+     "alt": "論運動手稿"
+    }
+   ],
+   "caption": "取得史料：《論運動》手稿。"
+  },
+  "F1": {
+   "items": [
+    {
+     "asset": "bg_ch02_workshop_theory_rain_night",
+     "alt": "雨夜推演室中的船桅思想實驗"
+    }
+   ],
+   "caption": "取得證據：船桅思想實驗。"
+  },
+  "F2": {
+   "items": [
+    {
+     "asset": "workshop2_projectile_apparatus_master",
+     "alt": "桌緣彈射裝置與量測沙盤"
+    }
+   ],
+   "caption": "取得證據：桌緣彈射的平方根關係。"
+  },
+  "F3": {
+   "items": [
+    {
+     "asset": "card_F3",
+     "alt": "一拋一放的等時位置紀錄"
+    }
+   ],
+   "caption": "取得證據：一拋一放近乎同時落地。"
+  },
+  "F4": {
+   "items": [
+    {
+     "asset": "prop_inked_incline_board",
+     "alt": "從起點就開始彎曲的墨跡軌跡"
+    }
+   ],
+   "caption": "取得證據：墨跡曲線。"
+  },
+  "F5": {
+   "items": [
+    {
+     "asset": "workshop2_projectile_apparatus_master",
+     "alt": "桌緣彈射裝置"
+    },
+    {
+     "asset": "card_F3",
+     "alt": "一拋一放紀錄"
+    },
+    {
+     "asset": "prop_inked_incline_board",
+     "alt": "墨跡曲線"
+    }
+   ],
+   "caption": "取得證據：三組結果能說到哪裡，也不能說到哪裡。"
+  },
+  "S3": {
+   "items": [
+    {
+     "asset": "card_S3",
+     "alt": "塔爾塔利亞砲術圖"
+    }
+   ],
+   "caption": "取得史料：塔爾塔利亞砲術圖。"
+  },
+  "S4": {
+   "items": [
+    {
+     "asset": "card_S4",
+     "alt": "Guidobaldo 實驗筆記抄頁"
+    }
+   ],
+   "caption": "取得史料：Guidobaldo 的實驗筆記。"
+  },
+  "S5": {
+   "items": [
+    {
+     "asset": "bg_ch03_marseille_harbor_dawn",
+     "alt": "馬賽港邊翻開的船艙頁"
+    }
+   ],
+   "caption": "取得待驗線索：《對話》的船艙頁。"
+  },
+  "G1": {
+   "items": [
+    {
+     "asset": "ship3_g1_mast_dock",
+     "alt": "停船桅頂落石"
+    },
+    {
+     "asset": "ship3_g1_mast_steady",
+     "alt": "穩速航行桅頂落石"
+    }
+   ],
+   "caption": "取得證據：停船與穩速時的桅頂落石紀錄。"
+  },
+  "G2": {
+   "items": [
+    {
+     "asset": "ship3_g2_cabin",
+     "alt": "封閉船艙中的滴水與拋接"
+    }
+   ],
+   "caption": "取得證據：船艙共同運動。"
+  },
+  "G3": {
+   "items": [
+    {
+     "asset": "ship3_g3_accelerating",
+     "alt": "加速甲板落點"
+    },
+    {
+     "asset": "ship3_g3_decelerating",
+     "alt": "減速甲板落點"
+    }
+   ],
+   "caption": "取得證據：加速與減速會留下相反方向的偏移。"
+  },
+  "G4": {
+   "items": [
+    {
+     "asset": "ship3_g4_reference_tapes",
+     "alt": "船上與岸上的雙參考物紙帶"
+    }
+   ],
+   "caption": "取得證據：兩份軌跡可以互相轉換。"
+  },
+  "G5": {
+   "items": [
+    {
+     "asset": "ship3_g5_public_boundary",
+     "alt": "碼頭公開演示與證據邊界"
+    }
+   ],
+   "caption": "取得證據：反對失效，不等於所有主張都已得證。"
+  }
  },
  "workshopApparatusAsset": "workshop2_projectile_apparatus_master",
  "workshopPartAsset": {

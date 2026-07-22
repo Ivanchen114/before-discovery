@@ -285,9 +285,8 @@
       diagram.appendChild(label);
     });
   }
-  function showFocusVisualForLine(text, sceneId) {
-    var rule = focusRuleForLine(text, sceneId);
-    if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
+  function showFocusVisual(rule) {
+    if (!rule) return;
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
     if (!fig || !media) return;
     media.innerHTML = "";
@@ -318,6 +317,16 @@
     $("sceneFocusCaption").textContent = displayText(rule.caption || "");
     fig.hidden = false;
     requestAnimationFrame(function () { fig.classList.add("on"); });
+  }
+  function showFocusVisualForLine(text, sceneId) {
+    var rule = focusRuleForLine(text, sceneId);
+    if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
+    showFocusVisual(rule);
+  }
+  function showEvidenceFocus(code, name) {
+    var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
+    if (!rule) return;
+    showFocusVisual({ items: rule.items || [], caption: rule.caption || ("取得證據：" + name) });
   }
 
   /* ---------- 打字機:分頁+標點停頓 ---------- */
@@ -475,6 +484,10 @@
 
   /* ---------- 事件訂閱 ---------- */
   document.addEventListener("bd:scene", function (ev) { setScene(ev.detail.sceneId); });
+  document.addEventListener("bd:evidence", function (ev) {
+    var d = ev.detail || {};
+    showEvidenceFocus(d.code, d.name || "新證據");
+  });
   var lastReplay = null;
   document.addEventListener("bd:line", function (ev) {
     var d = ev.detail;
@@ -1042,7 +1055,9 @@
       var name = item && item.name || "未命名證據";
       if (!code) return;
       var specificBg = assetEntry("card_" + code);
-      var bgE = specificBg || tpl; /* card_<code> 優先,缺圖回退共用底；E2 另保留 SVG 降級。 */
+      var visual = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
+      var visualAsset = visual && visual.items && visual.items[0] && visual.items[0].asset;
+      var bgE = specificBg || assetEntry(visualAsset) || tpl; /* 專卡→既有實驗圖→共用底；穩定 code 單一解析。 */
       var card = document.createElement("div");
       card.className = "evcard";
       card.dataset.evidenceCode = code;

@@ -59,9 +59,8 @@
       diagram.appendChild(label);
     });
   }
-  function showFocusVisualForLine(text, sceneId) {
-    var rule = focusRuleForLine(text, sceneId);
-    if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
+  function showFocusVisual(rule) {
+    if (!rule) return;
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
     if (!fig || !media) return;
     media.innerHTML = "";
@@ -92,4 +91,14 @@
     $("sceneFocusCaption").textContent = displayText(rule.caption || "");
     fig.hidden = false;
     requestAnimationFrame(function () { fig.classList.add("on"); });
+  }
+  function showFocusVisualForLine(text, sceneId) {
+    var rule = focusRuleForLine(text, sceneId);
+    if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
+    showFocusVisual(rule);
+  }
+  function showEvidenceFocus(code, name) {
+    var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
+    if (!rule) return;
+    showFocusVisual({ items: rule.items || [], caption: rule.caption || ("取得證據：" + name) });
   }

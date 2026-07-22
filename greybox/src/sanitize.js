@@ -5,7 +5,9 @@
 (function (root) {
   "use strict";
   var BAD_KEYS = ["__proto__", "constructor", "prototype"]; /* 陣列而非字面量:字面量的 __proto__ 不會成為自有鍵 */
-  var LIMITS = { maxNodes: 20000, maxStr: 4000, maxArr: 600, maxKey: 64, maxDepth: 12 };
+  /* transcript 的章別白名單明確允許 3000 筆；通用深掃不得先用較小上限誤殺合法長局。
+     各高風險清單(runs/claims/series)仍在章別 sanitizer 內維持 100/300 筆的窄限。 */
+  var LIMITS = { maxNodes: 20000, maxStr: 4000, maxArr: 3000, maxKey: 64, maxDepth: 12 };
 
   function fail(reason) { return { ok: false, reason: reason }; }
 

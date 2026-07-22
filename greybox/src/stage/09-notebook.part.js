@@ -51,7 +51,9 @@
       var name = item && item.name || "未命名證據";
       if (!code) return;
       var specificBg = assetEntry("card_" + code);
-      var bgE = specificBg || tpl; /* card_<code> 優先,缺圖回退共用底；E2 另保留 SVG 降級。 */
+      var visual = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
+      var visualAsset = visual && visual.items && visual.items[0] && visual.items[0].asset;
+      var bgE = specificBg || assetEntry(visualAsset) || tpl; /* 專卡→既有實驗圖→共用底；穩定 code 單一解析。 */
       var card = document.createElement("div");
       card.className = "evcard";
       card.dataset.evidenceCode = code;

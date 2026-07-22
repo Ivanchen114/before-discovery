@@ -1,5 +1,9 @@
   /* ---------- 事件訂閱 ---------- */
   document.addEventListener("bd:scene", function (ev) { setScene(ev.detail.sceneId); });
+  document.addEventListener("bd:evidence", function (ev) {
+    var d = ev.detail || {};
+    showEvidenceFocus(d.code, d.name || "新證據");
+  });
   var lastReplay = null;
   document.addEventListener("bd:line", function (ev) {
     var d = ev.detail;

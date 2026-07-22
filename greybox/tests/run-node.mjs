@@ -1881,6 +1881,67 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "長局存檔回歸|三章 601 筆合法對話不得被通用上限誤殺",
+  fn: () => {
+    const San = require("../src/sanitize.js");
+    const scenes2 = require("../data/scenes2.js");
+    const Engine2 = require("../src/engine2.js");
+    const N2 = Narrative._factory(scenes2, Engine2, require("../data/debate2.js"));
+    const N3 = Narrative._factory(scenes3, Engine3, {});
+    const cases = [
+      { state: Narrative.initialState("explore"), scene: "P0-1", check: (s) => San.sanitizeImport(s, patterns, scenes) },
+      { state: N2.initialState("explore"), scene: "B0-1", check: (s) => San.sanitizeImport2(s, scenes2, Engine2) },
+      { state: N3.initialState("explore"), scene: "C0-1", check: (s) => San.sanitizeImport3(s, scenes3) }
+    ];
+    cases.forEach((c, i) => {
+      c.state.transcript = Array.from({ length: 601 }, () => ({ scene: c.scene, speaker: "system", text: "合法長局紀錄" }));
+      if (!c.check(JSON.parse(JSON.stringify(c.state))).ok) throw new Error("第 " + (i + 1) + " 章合法長局仍遭拒");
+      c.state.transcript = Array.from({ length: 3001 }, () => ({ scene: c.scene, speaker: "system", text: "超限" }));
+      if (c.check(JSON.parse(JSON.stringify(c.state))).ok) throw new Error("第 " + (i + 1) + " 章超限對話未拒");
+    });
+  }
+});
+
+tests.push({
+  name: "三章證據視覺|每項證據皆有可解析圖像，取得與筆記共用單一映射",
+  fn: () => {
+    const assets = require("../data/assets.js");
+    const entries = new Map(assets.entries.map((e) => [e.id, e]));
+    const required = ["E1","E2","E3","E4","E5","S1","S2", "F1","F2","F3","F4","F5","S3","S4", "S5","G1","G2","G3","G4","G5"];
+    for (const code of required) {
+      const visual = assets.evidenceVisual && assets.evidenceVisual[code];
+      if (!visual || !visual.items?.length || !visual.caption) throw new Error("證據缺視覺映射：" + code);
+      for (const item of visual.items) {
+        if (item.evidence === "E2") continue;
+        const entry = entries.get(item.asset);
+        if (!entry?.path || !existsSync(path.join(here, "../../public/assets/", entry.path)))
+          throw new Error("證據圖無法解析：" + code + " → " + item.asset);
+      }
+    }
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const focus = readFileSync(path.join(here, "../src/stage/03-focus-visual.part.js"), "utf-8");
+    const events = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
+    const notebook = readFileSync(path.join(here, "../src/stage/09-notebook.part.js"), "utf-8");
+    for (const frag of ['emit("bd:evidence"', "emitNewEvidence(before, state)"]) if (!ui.includes(frag)) throw new Error("證據取得事件缺失：" + frag);
+    if (!focus.includes("showEvidenceFocus") || !events.includes('addEventListener("bd:evidence"')) throw new Error("證據取得時未自動入鏡");
+    if (!notebook.includes("ASSETS.evidenceVisual") || !notebook.includes("assetEntry(visualAsset)")) throw new Error("旅人筆記未共用證據視覺映射");
+  }
+});
+
+tests.push({
+  name: "系列通關章印|完章永久記錄、重玩不清除、誤判備份可安全救回",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ["bd_series_progress_v1", "markChapterComplete(state)", 'completedAt: prev.completedAt', 'sm.textContent = complete ? "✓ 已完成"', '"系列進度 " + completedCount + "/3"'])
+      if (!ui.includes(frag)) throw new Error("通關章印契約缺失：" + frag);
+    if (!html.includes(".chapterPick.isComplete")) throw new Error("首頁缺通關章印視覺");
+    for (const frag of ['localStorage.getItem(KEY + "_corrupt")', "inspectSaveText(backup)", "已恢復先前被誤判並備份的進度"])
+      if (!ui.includes(frag)) throw new Error("誤判備份復原契約缺失：" + frag);
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {
