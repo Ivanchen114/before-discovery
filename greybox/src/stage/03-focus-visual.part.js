@@ -2,7 +2,7 @@
   function clearFocusVisual() {
     var fig = $("sceneFocus");
     if (!fig) return;
-    fig.classList.remove("on", "multi", "quad");
+    fig.classList.remove("on", "multi", "quad", "evidence-acquired");
     fig.hidden = true;
     $("sceneFocusMedia").innerHTML = "";
     $("sceneFocusCaption").textContent = "";
@@ -64,6 +64,7 @@
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
     if (!fig || !media) return;
     media.innerHTML = "";
+    fig.classList.remove("evidence-acquired");
     var shown = 0;
     (rule.items || []).forEach(function (item) {
       if (item.evidence === "E2") {
@@ -113,4 +114,20 @@
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
     if (!rule) return;
     showFocusVisual({ items: rule.items || [], caption: rule.caption || ("取得證據：" + name) });
+    var fig = $("sceneFocus");
+    if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
+  }
+  function showEvidenceFocusList(list) {
+    if (!list || !list.length) return;
+    var items = [], captions = [];
+    list.forEach(function (evidence) {
+      var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[evidence.code];
+      if (!rule) return;
+      (rule.items || []).forEach(function (item) { items.push(item); });
+      captions.push(rule.caption || ("取得證據：" + evidence.name));
+    });
+    if (!items.length) return;
+    showFocusVisual({ items: items, caption: captions.join("｜") });
+    var fig = $("sceneFocus");
+    if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
   }

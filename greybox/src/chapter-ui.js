@@ -46,6 +46,8 @@
      stage.html 的舞台殼(stage-ui.js)訂閱這些事件做打字機/背景/立繪;
      chapter.html 無訂閱者,灰盒行為不變。 */
   var replaying = false;
+  var pendingEvidence = [];
+  var pendingEvidenceTimer = null;
   function emit(name, detail) {
     try { document.dispatchEvent(new CustomEvent(name, { detail: detail })); } catch (e) {}
   }
@@ -141,13 +143,32 @@
     };
     try { localStorage.setItem(SERIES_KEY, JSON.stringify(progress)); } catch (e) {}
   }
-  function emitNewEvidence(before, after) {
+  function collectNewEvidence(before, after) {
     var old = before && before.evidence || {};
     var now = after && after.evidence || {};
     var names = SCENES.evidenceNames || {};
+    var sourceScene = before && before.cursor ? before.cursor.scene : (after.cursor && after.cursor.scene);
     Object.keys(now).forEach(function (code) {
-      if (now[code] && !old[code]) emit("bd:evidence", { code: code, name: names[code] || "新證據", sceneId: after.cursor && after.cursor.scene });
+      if (now[code] && !old[code]) pendingEvidence.push({
+        code: code,
+        name: names[code] || "新證據",
+        sceneId: sourceScene
+      });
     });
+    /* 實驗取得證據時不一定有取得台詞：等本次事件堆疊完成後才補發。
+       若後續 addLine 已把證據附在取得台詞上，此 timer 會自然變成 no-op。 */
+    if (pendingEvidence.length && !pendingEvidenceTimer) {
+      pendingEvidenceTimer = setTimeout(function () {
+        pendingEvidenceTimer = null;
+        takePendingEvidence().forEach(function (item) { emit("bd:evidence", item); });
+      }, 0);
+    }
+  }
+  function takePendingEvidence() {
+    if (!pendingEvidence.length) return [];
+    var items = pendingEvidence.slice();
+    pendingEvidence.length = 0;
+    return items;
   }
   function setState(s) {
     var before = state;
@@ -160,7 +181,7 @@
     }
     markChapterComplete(state);
     save();
-    emitNewEvidence(before, state);
+    collectNewEvidence(before, state);
   }
 
   /* ---------- 美術資產掛點(§5.9;path=null 全面 fallback,灰盒不變) ---------- */
@@ -220,6 +241,7 @@
       text: shownText,
       cls: cls || "",
       scene: sceneId || (state && state.cursor ? state.cursor.scene : null),
+      evidence: replaying ? [] : takePendingEvidence(),
       replay: replaying
     });
   }
@@ -1946,19 +1968,21 @@
       box.appendChild(pc);
       v.options.forEach(function (o) {
         mkBtn(box, o.text, function () {
+          var sourceScene = state.cursor && state.cursor.scene;
           var r = N.choose(state, o.id);
           if (r.error) { addLine("system", r.error, "system"); return; }
           setState(r.state);
-          addLine("旅人(你)", o.text, "player");
+          addLine("旅人(你)", o.text, "player", sourceScene);
           renderAll();
         });
       });
     } else {
       var btn = mkBtn(box, "▶ 繼續", function () {
+        var sourceScene = state.cursor && state.cursor.scene;
         var r = N.advance(state);
         if (r.error) { addLine("system", r.error, "system"); return; }
         setState(r.state);
-        if (r.node) addLine(r.node.speaker, r.node.text, classFor(r.node.speaker));
+        if (r.node) addLine(r.node.speaker, r.node.text, classFor(r.node.speaker), sourceScene);
         renderAll();
       });
       btn.focus();

@@ -2046,10 +2046,17 @@ tests.push({
       throw new Error("S5 必須揭露為史料意象圖，不得冒充《對話》原書插圖");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const focus = readFileSync(path.join(here, "../src/stage/03-focus-visual.part.js"), "utf-8");
+    const typewriter = readFileSync(path.join(here, "../src/stage/04-typewriter.part.js"), "utf-8");
     const events = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
     const notebook = readFileSync(path.join(here, "../src/stage/09-notebook.part.js"), "utf-8");
-    for (const frag of ['emit("bd:evidence"', "emitNewEvidence(before, state)"]) if (!ui.includes(frag)) throw new Error("證據取得事件缺失：" + frag);
-    if (!focus.includes("showEvidenceFocus") || !events.includes('addEventListener("bd:evidence"')) throw new Error("證據取得時未自動入鏡");
+    for (const frag of ["collectNewEvidence(before, state)", "pendingEvidence.push({", "takePendingEvidence().forEach", "evidence: replaying ? [] : takePendingEvidence()"])
+      if (!ui.includes(frag)) throw new Error("證據取得結構化接口缺失：" + frag);
+    if (!ui.includes('setTimeout(function ()') || !ui.includes('emit("bd:evidence", item)'))
+      throw new Error("無取得台詞的實驗證據未延後至本輪渲染完成後入鏡");
+    if (!focus.includes("showEvidenceFocusList") || !typewriter.includes("showEvidenceFocusList(item.evidence)") || !events.includes('addEventListener("bd:evidence"'))
+      throw new Error("有取得台詞的證據未在逐字機真正開演時入鏡");
+    if (!ui.includes('addLine(r.node.speaker, r.node.text, classFor(r.node.speaker), sourceScene)'))
+      throw new Error("證據台詞未保留取得當下的原始場景");
     if (!notebook.includes("ASSETS.evidenceVisual") || !notebook.includes("assetEntry(visualAsset)")) throw new Error("旅人筆記未共用證據視覺映射");
   }
 });

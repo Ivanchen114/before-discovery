@@ -228,7 +228,7 @@
   function clearFocusVisual() {
     var fig = $("sceneFocus");
     if (!fig) return;
-    fig.classList.remove("on", "multi", "quad");
+    fig.classList.remove("on", "multi", "quad", "evidence-acquired");
     fig.hidden = true;
     $("sceneFocusMedia").innerHTML = "";
     $("sceneFocusCaption").textContent = "";
@@ -290,6 +290,7 @@
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
     if (!fig || !media) return;
     media.innerHTML = "";
+    fig.classList.remove("evidence-acquired");
     var shown = 0;
     (rule.items || []).forEach(function (item) {
       if (item.evidence === "E2") {
@@ -339,6 +340,22 @@
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
     if (!rule) return;
     showFocusVisual({ items: rule.items || [], caption: rule.caption || ("取得證據：" + name) });
+    var fig = $("sceneFocus");
+    if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
+  }
+  function showEvidenceFocusList(list) {
+    if (!list || !list.length) return;
+    var items = [], captions = [];
+    list.forEach(function (evidence) {
+      var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[evidence.code];
+      if (!rule) return;
+      (rule.items || []).forEach(function (item) { items.push(item); });
+      captions.push(rule.caption || ("取得證據：" + evidence.name));
+    });
+    if (!items.length) return;
+    showFocusVisual({ items: items, caption: captions.join("｜") });
+    var fig = $("sceneFocus");
+    if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
   }
 
   /* ---------- 打字機:分頁+標點停頓 ---------- */
@@ -428,6 +445,11 @@
       lastLineScene = item.scene;
     }
     showFocusVisualForLine(item.text, item.scene);
+    /* 取得圖必須等這句真正開演，且等同一次操作的換場完成後再入鏡。
+       否則圖會在事件佇列時搶跑，緊接著被 setScene 清掉。 */
+    if (item.evidence && item.evidence.length) {
+      setTimeout(function () { showEvidenceFocusList(item.evidence); }, 0);
+    }
     var np = $("nameplate");
     var isNarr = item.cls === "stage", isSys = item.cls === "system";
     var showName = item.speaker && !isNarr && !isSys;

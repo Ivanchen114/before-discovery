@@ -85,6 +85,11 @@
       lastLineScene = item.scene;
     }
     showFocusVisualForLine(item.text, item.scene);
+    /* 取得圖必須等這句真正開演，且等同一次操作的換場完成後再入鏡。
+       否則圖會在事件佇列時搶跑，緊接著被 setScene 清掉。 */
+    if (item.evidence && item.evidence.length) {
+      setTimeout(function () { showEvidenceFocusList(item.evidence); }, 0);
+    }
     var np = $("nameplate");
     var isNarr = item.cls === "stage", isSys = item.cls === "system";
     var showName = item.speaker && !isNarr && !isSys;

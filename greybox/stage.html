@@ -82,6 +82,11 @@
     pointer-events: none; }
   #sceneFocus[hidden] { display: none; }
   #sceneFocus.on { opacity: 1; transform: translateY(0); }
+  #sceneFocus.evidence-acquired { border-color: rgba(235,191,99,.96);
+    box-shadow: 0 12px 34px rgba(0,0,0,.62), 0 0 0 2px rgba(216,164,70,.28), inset 0 0 0 1px rgba(255,245,220,.12); }
+  #sceneFocus.evidence-acquired::before { content: "◆ 新證據已收入旅人筆記"; display: block;
+    padding: 2px 7px 7px; color: #e9c778; font: 700 clamp(13px,1vw,16px)/1.3 var(--font-ui);
+    letter-spacing: .05em; }
   #sceneFocusMedia { display: grid; place-items: center; gap: 6px; }
   #sceneFocusMedia img { display: block; width: 100%; max-height: 39vh; object-fit: contain;
     border-radius: 3px; background: rgba(239,228,201,.12); }
