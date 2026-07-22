@@ -1747,6 +1747,41 @@ tests.push({
   }
 });
 
+tests.push({
+  name: "第三章實驗體感|G1–G5 七底板、狀態切圖、互動運動層與減少動態",
+  fn: () => {
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const ids = new Map(assets.entries.map((e) => [e.id, e]));
+    const map = assets.shipExperimentVisuals;
+    const expected = [
+      "ship3_g1_mast_dock", "ship3_g1_mast_steady", "ship3_g2_cabin",
+      "ship3_g3_accelerating", "ship3_g3_decelerating",
+      "ship3_g4_reference_tapes", "ship3_g5_public_boundary"
+    ];
+    if (!map || map.baseline !== expected[0] || map["steady-mast"] !== expected[1] || map.cabin !== expected[2])
+      throw new Error("G1/G2 實驗底板映射缺失");
+    if (!map["speed-change"] || map["speed-change"].accelerating !== expected[3] || map["speed-change"].decelerating !== expected[4])
+      throw new Error("G3 加減速未使用不同底板");
+    if (map.overlay !== expected[5] || map.boundary !== expected[6]) throw new Error("G4/G5 實驗底板映射缺失");
+    for (const id of expected) {
+      const e = ids.get(id);
+      if (!e || e.kind !== "cg" || !e.path?.startsWith("ch03/experiments/") || e.w !== 1920 || e.h !== 1080)
+        throw new Error("第三章實驗資產宣告錯誤:" + id);
+      if (!existsSync(path.join(here, "../../public/assets/", e.path))) throw new Error("第三章實驗資產檔不存在:" + e.path);
+    }
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
+      '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
+      if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const frag of ["@keyframes ship-drop", "@keyframes ship-drip", "@keyframes ship-toss", "@keyframes ship-draw-path", "prefers-reduced-motion"])
+      if (!html.includes(frag)) throw new Error("第三章互動模擬動畫／無障礙樣式缺失:" + frag);
+    const intro = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");
+    for (const frag of ["共同運動實驗備忘", "停船、近似穩速、加速與減速", "ship3_g1_mast_dock", "ship3_g2_cabin", "登上實驗船"])
+      if (!intro.includes(frag)) throw new Error("第三章仍沿用第一章實驗備忘:" + frag);
+  }
+});
+
 let pass = 0, fail = 0;
 for (const t of tests) {
   try {

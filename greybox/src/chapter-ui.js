@@ -1297,6 +1297,7 @@
   /* ---------- 第三章航船實驗(R-SHIP3;穩速共同運動／變速邊界／雙參考物) ---------- */
   var ship3Msg = "";
   var ship3EmbedKey = "";
+  var ship3VisualRun = null; /* 純表現層：最近一次實驗動畫，不入存檔、不改 fixture。 */
   function ship3El(tag, text, parent, cls) {
     var node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -1354,6 +1355,22 @@
         };
         ship3Msg = "✕ " + (why[rr.reason] || "這一步還不能成立。");
       } else ship3Msg = typeof okText === "function" ? okText(rr) : (okText || "✓ 已記錄。");
+      var visualKinds = {
+        runBaseline: "mast-dock",
+        runMast: args && args.window === "stable" ? "mast-steady" : "mast-accelerating",
+        runCabin: "cabin-" + ((args && args.vesselState) || "dock") + "-" + ((args && args.test) || "drip"),
+        runSpeedChange: "speed-" + ((args && args.kind) || "accelerating"),
+        alignRecords: "tapes-align",
+        transformRecords: "tapes-transform",
+        setReference: "tapes-reference-" + ((args && args.ref) || "shore"),
+        runPublicStep: "public-" + ((args && args.step) || "baseline"),
+        setBoundary: "boundary-" + ((args && args.choice) || "honest")
+      };
+      if (visualKinds[action]) ship3VisualRun = {
+        kind: visualKinds[action],
+        offset: rr.run && typeof rr.run.offset === "number" ? rr.run.offset : 0,
+        stamp: Date.now()
+      };
       var after = state.lab.evidence || {};
       if (before !== JSON.stringify(after)) {
         ["g1", "g2", "g3", "g4", "g5"].forEach(function (k) {
@@ -1387,32 +1404,103 @@
     });
     return table;
   }
+  function ship3VisualId(phase) {
+    var map = ASSETS && ASSETS.shipExperimentVisuals;
+    if (!map) return null;
+    var spec = map[phase];
+    if (typeof spec === "string") return spec;
+    if (spec && phase === "speed-change") {
+      var k = ship3VisualRun && /^speed-(accelerating|decelerating)$/.exec(ship3VisualRun.kind);
+      return spec[k ? k[1] : "default"] || spec.default;
+    }
+    return null;
+  }
   function ship3Diagram(parent, lab, phase) {
-    var fig = ship3El("figure", null, parent, "shipDiagram " + phase);
-    fig.setAttribute("aria-label", "船桅落石與共同運動示意");
+    var anim = ship3VisualRun && ship3VisualRun.kind || "idle";
+    var fig = ship3El("figure", null, parent, "shipDiagram shipSceneVisual " + phase + " " + anim);
+    fig.setAttribute("aria-label", "第三章「" + ship3Mission(phase)[0] + "」互動模擬");
+    var entry = assetEntry(ship3VisualId(phase));
+    if (entry) {
+      var plate = document.createElement("img");
+      plate.className = "shipScenePlate"; plate.src = assetUrl(entry); plate.alt = ""; plate.setAttribute("aria-hidden", "true");
+      fig.appendChild(plate);
+    }
     var ns = "http://www.w3.org/2000/svg";
     var svg = document.createElementNS(ns, "svg");
-    svg.setAttribute("viewBox", "0 0 760 310"); svg.setAttribute("aria-hidden", "true"); fig.appendChild(svg);
+    svg.setAttribute("viewBox", "0 0 1000 563"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("class", "shipSimLayer"); fig.appendChild(svg);
     function draw(tag, cls, attrs, text) {
       var n = document.createElementNS(ns, tag); if (cls) n.setAttribute("class", cls);
       Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
       if (text != null) n.textContent = text; svg.appendChild(n); return n;
     }
-    draw("path", "shipHull", { d: "M90 235 L650 235 L590 282 L165 282 Z" });
-    draw("path", "shipMast", { d: "M337 232 L337 38 M324 232 L337 38 L350 232" });
-    draw("path", "shipSea", { d: "M25 292 Q70 278 115 292 T205 292 T295 292 T385 292 T475 292 T565 292 T655 292 T745 292" });
-    draw("circle", "shipStone", { cx: "337", cy: "58", r: "13" });
-    draw("path", "shipDrop", { d: "M337 72 L337 230" });
-    draw("path", "shipShorePath", { d: "M337 72 Q430 105 535 230" });
-    draw("text", "", { x: "354", y: "54" }, "放手"); draw("text", "", { x: "354", y: "222" }, "桅腳");
-    draw("text", "shipRefLabel", { x: "105", y: "267" }, "船上：近乎直落");
-    draw("text", "shipRefLabel", { x: "465", y: "267" }, "岸上：向前且下落");
+
+    if (phase === "baseline" || phase === "first-failure" || phase === "steady-mast") {
+      var dock = phase === "baseline", x = dock ? 300 : (phase === "steady-mast" ? 376 : 300);
+      var drop = ship3VisualRun && /^mast-/.test(anim);
+      var dx = drop ? Math.max(-58, Math.min(58, (ship3VisualRun.offset || 0) * 72)) : 0;
+      draw("line", "shipSimPlumb", { x1: x, y1: 70, x2: x, y2: 462 });
+      draw("circle", "shipSimTarget", { cx: x, cy: 463, r: 28 });
+      var stone = draw("circle", "shipSimStone" + (drop ? " running" : ""), { cx: x, cy: 75, r: 15 });
+      stone.style.setProperty("--ship-dx", dx + "px"); stone.style.setProperty("--ship-dy", "388px");
+      if (drop || (lab.mastRuns || []).length || (lab.baselineRuns || []).length) {
+        var last = phase === "baseline" ? (lab.baselineRuns || []).slice(-1)[0] : (lab.mastRuns || []).slice(-1)[0];
+        var off = last && typeof last.offset === "number" ? Math.max(-58, Math.min(58, last.offset * 72)) : dx;
+        draw("circle", "shipSimLanding", { cx: x + off, cy: 463, r: 10 });
+      }
+      draw("text", "shipSimLabel", { x: x + 38, y: 94 }, phase === "steady-mast" ? "穩速窗口" : (phase === "first-failure" ? "離岸加速" : "停船基準"));
+    } else if (phase === "cabin") {
+      draw("line", "shipSimGuide", { x1: 154, y1: 129, x2: 154, y2: 386 });
+      draw("ellipse", "shipSimBowl", { cx: 154, cy: 402, rx: 55, ry: 16 });
+      draw("path", "shipSimTossArc", { d: "M790 410 Q790 165 790 410" });
+      var cabinKind = /cabin-(dock|steady)-(drip|toss)/.exec(anim);
+      if (cabinKind && cabinKind[2] === "drip") draw("circle", "shipSimDrop running", { cx: 154, cy: 146, r: 9 });
+      if (cabinKind && cabinKind[2] === "toss") draw("circle", "shipSimTossBall running", { cx: 790, cy: 410, r: 15 });
+      [["dock", "停船", 344], ["steady", "近似穩速", 692]].forEach(function (v) {
+        var done = lab.cabin[v[0]].drip && lab.cabin[v[0]].toss;
+        draw("rect", "shipSimBadge " + (done ? "done" : ""), { x: v[2], y: 474, width: 160, height: 42, rx: 8 });
+        draw("text", "shipSimBadgeText", { x: v[2] + 80, y: 501, "text-anchor": "middle" }, (done ? "✓ " : "") + v[1]);
+      });
+    } else if (phase === "speed-change") {
+      var speedKind = /speed-(accelerating|decelerating)/.exec(anim);
+      var kind = speedKind ? speedKind[1] : (lab.speedRuns.decelerating ? "decelerating" : "accelerating");
+      var sx = 410, resultDx = kind === "accelerating" ? -120 : 120;
+      draw("line", "shipSimDeckAxis", { x1: 180, y1: 458, x2: 740, y2: 458 });
+      draw("line", "shipSimPlumb", { x1: sx, y1: 104, x2: sx, y2: 458 });
+      draw("circle", "shipSimTarget", { cx: sx, cy: 458, r: 25 });
+      var movingStone = draw("circle", "shipSimStone" + (speedKind ? " running" : ""), { cx: sx, cy: 105, r: 15 });
+      movingStone.style.setProperty("--ship-dx", resultDx + "px"); movingStone.style.setProperty("--ship-dy", "353px");
+      if (speedKind || lab.speedRuns[kind]) draw("circle", "shipSimLanding", { cx: sx + resultDx, cy: 458, r: 11 });
+      draw("text", "shipSimAxisText", { x: 206, y: 501 }, "船尾"); draw("text", "shipSimAxisText", { x: sx - 25, y: 501 }, "桅腳"); draw("text", "shipSimAxisText", { x: 680, y: 501 }, "船頭");
+      draw("text", "shipSimState", { x: 760, y: 76, "text-anchor": "end" }, kind === "accelerating" ? "加槳：船加速" : "收槳：船減速");
+    } else if (phase === "overlay") {
+      var beats = [0, 1, 2, 3], xs = [210, 395, 580, 765], shoreY = [292, 302, 327, 371], shipY = [375, 385, 410, 454];
+      draw("path", "shipPaperPath shore", { d: "M" + xs.map(function (x, i) { return x + " " + shoreY[i]; }).join(" L") });
+      draw("path", "shipPaperPath ship " + (lab.overlay.transformed ? "revealed" : ""), { d: "M" + xs.map(function (x, i) { return (lab.overlay.transformed ? 505 : x) + " " + shipY[i]; }).join(" L") });
+      beats.forEach(function (b, i) {
+        draw("circle", "shipPaperBeat " + (lab.overlay.aligned ? "aligned" : ""), { cx: xs[i], cy: shoreY[i], r: 8 });
+        draw("circle", "shipPaperBeat " + (lab.overlay.aligned ? "aligned" : ""), { cx: lab.overlay.transformed ? 505 : xs[i], cy: shipY[i], r: 8 });
+      });
+      draw("text", "shipPaperLabel", { x: 830, y: 308, "text-anchor": "end" }, "岸上紀錄");
+      draw("text", "shipPaperLabel", { x: 830, y: 393, "text-anchor": "end" }, lab.overlay.transformed ? "船上紀錄（已換參考物）" : "待對齊的第二張紙");
+    } else {
+      [228, 350, 472, 594, 716].forEach(function (x, i) {
+        var got = !!lab.evidence["g" + (i + 1)];
+        draw("circle", "shipEvidenceSeal " + (got ? "got" : ""), { cx: x, cy: 394, r: 28 });
+        draw("text", "shipEvidenceSealText", { x: x, y: 402, "text-anchor": "middle" }, "G" + (i + 1));
+      });
+    }
     var cap = ship3El("figcaption", null, fig);
-    if (phase === "overlay" && lab.overlay.transformed) {
+    if (phase === "cabin") {
+      cap.textContent = "親手按下滴水或拋接：停船與近似穩速要各做一次，結果才有資格比較。";
+    } else if (phase === "speed-change") {
+      cap.textContent = "石頭離手後保留原先速度；船再加速或減速，才改變它相對桅腳的落點。";
+    } else if (phase === "overlay" && lab.overlay.transformed) {
       cap.textContent = lab.overlay.activeReference === "ship"
         ? "目前以船為參考：扣除桅杆位移後，石頭相對桅杆近乎直落。"
         : "目前以岸為參考：石頭保有前行，同時向下加速。";
-    } else cap.textContent = "同一顆石頭、同一串鼓點；先別急著決定哪個人『看錯』。";
+    } else if (phase === "public-demo" || phase === "audit" || phase === "boundary") {
+      cap.textContent = "把五張證據分開擺好：它們共同支持模型，但每張只能回答自己真正測過的問題。";
+    } else cap.textContent = "按下放手後，石頭與落點會依這次船況實際演出；失敗紀錄同樣保留。";
     return fig;
   }
   function renderShip(v, box) {

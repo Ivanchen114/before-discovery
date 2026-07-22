@@ -143,25 +143,43 @@
     if (!this.disabled) closeApparatusSurvey();
   });
   function configureLabIntroCopy() {
-    if (CHAPTER_ID !== "ch2") return;
     var sheet = $("liSheet"), title = sheet.querySelector("h2"), list = sheet.querySelector("ol");
-    title.textContent = "旅人筆記・彈射工坊備忘";
-    var lines = [
-      "先理解，再組裝——短斜槽與升降沙盤是固定骨架；釋放、桌沿與落點量法，才是你真正要選的三件。",
-      "器材會留下指紋——手放、毛邊與粗量法造成的異常不同。不要只換數字，要找異常跟著哪個零件走。",
-      "校準也算實驗——發射零位與沙盤標尺各花一天；更換相依零件後，舊校準可能失效。",
-      "連結測量——同一裝置、同一顆球，依序測 4、9、16 格；看過前三筆後，先押 25 格射程再放球。",
-      "兩道門檻——前三筆的形狀與第 25 格預測都須在容許範圍內；失敗紀錄不刪，拿來診斷裝置。",
-      "換球比較——要主張與重量無關，兩組紀錄只能換球；裝置、校準與誤差指紋必須相同。"
-    ];
+    var lines;
+    if (CHAPTER_ID === "ch2") {
+      title.textContent = "旅人筆記・彈射工坊備忘";
+      lines = [
+        "先理解，再組裝——短斜槽與升降沙盤是固定骨架；釋放、桌沿與落點量法，才是你真正要選的三件。",
+        "器材會留下指紋——手放、毛邊與粗量法造成的異常不同。不要只換數字，要找異常跟著哪個零件走。",
+        "校準也算實驗——發射零位與沙盤標尺各花一天；更換相依零件後，舊校準可能失效。",
+        "連結測量——同一裝置、同一顆球，依序測 4、9、16 格；看過前三筆後，先押 25 格射程再放球。",
+        "兩道門檻——前三筆的形狀與第 25 格預測都須在容許範圍內；失敗紀錄不刪，拿來診斷裝置。",
+        "換球比較——要主張與重量無關，兩組紀錄只能換球；裝置、校準與誤差指紋必須相同。"
+      ];
+      $("btnLabIntroGo").textContent = "開始組裝";
+    } else if (CHAPTER_ID === "ch3") {
+      title.textContent = "旅人筆記・共同運動實驗備忘";
+      lines = [
+        "先分船況——停船、近似穩速、加速與減速不是同一個條件；每次放手前，先確認船正在怎麼走。",
+        "桅頂落石——標定桅腳正下方，用不額外推石頭的方式釋放；落點看散布，不宣稱每次絕對同點。",
+        "封閉船艙——停船與穩速各做滴水、拋接；比較的是相對船內器材的結果有沒有改變。",
+        "變速邊界——放手後再加槳或收槳；落點偏移是在告訴你，共同運動的哪個條件破掉了。",
+        "雙紙帶——先讓同一聲鼓相認，再切換參考物；船上直落與岸上向前彎下可以同時正確。",
+        "最後只說證據夠重的話——淘汰『必落船尾』的反對，不等於直接證成地球正在運動。"
+      ];
+      $("btnLabIntroGo").textContent = "登上實驗船";
+    } else {
+      return;
+    }
     while (list.firstChild) list.removeChild(list.firstChild);
     lines.forEach(function (text) { var li = document.createElement("li"); li.textContent = text; list.appendChild(li); });
-    $("btnLabIntroGo").textContent = "開始組裝";
   }
   function fillLabIntroProps() {
     var box = $("liProps");
     if (!box || box.children.length) return;
-    (CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] : ["prop_water_clock", "prop_ball_groove"]).forEach(function (id) {
+    var ids = CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] :
+      CHAPTER_ID === "ch3" ? ["ship3_g1_mast_dock", "ship3_g2_cabin"] :
+      ["prop_water_clock", "prop_ball_groove"];
+    ids.forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;
       var img = document.createElement("img");

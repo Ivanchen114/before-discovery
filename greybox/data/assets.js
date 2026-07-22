@@ -161,6 +161,21 @@
    ]
   }
  },
+ "shipExperimentVisuals": {
+  "baseline": "ship3_g1_mast_dock",
+  "first-failure": "ship3_g3_accelerating",
+  "steady-mast": "ship3_g1_mast_steady",
+  "cabin": "ship3_g2_cabin",
+  "speed-change": {
+   "default": "ship3_g3_accelerating",
+   "accelerating": "ship3_g3_accelerating",
+   "decelerating": "ship3_g3_decelerating"
+  },
+  "overlay": "ship3_g4_reference_tapes",
+  "public-demo": "ship3_g5_public_boundary",
+  "audit": "ship3_g5_public_boundary",
+  "boundary": "ship3_g5_public_boundary"
+ },
  "speakerPortrait": {
   "伽利略": "portrait_galileo",
   "年輕人": "portrait_galileo",
@@ -1077,6 +1092,76 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_public_demonstration_master_v01.png"
+  },
+  {
+   "id": "ship3_g1_mast_dock",
+   "kind": "cg",
+   "label": "G1 停船桅頂落石互動底板",
+   "path": "ch03/experiments/ch03_lab_g1_mast_dock_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g1_mast_dock_master_v01.png"
+  },
+  {
+   "id": "ship3_g1_mast_steady",
+   "kind": "cg",
+   "label": "G1 穩速桅頂落石互動底板",
+   "path": "ch03/experiments/ch03_lab_g1_mast_steady_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g1_mast_steady_master_v01.png"
+  },
+  {
+   "id": "ship3_g2_cabin",
+   "kind": "cg",
+   "label": "G2 封閉船艙共同運動互動底板",
+   "path": "ch03/experiments/ch03_lab_g2_cabin_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g2_cabin_master_v01.png"
+  },
+  {
+   "id": "ship3_g3_accelerating",
+   "kind": "cg",
+   "label": "G3 加速甲板互動底板",
+   "path": "ch03/experiments/ch03_lab_g3_accelerating_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g3_accelerating_master_v01.png"
+  },
+  {
+   "id": "ship3_g3_decelerating",
+   "kind": "cg",
+   "label": "G3 減速甲板互動底板",
+   "path": "ch03/experiments/ch03_lab_g3_decelerating_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g3_decelerating_master_v01.png"
+  },
+  {
+   "id": "ship3_g4_reference_tapes",
+   "kind": "cg",
+   "label": "G4 雙參考系紙帶互動底板",
+   "path": "ch03/experiments/ch03_lab_g4_reference_tapes_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g4_reference_tapes_master_v01.png"
+  },
+  {
+   "id": "ship3_g5_public_boundary",
+   "kind": "cg",
+   "label": "G5 公開演示與證據邊界互動底板",
+   "path": "ch03/experiments/ch03_lab_g5_public_boundary_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g5_public_boundary_master_v01.png"
   },
   {
    "id": "bg_ch03_print_room_1642",
