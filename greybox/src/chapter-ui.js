@@ -1444,7 +1444,7 @@
     };
     return map[code] || "這一步目前無法完成，請檢查眼前的實驗條件。";
   }
-  function doShip(action, args, okText) {
+  function doShip(action, args, okText, failText) {
     var before = JSON.stringify(state.lab.evidence || {});
     var r = N.labAction(state, action, args || {});
     if (r.error) ship3Msg = "✕ " + ship3Error(r.error);
@@ -1459,7 +1459,8 @@
           "claim-mismatch": "這組紀錄還不足以支持你選的說法。檢查是否混入受干擾的紀錄，或把現象解釋成了資料沒有測量的原因。",
           "overclaim": "這場實驗排除一個反對，卻沒有直接量到地球正在運動。把結論收回證據邊界。"
         };
-        ship3Msg = "✕ " + (why[rr.reason] || "這一步還不能成立。");
+        var tailored = typeof failText === "function" ? failText(rr) : failText;
+        ship3Msg = "✕ " + (tailored || why[rr.reason] || "這一步還不能成立。");
       } else ship3Msg = typeof okText === "function" ? okText(rr) : (okText || "✓ 已記錄。");
       var visualKinds = {
         runBaseline: "mast-dock",
@@ -1833,35 +1834,53 @@
       }
     }
     if (v.phase === "public-demo") {
-      ship3El("h3", "七、公開可重做的程序", work);
-      var steps = [["baseline", "公布停船基準"], ["stable-window", "公布穩速窗口"], ["no-push", "公布無額外推力的釋放法"], ["repeat", "連做三次並保留預測"]];
+      ship3El("h3", "七、公開演示：先把質疑放到桌上", work);
+      ship3El("p", "艦長不接受一排勾號。他要你說清楚：別人照著做，為什麼也該得到同樣的結果？", work, "shipNote");
+      var steps = [
+        ["baseline", "停船時本來就落在桅腳。船動之後，拿什麼比較？", "公開停船時的落點基準", "艦長：好。先讓大家看見船不動時，落點本來就會有一點散。"],
+        ["stable-window", "你是不是只挑了一段看起來最漂亮的船速？", "公開怎麼判定近似穩速", "艾蒂安：鼓點和岸標都留著，誰都能重新判斷這段船速。"],
+        ["no-push", "放手的人若偷推一下，也能做出漂亮結果。", "公開不額外推石頭的釋放法", "艦長：門閂由我抽。這次不靠你們互相作證。"],
+        ["repeat", "一次落在桅腳，也可能只是運氣。", "先留下預測，再公開重做三次", "艦長：三次都留下。現在我問結果，不再懷疑手法。"]
+      ];
       steps.forEach(function (st, i) {
         var done = lab.publicDemo.procedure.indexOf(st[0]) >= 0;
-        ship3Btn(work, (done ? "✓ " : (i + 1) + "．") + st[1], function () { doShip("runPublicStep", { step: st[0] }, done ? "" : "✓ 程序第 " + (i + 1) + " 步已公開。"); }, "shipAction", done || i !== lab.publicDemo.procedure.length);
+        var active = i === lab.publicDemo.procedure.length;
+        var card = ship3El("section", null, work, "shipCrossExam " + (done ? "resolved" : (active ? "active" : "pending")));
+        ship3El("span", done ? "已回答" : "第 " + (i + 1) + " 問", card, "shipCrossExamStep");
+        ship3El("b", "艦長：「" + st[1] + "」", card, "shipCrossExamQuote");
+        if (done) ship3El("p", st[3], card, "shipCrossExamReply");
+        else ship3Btn(card, st[2], function () { doShip("runPublicStep", { step: st[0] }, "✓ 程序已公開，對方的質疑留在桌上。"); }, "shipAction primary", !active);
       });
     }
     if (v.phase === "audit") {
-      ship3El("h3", "八、讓證據各守一個問題", work);
+      ship3El("h3", "八、三道公開質詢", work);
+      ship3El("p", "每一張紀錄只能回答它真正測過的問題。選錯不會抹掉紀錄，但艦長會指出缺口。", work, "shipNote");
       var questions = [
-        ["wind", "甲板有風，怎麼知道不是風把石頭帶回桅腳？"],
-        ["acceleration", "船艙裡分不出，第一回為什麼仍落在桅後？"],
-        ["paths", "船上直落、岸上彎下，哪一張才是真的？"]
+        ["wind", "艦長", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "艦長：封閉船艙裡也得到相同結果。好，不能只拿甲板風來解釋。", "艦長：那一筆就在甲板上，風也在。它不能替自己排除風。"],
+        ["acceleration", "艦長", "船艙裡看不出差別，第一次落石為什麼仍落在桅後？", "艦長：所以條件是近似穩速，不是任何船況都一樣。", "艦長：船艙只比了停船和近似穩速，回答不了船速正在改變的情況。"],
+        ["paths", "艾蒂安", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "艾蒂安：兩張紙記的是同一顆石頭；參考物不同，畫出的路徑就不同。", "艾蒂安：這份紀錄沒有把船上與岸上的位置放到同一組時刻裡。"]
       ];
       questions.forEach(function (q) {
-        var card = ship3El("div", null, work, "shipAuditCard");
-        ship3El("b", (lab.audit[q[0]] ? "✓ " : "") + q[1], card);
+        var card = ship3El("section", null, work, "shipAuditCard shipCrossExam " + (lab.audit[q[0]] ? "resolved" : "active"));
+        ship3El("span", q[1] + "的質詢", card, "shipCrossExamStep");
+        ship3El("b", "「" + q[2] + "」", card, "shipCrossExamQuote");
+        if (lab.audit[q[0]]) ship3El("p", q[3], card, "shipCrossExamReply");
         if (!lab.audit[q[0]]) {
           var owned = ["G1", "G2", "G3", "G4"].filter(function (id) { return state.evidence[id]; });
           var labels = {}; owned.forEach(function (id) { labels[id] = SCENES.evidenceNames[id]; });
           var pick = ship3Select(card, owned, labels, owned[0]);
-          ship3Btn(card, "用這張證據回答", function () { doShip("answerAudit", { questionId: q[0], evidenceId: pick.value }, "✓ 這道質詢已有可追查的回答。"); });
+          ship3Btn(card, "出示這份紀錄", function () { doShip("answerAudit", { questionId: q[0], evidenceId: pick.value }, "✓ 這份紀錄回答了質詢。", q[4]); }, "shipAction primary");
         }
       });
     }
     if (v.phase === "boundary") {
-      ship3El("h3", "九、勝利不能比證據走得更遠", work);
-      ship3Btn(work, "宣告：這已證明地球正在運動", function () { doShip("setBoundary", { choice: "overclaim" }); }, "shipAction danger");
-      ship3Btn(work, "宣告：它排除了『船動則石落後』，但沒有直接量到地球在動", function () { doShip("setBoundary", { choice: "honest" }, "✓ 結論停在證據真正走到的地方。"); }, "shipAction primary");
+      ship3El("h3", "九、最後一問：勝利能不能比證據走得更遠？", work);
+      var official = ship3El("section", null, work, "shipCrossExam active");
+      ship3El("span", "官員的提議", official, "shipCrossExamStep");
+      ship3El("b", "「就寫：今天在馬賽，我們證明了地球正在運動。」", official, "shipCrossExamQuote");
+      ship3El("p", "這句話最像勝利，也最容易越過證據。", official, "shipCrossExamReply");
+      ship3Btn(work, "順勢宣告：這證明地球正在運動", function () { doShip("setBoundary", { choice: "overclaim" }); }, "shipAction danger");
+      ship3Btn(work, "收住結論：它只排除了『船動，石頭就一定落後』", function () { doShip("setBoundary", { choice: "honest" }, "✓ 你沒有放棄勝利；你把勝利留在證據真正走到的地方。"); }, "shipAction primary");
     }
 
     var msg = ship3El("p", ship3Msg || "先完成本段目的；所有失敗紀錄都會保留，不必重開遊戲。", work, "shipMessage");

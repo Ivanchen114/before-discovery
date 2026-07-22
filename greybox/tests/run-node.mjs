@@ -1742,6 +1742,33 @@ tests.push({
 });
 
 tests.push({
+  name: "第三章終局與角色聲線|公開質詢不是流程清單；四角色各守語氣",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const script = readFileSync(path.join(here, "../../04_劇本/第三章完整劇本_不推也會走_v0.1.1.md"), "utf-8");
+    const voices = readFileSync(path.join(here, "../../02_設計/發現之前_角色聲線與對話規範_v0.1.md"), "utf-8");
+    const principles = readFileSync(path.join(here, "../../02_設計/發現之前_設計原則手冊_v0.1.md"), "utf-8");
+
+    for (const frag of ["第 \" + (i + 1) + \" 問", "q[1] + \"的質詢\"", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "官員的提議", "出示這份紀錄"])
+      if (!ui.includes(frag)) throw new Error("第三章終局缺少可見攻防:" + frag);
+    for (const frag of ["shipCrossExam", "shipCrossExamQuote", "shipCrossExamReply"])
+      if (!html.includes(frag)) throw new Error("公開質詢視覺層級缺失:" + frag);
+    if (!script.includes("CH3-CR-004") || !script.includes("【質詢一・基準】"))
+      throw new Error("第三章劇本未同步公開質詢重做");
+    for (const role of ["### 伽桑狄", "### 艦長", "### 艾蒂安", "### 非法庭型終局攻防"])
+      if (!voices.includes(role)) throw new Error("角色聲線規範缺失:" + role);
+    if (voices.includes("### 加桑迪")) throw new Error("伽桑狄姓名仍有舊錯字");
+
+    const visible = JSON.stringify(scenes3);
+    for (const phrase of ["把甲板刪掉", "更凶的測試", "最危險的字", "一句話若", "船若正在前進", "若不先問"])
+      if (visible.includes(phrase)) throw new Error("第三章仍有隱喻代替因果或突兀書面句:" + phrase);
+    if (!principles.includes("終局對抗不能退化成流程清單"))
+      throw new Error("第三章踩坑未沉澱為設計原則");
+  }
+});
+
+tests.push({
   name: "第三章引擎|停船基準→穩速共同運動→變速邊界→雙參考物→證據邊界",
   fn: () => {
     let s = Engine3.initialState();
