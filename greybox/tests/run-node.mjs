@@ -939,9 +939,11 @@ tests.push({
     const visible = JSON.stringify(scenes) + JSON.stringify(JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8")));
     const banned = ["爾等", "爾之", "爾且", "然則", "此乃", "焉知", "安從", "不盈尺", "婦孺", "皆然", "皆算", "乃止", "力注於物", "一物一時"];
     banned.forEach((word) => { if (visible.includes(word)) throw new Error("非模仿台詞仍有半文言門檻:" + word); });
+    for (const phrase of ["敢延伸到哪裡", "空氣開始大聲說話", "空氣還來不及插嘴", "骨架靠邊界"])
+      if (visible.includes(phrase)) throw new Error("最後反撲又出現疊加隱喻:" + phrase);
     if ((visible.match(/老夫/g) || []).length < 8) throw new Error("白話化過頭：辛普里奧的老派聲線遺失");
     const script = readFileSync(path.join(here, "../../04_劇本/第二章完整劇本_拋出去的東西_v0.1.3.md"), "utf-8");
-    for (const frag of ["CH2-CR-002", "CH2-CR-004", "一件物體在同一時間,只能有一種運動", "你們這套骨架,敢延伸到哪裡"])
+    for (const frag of ["CH2-CR-002", "CH2-CR-004", "CH2-CR-006", "一件物體在同一時間,只能有一種運動", "你們這條規律,究竟適用於哪些情況"])
       if (!script.includes(frag)) throw new Error("劇本未同步語氣修正:" + frag);
   }
 });
