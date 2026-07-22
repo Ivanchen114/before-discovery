@@ -436,7 +436,7 @@ tests.push({
     /* 滾球重播:吃真實讀值+可跳過+reduced 直出;破裂 FX;E2 SVG */
     for (const frag of ["labAnim", "run.readings", "animSkip", "fx-shake", 'code === "E2"'])
       if (!sui.includes(frag)) throw new Error("體感層要素缺失:" + frag);
-    /* BGM v2:cue 值域受控+雙章場景全覆蓋+場景驅動+總開關 */
+    /* BGM v2:cue 值域受控+三章場景全覆蓋+場景驅動+總開關 */
     const bgm = assets.sceneBgm || {};
     const scenes2Bgm = require("../data/scenes2.js");
     const cueSet = new Set(Object.keys(assets.bgmFiles || {}));
@@ -451,6 +451,11 @@ tests.push({
       if (!cue) throw new Error("第二章場景缺 BGM mood:" + s.id);
       if (!cueSet.has(cue)) throw new Error("未知 mood:" + s.id + "→" + cue);
     });
+    scenes3.scenes.forEach((s) => {
+      const cue = cueFor("ch3", s.id);
+      if (!cue) throw new Error("第三章場景缺 BGM mood:" + s.id);
+      if (!cueSet.has(cue)) throw new Error("未知 mood:" + s.id + "→" + cue);
+    });
     scenes.scenes.forEach((s) => {
       const cue = cueFor("ch1", s.id);
       if (/^ch2/.test(cue)) throw new Error("第一章誤用第二章 cue:" + s.id + "→" + cue);
@@ -459,6 +464,10 @@ tests.push({
       const cue = cueFor("ch2", s.id);
       if (s.id !== "B3-6" && s.id !== "BE-2" && !/^ch2/.test(cue))
         throw new Error("第二章未使用專屬 cue:" + s.id + "→" + cue);
+    });
+    scenes3.scenes.forEach((s) => {
+      const cue = cueFor("ch3", s.id);
+      if (!/^ch3/.test(cue)) throw new Error("第三章未使用專屬 cue:" + s.id + "→" + cue);
     });
     if (cueFor("ch1", "SC-R1") !== "workshop" || cueFor("ch2", "SC-R1") !== "ch2Catapult")
       throw new Error("同名 SC-R1 章別音樂覆寫失效");
@@ -491,11 +500,20 @@ tests.push({
       throw new Error("ch2Catapult 應為 A/B/C 三段 milestone");
     if ((assets.bgmFiles.ch2Debate.clips || []).length !== 3 || assets.bgmFiles.ch2Debate.mode !== "milestone")
       throw new Error("ch2Debate 應為 A/B/C 三段 milestone");
+    if ((assets.bgmFiles.ch3Experiment.clips || []).length !== 3 || assets.bgmFiles.ch3Experiment.mode !== "milestone")
+      throw new Error("ch3Experiment 應為 A/B/C 三段 milestone");
+    if ((assets.bgmFiles.ch3Public.clips || []).length !== 3 || assets.bgmFiles.ch3Public.mode !== "milestone")
+      throw new Error("ch3Public 應為 A/B/C 三段 milestone");
     const ch2CueFiles = Object.entries(assets.bgmFiles)
       .filter(([mood]) => /^ch2/.test(mood))
       .flatMap(([, spec]) => spec.clips || []);
     if (ch2CueFiles.length !== 13 || new Set(ch2CueFiles).size !== 13)
       throw new Error("第二章專屬曲應為 13 首且不得重複引用");
+    const ch3CueFiles = Object.entries(assets.bgmFiles)
+      .filter(([mood]) => /^ch3/.test(mood))
+      .flatMap(([, spec]) => spec.clips || []);
+    if (ch3CueFiles.length !== 10 || new Set(ch3CueFiles).size !== 10 || ch3CueFiles.some((f) => !f.startsWith("ch03/")))
+      throw new Error("第三章專屬曲應為 ch03/ 內 10 首且不得重複引用");
     if (!sui.includes("a.loop = false") || sui.includes("a.loop = true"))
       throw new Error("Gemini 30 秒素材不得無限硬循環");
     for (const frag of ["repeatGapMs", "scheduleReplay", "fileReplayTimer"])
@@ -503,6 +521,8 @@ tests.push({
     if (sui.includes("playSynth(spec.ambient)")) throw new Error("真音樂播完仍會啟動程序低鳴");
     for (const frag of ['d.scene === "A2-2"', 'd.scene === "A2-3"', 'd.scene === "A2-4"',
       'sceneCue(sceneId)', 'BGM.current() === "ch2Catapult"', 'd.scene === "B2-3"', 'd.scene === "B2-4"',
+      'BGM.current() === "ch3Experiment"', 'd.scene === "C1-3"', 'd.scene === "C2-2"',
+      'BGM.current() === "ch3Public"', 'd.scene === "C3-2"', 'd.scene === "C3-3"',
       'BGM.current() !== "ch2Debate"', 'd.phase === "fr"', "BGM.variant(1)", "BGM.variant(2)"])
       if (!sui.includes(frag)) throw new Error("BGM milestone 掛點缺失:" + frag);
     if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
@@ -1848,7 +1868,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章正式美術|17 場專屬背景、三角色透明肖像、章節縮圖與無低鳴音樂回退",
+  name: "第三章正式美術與音樂|17 場專屬背景、三角色肖像、10 首專屬配樂與里程碑換段",
   fn: () => {
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const ids = new Map(assets.entries.map((e) => [e.id, e]));
@@ -1871,9 +1891,19 @@ tests.push({
       if (!e || !e.path.startsWith("ch03/characters/") || e.w !== 900 || e.h !== 1200) throw new Error("第三章角色資產宣告錯誤:" + id);
     }
     if (assets.chapterThumbnail.ch03 !== "chapter_thumbnail_ch03") throw new Error("第三章章節縮圖未接上");
-    for (const cue of ["ch3Harbor","ch3Experiment","ch3Cabin","ch3Overlay","ch3Public","ch3Print"]) {
+    const expectedAudio = {
+      ch3Harbor: ["once", ["ch03/Ch3_Harbor_Dawn.mp3"]],
+      ch3Experiment: ["milestone", ["ch03/Ch3_Mast_Experiment_A.mp3", "ch03/Ch3_Mast_Experiment_B.mp3", "ch03/Ch3_Mast_Experiment_C.mp3"]],
+      ch3Cabin: ["once", ["ch03/Ch3_Closed_Cabin.mp3"]],
+      ch3Overlay: ["once", ["ch03/Ch3_Two_Records.mp3"]],
+      ch3Public: ["milestone", ["ch03/Ch3_Public_Demonstration_A.mp3", "ch03/Ch3_Public_Demonstration_B.mp3", "ch03/Ch3_Public_Demonstration_C.mp3"]],
+      ch3Print: ["once", ["ch03/Ch3_Print_Room_1642.mp3"]]
+    };
+    for (const [cue, [mode, clips]] of Object.entries(expectedAudio)) {
       const c = assets.bgmFiles[cue];
-      if (!c || !c.clips?.length || c.repeatGapMs !== 5000 || c.mode === "loop") throw new Error("第三章暫用音樂未遵守曲末留白規則:" + cue);
+      if (!c || c.mode !== mode || c.repeatGapMs !== 5000 || JSON.stringify(c.clips) !== JSON.stringify(clips))
+        throw new Error("第三章正式音樂映射錯誤:" + cue);
+      if ("temporaryReuse" in c) throw new Error("第三章正式音樂仍標成暫借:" + cue);
     }
   }
 });

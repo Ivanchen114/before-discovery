@@ -5,7 +5,7 @@
 ## 目錄規則
 
 - `common/`：跨章系列主題，只放確定會被兩章以上共用的音樂。
-- `ch01/`、`ch02/`：章節專屬曲目與該章生成提示詞。往後依序新增 `ch03/`、`ch04/`，不把所有檔案平鋪在根目錄。
+- `ch01/`、`ch02/`、`ch03/`：章節專屬曲目與該章生成提示詞。往後依序新增 `ch04/`，不把所有檔案平鋪在根目錄。
 - `README.md`：全系列授權與 runtime 索引；各章不另造一份互相漂移的授權表。
 - 音訊預算以「每章約 10 MB、單檔不超過 3 MB」管理；跨章主題另計。新增章節不應迫使舊章音樂改名或改 cue。
 
@@ -42,6 +42,16 @@
 | `ch02/Ch2_Debate_C.mp3` | ch2Debate C | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
 | `ch02/Ch2_Debate_Debrief.mp3` | ch2Debrief | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
 | `ch02/Ch2_Telescope_Dusk.mp3` | ch2Telescope | 同上 | 同上 | 同上 | 同上 | 2026-07-21 |
+| `ch03/Ch3_Harbor_Dawn.mp3` | ch3Harbor | AI 生成（第三章提示詞包） | Google Gemini（Lyria）生成 | 同上 | 陳育詮（生成）/Sol（提示詞與整合） | 2026-07-22 |
+| `ch03/Ch3_Mast_Experiment_A.mp3` | ch3Experiment A | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Mast_Experiment_B.mp3` | ch3Experiment B | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Mast_Experiment_C.mp3` | ch3Experiment C | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Closed_Cabin.mp3` | ch3Cabin | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Two_Records.mp3` | ch3Overlay | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Public_Demonstration_A.mp3` | ch3Public A | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Public_Demonstration_B.mp3` | ch3Public B | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Public_Demonstration_C.mp3` | ch3Public C | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch03/Ch3_Print_Room_1642.mp3` | ch3Print | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
 
 `ch01/Beneath_the_Chisel.mp3` 與 `ch01/Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `ch01/Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
 
@@ -73,6 +83,16 @@
 - B3-F 使用低密度複盤曲；BE-1 使用望遠鏡黃昏；BE-2 沿用跨章旅人月球主題。
 
 完整提示詞與檔名：`ch02/PROMPTS_BGM_CH2_GEMINI_20260721.md`。
+
+## 第三章 runtime（Sol 整合，2026-07-22）
+
+- 10 檔均為可解碼 MP3（雙聲道、44.1 kHz、192 kbps）；實際長度約 26.10–30.77 秒，總量 6.6 MB，符合單章音訊預算。
+- C0 馬賽港清晨、C2-1 封閉船艙、C2-3／C2-4 雙參考系紀錄、CE 印刷房各有獨立 cue。
+- 船桅實驗三段：A=停船基準與第一次失敗；B=穩速共同運動成立；C=加減速反例替「穩速」畫出邊界。
+- 公開演示三段：A=公開設下條件；B=結果上桌與逐筆稽核；C=拒絕過度宣稱、守住結論邊界。
+- 所有 cue 曲末保留 5 秒安靜後才淡入重播同段；不回退程序低頻聲，也不按秒數自動輪播 A／B／C。
+
+完整提示詞、共同動機與驗收規則：`ch03/PROMPTS_BGM_CH3_GEMINI_20260722.md`。
 
 ## 生成紀錄(Sol 已審 2026-07-20:**候選、未凍結**)
 

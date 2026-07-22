@@ -2078,51 +2078,47 @@
   "ch3Harbor": {
    "mode": "once",
    "repeatGapMs": 5000,
-   "temporaryReuse": true,
    "clips": [
-    "ch01/Piazza_at_Dawn.mp3"
+    "ch03/Ch3_Harbor_Dawn.mp3"
    ]
   },
   "ch3Experiment": {
-   "mode": "once",
+   "mode": "milestone",
    "repeatGapMs": 5000,
-   "temporaryReuse": true,
    "clips": [
-    "ch02/Ch2_Shipmast_Rain.mp3"
+    "ch03/Ch3_Mast_Experiment_A.mp3",
+    "ch03/Ch3_Mast_Experiment_B.mp3",
+    "ch03/Ch3_Mast_Experiment_C.mp3"
    ]
   },
   "ch3Cabin": {
    "mode": "once",
    "repeatGapMs": 5000,
-   "temporaryReuse": true,
    "clips": [
-    "ch01/Midnight_at_the_Casement.mp3"
+    "ch03/Ch3_Closed_Cabin.mp3"
    ]
   },
   "ch3Overlay": {
    "mode": "once",
    "repeatGapMs": 5000,
-   "temporaryReuse": true,
    "clips": [
-    "ch02/Ch2_Ink_And_Motion.mp3"
+    "ch03/Ch3_Two_Records.mp3"
    ]
   },
   "ch3Public": {
    "mode": "milestone",
    "repeatGapMs": 5000,
-   "temporaryReuse": true,
    "clips": [
-    "ch02/Ch2_Debate_A.mp3",
-    "ch02/Ch2_Debate_B.mp3",
-    "ch02/Ch2_Debate_C.mp3"
+    "ch03/Ch3_Public_Demonstration_A.mp3",
+    "ch03/Ch3_Public_Demonstration_B.mp3",
+    "ch03/Ch3_Public_Demonstration_C.mp3"
    ]
   },
   "ch3Print": {
    "mode": "once",
    "repeatGapMs": 5000,
-   "temporaryReuse": true,
    "clips": [
-    "ch01/Sun_Through_Lattice.mp3"
+    "ch03/Ch3_Print_Room_1642.mp3"
    ]
   },
   "silence": {

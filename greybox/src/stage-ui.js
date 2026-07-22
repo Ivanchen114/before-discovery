@@ -1465,7 +1465,7 @@
     var mood = sceneCue(ev.detail.sceneId);
     if (mood && mood !== BGM.current()) BGM.play(mood);
   });
-  document.addEventListener("bd:view", function (ev) { /* 雙章工坊 A/B/C:依認知里程碑,不按時間輪播 */
+  document.addEventListener("bd:view", function (ev) { /* 三章實驗／演示 A/B/C:依認知里程碑,不按時間輪播 */
     var d = ev.detail || {};
     if (BGM.current() === "workshop") {
       if (d.scene === "A2-2" && (d.nodeId === "c1" || d.nodeId === "n3")) BGM.variant(1);
@@ -1477,6 +1477,20 @@
       /* A=裝置與首輪；B=第一組乾淨關係成立後；C=換球複驗與雙球機關。 */
       if (d.scene === "B2-4" || (d.scene === "B2-3" && ["e3", "n6", "s2", "g1"].indexOf(d.nodeId) >= 0)) BGM.variant(2);
       else if (d.scene === "B2-3" && ["n1", "n2", "e1"].indexOf(d.nodeId) < 0) BGM.variant(1);
+      else BGM.variant(0);
+      return;
+    }
+    if (BGM.current() === "ch3Experiment") {
+      /* A=停船基準與第一次失敗；B=穩速共同運動；C=加減速反例，替「穩速」畫出邊界。 */
+      if (d.scene === "C2-2") BGM.variant(2);
+      else if (d.scene === "C1-3" || d.scene === "C1-4") BGM.variant(1);
+      else BGM.variant(0);
+      return;
+    }
+    if (BGM.current() === "ch3Public") {
+      /* A=公開設下條件；B=結果上桌與逐筆稽核；C=拒絕過度宣稱、守住結論邊界。 */
+      if (d.scene === "C3-3" || d.scene === "C3-4") BGM.variant(2);
+      else if (d.scene === "C3-2" || (d.scene === "C3-1" && ["n3", "g1"].indexOf(d.nodeId) >= 0)) BGM.variant(1);
       else BGM.variant(0);
     }
   });
