@@ -1545,6 +1545,13 @@ tests.push({
       if (!rules.some((r) => r.scene === sid)) throw new Error("第一章關鍵證據場景缺特寫規則:" + sid);
     for (const sid of ["B0-2", "B1-1", "B2-1", "B2-2", "B2-4", "B2-5"])
       if (!rules.some((r) => r.scene === sid)) throw new Error("第二章關鍵指圖場景缺特寫規則:" + sid);
+    const f3 = assets.entries.find((e) => e.id === "card_F3");
+    if (!f3 || f3.kind !== "card" || f3.path !== "ch02/cards/card_F3.webp" || f3.w !== 1200 || f3.h !== 750)
+      throw new Error("F3 一拋一放證據圖資產宣告缺失");
+    if (!existsSync(path.join(here, "../../public/assets/", f3.path))) throw new Error("F3 證據圖檔不存在");
+    for (const match of ["三輪紀錄在案", "如果物體真的要等推力用盡才下墜"])
+      if (!rules.some((r) => r.scene === "B2-4" && r.match === match && r.items.some((x) => x.asset === "card_F3")))
+        throw new Error("F3 判讀／回述缺專用圖:" + match);
     for (const r of rules) {
       if (!byScene.has(r.scene)) throw new Error("特寫規則指向不存在場景:" + r.scene);
       if (!r.match || !byScene.get(r.scene).includes(r.match))

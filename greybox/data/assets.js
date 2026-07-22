@@ -1014,6 +1014,16 @@
    "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
   },
   {
+   "id": "card_F3",
+   "kind": "card",
+   "label": "F3 一拋一放・等時位置",
+   "path": "ch02/cards/card_F3.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "Codex imagegen 歷史裝置底板＋可驗算 SVG 等時軌跡；art/source/production/ch02/cards"
+  },
+  {
    "id": "chapter_thumbnail_ch02",
    "kind": "cg",
    "label": "chapter_thumbnail_ch02",
@@ -1686,6 +1696,28 @@
     }
    ],
    "caption": "雙球機關：一次扳動，同時水平推出一球、原地放下一球。"
+  },
+  {
+   "scene": "B2-4",
+   "match": "三輪紀錄在案",
+   "items": [
+    {
+     "asset": "card_F3",
+     "alt": "同一門閂釋放兩顆相同球：左球直落、右球向前運動並同時下墜；成對殘影表示相同時刻的兩球位置"
+    }
+   ],
+   "caption": "每一條橫向虛線代表同一時刻：向前的球與直落的球，下降高度仍然一致。"
+  },
+  {
+   "scene": "B2-4",
+   "match": "如果物體真的要等推力用盡才下墜",
+   "items": [
+    {
+     "asset": "card_F3",
+     "alt": "一顆球垂直落下，另一顆球沿弧線向前落下；等時位置的垂直高度互相對齊"
+    }
+   ],
+   "caption": "圖只重畫裝置聽見的結果；能說到哪裡，仍由你的三輪紀錄決定。"
   },
   {
    "scene": "B2-5",

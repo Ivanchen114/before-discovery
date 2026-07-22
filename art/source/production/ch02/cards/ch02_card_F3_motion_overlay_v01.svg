@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1586" height="992" viewBox="0 0 1536 1024">
+  <defs>
+    <radialGradient id="ball" cx="34%" cy="28%" r="68%">
+      <stop offset="0" stop-color="#f3c08c"/>
+      <stop offset="0.3" stop-color="#a9673d"/>
+      <stop offset="0.78" stop-color="#66402d"/>
+      <stop offset="1" stop-color="#2a1b16"/>
+    </radialGradient>
+    <filter id="soft" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>
+      <feOffset dy="3" result="offset"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.48"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- x 與 t 成正比；y 與 t² 成正比。兩列圓點共享同一組 t。 -->
+  <path d="M319 174 L319 755" fill="none" stroke="#d8b47d" stroke-width="3"
+        stroke-linecap="round" opacity="0.42"/>
+  <path d="M493 148 Q793 148 1093 755" fill="none" stroke="#d8b47d" stroke-width="3"
+        stroke-linecap="round" opacity="0.5"/>
+
+  <g fill="none" stroke="#d8b47d" stroke-width="2" stroke-dasharray="9 10" opacity="0.43">
+    <path d="M347 186 H615"/>
+    <path d="M347 300 H765"/>
+    <path d="M347 489 H915"/>
+    <path d="M347 755 H1065"/>
+  </g>
+
+  <g fill="url(#ball)" stroke="#d8ae78" stroke-width="2" opacity="0.58" filter="url(#soft)">
+    <circle cx="319" cy="186" r="23"/><circle cx="643" cy="186" r="23"/>
+    <circle cx="319" cy="300" r="23"/><circle cx="793" cy="300" r="23"/>
+    <circle cx="319" cy="489" r="23"/><circle cx="943" cy="489" r="23"/>
+    <circle cx="319" cy="755" r="23"/><circle cx="1093" cy="755" r="23"/>
+  </g>
+</svg>
