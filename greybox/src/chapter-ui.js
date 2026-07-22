@@ -722,7 +722,14 @@
       stmtGrid.className = "statementGrid";
       var selectedTarget = null, selectedEvidence = null;
       var targetButtons = [], evidenceButtons = [];
-      d.statements.forEach(function (st) {
+      /* 防版位猜題：兩章的可反證證詞在資料層皆為 s2，但畫面不固定放中間。
+         只改呈現次序，證詞 id、判定與既有存檔完全不動。 */
+      var statementDisplayOrder = { P1: [1, 0, 2], P2: [0, 2, 1], P3: [0, 1, 2] };
+      var pillarOrder = d.pillar && statementDisplayOrder[d.pillar.id];
+      var displayedStatements = pillarOrder && d.statements.length === 3
+        ? pillarOrder.map(function (i) { return d.statements[i]; })
+        : d.statements;
+      displayedStatements.forEach(function (st) {
         var row = document.createElement("article");
         row.className = "statementCard" + (st.pressed ? " isPressed" : "");
         var quote = document.createElement("blockquote");

@@ -658,6 +658,26 @@ tests.push({
 });
 
 tests.push({
+  name: "辯論防猜題|三柱弱點顯示位置為一、三、二且不改證詞 ID",
+  fn: () => {
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const debate2 = require("../data/debate2.js");
+    if (!cui.includes("statementDisplayOrder = { P1: [1, 0, 2], P2: [0, 2, 1], P3: [0, 1, 2] }"))
+      throw new Error("辯論證詞仍可用固定第二格猜題");
+    if (!cui.includes("displayedStatements.forEach")) throw new Error("辯論畫面未套用防猜題排列");
+    for (const data of [debate, debate2]) {
+      for (const pid of ["P1", "P2", "P3"]) {
+        const pillar = data.chapter.pillars[pid];
+        const statements = pillar.useLegacy ? data.statements : pillar.statements;
+        const weak = statements.filter((st) => st.weakTo);
+        if (weak.length !== 1) throw new Error(pid + " 應只有一條可反證證詞");
+        if (!/s2$/.test(weak[0].id)) throw new Error(pid + " 弱點證詞 ID 漂移:" + weak[0].id);
+      }
+    }
+  }
+});
+
+tests.push({
   name: "斷言分段四格常駐|assertStage 單一事實源+敘事層拒絕搶跑(GB-ADR-011,Sol B-1 補強)",
   fn: () => {
     const N2 = require("../src/narrative.js");
