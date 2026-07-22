@@ -1,6 +1,6 @@
 {
  "chapter": "ch3",
- "title": "不推，也會走",
+ "title": "船艙裡的靜止",
  "startScene": "C0-1",
  "evidenceNames": {
   "S5": "《對話》的船艙頁",
@@ -198,7 +198,7 @@
     {"id":"n3","type":"line","speaker":"伽桑狄","text":"成交。","next":"n4"},
     {"id":"n4","type":"line","speaker":"旅人(你)","text":"鬆手之後，沒有誰繼續推它。","next":"n5"},
     {"id":"n5","type":"line","speaker":"伽桑狄","text":"可它沒有忘記，自己本來就和船一起向前。","next":"s1"},
-    {"id":"s1","type":"system","speaker":"system","text":"第三章《不推，也會走》","next":"g1"},
+    {"id":"s1","type":"system","speaker":"system","text":"第三章《船艙裡的靜止》","next":"g1"},
     {"id":"g1","type":"goto","scene":"CE-1"}
    ]
   },

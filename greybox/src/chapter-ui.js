@@ -1714,11 +1714,11 @@
   }
   function configureSeriesTitle() {
     document.title = CHAPTER_ID === "ch3"
-      ? "《發現之前》第三章：不推，也會走（舞台版）"
-      : (CHAPTER_ID === "ch2" ? "《發現之前》第二章：向前也向下（舞台版）"
+      ? "《發現之前》第三章：船艙裡的靜止（舞台版）"
+      : (CHAPTER_ID === "ch2" ? "《發現之前》第二章：第一寸的弧線（舞台版）"
         : "《發現之前》第一章：重物的渴望（舞台版）");
     var meta = document.querySelector(".chapterStatusText strong");
-    if (meta) meta.textContent = CHAPTER_ID === "ch3" ? "第三章・不推，也會走" : (CHAPTER_ID === "ch2" ? "第二章・向前也向下" : "第一章・重物的渴望");
+    if (meta) meta.textContent = CHAPTER_ID === "ch3" ? "第三章・船艙裡的靜止" : (CHAPTER_ID === "ch2" ? "第二章・第一寸的弧線" : "第一章・重物的渴望");
     var legend = document.querySelector("#titleCard fieldset legend");
     if (legend) legend.textContent = "從" + chapterLabel() + "開始・選擇模式（中途不可換）";
     $("btnNew").textContent = "開始" + chapterLabel();

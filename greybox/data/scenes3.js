@@ -4,7 +4,7 @@
  "use strict";
  var data = {
  "chapter": "ch3",
- "title": "不推，也會走",
+ "title": "船艙裡的靜止",
  "startScene": "C0-1",
  "evidenceNames": {
   "S5": "《對話》的船艙頁",
@@ -915,7 +915,7 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "第三章《不推，也會走》",
+     "text": "第三章《船艙裡的靜止》",
      "next": "g1"
     },
     {

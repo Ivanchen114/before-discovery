@@ -752,11 +752,11 @@ tests.push({
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (stageHtml.includes("灰盒對照版"))
       throw new Error("玩家入口不應顯示內部灰盒對照連結");
-    for (const frag of ['id="nextCard"', "向前也向下", "第二章現已開放", "書信碼",
+    for (const frag of ['id="nextCard"', "第一寸的弧線", "第二章現已開放", "書信碼",
       'id="btnFull"', 'id="rotateHint"', "viewport-fit=cover", '<link rel="manifest"'])
       if (!stageHtml.includes(frag)) throw new Error("終幕卡/行動殼要素缺失:" + frag);
-    if (stageHtml.includes("向前，也向下"))
-      throw new Error("第二章正式章名仍殘留逗號");
+    for (const oldTitle of ["向前，也向下", "向前也向下", "不推，也會走"])
+      if (stageHtml.includes(oldTitle)) throw new Error("玩家入口仍殘留舊章名:" + oldTitle);
     /* 鉤引語=E-1 凍結原句的子字串(禁引未凍結之第二章劇本;防台詞漂移) */
     const scenesJson = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
     const e1n2 = scenesJson.scenes.find((s) => s.id === "E-1").nodes.find((n) => n.id === "n2").text;
@@ -1365,7 +1365,7 @@ tests.push({
     for (const frag of ["renderEnemyDataCard", 'd.phase === "enemy"', "enemyDataCard", "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"])
       if (!cui.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
-    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "向前也向下"])
+    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "第一寸的弧線"])
       if (!c2.includes(frag)) throw new Error("第二章殼缺失:" + frag);
     const stage2 = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", "data-chapter=\"ch02\""])
@@ -1613,6 +1613,8 @@ tests.push({
     const hs = require("../data/histfacts3.js");
     if (JSON.stringify(scenes3) !== JSON.stringify(sj)) throw new Error("scenes3 鏡像漂移");
     if (JSON.stringify(hs) !== JSON.stringify(hj)) throw new Error("histfacts3 鏡像漂移");
+    if (scenes3.title !== "船艙裡的靜止") throw new Error("第三章正式章名漂移");
+    if (!JSON.stringify(scenes3).includes("第三章《船艙裡的靜止》")) throw new Error("第三章章名揭曉未同步");
     if (scenes3.scenes.length !== 17) throw new Error("第三章場景數不是 17");
     const sm = new Map(scenes3.scenes.map((s) => [s.id, new Set(s.nodes.map((n) => n.id))]));
     for (const s of scenes3.scenes) for (const n of s.nodes) {
@@ -1708,6 +1710,7 @@ tests.push({
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const x of ['data-chapter="ch03"', 'src="src/engine3.js"', 'src="data/scenes3.js"', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
+    if (!html.includes("船艙裡的靜止")) throw new Error("玩家入口缺第三章正式章名");
     for (const x of ["renderShip", "ship3Mission", 'v.system === "ship"']) if (!ui.includes(x)) throw new Error("chapter-ui 缺船實驗:" + x);
     if (!stage.includes('d.system === "ship" ? "ship"')) throw new Error("stage-ui 未辨識 ship 視圖");
   }

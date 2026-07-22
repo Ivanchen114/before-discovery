@@ -21,13 +21,13 @@
       var nc = $("nextCard");
       if (nc.hidden) {
         if (CHAPTER_ID === "ch2") {
-          nc.querySelector(".ncSealed").textContent = "第二章《向前也向下》——已封存";
+          nc.querySelector(".ncSealed").textContent = "第二章《第一寸的弧線》——已封存";
           nc.querySelector(".ncNext").textContent = "旅程將繼續";
           nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
           nc.querySelector(".ncHook").textContent = "你已讓兩種運動在同一條墨線上相遇。物理史還有更多看似理所當然的答案，等著重新取得證據。";
           nc.querySelector(".ncSys").textContent = "第二章進度與筆記已封存於這台裝置。你可回到系列首頁重玩任一章，或匯出旅人書信碼。";
         } else if (CHAPTER_ID === "ch3") {
-          nc.querySelector(".ncSealed").textContent = "第三章《不推，也會走》——已封存";
+          nc.querySelector(".ncSealed").textContent = "第三章《船艙裡的靜止》——已封存";
           nc.querySelector(".ncNext").textContent = "旅程將繼續";
           nc.querySelector(".ncTitle").textContent = "下一頁，仍未寫定";
           nc.querySelector(".ncHook").textContent = "你已讓船上與岸上的兩條路彼此相認。下一次，世界將不只改變位置，還會改變速度。";
