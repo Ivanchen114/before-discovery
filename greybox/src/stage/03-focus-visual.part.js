@@ -7,12 +7,13 @@
     $("sceneFocusMedia").innerHTML = "";
     $("sceneFocusCaption").textContent = "";
   }
-  function focusRuleForLine(text) {
+  function focusRuleForLine(text, sceneId) {
     var rules = ASSETS && ASSETS.lineFocusVisual;
     if (!rules || !text) return null;
+    var sid = sceneId || curSceneId;
     for (var i = 0; i < rules.length; i++) {
       var r = rules[i];
-      if (r.scene === curSceneId && text.indexOf(r.match) >= 0) return r;
+      if (r.scene === sid && text.indexOf(r.match) >= 0) return r;
     }
     return null;
   }
@@ -58,8 +59,8 @@
       diagram.appendChild(label);
     });
   }
-  function showFocusVisualForLine(text) {
-    var rule = focusRuleForLine(text);
+  function showFocusVisualForLine(text, sceneId) {
+    var rule = focusRuleForLine(text, sceneId);
     if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
     if (!fig || !media) return;

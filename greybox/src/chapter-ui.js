@@ -148,7 +148,7 @@
   }
 
   /* ---------- 敘事渲染 ---------- */
-  function addLine(speaker, text, cls) {
+  function addLine(speaker, text, cls, sceneId) {
     var shownText = displayText(text);
     var div = document.createElement("div");
     div.className = "line " + (cls || "");
@@ -164,7 +164,13 @@
     div.appendChild(t);
     $("log").appendChild(div);
     div.scrollIntoView({ block: "nearest" });
-    emit("bd:line", { speaker: speaker || null, text: shownText, cls: cls || "", replay: replaying });
+    emit("bd:line", {
+      speaker: speaker || null,
+      text: shownText,
+      cls: cls || "",
+      scene: sceneId || (state && state.cursor ? state.cursor.scene : null),
+      replay: replaying
+    });
   }
   function classFor(speaker) {
     if (speaker === "stage") return "stage";
@@ -204,7 +210,7 @@
     replaying = true;
     state.transcript.forEach(function (e) {
       sceneHeading(e.scene);
-      addLine(e.speaker, e.text, classFor(e.speaker));
+      addLine(e.speaker, e.text, classFor(e.speaker), e.scene);
     });
     replaying = false;
   }
@@ -212,7 +218,7 @@
     for (var i = prevLen; i < state.transcript.length; i++) {
       var e = state.transcript[i];
       sceneHeading(e.scene);
-      addLine(e.speaker, e.text, classFor(e.speaker));
+      addLine(e.speaker, e.text, classFor(e.speaker), e.scene);
     }
   }
   function renderStatus() {
@@ -248,9 +254,14 @@
     $("sceneVal").textContent = "場景：" + playerSceneTitle(state.cursor.scene);
     var names = SCENES.evidenceNames || {};
     var got = Object.keys(state.evidence).filter(function (k) { return state.evidence[k]; });
-    $("evidenceList").textContent = got.length
-      ? got.map(function (k) { return names[k] || "已取得的證據"; }).join("、")
+    var evidenceItems = got.map(function (k) {
+      return { code: k, name: names[k] || "未命名證據" };
+    });
+    $("evidenceList").textContent = evidenceItems.length
+      ? evidenceItems.map(function (item) { return item.name; }).join("、")
       : "(尚無)";
+    /* 顯示文字可以翻譯、改名；資產解析只能吃穩定 ID，禁止從中文名稱反推資料鍵。 */
+    $("evidenceList").dataset.items = JSON.stringify(evidenceItems);
   }
 
   /* ---------- 實驗台 ---------- */

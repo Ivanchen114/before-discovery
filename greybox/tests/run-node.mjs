@@ -1599,6 +1599,15 @@ tests.push({
       if (!sui.includes(frag)) throw new Error("舞台特寫接線/預載缺失:" + frag);
     if (!html.includes(".scene-focus-e2-art") || !html.includes(".e2-argument-arrows"))
       throw new Error("E2 生圖底板的精確語意疊層樣式缺失");
+    const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (!chapterUi.includes('dataset.items = JSON.stringify(evidenceItems)'))
+      throw new Error("筆記本證據缺結構化 code/name 接口");
+    if (!sui.includes('JSON.parse($("evidenceList").dataset.items || "[]")') ||
+        sui.includes('var code = item.split(" ")[0]'))
+      throw new Error("筆記本仍從顯示名稱猜證據 ID，專圖會退回空白模板");
+    if (!sui.includes("showFocusVisualForLine(item.text, item.scene)") ||
+        sui.includes("showFocusVisualForLine(d.text);"))
+      throw new Error("證據特寫未綁定實際台詞開演時刻");
   }
 });
 

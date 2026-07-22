@@ -233,12 +233,13 @@
     $("sceneFocusMedia").innerHTML = "";
     $("sceneFocusCaption").textContent = "";
   }
-  function focusRuleForLine(text) {
+  function focusRuleForLine(text, sceneId) {
     var rules = ASSETS && ASSETS.lineFocusVisual;
     if (!rules || !text) return null;
+    var sid = sceneId || curSceneId;
     for (var i = 0; i < rules.length; i++) {
       var r = rules[i];
-      if (r.scene === curSceneId && text.indexOf(r.match) >= 0) return r;
+      if (r.scene === sid && text.indexOf(r.match) >= 0) return r;
     }
     return null;
   }
@@ -284,8 +285,8 @@
       diagram.appendChild(label);
     });
   }
-  function showFocusVisualForLine(text) {
-    var rule = focusRuleForLine(text);
+  function showFocusVisualForLine(text, sceneId) {
+    var rule = focusRuleForLine(text, sceneId);
     if (!rule) return; /* 同一場景保留，直到下一個特寫取代或換場清除。 */
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
     if (!fig || !media) return;
@@ -325,6 +326,7 @@
   /* 收隊確認:在對話框會讓位的視圖(辯論/實驗台等),最後一句演完先亮 ▼ 等玩家點掉——
      打字完成≠讀完(總監實玩)。narration 視圖對話框常駐,不需確認。 */
   var ackPending = false;
+  var lastLineScene = null;
   /* 任何會讓對話框退場、把畫面交給大型互動的視圖，都必須等玩家親手收掉最後一句。
      ship 曾漏列，造成第三章台詞一播完就自動切進航船實驗。 */
   var YIELD_VIEWS = { debate: 1, lab: 1, ship: 1, review: 1, histfacts: 1 };
@@ -399,6 +401,12 @@
     timer = setTimeout(step, TYPE_MS);
   }
   function startLine(item, instant) {
+    /* 特寫跟「玩家此刻真的看到的台詞」同步，不跟尚未播放的事件佇列搶跑。 */
+    if (item.scene && item.scene !== lastLineScene) {
+      clearFocusVisual();
+      lastLineScene = item.scene;
+    }
+    showFocusVisualForLine(item.text, item.scene);
     var np = $("nameplate");
     var isNarr = item.cls === "stage", isSys = item.cls === "system";
     var showName = item.speaker && !isNarr && !isSys;
@@ -474,7 +482,6 @@
     /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
     $("srLine").textContent =
       (d.speaker && d.cls !== "stage" && d.cls !== "system" ? displayText(d.speaker) + "：" : "") + displayText(d.text);
-    showFocusVisualForLine(d.text);
     enqueue(d);
   });
   var needKickoff = false;
@@ -578,6 +585,7 @@
     pendingEmbarkScene = null;
     apparatusSurveySeen = {}; apparatusSurveyActive = null; apparatusSurveyDone = null;
     repHinted = false; repPrev = null;
+    lastLineScene = null;
     $("labIntro").hidden = true;
     $("apparatusSurvey").hidden = true;
     $("debIntro").hidden = true;
@@ -592,7 +600,6 @@
     /* 開場語境:讀檔→最後一句即顯(不重播序幕);全新開局→P0-0「螢幕前」cinematic,收場後 kickoff */
     if (lastReplay) {
       $("prologueCard").hidden = true;
-      showFocusVisualForLine(lastReplay.text);
       startLine(lastReplay, true); lastReplay = null; needKickoff = false;
     } else if (CHAPTER_ID !== "ch1") {
       /* 現代穿越只演一次：從系列首頁直接進後續章節，不重播第一章序幕。 */
@@ -1020,27 +1027,30 @@
       sheet.style.backgroundPosition = "center";
     }
   }
-  /* 證據卡:card_template/S1/S2 當材質底,標題文字一律 HTML 疊加(E1–E5 物理內容不畫死) */
+  /* 證據卡:穩定 code 找圖、白話 name 顯示；不得從翻譯後名稱反推 ID。 */
   function renderEvidenceCards() {
     var wrap = $("nbCards");
     if (!wrap) return;
     wrap.innerHTML = "";
-    var listText = $("evidenceList").textContent || "";
-    if (!listText.trim() || listText.indexOf("尚無") >= 0) return;
+    var items = [];
+    try { items = JSON.parse($("evidenceList").dataset.items || "[]"); }
+    catch (e) { items = []; }
+    if (!items.length) return;
     var tpl = assetEntry("card_template");
-    listText.split("、").forEach(function (item) {
-      item = item.trim();
-      if (!item) return;
-      var code = item.split(" ")[0];
-      var name = item.slice(code.length).trim();
+    items.forEach(function (item) {
+      var code = item && item.code;
+      var name = item && item.name || "未命名證據";
+      if (!code) return;
       var specificBg = assetEntry("card_" + code);
       var bgE = specificBg || tpl; /* card_<code> 優先,缺圖回退共用底；E2 另保留 SVG 降級。 */
       var card = document.createElement("div");
       card.className = "evcard";
+      card.dataset.evidenceCode = code;
+      card.setAttribute("role", "img");
+      card.setAttribute("aria-label", name + "證據圖");
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
-      var b = document.createElement("b"); b.textContent = code;
-      var s = document.createElement("span"); s.textContent = name;
-      card.appendChild(b); card.appendChild(s);
+      var b = document.createElement("b"); b.textContent = name;
+      card.appendChild(b);
       if (code === "E2" && !specificBg) { /* 生圖底板缺席時，仍以 SVG 保住完整語意。 */
         card.insertAdjacentHTML("beforeend", e2DiagramMarkup());
         card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");

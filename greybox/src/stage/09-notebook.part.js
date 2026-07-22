@@ -36,27 +36,30 @@
       sheet.style.backgroundPosition = "center";
     }
   }
-  /* 證據卡:card_template/S1/S2 當材質底,標題文字一律 HTML 疊加(E1–E5 物理內容不畫死) */
+  /* 證據卡:穩定 code 找圖、白話 name 顯示；不得從翻譯後名稱反推 ID。 */
   function renderEvidenceCards() {
     var wrap = $("nbCards");
     if (!wrap) return;
     wrap.innerHTML = "";
-    var listText = $("evidenceList").textContent || "";
-    if (!listText.trim() || listText.indexOf("尚無") >= 0) return;
+    var items = [];
+    try { items = JSON.parse($("evidenceList").dataset.items || "[]"); }
+    catch (e) { items = []; }
+    if (!items.length) return;
     var tpl = assetEntry("card_template");
-    listText.split("、").forEach(function (item) {
-      item = item.trim();
-      if (!item) return;
-      var code = item.split(" ")[0];
-      var name = item.slice(code.length).trim();
+    items.forEach(function (item) {
+      var code = item && item.code;
+      var name = item && item.name || "未命名證據";
+      if (!code) return;
       var specificBg = assetEntry("card_" + code);
       var bgE = specificBg || tpl; /* card_<code> 優先,缺圖回退共用底；E2 另保留 SVG 降級。 */
       var card = document.createElement("div");
       card.className = "evcard";
+      card.dataset.evidenceCode = code;
+      card.setAttribute("role", "img");
+      card.setAttribute("aria-label", name + "證據圖");
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
-      var b = document.createElement("b"); b.textContent = code;
-      var s = document.createElement("span"); s.textContent = name;
-      card.appendChild(b); card.appendChild(s);
+      var b = document.createElement("b"); b.textContent = name;
+      card.appendChild(b);
       if (code === "E2" && !specificBg) { /* 生圖底板缺席時，仍以 SVG 保住完整語意。 */
         card.insertAdjacentHTML("beforeend", e2DiagramMarkup());
         card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
