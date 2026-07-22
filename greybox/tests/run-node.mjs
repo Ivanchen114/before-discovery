@@ -190,6 +190,7 @@ tests.push({
   name: "舞台殼|stage.html DOM 契約:chapter-ui 引用之 id 全數存在;stage-ui 純表現層",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ids = [...new Set([...ui.matchAll(/\$\("([A-Za-z-]+)"\)/g)].map((m) => m[1]))];
     if (ids.length < 25) throw new Error("id 萃取異常(僅 " + ids.length + " 個)——正規式或檔案結構變動");
     for (const page of ["stage.html", "chapter.html"]) {
@@ -1931,16 +1932,22 @@ tests.push({
       if (!existsSync(path.join(here, "../../public/assets/", e.path))) throw new Error("第三章實驗資產檔不存在:" + e.path);
     }
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
       '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
       if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
+    for (const frag of ["把相同編號的鼓點逐一對齊", "每一拍都用石頭位置減去桅杆位置",
+      "岸上紙｜向前且下落", "船上紙｜相對桅杆直落", "shipPaperPath converted revealed",
+      "為什麼一張彎、一張直，卻都能成立"])
+      if (!ui.includes(frag)) throw new Error("G4 雙參考物題圖／題序缺失:" + frag);
+    if (!html.includes(".shipPaperBeatLabel") || !html.includes(".shipPaperStepLabel"))
+      throw new Error("G4 鼓點與分步提示樣式缺失");
     for (const frag of ["先用紀錄組成一個公平比較", "單看行船紀錄夠嗎", "還無法回答它『和什麼相同』",
       "一次接近可能只是巧合", "cfg.selectionReady", 'typeof cfg.incomplete === "function"'])
       if (!ui.includes(frag)) throw new Error("G1 兩組資料比較提示缺失:" + frag);
     if (ui.includes("至少選 3 筆「停船・可用」")) throw new Error("G1 把資料門檻直接洩漏成勾選答案");
     if (!ui.includes('x = dock ? 450 : (phase === "steady-mast" ? 376 : 300)'))
       throw new Error("停船鉛垂線未對準桅頂石球與落點沙盤");
-    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["@keyframes ship-drop", "@keyframes ship-drip", "@keyframes ship-toss", "@keyframes ship-draw-path", "prefers-reduced-motion"])
       if (!html.includes(frag)) throw new Error("第三章互動模擬動畫／無障礙樣式缺失:" + frag);
     const intro = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");

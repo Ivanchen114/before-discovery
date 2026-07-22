@@ -1453,8 +1453,8 @@
       var rr = r.result || {};
       if (rr.ok === false) {
         var why = {
-          "beats-mismatch": "兩張紙沒有對齊同一聲鼓。先讓同一時刻相認。",
-          "wrong-transform": "只拉大或縮小圖形不能換參考物；要扣除每一拍桅杆向前的位移。",
+          "beats-mismatch": "終點相同不代表途中時刻相同。請把兩張紙上相同編號的鼓點逐一對齊。",
+          "wrong-transform": "縮放只會改變圖的大小，不能改變參考物。請逐拍算『石頭相對岸的位置－桅杆相對岸的位置』。",
           "evidence-mismatch": "這張證據沒有直接回答這道質詢。換一張真正做過相應對照的紀錄。",
           "claim-mismatch": "這組紀錄還不足以支持你選的說法。檢查是否混入受干擾的紀錄，或把現象解釋成了資料沒有測量的原因。",
           "overclaim": "這場實驗排除一個反對，卻沒有直接量到地球正在運動。把結論收回證據邊界。"
@@ -1494,7 +1494,7 @@
       "steady-mast": ["等船近似穩速", "用鼓點與岸標挑出穩定窗口，完成三次桅頂落石。"],
       cabin: ["把風留在甲板外", "停船與穩速時，各做滴水與拋接；四格都完成才能比較。"],
       "speed-change": ["讓船改變速度", "先押加速與減速的落點，再各做一次；預測必須先封存。"],
-      overlay: ["讓兩張紙相認", "先用同一串鼓點對齊，再切換參考物，解釋兩條看似不同的路。"],
+      overlay: ["讓兩張紙相認", "先對齊同一時刻，再把岸上位置換算成相對桅杆的位置，最後解釋一彎一直為何都正確。"],
       "public-demo": ["把程序公開", "按可重做的順序公布基準、穩速窗口、釋放方法與重複結果。"],
       audit: ["三道公開質詢", "每一問選一張真正做過相應對照的證據。"],
       boundary: ["最後的證據邊界", "指出這場演示排除了什麼，又沒有直接證明什麼。"]
@@ -1619,15 +1619,33 @@
       draw("text", "shipSimAxisText", { x: 206, y: 501 }, "船尾"); draw("text", "shipSimAxisText", { x: sx - 25, y: 501 }, "桅腳"); draw("text", "shipSimAxisText", { x: 680, y: 501 }, "船頭");
       draw("text", "shipSimState", { x: 760, y: 76, "text-anchor": "end" }, kind === "accelerating" ? "加槳：船加速" : "收槳：船減速");
     } else if (phase === "overlay") {
-      var beats = [0, 1, 2, 3], xs = [210, 395, 580, 765], shoreY = [292, 302, 327, 371], shipY = [375, 385, 410, 454];
-      draw("path", "shipPaperPath shore", { d: "M" + xs.map(function (x, i) { return x + " " + shoreY[i]; }).join(" L") });
-      draw("path", "shipPaperPath ship " + (lab.overlay.transformed ? "revealed" : ""), { d: "M" + xs.map(function (x, i) { return (lab.overlay.transformed ? 505 : x) + " " + shipY[i]; }).join(" L") });
-      beats.forEach(function (b, i) {
-        draw("circle", "shipPaperBeat " + (lab.overlay.aligned ? "aligned" : ""), { cx: xs[i], cy: shoreY[i], r: 8 });
-        draw("circle", "shipPaperBeat " + (lab.overlay.aligned ? "aligned" : ""), { cx: lab.overlay.transformed ? 505 : xs[i], cy: shipY[i], r: 8 });
+      /* 兩張紙從作答一開始就同時可見：岸上看見彎路，船上看見近乎直落。
+         玩家先用鼓點建立同時性，再親手把岸上座標換成相對桅杆的座標。 */
+      var beats = [0, 1, 2, 3], shoreXs = [210, 395, 580, 765], shoreY = [286, 295, 323, 371];
+      var shipX = 510, shipY = [384, 402, 430, 476];
+      draw("path", "shipPaperPath shore", { d: "M" + shoreXs.map(function (x, i) { return x + " " + shoreY[i]; }).join(" L") });
+      draw("path", "shipPaperPath ship " + (lab.overlay.aligned ? "revealed" : "preview"), {
+        d: "M" + shipY.map(function (y) { return shipX + " " + y; }).join(" L")
       });
-      draw("text", "shipPaperLabel", { x: 830, y: 308, "text-anchor": "end" }, "岸上紀錄");
-      draw("text", "shipPaperLabel", { x: 830, y: 393, "text-anchor": "end" }, lab.overlay.transformed ? "船上紀錄（已換參考物）" : "待對齊的第二張紙");
+      if (lab.overlay.transformed) {
+        /* 藍線是岸上紀錄扣掉桅杆前進後的結果；略向右錯開，讓兩條重合線仍可辨認。 */
+        draw("path", "shipPaperPath converted revealed", {
+          d: "M" + shipY.map(function (y) { return (shipX + 7) + " " + y; }).join(" L")
+        });
+      }
+      beats.forEach(function (b, i) {
+        draw("circle", "shipPaperBeat shore " + (lab.overlay.aligned ? "aligned" : ""), { cx: shoreXs[i], cy: shoreY[i], r: 8 });
+        draw("circle", "shipPaperBeat ship " + (lab.overlay.aligned ? "aligned" : ""), { cx: shipX, cy: shipY[i], r: 8 });
+        if (lab.overlay.aligned) {
+          draw("text", "shipPaperBeatLabel", { x: shoreXs[i], y: shoreY[i] - 13, "text-anchor": "middle" }, String(b));
+          draw("text", "shipPaperBeatLabel", { x: shipX - 18, y: shipY[i] + 5, "text-anchor": "end" }, String(b));
+        }
+      });
+      draw("text", "shipPaperLabel", { x: 830, y: 305, "text-anchor": "end" }, "岸上紙｜向前且下落");
+      draw("text", "shipPaperLabel", { x: 830, y: 404, "text-anchor": "end" }, "船上紙｜相對桅杆直落");
+      if (!lab.overlay.aligned) draw("text", "shipPaperStepLabel", { x: 505, y: 531, "text-anchor": "middle" }, "先用鼓點找出兩張紙上的同一時刻");
+      else if (!lab.overlay.transformed) draw("text", "shipPaperStepLabel", { x: 505, y: 531, "text-anchor": "middle" }, "時刻已對齊；下一步把岸上位置換成相對桅杆的位置");
+      else draw("text", "shipPaperStepLabel", { x: 505, y: 531, "text-anchor": "middle" }, "換算後兩條直落紀錄重合");
     } else {
       [228, 350, 472, 594, 716].forEach(function (x, i) {
         var got = !!lab.evidence["g" + (i + 1)];
@@ -1789,12 +1807,15 @@
     if (v.phase === "overlay") {
       ship3El("h3", "六、同一事件，兩張紙", work);
       if (!lab.overlay.aligned) {
+        ship3El("p", "第一步｜兩張紙都標了 0、1、2、3 號鼓點。要比較同一時刻，應該怎麼對齊？", work, "shipNote shipStepPrompt");
         ship3Btn(work, "只把兩張紙的終點疊在一起", function () { doShip("alignRecords", { pair: "thirdFourth" }); });
-        ship3Btn(work, "用同一串鼓點逐拍對齊", function () { doShip("alignRecords", { pair: "sameBeats" }, "✓ 同一聲鼓代表同一時刻；兩張紙現在可以比較。"); });
+        ship3Btn(work, "把相同編號的鼓點逐一對齊", function () { doShip("alignRecords", { pair: "sameBeats" }, "✓ 第一步完成：相同鼓點代表同一時刻。現在可以比較兩張紙。"); });
       } else if (!lab.overlay.transformed) {
+        ship3El("p", "第二步｜岸上紙同時記了石頭與桅杆的位置。要得到『石頭相對桅杆』的路徑，應該怎麼換算？", work, "shipNote shipStepPrompt");
         ship3Btn(work, "把其中一張等比例縮放", function () { doShip("transformRecords", { kind: "scaleOnly" }); });
-        ship3Btn(work, "每一拍都扣除桅杆向前的位移", function () { doShip("transformRecords", { kind: "subtractMast" }, "✓ 岸上彎路轉成船上直落；兩張圖描述的是同一事件。"); });
+        ship3Btn(work, "每一拍都用石頭位置減去桅杆位置", function () { doShip("transformRecords", { kind: "subtractMast" }, "✓ 第二步完成：岸上紙扣掉桅杆的前進後，與船上直落紀錄重合。現在請用兩張紙提出主張。"); });
       } else {
+        ship3El("p", "第三步｜切換參考物檢查兩張紙，再勾選兩份紀錄，提出能同時解釋它們的主張。", work, "shipNote shipStepPrompt");
         var refs = ship3El("div", null, work, "shipRefToggle");
         ship3Btn(refs, "以岸為參考", function () { doShip("setReference", { ref: "shore" }, "現在看岸上紙：石頭向前且下落。"); }, "shipAction " + (lab.overlay.activeReference === "shore" ? "active" : ""));
         ship3Btn(refs, "以船為參考", function () { doShip("setReference", { ref: "ship" }, "現在看船上紙：石頭相對桅杆近乎直落。"); }, "shipAction " + (lab.overlay.activeReference === "ship" ? "active" : ""));
@@ -1802,10 +1823,11 @@
         var paperRows = (paper.beats || []).map(function (beat, i) {
           return [beat, paper.mastX[i], paper.shoreStoneX[i], paper.y[i], paper.shipStoneX[i]];
         });
-        ship3Table(work, ["鼓點", "岸上：桅杆 x", "岸上：石頭 x", "下落 y", "船上：石頭 x"], paperRows);
-        if (!ev.g4) ship3ClaimPanel(work, { key: "g4", title: "提出第四項主張：兩張路徑圖為何能同時成立？",
-          sources: [{ id: "shore", label: "岸上紙：石頭向前，同時下落" }, { id: "ship", label: "船上紙：石頭相對桅杆近乎直落" }],
-          concepts: [["one-record-false", "只有其中一張圖是真的"], ["same-event-different-reference", "同一事件相對不同參考物，會留下不同路徑"], ["paper-distorts-path", "紙帶比例改變了石頭真正的路"]],
+        ship3Table(work, ["鼓點", "桅杆相對岸", "石頭相對岸", "下落距離", "石頭相對桅杆"], paperRows);
+        if (!ev.g4) ship3ClaimPanel(work, { key: "g4", title: "提出第四項主張：為什麼一張彎、一張直，卻都能成立？",
+          instruction: "勾選兩張紙，再選出能同時解釋兩份紀錄的說法。",
+          sources: [{ id: "shore", label: "岸上紙：石頭一邊向前、一邊下落" }, { id: "ship", label: "船上紙：石頭相對桅杆近乎直落" }],
+          concepts: [["one-record-false", "只有其中一張圖是真的"], ["same-event-different-reference", "參考物不同，同一事件會留下不同路徑"], ["paper-distorts-path", "紙帶比例改變了石頭真正的路"]],
           action: "assertG4", args: function (picked, concept) { return { records: picked, concept: concept }; },
           success: "◆ 第四項主張成立：兩張紙不是互相否定，而是在回答『相對誰』。" });
       }

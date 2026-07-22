@@ -1436,8 +1436,11 @@
   .shipSimBadgeText { fill: #f7e6c6; font: 700 21px var(--font-ui); }
   .shipSimDeckAxis { stroke: rgba(235,207,149,.82); stroke-width: 5; }
   .shipPaperPath { fill: none; stroke: #2b5673; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 900; stroke-dashoffset: 900; animation: ship-draw-path 1.25s ease-out forwards; }
-  .shipPaperPath.ship { stroke: #99572f; opacity: .35; }.shipPaperPath.ship.revealed { opacity: 1; }
+  .shipPaperPath.ship { stroke: #99572f; opacity: .42; }.shipPaperPath.ship.revealed { opacity: 1; }
+  .shipPaperPath.converted { stroke: #2b76a0; stroke-width: 4; opacity: 0; }.shipPaperPath.converted.revealed { opacity: .92; }
   .shipPaperBeat { fill: #efe0b7; stroke: #70462d; stroke-width: 3; opacity: .28; }.shipPaperBeat.aligned { opacity: 1; animation: ship-beat .45s ease-out both; }
+  .shipPaperBeatLabel { fill: #4d3322; paint-order: stroke; stroke: #f0dfbd; stroke-width: 4; font: 800 14px var(--font-ui); }
+  .shipPaperStepLabel { fill: #f4dfb7; paint-order: stroke; stroke: rgba(18,12,8,.94); stroke-width: 7; font: 700 17px var(--font-ui); }
   .shipEvidenceSeal { fill: rgba(21,17,12,.72); stroke: #9b7a4c; stroke-width: 4; }.shipEvidenceSeal.got { fill: rgba(71,103,69,.92); stroke: #e6ca88; }
   .shipEvidenceSealText { fill: #f4dfb4; font: 800 22px var(--font-ui); }
   @keyframes ship-plate-in { from { opacity: .25; transform: scale(1.012); } to { opacity: 1; transform: none; } }
@@ -1460,6 +1463,7 @@
   .shipLab .shipAction:hover { filter: brightness(1.06); }.shipLab .shipAction.active, .shipLab .shipAction.primary { color: #fff0d1; background: linear-gradient(#8c5e32,#65401f); }
   .shipLab .shipAction.danger { color: #6d3027; background: #ead5c5; border-color: #a06354; }
   .shipNote, .shipMessage { margin: 7px 0; padding: 7px 9px; border-left: 4px solid #8d653d; background: rgba(132,91,47,.09); }
+  .shipStepPrompt { color: #493522; font-weight: 650; line-height: 1.55; }
   .shipMessage { white-space: pre-line; min-height: 26px; }.shipGate { float: right; min-width: 220px; }
   .shipTable { width: 100%; margin: 8px 0 !important; font-size: 13px !important; }.shipTable th { background: rgba(112,79,45,.12); }
   .shipClaimPanel { margin: 10px 0 4px; padding: 10px; border: 1px solid rgba(116,77,42,.5); background: rgba(255,250,235,.38); box-shadow: inset 4px 0 #8f6338; }
