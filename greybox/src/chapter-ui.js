@@ -10,7 +10,11 @@
   var DEBATE = window.GB.DATA.debate || {};
   var TEXT = window.GB.TextFormat || null;
   var ENVELOPE = window.GB.SaveEnvelope || null;
-  var CHAPTER_ID = N.CHAPTER_ID || (/^ch[1234]$/.test(SCENES.chapter) ? SCENES.chapter : "ch1");
+  var SERIES = window.GB.DATA.series || { chapters: [] };
+  var SERIES_CHAPTERS = Array.isArray(SERIES.chapters) ? SERIES.chapters : [];
+  var CHAPTER_ID = N.CHAPTER_ID || (SERIES_CHAPTERS.some(function (ch) {
+    return ch.id === SCENES.chapter;
+  }) ? SCENES.chapter : "ch1");
   var KEY = window.BD_SAVE_KEY || "bd_ch1_save"; /* R-SAV2:chapter2.html 覆寫為 bd_ch2_save;未設=第一章原值,灰盒零差異 */
   var SERIES_KEY = "bd_series_progress_v1";
   var state = null;
@@ -32,6 +36,17 @@
   var COMPACT_LAB_QUERY = "(max-height: 520px) and (min-width: 701px)";
 
   function $(id) { return document.getElementById(id); }
+  function chapterMeta(id) {
+    return SERIES_CHAPTERS.find(function (ch) { return ch.id === id; }) || {
+      id: id || "ch1",
+      route: "ch01",
+      number: "01",
+      label: "第一章",
+      title: SCENES.title || "重物的渴望",
+      years: "",
+      question: ""
+    };
+  }
   function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
   function sceneTitleText(value) {
     if (TEXT && TEXT.playerSceneTitle) return TEXT.playerSceneTitle(value);
@@ -125,7 +140,8 @@
     try {
       var parsed = JSON.parse(localStorage.getItem(SERIES_KEY) || "null");
       if (!parsed || parsed.schemaVersion !== 1 || !parsed.chapters || typeof parsed.chapters !== "object") return empty;
-      ["ch1", "ch2", "ch3", "ch4"].forEach(function (id) {
+      SERIES_CHAPTERS.forEach(function (chapter) {
+        var id = chapter.id;
         var v = parsed.chapters[id];
         if (!v || v.completed !== true) delete parsed.chapters[id];
       });
@@ -2638,8 +2654,7 @@
   }
 
   function chapterLabel() {
-    return CHAPTER_ID === "ch4" ? "第四章" :
-      (CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章"));
+    return chapterMeta(CHAPTER_ID).label;
   }
   function readProjection() {
     if (CHAPTER_ID !== "ch2") return null;
@@ -2654,35 +2669,84 @@
     u.searchParams.set("chapter", chapter);
     location.href = u.href;
   }
+  function setChapterStep(button, chapter, emptyLabel) {
+    if (!button) return;
+    var label = button.querySelector("span");
+    var title = button.querySelector("b");
+    if (!chapter) {
+      button.disabled = true;
+      if (title) title.textContent = emptyLabel;
+      return;
+    }
+    button.disabled = false;
+    if (label) label.textContent = button.classList.contains("prev") ? "上一章" : "下一章";
+    if (title) title.textContent = chapter.label + "・" + chapter.title;
+    button.onclick = function () { routeToChapter(chapter.route); };
+  }
+  function renderChapterDirectory(progress, current) {
+    var rail = $("chapterRail");
+    if (!rail) return;
+    rail.textContent = "";
+    SERIES_CHAPTERS.forEach(function (chapter) {
+      var complete = !!progress.chapters[chapter.id];
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "chapterPick" +
+        (chapter.id === current.id ? " isActive" : "") +
+        (complete ? " isComplete" : "");
+      button.setAttribute("data-chapter", chapter.route);
+      if (chapter.id === current.id) button.setAttribute("aria-current", "page");
+
+      var number = document.createElement("span");
+      number.className = "chNo";
+      number.textContent = chapter.number;
+      var title = document.createElement("b");
+      title.textContent = chapter.title;
+      var question = document.createElement("small");
+      question.className = "chQuestion";
+      question.textContent = chapter.years + "・" + chapter.question;
+      var status = document.createElement("small");
+      status.className = "chState";
+      status.textContent = complete ? "✓ 已完成" : (chapter.id === current.id ? "目前" : "可玩");
+
+      button.appendChild(number);
+      button.appendChild(title);
+      button.appendChild(question);
+      button.appendChild(status);
+      button.onclick = function () {
+        if (chapter.id === current.id) {
+          var directory = $("chapterDirectory");
+          if (directory) directory.open = false;
+          return;
+        }
+        routeToChapter(chapter.route);
+      };
+      rail.appendChild(button);
+    });
+  }
   function configureSeriesTitle() {
-    document.title = CHAPTER_ID === "ch4"
-      ? "《發現之前》第四章：月亮一直在掉（舞台版）"
-      : (CHAPTER_ID === "ch3"
-      ? "《發現之前》第三章：船艙裡的靜止（舞台版）"
-      : (CHAPTER_ID === "ch2" ? "《發現之前》第二章：第一寸的弧線（舞台版）"
-        : "《發現之前》第一章：重物的渴望（舞台版）"));
+    var current = chapterMeta(CHAPTER_ID);
+    document.title = "《發現之前》" + current.label + "：" + current.title + "（舞台版）";
     var progress = readSeriesProgress();
-    var completedCount = ["ch1", "ch2", "ch3", "ch4"].filter(function (id) { return progress.chapters[id]; }).length;
+    var completedCount = SERIES_CHAPTERS.filter(function (chapter) {
+      return progress.chapters[chapter.id];
+    }).length;
     var status = document.querySelector(".chapterStatusText span");
-    if (status) status.textContent = "系列進度 " + completedCount + "/4";
+    if (status) status.textContent = completedCount ? "已完成 " + completedCount + " 章" : "旅程尚未留下章印";
     var meta = document.querySelector(".chapterStatusText strong");
-    if (meta) meta.textContent = CHAPTER_ID === "ch4" ? "第四章・月亮一直在掉" :
-      (CHAPTER_ID === "ch3" ? "第三章・船艙裡的靜止" : (CHAPTER_ID === "ch2" ? "第二章・第一寸的弧線" : "第一章・重物的渴望"));
+    if (meta) meta.textContent = current.label + "・" + current.title;
+    var directoryMeta = $("chapterDirectoryMeta");
+    if (directoryMeta) directoryMeta.textContent = SERIES_CHAPTERS.length + " 章可玩";
+    var currentIndex = SERIES_CHAPTERS.findIndex(function (chapter) { return chapter.id === current.id; });
+    setChapterStep($("btnPrevChapter"), currentIndex > 0 ? SERIES_CHAPTERS[currentIndex - 1] : null, "這是旅程起點");
+    setChapterStep($("btnNextChapter"),
+      currentIndex >= 0 && currentIndex < SERIES_CHAPTERS.length - 1 ? SERIES_CHAPTERS[currentIndex + 1] : null,
+      "下一章尚未公開");
+    renderChapterDirectory(progress, current);
     var legend = document.querySelector("#titleCard fieldset legend");
     if (legend) legend.textContent = "從" + chapterLabel() + "開始・選擇模式（中途不可換）";
     $("btnNew").textContent = "開始" + chapterLabel();
     $("btnContinue").textContent = "繼續" + chapterLabel();
-    Array.prototype.forEach.call(document.querySelectorAll(".chapterPick"), function (b) {
-      var mine = b.getAttribute("data-chapter") === ("ch0" + CHAPTER_ID.slice(2));
-      b.disabled = false;
-      b.classList.toggle("isActive", mine);
-      var id = "ch" + String(parseInt(b.getAttribute("data-chapter").slice(2), 10));
-      var complete = !!progress.chapters[id];
-      b.classList.toggle("isComplete", complete);
-      if (mine) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
-      var sm = b.querySelector("small"); if (sm) sm.textContent = complete ? "✓ 已完成" : "可玩";
-      b.onclick = function () { if (!mine) routeToChapter(b.getAttribute("data-chapter")); };
-    });
   }
   function importCurrentChapter(rawText) {
     var r = N.loadSave(rawText);
@@ -2737,8 +2801,7 @@
         var blob = new Blob([text], { type: "application/json" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        var chapterFileLabel = CHAPTER_ID === "ch4" ? "第四章" :
-          (CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章"));
+        var chapterFileLabel = chapterLabel();
         a.download = "發現之前_" + chapterFileLabel + "_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e3) {} }, 3000);

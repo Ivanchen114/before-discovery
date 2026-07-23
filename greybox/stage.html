@@ -1314,18 +1314,50 @@
   .chapterStatusText span { display: block; color: #cfa96b; font: 600 11px/1.2 var(--font-ui); letter-spacing: .14em; }
   .chapterStatusText strong { display: block; margin-top: 3px; color: #f2e6cf;
     font: 600 clamp(19px,2vw,25px)/1.25 var(--font-dialogue); letter-spacing: .06em; }
-  .chapterRail { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; margin: 0 0 9px; }
-  .chapterPick { min-width: 0; min-height: 48px; display: grid; grid-template-columns: auto 1fr auto;
-    align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid rgba(230,215,189,.23);
+  .chapterJourneyNav { display: grid; grid-template-columns: minmax(0,1fr) minmax(150px,.78fr) minmax(0,1fr);
+    align-items: stretch; gap: 7px; margin: 0 0 9px; }
+  .chapterStep, .chapterDirectory > summary { box-sizing: border-box; min-width: 0; min-height: 46px;
+    display: flex; flex-direction: column; justify-content: center; padding: 6px 10px;
+    border: 1px solid rgba(230,215,189,.23); border-radius: 6px;
+    background: rgba(16,11,8,.5); color: rgba(230,215,189,.75); }
+  #titleCard .chapterStep { align-items: flex-start; text-align: left; box-shadow: none; }
+  #titleCard .chapterStep.next { align-items: flex-end; text-align: right; }
+  #titleCard .chapterStep:hover:not(:disabled), .chapterDirectory > summary:hover {
+    border-color: rgba(207,169,107,.62); background: rgba(122,75,42,.24); }
+  #titleCard .chapterStep:disabled { cursor: default; color: rgba(230,215,189,.38);
+    background: rgba(16,11,8,.34); border-color: rgba(230,215,189,.14); }
+  .chapterStep span, .chapterDirectory > summary span { font: 600 10px/1.2 var(--font-ui);
+    color: #cfa96b; letter-spacing: .08em; }
+  .chapterStep b, .chapterDirectory > summary b { max-width: 100%; overflow: hidden;
+    font: 600 13px/1.25 var(--font-dialogue); white-space: nowrap; text-overflow: ellipsis; }
+  .chapterDirectory { min-width: 0; position: static; }
+  .chapterDirectory > summary { position: relative; align-items: center; text-align: center; cursor: pointer; list-style: none; }
+  .chapterDirectory > summary::-webkit-details-marker { display: none; }
+  .chapterDirectory > summary::after { content: "＋"; position: absolute; margin-left: 116px;
+    color: rgba(207,169,107,.72); font: 600 14px/1 var(--font-ui); }
+  .chapterDirectory[open] > summary::after { content: "−"; }
+  .chapterDirectoryPanel { position: absolute; z-index: 12; top: 82px; right: 0;
+    box-sizing: border-box; width: min(720px,calc(100vw - 32px)); max-height: min(58vh,500px);
+    overflow: auto; padding: 12px; border: 1px solid rgba(207,169,107,.56); border-radius: 9px;
+    background: rgba(20,14,10,.985); box-shadow: 0 18px 42px rgba(0,0,0,.62); }
+  .chapterDirectoryHead { display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+    margin: 0 1px 9px; color: rgba(230,215,189,.7); font: 500 11px/1.3 var(--font-ui); }
+  .chapterDirectoryHead strong { color: #f2e6cf; font: 600 16px/1.2 var(--font-dialogue); letter-spacing: .06em; }
+  .chapterRail { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 8px; }
+  .chapterPick { min-width: 0; min-height: 68px; display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto; grid-template-rows: auto auto;
+    align-items: center; gap: 3px 9px; padding: 8px 10px; border: 1px solid rgba(230,215,189,.23);
     border-radius: 6px; background: rgba(16,11,8,.5); color: rgba(230,215,189,.62);
     font-family: var(--font-ui); text-align: left; }
-  .chapterPick .chNo { color: #cfa96b; font-size: 11px; letter-spacing: .08em; }
-  .chapterPick b { overflow: hidden; color: inherit; font: 600 14px/1.2 var(--font-dialogue);
+  .chapterPick .chNo { grid-row: 1 / 3; color: #cfa96b; font-size: 11px; letter-spacing: .08em; }
+  .chapterPick b { grid-column: 2; overflow: hidden; color: inherit; font: 600 15px/1.2 var(--font-dialogue);
     white-space: nowrap; text-overflow: ellipsis; }
-  .chapterPick small { font-size: 10px; white-space: nowrap; }
+  .chapterPick .chQuestion { grid-column: 2; overflow: hidden; color: rgba(230,215,189,.54);
+    font: 400 10px/1.25 var(--font-ui); white-space: nowrap; text-overflow: ellipsis; }
+  .chapterPick .chState { grid-column: 3; grid-row: 1 / 3; font-size: 10px; white-space: nowrap; }
   .chapterPick.isActive { border-color: rgba(207,169,107,.72); color: #f2e6cf;
     background: rgba(122,75,42,.32); box-shadow: inset 3px 0 #cfa96b; }
-  .chapterPick.isComplete small { color: #d9c277; font-weight: 700; }
+  .chapterPick.isComplete .chState { color: #d9c277; font-weight: 700; }
   .chapterPick.isComplete:not(.isActive) { border-color: rgba(128,151,102,.58); }
   .chapterPick:disabled { cursor: default; opacity: .72; }
   #titleCard fieldset { border: 1px solid rgba(230,215,189,0.22); background: rgba(230,215,189,0.045);
@@ -1396,8 +1428,12 @@
     .titleTagline { font-size: 12px; line-height: 1.45; }
     .chapterStatus { margin-bottom: 5px; }
     .chapterStatusText strong { font-size: 18px; }
-    .chapterRail { margin-bottom: 6px; }
-    .chapterPick { min-height: 42px; padding: 5px 8px; }
+    .chapterJourneyNav { margin-bottom: 6px; }
+    .chapterStep, .chapterDirectory > summary { min-height: 42px; padding: 4px 7px; }
+    .chapterStep b, .chapterDirectory > summary b { font-size: 12px; }
+    .chapterDirectoryPanel { top: 62px; max-height: min(72vh,390px); padding: 9px; }
+    .chapterRail { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .chapterPick { min-height: 58px; padding: 6px 8px; }
     .chapterPick b { font-size: 13px; }
     #titleCard fieldset { padding: 5px 8px 7px; }
     label.mode .mc { min-height: 42px; padding-block: 5px; }
@@ -1886,20 +1922,24 @@
             <span id="continueMeta"></span>
           </div>
         </div>
-        <nav class="chapterRail" aria-label="章節選擇">
-          <button type="button" class="chapterPick isActive" data-chapter="ch01" aria-current="page">
-            <span class="chNo">01</span><b>重物的渴望</b><small>可玩</small>
+        <div class="chapterJourneyNav" aria-label="相鄰章節與章節目錄">
+          <button type="button" class="chapterStep prev" id="btnPrevChapter">
+            <span>上一章</span><b>這是第一章</b>
           </button>
-          <button type="button" class="chapterPick" data-chapter="ch02">
-            <span class="chNo">02</span><b>第一寸的弧線</b><small>可玩</small>
+          <details class="chapterDirectory" id="chapterDirectory">
+            <summary><span>旅程目錄</span><b id="chapterDirectoryMeta">查看全部章節</b></summary>
+            <div class="chapterDirectoryPanel">
+              <div class="chapterDirectoryHead">
+                <strong>全部章節</strong>
+                <span>選一章開始或重玩</span>
+              </div>
+              <nav class="chapterRail" id="chapterRail" aria-label="章節選擇"></nav>
+            </div>
+          </details>
+          <button type="button" class="chapterStep next" id="btnNextChapter">
+            <span>下一章</span><b>第二章</b>
           </button>
-          <button type="button" class="chapterPick" data-chapter="ch03">
-            <span class="chNo">03</span><b>船艙裡的靜止</b><small>可玩</small>
-          </button>
-          <button type="button" class="chapterPick" data-chapter="ch04">
-            <span class="chNo">04</span><b>月亮一直在掉</b><small>可玩</small>
-          </button>
-        </nav>
+        </div>
         <fieldset>
           <legend>從第一章開始・選擇模式（中途不可換）</legend>
           <div class="modeRow">
@@ -1930,6 +1970,7 @@
 
 </div>
 
+<script src="data/series.js"></script>
 <script src="data/patterns.js"></script>
 <script src="data/debate.js"></script>
 <script src="data/debate2.js"></script>

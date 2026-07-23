@@ -59,13 +59,13 @@
         } else if (CHAPTER_ID === "ch3") {
           nc.querySelector(".ncSealed").textContent = "第三章《船艙裡的靜止》——已封存";
           nc.querySelector(".ncNext").textContent = "下一章";
-          nc.querySelector(".ncTitle").textContent = "月亮一直在掉";
+          nc.querySelector(".ncTitle").textContent = "月亮的無盡墜落";
           nc.querySelector(".ncHook").textContent = "船上的石頭保留前行;如果月亮也在前行,究竟是什麼讓它不斷轉彎?";
           nc.querySelector(".ncSys").textContent = "第四章現已開放。第三章進度與筆記已封存於這台裝置。";
           nextBtn.textContent = "進入第四章";
           nextHref = "stage.html?chapter=ch04";
         } else if (CHAPTER_ID === "ch4") {
-          nc.querySelector(".ncSealed").textContent = "第四章《月亮一直在掉》——已封存";
+          nc.querySelector(".ncSealed").textContent = "第四章《月亮的無盡墜落》——已封存";
           nc.querySelector(".ncNext").textContent = "下一個問題";
           nc.querySelector(".ncTitle").textContent = "碰撞之後，什麼應該守住?";
           nc.querySelector(".ncHook").textContent = "一本帳記方向與運動總量；另一本帳記能抬多高、壓多深。兩本帳都有人說是真的。";

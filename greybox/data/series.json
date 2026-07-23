@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "chapters": [
+    {
+      "id": "ch1",
+      "route": "ch01",
+      "number": "01",
+      "label": "第一章",
+      "title": "重物的渴望",
+      "years": "1590–1610",
+      "question": "重物真的落得比較快嗎？"
+    },
+    {
+      "id": "ch2",
+      "route": "ch02",
+      "number": "02",
+      "label": "第二章",
+      "title": "第一寸的弧線",
+      "years": "1608–1632",
+      "question": "拋出去之後，誰還在推它？"
+    },
+    {
+      "id": "ch3",
+      "route": "ch03",
+      "number": "03",
+      "label": "第三章",
+      "title": "船艙裡的靜止",
+      "years": "1632–1642",
+      "question": "船在前進，船艙裡為何看不出來？"
+    },
+    {
+      "id": "ch4",
+      "route": "ch04",
+      "number": "04",
+      "label": "第四章",
+      "title": "月亮的無盡墜落",
+      "years": "1665–1687",
+      "question": "月亮一直墜落，為何從不落地？"
+    }
+  ]
+}

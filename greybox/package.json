@@ -5,7 +5,8 @@
   "description": "《發現之前》四章物理史推理遊戲 runtime",
   "scripts": {
     "build:ch4-data": "node tools/build-ch4-data.mjs",
+    "build:series-data": "node tools/build-series-data.mjs",
     "build:stage": "node tools/build-stage.mjs",
-    "test": "node tests/run-node.mjs && node tests/run-ch4-art.mjs"
+    "test": "node tests/run-node.mjs && node tests/run-ch4-art.mjs && node tests/run-series-home.mjs"
   }
 }

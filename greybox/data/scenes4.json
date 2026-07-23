@@ -1,6 +1,6 @@
 {
  "chapter": "ch4",
- "title": "月亮一直在掉",
+ "title": "月亮的無盡墜落",
  "startScene": "D0-1",
  "evidenceNames": {
   "K1": "一直改向的路",
@@ -179,7 +179,7 @@
     {"id":"n2","type":"line","speaker":"Halley","text":"這一版能站了。趕上，不是因為印刷機催得夠兇；延後，也不是因為證據輸了。差別只在我們有沒有讓鉛字跑到證明前面。","next":"n3"},
     {"id":"n3","type":"line","speaker":"Newton","text":"那就讓別人來找它錯在哪裡。","next":"c1"},
     {"id":"c1","type":"choice","speaker":"system","text":"紙面先只顯示軌道，不顯示章名。","options":[{"id":"turn","text":"翻開印出的第一頁","next":"s1"}]},
-    {"id":"s1","type":"system","speaker":"system","text":"第四章《月亮一直在掉》","next":"n4"},
+    {"id":"s1","type":"system","speaker":"system","text":"第四章《月亮的無盡墜落》","next":"n4"},
     {"id":"n4","type":"line","speaker":"旅人・心聲","text":"它沒有停止下落。它只是每一次落下，都趕上了一個彎走的世界。","next":"g1"},
     {"id":"g1","type":"goto","scene":"DE-1"}
    ]

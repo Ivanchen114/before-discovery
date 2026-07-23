@@ -196,9 +196,13 @@ tests.push({
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ids = [...new Set([...ui.matchAll(/\$\("([A-Za-z-]+)"\)/g)].map((m) => m[1]))];
     if (ids.length < 25) throw new Error("id 萃取異常(僅 " + ids.length + " 個)——正規式或檔案結構變動");
+    const stageOnlyIds = new Set([
+      "chapterRail", "chapterDirectory", "chapterDirectoryMeta", "btnPrevChapter", "btnNextChapter"
+    ]);
     for (const page of ["stage.html", "chapter.html"]) {
       const html = readFileSync(path.join(here, "..", page), "utf-8");
-      const missing = ids.filter((id) => !html.includes('id="' + id + '"'));
+      const requiredIds = page === "stage.html" ? ids : ids.filter((id) => !stageOnlyIds.has(id));
+      const missing = requiredIds.filter((id) => !html.includes('id="' + id + '"'));
       if (missing.length) throw new Error(page + " 缺 id:" + missing.join("、"));
       if (!html.includes('name="mode"')) throw new Error(page + " 缺模式選擇 radio(name=mode)");
     }
@@ -911,7 +915,7 @@ tests.push({
       throw new Error("第四章 runtime 漏接碰撞守恆未解問題");
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const frag of ["進入第二章", "stage.html?chapter=ch02", "進入第三章", "stage.html?chapter=ch03",
-      "進入第四章", "stage.html?chapter=ch04", "船艙裡的靜止", "月亮一直在掉"])
+      "進入第四章", "stage.html?chapter=ch04", "船艙裡的靜止", "月亮的無盡墜落"])
       if (!sui.includes(frag)) throw new Error("章末直接接力缺失:" + frag);
     for (const placeholder of ["下一頁，仍未寫定", "旅程將繼續"])
       if (sui.includes(placeholder)) throw new Error("章末仍殘留通用佔位句:" + placeholder);
@@ -919,18 +923,20 @@ tests.push({
 });
 
 tests.push({
-  name: "系列首頁 v2|單屏殼+章節列+字體分工+進度歸屬",
+  name: "系列首頁 v3|單屏殼+目前旅程+章節目錄+字體分工",
   fn: () => {
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     for (const frag of [
-      'class="titleIdentity"', 'class="chapterRail"', 'data-chapter="ch01"',
-      'data-chapter="ch02"', 'id="continueMeta"', 'overflow: hidden',
+      'class="titleIdentity"', 'class="chapterJourneyNav"', 'id="chapterDirectory"',
+      'id="chapterRail"', 'id="btnPrevChapter"', 'id="btnNextChapter"',
+      'id="continueMeta"', 'overflow: hidden',
       '卡住時同行科學家會主動追問'
     ]) if (!stageHtml.includes(frag)) throw new Error("系列首頁契約缺失:" + frag);
     if (stageHtml.includes("卡住時伽利略會主動追問"))
       throw new Error("系列首頁把跨章引導角色寫死為伽利略");
-    if (/data-chapter="ch02"[^>]*disabled/.test(stageHtml)) throw new Error("第二章已完成卻仍 disabled");
+    if (stageHtml.includes('data-chapter="ch01"')) throw new Error("系列首頁仍把章節卡寫死在 HTML");
+    if (stageHtml.includes("repeat(4,minmax(0,1fr))")) throw new Error("系列首頁仍把章節列寫死為四欄");
     if (!stageHtml.includes("font-family: var(--font-ui); font-weight: 600"))
       throw new Error("首頁操作字未使用黑體聲部");
     if (!stageHtml.includes("#titleCard .t1") || !stageHtml.includes("font-family: var(--font-dialogue)"))
@@ -1497,8 +1503,11 @@ tests.push({
     for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "第一寸的弧線"])
       if (!c2.includes(frag)) throw new Error("第二章殼缺失:" + frag);
     const stage2 = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", "data-chapter=\"ch02\""])
+    for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", 'src="data/series.js"'])
       if (!stage2.includes(frag)) throw new Error("第二章正式舞台回歸契約缺失:" + frag);
+    const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
+    if (!series.chapters.some((chapter) => chapter.id === "ch2" && chapter.route === "ch02"))
+      throw new Error("第二章未登錄於資料驅動首頁");
   }
 });
 
@@ -2078,13 +2087,17 @@ tests.push({
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const x of ['data-chapter="ch03"', 'src="src/engine3.js"', 'src="data/scenes3.js"', 'bd_ch3_save', 'data-view="ship"'])
+    for (const x of ['src="data/series.js"', 'src="src/engine3.js"', 'src="data/scenes3.js"', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
-    if (!html.includes("船艙裡的靜止")) throw new Error("玩家入口缺第三章正式章名");
+    const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
+    if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.route === "ch03"))
+      throw new Error("第三章未登錄於資料驅動首頁");
     for (const x of ["renderShip", "ship3Mission", 'v.system === "ship"']) if (!ui.includes(x)) throw new Error("chapter-ui 缺船實驗:" + x);
     if (!stage.includes('d.system === "ship" ? "ship"')) throw new Error("stage-ui 未辨識 ship 視圖");
     if (!stage.includes("ship: 1")) throw new Error("ship 視圖未納入逐字台詞收隊確認；會在玩家讀完前自動讓位");
     const opening = scenes3.scenes.find((s) => s.id === "C0-1");
+    if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.title === scenes3.title))
+      throw new Error("玩家入口缺第三章正式章名");
     const openingText = (opening && opening.nodes || []).map((n) => n.text || "").join("\n");
     for (const phrase of ["問題沒有跟著他離場", "1632 年", "這次接過問題的人，不是伽利略"])
       if (!openingText.includes(phrase)) throw new Error("第二章→第三章同行者接棒缺句:" + phrase);
@@ -2308,7 +2321,8 @@ tests.push({
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    for (const frag of ["bd_series_progress_v1", "markChapterComplete(state)", 'completedAt: prev.completedAt', 'sm.textContent = complete ? "✓ 已完成"', '"系列進度 " + completedCount + "/4"'])
+    for (const frag of ["bd_series_progress_v1", "markChapterComplete(state)", 'completedAt: prev.completedAt',
+      'status.textContent = complete ? "✓ 已完成"', '"已完成 " + completedCount + " 章"'])
       if (!ui.includes(frag)) throw new Error("通關章印契約缺失：" + frag);
     if (!html.includes(".chapterPick.isComplete")) throw new Error("首頁缺通關章印視覺");
     for (const frag of ['localStorage.getItem(KEY + "_corrupt")', "inspectSaveText(backup)", "已恢復先前被誤判並備份的進度"])
@@ -2323,7 +2337,7 @@ tests.push({
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts4.json"), "utf-8"));
     if (JSON.stringify(scenes4) !== JSON.stringify(sj)) throw new Error("scenes4 鏡像漂移");
     if (JSON.stringify(require("../data/histfacts4.js")) !== JSON.stringify(hj)) throw new Error("histfacts4 鏡像漂移");
-    if (scenes4.chapter !== "ch4" || scenes4.title !== "月亮一直在掉" || scenes4.scenes.length !== 14)
+    if (scenes4.chapter !== "ch4" || scenes4.title !== "月亮的無盡墜落" || scenes4.scenes.length !== 14)
       throw new Error("第四章識別或場景數錯誤");
     const sm = new Map(scenes4.scenes.map((s) => [s.id, new Set(s.nodes.map((n) => n.id))]));
     for (const s of scenes4.scenes) for (const n of s.nodes) {
@@ -2541,8 +2555,11 @@ tests.push({
     const html=readFileSync(path.join(here,"../stage.html"),"utf-8");
     const ui=readFileSync(path.join(here,"../src/chapter-ui.js"),"utf-8");
     const sui=readFileSync(path.join(here,"../src/stage-ui.js"),"utf-8");
-    for(const frag of ['data-chapter="ch04"',"data/scenes4.js","data/histfacts4.js","src/engine4.js",'requested === "ch04"','before-discovery:chapter4:v1'])
+    for(const frag of ['src="data/series.js"',"data/scenes4.js","data/histfacts4.js","src/engine4.js",'requested === "ch04"','before-discovery:chapter4:v1'])
       if(!html.includes(frag))throw new Error("第四章入口接線缺失:"+frag);
+    const series=JSON.parse(readFileSync(path.join(here,"../data/series.json"),"utf-8"));
+    if(!series.chapters.some((chapter)=>chapter.id==="ch4"&&chapter.route==="ch04"))
+      throw new Error("第四章未登錄於資料驅動首頁");
     for(const frag of ["renderOrbit","orbit4Svg",'v.system === "orbit"',"submitPartialProof","setProofBoundary","submitProof","月地模型：改向"])
       if(!ui.includes(frag))throw new Error("第四章 UI 接線缺失:"+frag);
     for(const frag of ['d.system === "orbit" ? "orbit"',"走進軌道工作台",'stage.html?chapter=ch04',"軌道與出版備忘"])
