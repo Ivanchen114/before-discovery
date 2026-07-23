@@ -775,6 +775,7 @@
     else if (action === "assertK4" && Engine.assertK4) r = Engine.assertK4(state.lab, args.records, args.claim);
     else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
     else if (action === "assignCredit" && Engine.assignCredit) r = Engine.assignCredit(state.lab, args.contribution, args.person);
+    else if (action === "setHookeScope" && Engine.setHookeScope) r = Engine.setHookeScope(state.lab, args.choice);
     else if (action === "submitPartialProof" && Engine.submitPartialProof) r = Engine.submitPartialProof(state.lab, args.scope);
     else if (action === "deferPress" && Engine.deferPress) r = Engine.deferPress(state.lab, args.reason);
     else if (action === "setProofBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
@@ -783,6 +784,10 @@
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
+    if (CHAPTER_ID === "ch4" && state.cursor.scene === "D3-1") {
+      if (action === "submitPartialProof") state.flags.ch4OpeningChoice = "partial";
+      if (action === "deferPress" && !state.flags.ch4OpeningChoice) state.flags.ch4OpeningChoice = "defer";
+    }
     var e3 = state.lab.evidence.e3;
     if (e3 && e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
     var f2g = state.lab.evidence.f2;
@@ -820,6 +825,11 @@
     if (!untilMet(state, node.until)) return { state: state0, error: "完成條件未達:" + (node.hint || "") };
     state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: "system", text: "(互動段落完成)" });
     state.eventLog.push({ t: "embedDone", at: state.cursor.scene + "/" + node.id });
+    if (CHAPTER_ID === "ch4" && state.cursor.scene === "D3-1" && node.phase === "press-opening" &&
+        !state.flags.ch4OpeningChoice) {
+      var opening = state.lab && state.lab.proof && state.lab.proof.press && state.lab.proof.press.openingChoice;
+      if (opening === "partial" || opening === "defer") state.flags.ch4OpeningChoice = opening;
+    }
     state.cursor.node = node.next;
     return { state: state };
   }

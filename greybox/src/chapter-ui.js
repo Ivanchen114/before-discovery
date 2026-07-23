@@ -2122,6 +2122,9 @@
       "k2-k3-required": "月球跨尺度與兩顆行星的封存預測都成立後，才能公平比較模型。",
       "k4-required": "先讓兩個模型都跑完三種天空，再整理證明。",
       "partial-window-passed": "完整模型比較已完成，現在不能把它假裝成早先的局部短稿。",
+      "opening-choice-locked": "第一輪決定已經留下紀錄；收好它，再往模型比較走。",
+      "unknown-hooke-scope": "這句話不在可核對的三種貢獻範圍內。",
+      "hooke-scope-required": "先把 Hooke 的貢獻句寫到精確，才能分配各人的工作。",
       "delay-reason-required": "延後不是空白按鈕；請留下可檢查的理由。",
       "dishonest-partial-scope": "短稿只能說月球與行星目前支持的範圍，不能偷帶尚未完成的彗星比較。"
     };
@@ -2155,6 +2158,8 @@
         "geometry-break": "來源放錯後，證明圖上的相應幾何真的斷開了；可自由換回正確來源。",
         "mechanism-slot-empty": "規則算出了作用與運動的關係，但機制槽沒有任何資料可填。",
         "credit-lines-break": "把概念、觀測、證明與出版全給一人，四條史料接口會斷開。",
+        "hooke-overcredit": "這句把一封信擴張成完整定律與三百頁證明；Newton 的證明頁被它蓋掉了。",
+        "hooke-erasure": "1679 年書信從來源線脫落。三百頁證明不能讓這封信不存在。",
         "printed-broken-proof": "印刷機已壓出這張斷鏈校樣。錯稿保留、窗口前進，所有證據仍可重排。"
       }[rr.reason || rr.consequence] || "這個主張還沒有被目前紀錄支持。");
     } else {
@@ -2179,7 +2184,7 @@
       planets: ["先寫答案，再拆蠟封", "封存一條律，再揭露 Mars 與 Jupiter；改律不會刪掉舊預測。"],
       "press-opening": ["第一輪校樣先到了", "送誠實短稿或明列理由延後；停留與閱讀不會消耗窗口。"],
       models: ["一條規則穿過三種天空", "兩模型都跑 Moon、Planets、Comet，再比較殘差與補丁。"],
-      proof: ["把證明送進印刷台", "接好證明、分配信用、守住末句；錯送會留下真正的錯稿。"]
+      proof: ["把證明送進印刷台", "接好證明、簽精確貢獻句、分配信用，再用同一個手勢守住機制空白。"]
     }[phase] || ["第四章工作台", "讓每一步都留下可重做、可追查的紀錄。"];
   }
   function orbit4Svg(parent, lab, phase) {
@@ -2224,6 +2229,14 @@
       draw("text", { x:320,y:90,"text-anchor":"middle",class:"orbitPressStamp" },
         lab.proof.press.scheduleLost ? "原排程已錯過・仍可完成" :
           "校樣窗口 " + lab.proof.press.window + "／" + lab.proof.press.reservedWindows);
+      if (phase === "proof") {
+        var scopeLabel = {
+          hookeComplete: "Hooke：寫過頭",
+          newtonAlone: "Hooke：被抹除",
+          "precise-scope": "Hooke：範圍精確"
+        }[lab.proof.hookeScope] || "Hooke：尚未簽句";
+        draw("text", { x:320,y:325,"text-anchor":"middle",class:"orbitPressStamp" }, scopeLabel);
+      }
     } else {
       draw("circle", { cx:cx, cy:cy, r:58, class:"orbitEarth" });
       draw("circle", { cx:cx, cy:cy, r:136, class:"orbitGuide" });
@@ -2267,7 +2280,7 @@
     ship3El("h2", mission[0], head);
     ship3El("p", mission[1], head);
     var chips = ship3El("div", null, head, "orbitEvidenceChips");
-    [["K1","改向"],["K2","縮放"],["K3","預測"],["K4","反驗"],["K5","邊界"]].forEach(function (p) {
+    [["K1","改向"],["K2","縮放"],["K3","預測"],["K4","反驗"],["K5","署名／邊界"]].forEach(function (p) {
       ship3El("span", (ev[p[0].toLowerCase()] ? "✓ " : "○ ") + p[1], chips, ev[p[0].toLowerCase()] ? "got" : "");
     });
     var body = ship3El("div", null, box, "orbitBody");
@@ -2401,11 +2414,16 @@
       ship3El("h3","六、彗星比較尚未完成，第一輪位置已到",work);
       var pressBox=ship3El("section",null,work,"orbitPressBox");
       ship3El("b","目前能支持：月球＋行星。尚缺：彗星＋替代模型比較。",pressBox);
-      ship3Btn(pressBox,"送出範圍較小的誠實短稿",function(){doOrbit("submitPartialProof",{scope:"moon-planets"},"✓ 短稿已送：支持範圍與尚未完成欄同時印出。");},"orbitAction primary");
-      ship3Btn(pressBox,"放掉本輪，等待完整反驗",function(){doOrbit("deferPress",{reason:"等待彗星與替代模型比較"},"✓ 本輪未印錯稿；延後理由與排程成本已保留。");},"orbitAction");
+      ship3Btn(pressBox,"送出範圍較小的誠實短稿",function(){doOrbit("submitPartialProof",{scope:"moon-planets"},"✓ 短稿花掉一輪；回報是署名爭議提早浮上桌，1679 年書信與回應已收入來源袋。");},"orbitAction primary",!!proof.press.openingChoice);
+      ship3Btn(pressBox,"放掉本輪，等待完整反驗",function(){doOrbit("deferPress",{reason:"等待彗星與替代模型比較"},"✓ 延後保住完整反驗時間；1679 年書信仍在，署名爭議留到印刷台處理。");},"orbitAction",!!proof.press.openingChoice);
+      if (proof.press.priorityRecord) {
+        var priority = ship3El("section",null,work,"orbitPressBox");
+        ship3El("b",proof.press.priorityRecord.route==="raised-early"?"短稿的回報":"延後的取捨",priority);
+        ship3El("p",proof.press.priorityRecord.return+"；來源仍是可查的 1679 年書信。",priority,"orbitNote");
+      }
     }
     if (v.phase === "models") {
-      ship3El("h3","七、同一組天空，兩個模型都得跑",work);
+      ship3El("h3","七、把兩個模型的六格跑完",work);
       var matrix=ship3El("div",null,work,"orbitModelGrid");
       [["inverseSquare","反平方"],["simpleVortex","簡單共轉渦旋"]].forEach(function(m){
         ["moon","planets","comet"].forEach(function(c){
@@ -2419,6 +2437,7 @@
         return [r.model==="inverseSquare"?"反平方":"簡單渦旋",r.caseId,r.residual.toFixed(1)+"%",r.patches,r.fit==="pass"?"通過":"需補丁"];
       }));
       if (!ev.k4 && ml.gravityComplete && ml.vortexComplete) {
+        ship3El("h4","替這份比較寫一句工作紀錄",work);
         [
           ["moon-only","月球一格相合，已足以裁決所有模型"],
           ["same-rule-fewer-patches","反平方用同一條規則跨過三種天空；簡單渦旋需加入較多補丁"],
@@ -2432,9 +2451,12 @@
       }
     }
     if (v.phase === "proof") {
-      ship3El("h3","八、接鏈、署名、末句",work);
+      ship3El("h3","八、接鏈，再簽一句能被引用的話",work);
       var status=ship3El("p",(proof.press.scheduleLost?"原排程已錯過；完整稿仍可重新排入。":"目前校樣窗口："+proof.press.window+"／"+proof.press.reservedWindows),work,"orbitPressStatus");
       status.setAttribute("role","status");
+      if (proof.press.priorityRecord) ship3El("p",
+        (proof.press.priorityRecord.route==="raised-early"?"短稿已讓署名爭議提早出現。":"署名爭議直到印刷台才處理。")+
+        "兩條路都保留 1679 年書信，不因分支抹掉來源。",work,"orbitNote");
       var slotDefs=[
         ["inertia","原有運動",["M2","M3","K1"]],
         ["inward","向內改向",["K1","K2","K4"]],
@@ -2456,35 +2478,84 @@
         var pick=orbit4Select(row,d[2],labels,cur);
         ship3Btn(row,"放入",function(){doOrbit("placeProofLink",{slot:d[0],evidenceId:pick.value},"✓ 來源已放入；可繼續換，不耗窗口。");},"orbitAction");
       });
+      ship3El("h4","Hooke 的貢獻要印成哪一句？",work);
+      [
+        ["hookeComplete","Hooke 已提出完整定律與這本書的證明"],
+        ["newtonAlone","這套概念與證明全由 Newton 獨立完成"],
+        ["precise-scope","Hooke 在 1679 年把切線運動與向中心吸引放進同一個問題；Newton 完成數學證明與跨天體整合"]
+      ].forEach(function(c){
+        ship3Btn(work,(proof.hookeScope===c[0]?"✓ ":"")+c[1],function(){
+          doOrbit("setHookeScope",{choice:c[0]},c[0]==="precise-scope"
+            ?"✓ 這封信只連到問題方向；三百頁證明仍連回 Newton。"
+            :null);
+        },"orbitAction "+(c[0]==="precise-scope"?"primary":""));
+      });
+      if (proof.hookeScope) {
+        var scopeResult=ship3El("section",null,work,"orbitPressBox");
+        if (proof.hookeScope==="hookeComplete") {
+          ship3El("b","可見後果：一封信蓋過三百頁",scopeResult);
+          ship3El("p","Hooke 的署名線伸過整套證明，Newton 的計算頁失去作者。這句寫得太多。",scopeResult,"orbitNote");
+        } else if (proof.hookeScope==="newtonAlone") {
+          ship3El("b","可見後果：1679 年書信脫落",scopeResult);
+          ship3El("p","兩支箭仍在證明裡，提出問題的來源卻被切斷。這句寫得太少。",scopeResult,"orbitNote");
+        } else {
+          ship3El("b","精確範圍：問題與證明各回來源",scopeResult);
+          ship3El("p","Hooke 連到 1679 年的問題方向；Newton 連到數學證明與跨天體整合。",scopeResult,"orbitNote");
+        }
+      }
       var credits=[
         ["direction","切線／直接運動與向中心吸引","Hooke"],
         ["publication","1684 追問與出版推動","Halley"],
         ["observations","行星、衛星與彗星觀測","Flamsteed"],
         ["proof","數學證明與跨天體整合","Newton"]
       ];
-      credits.forEach(function(d){
-        var row=ship3El("div",null,work,"orbitCreditRow");ship3El("label",d[1]+"：",row);
-        var people=["Hooke","Halley","Flamsteed","Newton"],labels={};people.forEach(function(p){labels[p]=p;});
-        var pick=orbit4Select(row,people,labels,proof.attribution[d[0]]||"Newton");
-        ship3Btn(row,"署名",function(){doOrbit("assignCredit",{contribution:d[0],person:pick.value},"信用線已重接；送樣前仍可修改。");},"orbitAction");
+      if (proof.hookeScope==="precise-scope") {
+        ship3El("h4","把四種工作接回來源",work);
+        credits.forEach(function(d){
+          var row=ship3El("div",null,work,"orbitCreditRow");ship3El("label",d[1]+"：",row);
+          var people=["Hooke","Halley","Flamsteed","Newton"],labels={};people.forEach(function(p){labels[p]=p;});
+          var pick=orbit4Select(row,people,labels,proof.attribution[d[0]]||"Newton");
+          ship3Btn(row,"署名",function(){doOrbit("assignCredit",{contribution:d[0],person:pick.value},"信用線已重接；送樣前仍可修改。");},"orbitAction");
+        });
+      } else {
+        ship3El("p","先把 Hooke 那一句寫到精確範圍，四條來源線才會展開。",work,"orbitNote");
+      }
+      var creditReady=proof.hookeScope==="precise-scope"&&credits.every(function(d){
+        return proof.attribution[d[0]]===d[2];
       });
-      ship3El("h4","末句：這本書究竟證明到哪裡？",work);
-      [
-        ["mechanismSolved","我們已證明引力如何穿過空間作用"],
-        ["newtonAlone","Newton 一人完成概念、觀測、證明與出版"],
-        ["ruleEstablished","我們建立可跨地表與天空反驗的規則；引力如何作用，仍未決"]
-      ].forEach(function(c){
-        ship3Btn(work,(proof.boundaryChoice===c[0]?"✓ ":"")+c[1],function(){doOrbit("setProofBoundary",{choice:c[0]},"末句已放入預覽；尚未送印，也沒有消耗窗口。");},"orbitAction "+(c[0]==="ruleEstablished"?"primary":""));
-      });
+      if (creditReady) {
+        ship3El("h4","同一個手勢：這本書究竟證明到哪裡？",work);
+        ship3El("p","四條信用線已接回來源。Newton 看著旁邊仍然空著的機制槽。",work,"orbitNote");
+        [
+          ["mechanismSolved","我們已證明引力如何穿過空間作用"],
+          ["ruleEstablished","我們建立可跨地表與天空反驗的規則；引力如何作用，仍未決"]
+        ].forEach(function(c){
+          ship3Btn(work,(proof.boundaryChoice===c[0]?"✓ ":"")+c[1],function(){doOrbit("setProofBoundary",{choice:c[0]},"末句已放入預覽；尚未送印，也沒有消耗窗口。");},"orbitAction "+(c[0]==="ruleEstablished"?"primary":""));
+        });
+      }
       var actions=ship3El("div",null,work,"orbitProofActions");
       ship3Btn(actions,"免費預覽校樣",function(){doOrbit("previewProof",{},function(rr){
-        var p=rr.preview;return p.complete?"✓ 預覽完整；仍須親手送出才取得完成證據。":"預覽發現：缺槽 "+p.missing.join("、")+"；錯槽 "+p.wrong.join("、")+"；署名待修 "+p.creditWrong.join("、")+"。";
+        var p=rr.preview;
+        if(p.complete)return "✓ 預覽完整；仍須親手送出才取得完成證據。";
+        var issues=[];
+        if(p.missing.length)issues.push("缺槽 "+p.missing.join("、"));
+        if(p.wrong.length)issues.push("錯槽 "+p.wrong.join("、"));
+        if(!p.hookeScopeOk)issues.push("Hooke 貢獻句未收準");
+        if(p.creditWrong.length)issues.push("署名待修 "+p.creditWrong.join("、"));
+        if(!p.boundaryOk)issues.push("機制末句尚未守住");
+        return "預覽發現："+issues.join("；")+"。";
       });},"orbitAction");
       ship3Btn(actions,"送出本輪校樣",function(){doOrbit("submitProof",{},"✓ 完整校樣已壓下，錯稿與延後紀錄都沒有被成功畫面洗掉。");},"orbitAction primary");
       ship3Btn(actions,"放掉本輪，再檢查一次",function(){doOrbit("deferPress",{reason:"再核對證明來源、信用與末句"},"本輪已明列理由延後；證據與目前排版全部保留。");},"orbitAction");
       if (proof.press.proofs.length || proof.press.delays.length) {
         var history=ship3El("details",null,work,"orbitPressHistory");ship3El("summary","查看所有錯稿與延後紀錄",history);
-        proof.press.proofs.forEach(function(p,i){ship3El("p","校樣 "+(i+1)+"｜"+(p.complete?"完整":"不完整")+"｜"+(p.kind||""),history,p.complete?"complete":"wrong");});
+        proof.press.proofs.forEach(function(p,i){
+          var note="";
+          if(p.audit&&!p.audit.hookeScopeOk)note+="｜Hooke 貢獻句失準";
+          if(p.audit&&p.audit.creditWrong&&p.audit.creditWrong.length)note+="｜署名斷線";
+          if(p.audit&&!p.audit.boundaryOk)note+="｜機制末句越界";
+          ship3El("p","校樣 "+(i+1)+"｜"+(p.complete?"完整":"不完整")+"｜"+(p.kind||"")+note,history,p.complete?"complete":"wrong");
+        });
         proof.press.delays.forEach(function(d,i){ship3El("p","延後 "+(i+1)+"｜"+d.reason,history,"delay");});
       }
     }

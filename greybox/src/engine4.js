@@ -25,6 +25,7 @@
     observations: "Flamsteed",
     proof: "Newton"
   };
+  var HOOKE_SCOPE_EXPECT = "precise-scope";
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   function err(state, code) { return { state: state, error: code }; }
@@ -70,11 +71,12 @@
         selectedRecords: [], comparisonClaim: null
       },
       proof: {
-        slots: [], attribution: {}, boundaryChoice: null, overclaimTried: false,
+        slots: [], attribution: {}, hookeScope: null, hookeScopeAttempts: [],
+        boundaryChoice: null, overclaimTried: false,
         press: {
           window: 1, reservedWindows: 3, openingChoice: null,
           status: "open", proofs: [], delays: [], rushTried: false,
-          scheduleLost: false
+          scheduleLost: false, priorityRecord: null
         }
       },
       claims: { k1: [], k2: [], k3: [], k4: [], k5: [] },
@@ -394,9 +396,35 @@
   function assignCredit(state0, contribution, person) {
     if (!CREDIT_EXPECT[contribution]) return err(state0, "unknown-contribution");
     if (["Hooke", "Halley", "Flamsteed", "Newton"].indexOf(person) < 0) return err(state0, "unknown-person");
-    var s = clone(state0);
+    if (!state0.proof || state0.proof.hookeScope !== HOOKE_SCOPE_EXPECT)
+      return err(state0, "hooke-scope-required");
+    var s = ensureProofFields(clone(state0));
     s.proof.attribution[contribution] = person;
     return { state: s, ok: CREDIT_EXPECT[contribution] === person };
+  }
+
+  function ensureProofFields(s) {
+    s.proof = s.proof || {};
+    if (!Array.isArray(s.proof.hookeScopeAttempts)) s.proof.hookeScopeAttempts = [];
+    if (!("hookeScope" in s.proof)) s.proof.hookeScope = null;
+    s.proof.press = s.proof.press || {};
+    if (!("priorityRecord" in s.proof.press)) s.proof.press.priorityRecord = null;
+    return s;
+  }
+
+  function setHookeScope(state0, choice) {
+    if (!state0.evidence.k4) return err(state0, "k4-required");
+    if (["hookeComplete", "newtonAlone", HOOKE_SCOPE_EXPECT].indexOf(choice) < 0)
+      return err(state0, "unknown-hooke-scope");
+    var s = ensureProofFields(clone(state0));
+    s.proof.hookeScope = choice;
+    s.proof.hookeScopeAttempts.push({ choice: choice, ok: choice === HOOKE_SCOPE_EXPECT });
+    return {
+      state: s,
+      ok: choice === HOOKE_SCOPE_EXPECT,
+      consequence: choice === "hookeComplete" ? "hooke-overcredit" :
+        (choice === "newtonAlone" ? "hooke-erasure" : null)
+    };
   }
 
   function consumeWindow(s, kind, record) {
@@ -414,9 +442,15 @@
   function submitPartialProof(state0, scope) {
     if (!(state0.evidence.k2 && state0.evidence.k3)) return err(state0, "k2-k3-required");
     if (state0.evidence.k4) return err(state0, "partial-window-passed");
+    if (state0.proof.press.openingChoice) return err(state0, "opening-choice-locked");
     if (scope !== "moon-planets") return err(state0, "dishonest-partial-scope");
-    var s = clone(state0);
+    var s = ensureProofFields(clone(state0));
     s.proof.press.openingChoice = "partial";
+    s.proof.press.priorityRecord = {
+      route: "raised-early",
+      source: "hooke-letter-1679",
+      return: "署名爭議在完整排版前浮上桌"
+    };
     consumeWindow(s, "proof", {
       kind: "partial", complete: false, supported: ["moon", "planets"],
       missing: ["comet", "model-comparison"]
@@ -427,8 +461,15 @@
   function deferPress(state0, reason) {
     if (!(state0.evidence.k2 && state0.evidence.k3)) return err(state0, "k2-k3-required");
     if (typeof reason !== "string" || !reason.trim()) return err(state0, "delay-reason-required");
-    var s = clone(state0);
-    if (!s.proof.press.openingChoice) s.proof.press.openingChoice = "defer";
+    var s = ensureProofFields(clone(state0));
+    if (!s.proof.press.openingChoice) {
+      s.proof.press.openingChoice = "defer";
+      s.proof.press.priorityRecord = {
+        route: "raised-at-press",
+        source: "hooke-letter-1679",
+        return: "保留完整反驗時間，署名爭議延至印刷台"
+      };
+    }
     consumeWindow(s, "delay", { kind: "delay", reason: reason.trim() });
     return { state: s, ok: true, delayed: true };
   }
@@ -457,10 +498,12 @@
     Object.keys(CREDIT_EXPECT).forEach(function (c) {
       if (state.proof.attribution[c] !== CREDIT_EXPECT[c]) creditWrong.push(c);
     });
+    var hookeScopeOk = state.proof.hookeScope === HOOKE_SCOPE_EXPECT;
     var boundaryOk = state.proof.boundaryChoice === "ruleEstablished";
     return {
-      complete: !missing.length && !wrong.length && !creditWrong.length && boundaryOk,
+      complete: !missing.length && !wrong.length && !creditWrong.length && hookeScopeOk && boundaryOk,
       missing: missing, wrong: wrong, creditWrong: creditWrong,
+      hookeScope: state.proof.hookeScope || null, hookeScopeOk: hookeScopeOk,
       boundary: state.proof.boundaryChoice, boundaryOk: boundaryOk
     };
   }
@@ -472,11 +515,12 @@
 
   function submitProof(state0) {
     if (!state0.evidence.k4) return err(state0, "k4-required");
-    var s = clone(state0), audit = proofAudit(s);
+    var s = ensureProofFields(clone(state0)), audit = proofAudit(s);
     var snapshot = {
       kind: audit.complete ? "complete" : "wrong-proof",
       complete: audit.complete, audit: clone(audit),
       slots: clone(s.proof.slots), attribution: clone(s.proof.attribution),
+      hookeScope: s.proof.hookeScope,
       boundaryChoice: s.proof.boundaryChoice
     };
     if (s.proof.press.status === "schedule-lost") s.proof.press.proofs.push(snapshot);
@@ -486,7 +530,7 @@
       return { state: s, ok: false, proof: clone(snapshot), consequence: "printed-broken-proof" };
     }
     s.evidence.k5 = true;
-    recordClaim(s, "k5", ["K1", "K2", "K3", "K4"], "rule-established-boundary-open", true);
+    recordClaim(s, "k5", ["K1", "K2", "K3", "K4"], "sources-and-rule-scoped", true);
     return { state: s, ok: true, evidence: "K5", proof: clone(snapshot) };
   }
 
@@ -499,12 +543,13 @@
     unlockDistanceLaw: unlockDistanceLaw, resetPlanetReveals: resetPlanetReveals,
     predictPlanet: predictPlanet, assertK2: assertK2, assertK3: assertK3,
     runModel: runModel, assertK4: assertK4,
-    placeProofLink: placeProofLink, assignCredit: assignCredit,
+    placeProofLink: placeProofLink, assignCredit: assignCredit, setHookeScope: setHookeScope,
     submitPartialProof: submitPartialProof, setBoundary: setBoundary,
     previewProof: previewProof, submitProof: submitProof, deferPress: deferPress,
     _FIXTURE: { teaching: TEACHING, modernCheck: MODERN, planets: PLANETS },
     _CASES: CASES.slice(), _MODELS: MODELS.slice(),
     _PROOF_EXPECT: clone(PROOF_EXPECT), _CREDIT_EXPECT: clone(CREDIT_EXPECT),
+    _HOOKE_SCOPE_EXPECT: HOOKE_SCOPE_EXPECT,
     _proofAudit: proofAudit
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

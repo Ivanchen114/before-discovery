@@ -88,7 +88,8 @@
     {"id":"n2","type":"line","speaker":"Hooke・書信","text":"天體的運動，可以看成兩種傾向合在一起：一種沿切線直走，一種持續朝中心偏去。若吸引隨距離改變，路徑也會跟著改變。","next":"n3"},
     {"id":"n3","type":"system","speaker":"system","text":"史實註：此處為 1679 年 Hooke–Newton 書信內容的白話轉述，不是逐字引文。","next":"n4"},
     {"id":"n4","type":"line","speaker":"Newton","text":"方向說得容易。多少，才是問題。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"旅人(你)","text":"但他把兩支箭放到同一張紙上。","next":"n6"},
+    {"id":"n5","type":"line","speaker":"旅人(你)","text":"但他把兩支箭放到同一張紙上。","next":"n5a"},
+    {"id":"n5a","type":"line","speaker":"旅人・心聲","text":"他說得對。可四章下來，我做過的每一件事，都留在別人的紙上。Hooke 怕的，我懂。","next":"n6"},
     {"id":"n6","type":"line","speaker":"Newton","text":"所以更不能只靠圖好看。把地上的一秒和月亮的一分鐘放到同一把尺上。","next":"g1"},
     {"id":"g1","type":"goto","scene":"D2-2"}
    ]
@@ -111,7 +112,12 @@
    "historyTag":"modern-model+reconstruction",
    "nodes":[
     {"id":"c1","type":"choice","speaker":"system","text":"五年後，有人帶著一個不肯接受口頭保證的問題來了。","options":[{"id":"turn","text":"親手翻到 1684","next":"n1"}]},
-    {"id":"n1","type":"line","speaker":"stage","text":"1684｜Cambridge。Edmond Halley 把 Mars 與 Jupiter 的觀測紙壓在手肘下，數字朝下。","next":"n2"},
+    {"id":"n1","type":"line","speaker":"stage","text":"1684｜Cambridge。五年份的計算紙疊在桌上。Newton 抬頭，第一次仔細看向旅人。","next":"n1a"},
+    {"id":"n1a","type":"line","speaker":"Newton","text":"十九年前，你也在。","next":"n1b"},
+    {"id":"n1b","type":"line","speaker":"旅人(你)","text":"是。","next":"n1c"},
+    {"id":"n1c","type":"line","speaker":"Newton","text":"（看了一會，低頭回到紙上）不是我現在能算的問題。","next":"n1d"},
+    {"id":"n1d","type":"line","speaker":"旅人・心聲","text":"他沒有再問第二句。這是我遇過最省事的一次。","next":"n1e"},
+    {"id":"n1e","type":"line","speaker":"stage","text":"敲門聲響起。Edmond Halley 把 Mars 與 Jupiter 的觀測紙壓在手肘下，數字朝下。","next":"n2"},
     {"id":"n2","type":"line","speaker":"Halley","text":"假定吸引按距離平方減弱，軌道會是什麼？別告訴我你算過。把預測寫下來，我才翻資料。","next":"n3"},
     {"id":"n3","type":"line","speaker":"Newton","text":"橢圓。週期也該跟距離有固定關係。","next":"n4"},
     {"id":"n4","type":"line","speaker":"Halley","text":"很好。現在讓你的規則先冒險。","next":"e1"},
@@ -129,22 +135,24 @@
     {"id":"n1","type":"line","speaker":"stage","text":"一張印刷排程壓上工作台。彗星反驗還沒跑完，第一輪校樣位置卻已經到了。","next":"n2"},
     {"id":"n2","type":"line","speaker":"Halley","text":"現在能誠實送的是月球與行星；彗星和替代模型還空著。你可以送一份範圍較小的短稿，也可以放掉這輪，等鏈條完整。","next":"n3"},
     {"id":"n3","type":"line","speaker":"Newton","text":"送出去的缺口，不會因為我們心裡知道它是缺口，就自動留白。","next":"e1"},
-    {"id":"e1","type":"embed","system":"orbit","phase":"press-opening","hint":"選擇送出誠實短稿，或明列理由放掉第一輪；閱讀多久都不會消耗窗口。","until":{"orbit":"press-opening"},"next":"n4"},
-    {"id":"n4","type":"line","speaker":"Halley","text":"好。窗口怎麼走已經留下紀錄；證據本身沒有被刪掉。現在把兩套模型都放上桌。","next":"g1"},
+    {"id":"e1","type":"embed","system":"orbit","phase":"press-opening","hint":"選擇送出誠實短稿，或明列理由放掉第一輪；閱讀多久都不會消耗窗口。","until":{"orbit":"press-opening"},"next":"n4p"},
+    {"id":"n4p","type":"line","speaker":"Halley","text":"這輪花掉了，但短稿讓署名爭議在正式排版前浮上桌。1679 年那封信和回應一起進來源袋。","require":{"flag":["ch4OpeningChoice","partial"]},"next":"n4d"},
+    {"id":"n4d","type":"line","speaker":"Halley","text":"我們保住了完整反驗的時間，也把署名爭議留到印刷台。1679 年那封信仍在來源袋裡。","require":{"flag":["ch4OpeningChoice","defer"]},"next":"n4"},
+    {"id":"n4","type":"line","speaker":"Halley","text":"代價和回報都記下了。現在把兩套模型都放上桌。","next":"g1"},
     {"id":"g1","type":"goto","scene":"D3-2"}
    ]
   },
   {
    "id":"D3-2",
-   "title":"讓兩種天空都說話",
+   "title":"三組都跑過了",
    "historyTag":"documented+modern-model",
    "nodes":[
     {"id":"n1","type":"line","speaker":"stage","text":"Greenwich 的行星與彗星觀測紙送到。桌上並列反平方規則與本章明列的簡單共轉渦旋版本。","next":"n2"},
     {"id":"n2","type":"line","speaker":"Flamsteed・書信","text":"日期、星位、儀器都寫在紙邊。若要用我的數字改變你的結論，也請留下是哪一夜改變了你。","next":"n3"},
     {"id":"n3","type":"line","speaker":"Newton","text":"月球一項，兩邊都能說。把行星和彗星也放進去。","next":"e1"},
-    {"id":"e1","type":"embed","system":"orbit","phase":"models","hint":"讓反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet，再比較殘差與新增補丁。","until":{"orbit":"k4"},"next":"n4"},
-    {"id":"n4","type":"line","speaker":"旅人(你)","text":"渦旋沒有在月球那一格立刻失效；差別出現在它跨到行星和彗星時，要多補幾條規則。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"Newton","text":"這足以比較這兩個版本。別把它寫成我們已經消滅所有可能的介質模型。","next":"g1"},
+    {"id":"e1","type":"embed","system":"orbit","phase":"models","hint":"讓反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet，再替這份比較選一句不越界的紀錄標題。","until":{"orbit":"k4"},"next":"n4"},
+    {"id":"n4","type":"line","speaker":"Halley","text":"三組都跑過了。（把紀錄收進木匣）現在別再找新故事。","next":"n5"},
+    {"id":"n5","type":"line","speaker":"stage","text":"模型比較工作紀錄收入木匣；第一輪留下的短稿或延後紙條仍釘在外側。","next":"g1"},
     {"id":"g1","type":"goto","scene":"D3-3"}
    ]
   },
@@ -155,13 +163,19 @@
    "nodes":[
     {"id":"n1","type":"line","speaker":"stage","text":"1686｜證明桌旁，印刷工把剩餘校樣窗口與曾經送出的短稿、延後紙條一起釘上牆。","next":"n2"},
     {"id":"n2","type":"line","speaker":"印刷工・合成人物","text":"字排進版框後若整頁重來，紙、鉛字和下一家的工作都得重新挪。你們看多久都行；只有送樣或延後，才換下一輪。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"Newton","text":"Hooke 卻說整件事都是他的。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"Halley","text":"他提出過重要方向。這不等於他寫了你的證明；也不等於你的證明可以擦掉他的信。把每種工作記在對的人名下。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"旅人(你)","text":"我的名字放哪裡？","next":"n6"},
-    {"id":"n6","type":"line","speaker":"Halley","text":"你重做、試錯、鎖下預測。那就寫在你的筆記，別把自己塞進他們的年代。","next":"n7"},
-    {"id":"n7","type":"line","speaker":"Halley","text":"最後一句最危險。規則算得準，不代表我們已經知道引力如何穿過空間。","next":"e1"},
-    {"id":"e1","type":"embed","system":"orbit","phase":"proof","hint":"接好五段證明、分配四項信用、留下機制空白，再親手送出校樣。錯稿會保留，但可繼續重排。","until":{"orbit":"k5"},"next":"n8"},
-    {"id":"n8","type":"line","speaker":"Newton","text":"留下空白不是失敗。那只是不讓不知道冒充知道。","next":"g1"},
+    {"id":"n3","type":"line","speaker":"Newton","text":"Hooke 會說整本都是他的。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"Halley","text":"這封信不能替你證明三百頁；那三百頁也不能讓這封信不存在。","next":"n5"},
+    {"id":"n5","type":"line","speaker":"Newton","text":"他會多拿。","next":"n6"},
+    {"id":"n6","type":"line","speaker":"Halley","text":"所以寫清楚。不是寫大方。","next":"n7"},
+    {"id":"n7","type":"line","speaker":"旅人(你)","text":"我的名字放哪裡？","next":"n7a"},
+    {"id":"n7a","type":"line","speaker":"Halley","text":"你做了什麼？","next":"n7b"},
+    {"id":"n7b","type":"line","speaker":"旅人(你)","text":"重做、試錯、鎖下預測，再把它拿去碰沒看過的資料。","next":"n7c"},
+    {"id":"n7c","type":"line","speaker":"Halley","text":"你參與了驗證。但你不是這些想法在這個年代的來源。","next":"n7d"},
+    {"id":"n7d","type":"line","speaker":"Halley","text":"（停）名字不進這本書。事情進你的筆記。","next":"n7e"},
+    {"id":"n7e","type":"line","speaker":"旅人・心聲","text":"我不需要成為祕密發明者，才算參與過。","next":"n7f"},
+    {"id":"n7f","type":"line","speaker":"Halley","text":"現在接好證明，再替 Hooke 寫一句他做過、也只寫到他做過的事。","next":"e1"},
+    {"id":"e1","type":"embed","system":"orbit","phase":"proof","hint":"接好五段證明，替 Hooke 寫出精確貢獻句，分配四項信用，留下機制空白，再親手送出校樣。錯稿會保留，但可繼續重排。","until":{"orbit":"k5"},"next":"n8"},
+    {"id":"n8","type":"line","speaker":"Newton","text":"概念、觀測、證明，不是同一種工作。這樣寫，也只寫到這裡。","next":"g1"},
     {"id":"g1","type":"goto","scene":"D3-4"}
    ]
   },
@@ -171,8 +185,9 @@
    "historyTag":"reconstruction",
    "nodes":[
     {"id":"n1","type":"line","speaker":"stage","text":"印刷機完整壓下。切線、向內偏折、距離律、未揭露預測與跨模型反驗留在紙上；四條信用線各自連回來源；「引力如何作用」保持未填。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"Halley","text":"這一版能站了。趕上，不是因為印刷機催得夠兇；延後，也不是因為證據輸了。差別只在我們有沒有讓鉛字跑到證明前面。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"Newton","text":"那就讓別人來找它錯在哪裡。","next":"c1"},
+    {"id":"n2","type":"line","speaker":"Newton","text":"「引力如何作用」沒有來源，留空。剛才那一格也是。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"Halley","text":"現在鏈條能站了。最後一句沒有比前面所有頁多走一步。","next":"n3a"},
+    {"id":"n3a","type":"line","speaker":"Newton","text":"那就讓別人來找它錯在哪裡。","next":"c1"},
     {"id":"c1","type":"choice","speaker":"system","text":"紙面先只顯示軌道，不顯示章名。","options":[{"id":"turn","text":"翻開印出的第一頁","next":"s1"}]},
     {"id":"s1","type":"system","speaker":"system","text":"第四章《月亮的無盡墜落》","next":"n4"},
     {"id":"n4","type":"line","speaker":"旅人・心聲","text":"它沒有停止下落。它只是每一次落下，都趕上了一個彎走的世界。","next":"g1"},
@@ -186,7 +201,9 @@
    "nodes":[
     {"id":"c1","type":"choice","speaker":"system","text":"最後一張年卡仍停在 1686。","options":[{"id":"turn","text":"親手翻到 1687","next":"n1"}]},
     {"id":"n1","type":"line","speaker":"stage","text":"1687｜《Philosophiæ Naturalis Principia Mathematica》付梓。手稿、校樣、Halley 的編務痕跡與印刷頁並列。","next":"n2"},
-    {"id":"n2","type":"system","speaker":"system","text":"史實回聲：Halley 的追問促成《De motu》，並在 Royal Society 財務困難下推動《Principia》出版；Hooke 的概念貢獻與優先權爭議、Flamsteed 的觀測與後來衝突，都沒有因出版自動消失。","next":"n3"},
+    {"id":"n2","type":"system","speaker":"system","text":"史實回聲：Halley 的追問促成《De motu》，並在 Royal Society 財務困難下推動《Principia》出版；Hooke 的概念貢獻與優先權爭議、Flamsteed 的觀測與後來衝突，都沒有因出版自動消失。","next":"n2p"},
+    {"id":"n2p","type":"line","speaker":"Halley","text":"早先那張短稿沒有提早宣布勝利，卻讓署名問題在正式排版前就有了可查的回應。","require":{"flag":["ch4OpeningChoice","partial"]},"next":"n2d"},
+    {"id":"n2d","type":"line","speaker":"Halley","text":"第一輪的延後理由仍在。它換來完整反驗，也把署名爭議留到印刷台才處理。","require":{"flag":["ch4OpeningChoice","defer"]},"next":"n3"},
     {"id":"n3","type":"line","speaker":"Halley","text":"現在它不只屬於抽屜。別人可以讀、可以算，也可以找它錯在哪裡。","next":"n4"},
     {"id":"n4","type":"line","speaker":"Newton","text":"那通常比稱讚來得快。","next":"n5"},
     {"id":"n5","type":"line","speaker":"Halley","text":"很好。一本不能被攻擊的書，多半也沒有說清楚自己在主張什麼。","next":"n6"},
@@ -199,7 +216,7 @@
    "title":"旅人筆記・M 線末頁",
    "historyTag":"modern-model",
    "nodes":[
-    {"id":"n1","type":"system","speaker":"system","text":"本章證據收束：月球保留切線前進並持續向地球偏折；反平方距離律把地表落體、月球偏折與行星週期放進同一模型；未揭露預測與跨模型比較比事後相合更有力；可計算規則尚未回答引力機制。","next":"r1"},
+    {"id":"n1","type":"system","speaker":"system","text":"本章證據收束：月球保留切線前進並持續向地球偏折；反平方距離律把地表落體、月球偏折與行星週期放進同一模型；未揭露預測與跨模型比較比事後相合更有力；來源署名必須寫到精確範圍；可計算規則尚未回答引力機制。","next":"r1"},
     {"id":"r1","type":"review","prompts":["若地球突然不再吸引月球，月球下一刻會往哪裡走？為什麼？","本章建立了什麼規則，又還沒有解釋什麼？"],"next":"n2"},
     {"id":"n2","type":"line","speaker":"stage","text":"印刷工把兩顆鉛字盒推到一起。碰撞後，一盒停得多，另一盒彈得遠；桌上兩張舊帳各寫著不同的「運動之量」。","next":"n3"},
     {"id":"n3","type":"line","speaker":"旅人・心聲","text":"知道力如何改變一顆物體的運動，還不等於知道兩顆物體相撞時，究竟什麼應該守住。","next":"n4"},

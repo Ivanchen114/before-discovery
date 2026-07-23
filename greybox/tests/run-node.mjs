@@ -2472,6 +2472,57 @@ tests.push({
 });
 
 tests.push({
+  name: "CH4-CR-004|單一信用高潮、旅人長線、分支回報與舊存檔入口",
+  fn: () => {
+    const script=readFileSync(path.join(here,"../../04_劇本/第四章完整劇本_月亮一直在掉_v0.1-draft.md"),"utf-8");
+    const spec=readFileSync(path.join(here,"../../03_規格/發現之前_第四章功能規格書_v0.1-draft.md"),"utf-8");
+    const principles=readFileSync(path.join(here,"../../02_設計/發現之前_設計原則手冊_v0.1.md"),"utf-8");
+    const byId=(sid,nid)=>scenes4.scenes.find((s)=>s.id===sid)?.nodes.find((n)=>n.id===nid);
+    for(const phrase of ["四章下來，我做過的每一件事，都留在別人的紙上","十九年前，你也在",
+      "這封信不能替你證明三百頁；那三百頁也不能讓這封信不存在",
+      "所以寫清楚。不是寫大方","名字不進這本書。事情進你的筆記"])
+      if(!JSON.stringify(scenes4).includes(phrase)||!script.includes(phrase))throw new Error("劇本／runtime 缺結構節拍:"+phrase);
+    if(scenes4.scenes.length!==14 || scenes4.scenes.find((s)=>s.id==="D3-2")?.title!=="三組都跑過了" ||
+        !scenes4.scenes.some((s)=>s.id==="D3-4"))
+      throw new Error("縮短第三幕破壞場景數或舊存檔入口");
+    if(script.includes("## ◆ 場景【D2-4】") || !script.includes("D2-3 續場｜Halley 要的是證明"))
+      throw new Error("不存在的 D2-4 仍被當成獨立 runtime 場景");
+    if(!script.includes("CH4-CR-004")||!spec.includes("CH4-CR-004")||
+        !principles.includes("證據精確也必須用在署名"))
+      throw new Error("結構裁決未同步劇本、規格與設計原則");
+    if(byId("D3-2","n4")?.speaker!=="Halley" || !byId("D3-2","n4")?.text.includes("三組都跑過了"))
+      throw new Error("D3-2 仍以第二個高潮收束");
+    if(!byId("D3-1","n4p")?.require || !byId("D3-1","n4d")?.text.includes("1679 年那封信仍在"))
+      throw new Error("短稿／延後沒有不同回報，或延後路抹掉書信");
+
+    let old=Engine4.initialState();
+    old.evidence.k4=true;
+    delete old.proof.hookeScope;
+    delete old.proof.hookeScopeAttempts;
+    delete old.proof.press.priorityRecord;
+    const migrated=Engine4.setHookeScope(old,"precise-scope");
+    if(!migrated.ok || migrated.state.proof.hookeScopeAttempts.length!==1)
+      throw new Error("舊 state 缺新欄位時不能在原地補齊");
+
+    const N4=Narrative._factory(scenes4,Engine4,{});
+    let saved=N4.initialState("explore");
+    saved.cursor={scene:"D3-2",node:"n4"};
+    if(N4.view(saved).scene!=="D3-2")throw new Error("D3-2 舊游標失效");
+    saved.cursor={scene:"D3-4",node:"n3"};
+    if(N4.view(saved).scene!=="D3-4")throw new Error("D3-4 舊游標失效");
+
+    let opening=N4.initialState("explore");
+    opening.cursor={scene:"D3-1",node:"e1"};
+    opening.lab.evidence.k2=true; opening.lab.evidence.k3=true;
+    opening.lab=Engine4.deferPress(opening.lab,"等待完整反驗").state;
+    delete opening.flags.ch4OpeningChoice;
+    const resumed=N4.embedComplete(opening);
+    if(resumed.error || resumed.state.flags.ch4OpeningChoice!=="defer")
+      throw new Error("舊存檔已有 openingChoice 時未回填分支旗標");
+  }
+});
+
+tests.push({
   name: "第四章校樣窗口|無倒數、局部稿／延後／錯稿皆留痕，三輪後仍可完成",
   fn: () => {
     let s=Engine4.initialState(); s.evidence.k2=true; s.evidence.k3=true;
@@ -2480,6 +2531,8 @@ tests.push({
     if(JSON.stringify(s.proof.press)!==idle) throw new Error("閱讀／預覽竟推進校樣窗口");
     s=Engine4.submitPartialProof(s,"moon-planets").state;
     if(s.proof.press.window!==2 || s.proof.press.proofs[0].complete || s.evidence.k5) throw new Error("誠實短稿沒有留下範圍或誤給完成證據");
+    if(s.proof.press.priorityRecord?.route!=="raised-early" || s.proof.press.priorityRecord?.source!=="hooke-letter-1679")
+      throw new Error("誠實短稿只有代價，沒有留下署名爭議提早出現的回報");
     s=Engine4.deferPress(s,"等待彗星比較").state;
     if(s.proof.press.window!==3 || !s.proof.press.delays.length) throw new Error("主動延後未推進並留理由");
     s.evidence.k4=true;
@@ -2488,6 +2541,7 @@ tests.push({
       throw new Error("第三輪錯稿未先印出或未轉重新排程");
     for(const [slot,id] of [["inertia","M2"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])
       s=Engine4.placeProofLink(s,slot,id).state;
+    s=Engine4.setHookeScope(s,"precise-scope").state;
     for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT)) s=Engine4.assignCredit(s,c,p).state;
     s=Engine4.setBoundary(s,"ruleEstablished").state;
     const final=Engine4.submitProof(s);
@@ -2497,7 +2551,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第四章證明邊界|錯槽斷幾何、英雄化斷署名、機制空白可預覽但送樣才完成",
+  name: "第四章證明邊界|錯槽斷幾何、Hooke 句有範圍、機制空白可預覽但送樣才完成",
   fn: () => {
     let s=Engine4.initialState(); s.evidence.k4=true;
     let r=Engine4.placeProofLink(s,"distance","K1");
@@ -2505,6 +2559,15 @@ tests.push({
     s=r.state;
     for(const [slot,id] of [["inertia","M3"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])
       s=Engine4.placeProofLink(s,slot,id).state;
+    if(Engine4.assignCredit(s,"direction","Hooke").error!=="hooke-scope-required")
+      throw new Error("尚未寫清 Hooke 貢獻句就可跳進信用配對");
+    r=Engine4.setHookeScope(s,"hookeComplete"); s=r.state;
+    if(r.ok || r.consequence!=="hooke-overcredit") throw new Error("過度歸功未讓 Hooke 署名線蓋過證明");
+    r=Engine4.setHookeScope(s,"newtonAlone"); s=r.state;
+    if(r.ok || r.consequence!=="hooke-erasure") throw new Error("抹除 Hooke 未讓 1679 書信脫落");
+    s=Engine4.setHookeScope(s,"precise-scope").state;
+    if(s.proof.hookeScope!==Engine4._HOOKE_SCOPE_EXPECT || s.proof.hookeScopeAttempts.length!==3)
+      throw new Error("精確貢獻句未成立或錯句歷史被洗掉");
     for(const c of Object.keys(Engine4._CREDIT_EXPECT)) s=Engine4.assignCredit(s,c,"Newton").state;
     r=Engine4.setBoundary(s,"newtonAlone"); s=r.state;
     if(r.ok || r.consequence!=="credit-lines-break") throw new Error("單一英雄末句沒有可見斷線");
@@ -2538,7 +2601,7 @@ tests.push({
         else if(v.phase==="planets"){act("predictPlanet",{id:"mars"});act("predictPlanet",{id:"jupiter"});act("assertK3",{records:["mars-sealed","jupiter-sealed"],concept:"withheld-data-prediction"});}
         else if(v.phase==="press-opening")act("deferPress",{reason:"等待彗星與替代模型比較"});
         else if(v.phase==="models"){for(const m of Engine4._MODELS)for(const c of Engine4._CASES)act("runModel",{model:m,caseId:c});const rec=[];for(const m of Engine4._MODELS)for(const c of Engine4._CASES)rec.push(m+":"+c);act("assertK4",{records:rec,claim:"same-rule-fewer-patches"});}
-        else if(v.phase==="proof"){for(const [slot,id] of [["inertia","M2"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])act("placeProofLink",{slot,evidenceId:id});for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT))act("assignCredit",{contribution:c,person:p});act("setProofBoundary",{choice:"ruleEstablished"});act("submitProof");}
+        else if(v.phase==="proof"){for(const [slot,id] of [["inertia","M2"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])act("placeProofLink",{slot,evidenceId:id});act("setHookeScope",{choice:"precise-scope"});for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT))act("assignCredit",{contribution:c,person:p});act("setProofBoundary",{choice:"ruleEstablished"});act("submitProof");}
         else throw new Error("未知 orbit phase:"+v.phase);
         const done=N4.embedComplete(s);if(done.error)throw new Error(v.phase+" 閘未過:"+done.error);s=done.state;continue;
       }
@@ -2550,7 +2613,18 @@ tests.push({
     if(!s.review.q1||!s.review.q2)throw new Error("第四章自由回述未保存");
     if(N4.CHAPTER_ID!=="ch4"||N4.SAVE_SCHEMA!==1||s.chapter!=="ch4")throw new Error("第四章 schema／章別未隔離");
     const San=require("../src/sanitize.js");
-    if(!San.sanitizeImport4(JSON.parse(N4.serialize(s)),scenes4,Engine4).ok)throw new Error("合法完章存檔遭拒");
+    const finishedSave=JSON.parse(N4.serialize(s));
+    if(!San.sanitizeImport4(finishedSave,scenes4,Engine4).ok)throw new Error("合法完章存檔遭拒");
+    const legacySave=JSON.parse(JSON.stringify(finishedSave));
+    delete legacySave.lab.proof.hookeScope;
+    delete legacySave.lab.proof.hookeScopeAttempts;
+    delete legacySave.lab.proof.press.priorityRecord;
+    if(!San.sanitizeImport4(legacySave,scenes4,Engine4).ok)
+      throw new Error("CH4-CR-004 前已完章的合法存檔遭拒");
+    const forged=JSON.parse(JSON.stringify(finishedSave));
+    forged.lab.proof.press.priorityRecord={route:"rewrote-history",source:"hooke-letter-1679",return:"x"};
+    if(San.sanitizeImport4(forged,scenes4,Engine4).ok)
+      throw new Error("未知署名分支紀錄通過匯入白名單");
     const Env=require("../src/save-envelope.js"), decoded=Env.decode(Env.encode("ch4",s));
     if(!decoded.envelope||decoded.chapter!=="ch4")throw new Error("第四章書信封套往返失敗");
   }
@@ -2567,7 +2641,7 @@ tests.push({
     const series=JSON.parse(readFileSync(path.join(here,"../data/series.json"),"utf-8"));
     if(!series.chapters.some((chapter)=>chapter.id==="ch4"&&chapter.route==="ch04"))
       throw new Error("第四章未登錄於資料驅動首頁");
-    for(const frag of ["renderOrbit","orbit4Svg",'v.system === "orbit"',"submitPartialProof","setProofBoundary","submitProof","月地模型：改向"])
+    for(const frag of ["renderOrbit","orbit4Svg",'v.system === "orbit"',"submitPartialProof","setHookeScope","setProofBoundary","submitProof","月地模型：改向"])
       if(!ui.includes(frag))throw new Error("第四章 UI 接線缺失:"+frag);
     for(const frag of ['d.system === "orbit" ? "orbit"',"走進軌道工作台",'stage.html?chapter=ch04',"軌道與出版備忘"])
       if(!sui.includes(frag))throw new Error("舞台軌道視圖／接力缺失:"+frag);

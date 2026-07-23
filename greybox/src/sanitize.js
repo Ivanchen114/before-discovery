@@ -334,11 +334,36 @@
         typeof press.scheduleLost !== "boolean" || !Array.isArray(press.proofs) ||
         !Array.isArray(press.delays) || press.proofs.length > 100 || press.delays.length > 100)
       return fail("校樣窗口紀錄格式錯誤");
+    var hookeChoices = ["hookeComplete", "newtonAlone", "precise-scope"];
+    if (lab.proof.hookeScope != null && hookeChoices.indexOf(lab.proof.hookeScope) < 0)
+      return fail("Hooke 貢獻句格式錯誤");
+    if (lab.proof.hookeScopeAttempts != null) {
+      if (!Array.isArray(lab.proof.hookeScopeAttempts) || lab.proof.hookeScopeAttempts.length > 100)
+        return fail("Hooke 貢獻句嘗試紀錄格式錯誤");
+      for (var hs = 0; hs < lab.proof.hookeScopeAttempts.length; hs++) {
+        var scopeTry = lab.proof.hookeScopeAttempts[hs];
+        if (!scopeTry || hookeChoices.indexOf(scopeTry.choice) < 0 || typeof scopeTry.ok !== "boolean")
+          return fail("Hooke 貢獻句嘗試含無法辨識的資料");
+      }
+    }
+    if (press.priorityRecord != null) {
+      var priority = press.priorityRecord;
+      if (!priority || ["raised-early", "raised-at-press"].indexOf(priority.route) < 0 ||
+          priority.source !== "hooke-letter-1679" || typeof priority.return !== "string" ||
+          !priority.return || priority.return.length > 240)
+        return fail("署名爭議分支紀錄格式錯誤");
+    }
     var evidenceIds = ["k1", "k2", "k3", "k4", "k5"];
     for (var ei = 0; ei < evidenceIds.length; ei++)
       if (typeof lab.evidence[evidenceIds[ei]] !== "boolean") return fail("第四章證據狀態格式錯誤");
-    if (engine4 && lab.evidence.k5 && !engine4._proofAudit(lab).complete)
-      return fail("完成證據與校樣內容不一致");
+    if (engine4 && lab.evidence.k5 && !engine4._proofAudit(lab).complete) {
+      /* CH4-CR-004 新增署名範圍欄位；既有完章存檔無法憑空補出玩家選擇。
+         只在舊欄位本來就完整、且唯一缺口確為新欄位時祖父條款放行。 */
+      var legacy = JSON.parse(JSON.stringify(lab));
+      if (legacy.proof.hookeScope != null) return fail("完成證據與校樣內容不一致");
+      legacy.proof.hookeScope = "precise-scope";
+      if (!engine4._proofAudit(legacy).complete) return fail("完成證據與校樣內容不一致");
+    }
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
     for (var t = 0; t < state.transcript.length; t++) {
       var line = state.transcript[t];

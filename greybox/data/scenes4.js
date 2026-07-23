@@ -339,6 +339,13 @@
      "type": "line",
      "speaker": "旅人(你)",
      "text": "但他把兩支箭放到同一張紙上。",
+     "next": "n5a"
+    },
+    {
+     "id": "n5a",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "他說得對。可四章下來，我做過的每一件事，都留在別人的紙上。Hooke 怕的，我懂。",
      "next": "n6"
     },
     {
@@ -421,7 +428,42 @@
      "id": "n1",
      "type": "line",
      "speaker": "stage",
-     "text": "1684｜Cambridge。Edmond Halley 把 Mars 與 Jupiter 的觀測紙壓在手肘下，數字朝下。",
+     "text": "1684｜Cambridge。五年份的計算紙疊在桌上。Newton 抬頭，第一次仔細看向旅人。",
+     "next": "n1a"
+    },
+    {
+     "id": "n1a",
+     "type": "line",
+     "speaker": "Newton",
+     "text": "十九年前，你也在。",
+     "next": "n1b"
+    },
+    {
+     "id": "n1b",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "是。",
+     "next": "n1c"
+    },
+    {
+     "id": "n1c",
+     "type": "line",
+     "speaker": "Newton",
+     "text": "（看了一會，低頭回到紙上）不是我現在能算的問題。",
+     "next": "n1d"
+    },
+    {
+     "id": "n1d",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "他沒有再問第二句。這是我遇過最省事的一次。",
+     "next": "n1e"
+    },
+    {
+     "id": "n1e",
+     "type": "line",
+     "speaker": "stage",
+     "text": "敲門聲響起。Edmond Halley 把 Mars 與 Jupiter 的觀測紙壓在手肘下，數字朝下。",
      "next": "n2"
     },
     {
@@ -512,13 +554,39 @@
      "until": {
       "orbit": "press-opening"
      },
+     "next": "n4p"
+    },
+    {
+     "id": "n4p",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "這輪花掉了，但短稿讓署名爭議在正式排版前浮上桌。1679 年那封信和回應一起進來源袋。",
+     "require": {
+      "flag": [
+       "ch4OpeningChoice",
+       "partial"
+      ]
+     },
+     "next": "n4d"
+    },
+    {
+     "id": "n4d",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "我們保住了完整反驗的時間，也把署名爭議留到印刷台。1679 年那封信仍在來源袋裡。",
+     "require": {
+      "flag": [
+       "ch4OpeningChoice",
+       "defer"
+      ]
+     },
      "next": "n4"
     },
     {
      "id": "n4",
      "type": "line",
      "speaker": "Halley",
-     "text": "好。窗口怎麼走已經留下紀錄；證據本身沒有被刪掉。現在把兩套模型都放上桌。",
+     "text": "代價和回報都記下了。現在把兩套模型都放上桌。",
      "next": "g1"
     },
     {
@@ -530,7 +598,7 @@
   },
   {
    "id": "D3-2",
-   "title": "讓兩種天空都說話",
+   "title": "三組都跑過了",
    "historyTag": "documented+modern-model",
    "nodes": [
     {
@@ -559,7 +627,7 @@
      "type": "embed",
      "system": "orbit",
      "phase": "models",
-     "hint": "讓反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet，再比較殘差與新增補丁。",
+     "hint": "讓反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet，再替這份比較選一句不越界的紀錄標題。",
      "until": {
       "orbit": "k4"
      },
@@ -568,15 +636,15 @@
     {
      "id": "n4",
      "type": "line",
-     "speaker": "旅人(你)",
-     "text": "渦旋沒有在月球那一格立刻失效；差別出現在它跨到行星和彗星時，要多補幾條規則。",
+     "speaker": "Halley",
+     "text": "三組都跑過了。（把紀錄收進木匣）現在別再找新故事。",
      "next": "n5"
     },
     {
      "id": "n5",
      "type": "line",
-     "speaker": "Newton",
-     "text": "這足以比較這兩個版本。別把它寫成我們已經消滅所有可能的介質模型。",
+     "speaker": "stage",
+     "text": "模型比較工作紀錄收入木匣；第一輪留下的短稿或延後紙條仍釘在外側。",
      "next": "g1"
     },
     {
@@ -609,35 +677,77 @@
      "id": "n3",
      "type": "line",
      "speaker": "Newton",
-     "text": "Hooke 卻說整件事都是他的。",
+     "text": "Hooke 會說整本都是他的。",
      "next": "n4"
     },
     {
      "id": "n4",
      "type": "line",
      "speaker": "Halley",
-     "text": "他提出過重要方向。這不等於他寫了你的證明；也不等於你的證明可以擦掉他的信。把每種工作記在對的人名下。",
+     "text": "這封信不能替你證明三百頁；那三百頁也不能讓這封信不存在。",
      "next": "n5"
     },
     {
      "id": "n5",
      "type": "line",
-     "speaker": "旅人(你)",
-     "text": "我的名字放哪裡？",
+     "speaker": "Newton",
+     "text": "他會多拿。",
      "next": "n6"
     },
     {
      "id": "n6",
      "type": "line",
      "speaker": "Halley",
-     "text": "你重做、試錯、鎖下預測。那就寫在你的筆記，別把自己塞進他們的年代。",
+     "text": "所以寫清楚。不是寫大方。",
      "next": "n7"
     },
     {
      "id": "n7",
      "type": "line",
+     "speaker": "旅人(你)",
+     "text": "我的名字放哪裡？",
+     "next": "n7a"
+    },
+    {
+     "id": "n7a",
+     "type": "line",
      "speaker": "Halley",
-     "text": "最後一句最危險。規則算得準，不代表我們已經知道引力如何穿過空間。",
+     "text": "你做了什麼？",
+     "next": "n7b"
+    },
+    {
+     "id": "n7b",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "重做、試錯、鎖下預測，再把它拿去碰沒看過的資料。",
+     "next": "n7c"
+    },
+    {
+     "id": "n7c",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "你參與了驗證。但你不是這些想法在這個年代的來源。",
+     "next": "n7d"
+    },
+    {
+     "id": "n7d",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "（停）名字不進這本書。事情進你的筆記。",
+     "next": "n7e"
+    },
+    {
+     "id": "n7e",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "我不需要成為祕密發明者，才算參與過。",
+     "next": "n7f"
+    },
+    {
+     "id": "n7f",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "現在接好證明，再替 Hooke 寫一句他做過、也只寫到他做過的事。",
      "next": "e1"
     },
     {
@@ -645,7 +755,7 @@
      "type": "embed",
      "system": "orbit",
      "phase": "proof",
-     "hint": "接好五段證明、分配四項信用、留下機制空白，再親手送出校樣。錯稿會保留，但可繼續重排。",
+     "hint": "接好五段證明，替 Hooke 寫出精確貢獻句，分配四項信用，留下機制空白，再親手送出校樣。錯稿會保留，但可繼續重排。",
      "until": {
       "orbit": "k5"
      },
@@ -655,7 +765,7 @@
      "id": "n8",
      "type": "line",
      "speaker": "Newton",
-     "text": "留下空白不是失敗。那只是不讓不知道冒充知道。",
+     "text": "概念、觀測、證明，不是同一種工作。這樣寫，也只寫到這裡。",
      "next": "g1"
     },
     {
@@ -680,12 +790,19 @@
     {
      "id": "n2",
      "type": "line",
-     "speaker": "Halley",
-     "text": "這一版能站了。趕上，不是因為印刷機催得夠兇；延後，也不是因為證據輸了。差別只在我們有沒有讓鉛字跑到證明前面。",
+     "speaker": "Newton",
+     "text": "「引力如何作用」沒有來源，留空。剛才那一格也是。",
      "next": "n3"
     },
     {
      "id": "n3",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "現在鏈條能站了。最後一句沒有比前面所有頁多走一步。",
+     "next": "n3a"
+    },
+    {
+     "id": "n3a",
      "type": "line",
      "speaker": "Newton",
      "text": "那就讓別人來找它錯在哪裡。",
@@ -755,6 +872,32 @@
      "type": "system",
      "speaker": "system",
      "text": "史實回聲：Halley 的追問促成《De motu》，並在 Royal Society 財務困難下推動《Principia》出版；Hooke 的概念貢獻與優先權爭議、Flamsteed 的觀測與後來衝突，都沒有因出版自動消失。",
+     "next": "n2p"
+    },
+    {
+     "id": "n2p",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "早先那張短稿沒有提早宣布勝利，卻讓署名問題在正式排版前就有了可查的回應。",
+     "require": {
+      "flag": [
+       "ch4OpeningChoice",
+       "partial"
+      ]
+     },
+     "next": "n2d"
+    },
+    {
+     "id": "n2d",
+     "type": "line",
+     "speaker": "Halley",
+     "text": "第一輪的延後理由仍在。它換來完整反驗，也把署名爭議留到印刷台才處理。",
+     "require": {
+      "flag": [
+       "ch4OpeningChoice",
+       "defer"
+      ]
+     },
      "next": "n3"
     },
     {
@@ -801,7 +944,7 @@
      "id": "n1",
      "type": "system",
      "speaker": "system",
-     "text": "本章證據收束：月球保留切線前進並持續向地球偏折；反平方距離律把地表落體、月球偏折與行星週期放進同一模型；未揭露預測與跨模型比較比事後相合更有力；可計算規則尚未回答引力機制。",
+     "text": "本章證據收束：月球保留切線前進並持續向地球偏折；反平方距離律把地表落體、月球偏折與行星週期放進同一模型；未揭露預測與跨模型比較比事後相合更有力；來源署名必須寫到精確範圍；可計算規則尚未回答引力機制。",
      "next": "r1"
     },
     {
