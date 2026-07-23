@@ -416,8 +416,8 @@ tests.push({
       if (!cui.includes('"' + evName + '"')) throw new Error("chapter-ui 缺掛點:" + evName);
       if (!sui.includes('"' + evName + '"')) throw new Error("stage-ui 未訂閱:" + evName);
     }
-    /* 章首與跨年蒙太奇：三章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
-    const sceneIds = new Set([].concat(scenes.scenes, scenes2.scenes, scenes3.scenes).map((s) => s.id));
+    /* 章首與跨年蒙太奇：四章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
+    const sceneIds = new Set([].concat(scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes).map((s) => s.id));
     const entryById = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
     for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
       if (!sceneIds.has(sc)) throw new Error("sceneFx 指向不存在場景:" + sc);
@@ -433,7 +433,7 @@ tests.push({
           throw new Error("蒙太奇節拍缺時地標籤或敘事字幕:" + sc);
       }
     }
-    for (const id of ["P0-1", "INT-1", "B0-1", "C0-1"])
+    for (const id of ["P0-1", "INT-1", "B0-1", "C0-1", "D0-1"])
       if (!assets.sceneFx || !assets.sceneFx[id]) throw new Error("章首／交棒蒙太奇未註冊:" + id);
     const int1 = assets.sceneFx["INT-1"];
     if (JSON.stringify(int1.steps.map((s) => s.label)) !== JSON.stringify(["1592｜比薩 → 帕多瓦", "1597–1602｜帕多瓦", "1603｜帕多瓦"]))
@@ -441,6 +441,12 @@ tests.push({
     const c0 = assets.sceneFx["C0-1"];
     if (c0.steps[c0.steps.length - 1].plate !== "ch03_transition_1640_gassendi_handoff_v01")
       throw new Error("C0-1 最後一拍應完成伽桑狄交棒");
+    const d0 = assets.sceneFx["D0-1"];
+    if (JSON.stringify(d0.steps.map((s) => s.label)) !==
+        JSON.stringify(["1642｜法國・馬賽", "1655｜英吉利海峽以北", "1665｜英格蘭・Woolsthorpe"]))
+      throw new Error("D0-1 應由玩家手點完成 1642→1655→1665 三拍穿越");
+    if (d0.steps[d0.steps.length - 1].plate !== "ch04_transition_1665_woolsthorpe_arrival_v01")
+      throw new Error("D0-1 最後一拍應真正落地 Woolsthorpe");
     /* 禁四頁 CSS 假翻頁與逐年計數回歸 */
     if (stageHtml.includes("fxPages") || stageHtml.includes("bdFlip"))
       throw new Error("四頁 CSS 假翻頁應已退場");
@@ -2345,7 +2351,8 @@ tests.push({
       if (n.scene && !sm.has(n.scene)) throw new Error("goto 場景不存在:" + n.scene);
       for (const o of n.options || []) if (!sm.get(s.id).has(o.next)) throw new Error("option.next 不存在:" + s.id + "/" + o.id);
     }
-    const all = JSON.stringify(sj);
+    const aj = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const all = JSON.stringify({ scenes: sj, openingTransition: aj.sceneFx?.["D0-1"] });
     for (const year of ["1655","1665","1679","1684","1687"]) if (!all.includes(year)) throw new Error("缺年卡:" + year);
     const timed = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
     if (/setTimeout[\s\S]{0,180}(?:choose|advance|embedComplete)/.test(timed))

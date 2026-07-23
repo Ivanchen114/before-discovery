@@ -15,14 +15,9 @@
    "title": "問題活得比人久",
    "historyTag": "documented+fictional-bridge",
    "nodes": [
-    {"id":"n1","type":"line","speaker":"stage","text":"第三章旅人筆記的末頁。馬賽港的紙帶已乾，頁角壓著一粒鹽：如果放手不會清除原有運動，月亮為什麼沒有沿直線離開？","next":"n2"},
-    {"id":"n2","type":"line","speaker":"旅人・心聲","text":"伽利略不在了。伽桑狄的手稿還在往前走；那個月亮問題，也還在。","next":"c1"},
-    {"id":"c1","type":"choice","speaker":"system","text":"1642｜讓這一頁往後走。","options":[{"id":"turn","text":"親手翻到 1655","next":"n3"}]},
-    {"id":"n3","type":"line","speaker":"stage","text":"紙色變深。十三年落進頁縫，問題沒有消失。","next":"c2"},
-    {"id":"c2","type":"choice","speaker":"system","text":"1655｜下一張年卡停在指尖。","options":[{"id":"turn","text":"親手翻到 1665","next":"n4"}]},
-    {"id":"n4","type":"line","speaker":"stage","text":"1665｜Woolsthorpe, Lincolnshire。Cambridge 因瘟疫停課，一位二十二歲的學生回到鄉間。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"旅人・心聲","text":"二十三年。我的手只翻了兩頁，這裡卻換了一代人。","next":"c3"},
-    {"id":"c3","type":"choice","speaker":"system","text":"轉場不會自行結束。","options":[{"id":"enter","text":"走進 1665","next":"g1"}]},
+    {"id":"n1","type":"line","speaker":"stage","text":"白光退去。Cambridge 因瘟疫停課，一位二十二歲的學生回到這片鄉間。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"旅人・心聲","text":"我只走過三張紙，這裡卻換了一代人。伽利略不在了；那個月亮問題還在。","next":"c1"},
+    {"id":"c1","type":"choice","speaker":"system","text":"1665｜Woolsthorpe, Lincolnshire。","options":[{"id":"enter","text":"走進果園","next":"g1"}]},
     {"id":"g1","type":"goto","scene":"D0-2"}
    ]
   },

@@ -61,7 +61,7 @@
   "C3-4": "bg_ch03_public_demonstration",
   "CE-1": "bg_ch03_print_room_1642",
   "CE-2": "bg_ch03_print_room_1642",
-  "D0-1": "bg_ch03_print_room_1642",
+  "D0-1": "bg_ch04_woolsthorpe_orchard_1665",
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
@@ -863,6 +863,36 @@
    "firstScreen": false,
    "w": 1672,
    "h": 941
+  },
+  {
+   "id": "ch04_transition_1642_question_opens_v01",
+   "kind": "bg",
+   "label": "章首轉場・1642 問題打開時間通道",
+   "path": "ch04/transitions/ch04_transition_1642_question_opens_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/transitions/ch04_transition_1642_question_opens_master_v01.png"
+  },
+  {
+   "id": "ch04_transition_1655_paper_passage_v01",
+   "kind": "bg",
+   "label": "章首轉場・1655 紙頁時間通道",
+   "path": "ch04/transitions/ch04_transition_1655_paper_passage_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/transitions/ch04_transition_1655_paper_passage_master_v01.png"
+  },
+  {
+   "id": "ch04_transition_1665_woolsthorpe_arrival_v01",
+   "kind": "bg",
+   "label": "章首轉場・1665 抵達 Woolsthorpe",
+   "path": "ch04/transitions/ch04_transition_1665_woolsthorpe_arrival_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/transitions/ch04_transition_1665_woolsthorpe_arrival_master_v01.png"
   },
   {
    "id": "title_background",
@@ -2125,6 +2155,26 @@
      "plate": "ch03_transition_1640_gassendi_handoff_v01",
      "label": "1640｜法國・馬賽",
      "caption": "又過八年，書頁抵達港口；這次接住它的人，不是伽利略。"
+    }
+   ]
+  },
+  "D0-1": {
+   "fx": "montage",
+   "steps": [
+    {
+     "plate": "ch04_transition_1642_question_opens_v01",
+     "label": "1642｜法國・馬賽",
+     "caption": "馬賽港的紙帶已乾，月亮的問題卻從末頁亮了起來。"
+    },
+    {
+     "plate": "ch04_transition_1655_paper_passage_v01",
+     "label": "1655｜英吉利海峽以北",
+     "caption": "十三年落進紙縫；人已遠去，問題仍在往前。"
+    },
+    {
+     "plate": "ch04_transition_1665_woolsthorpe_arrival_v01",
+     "label": "1665｜英格蘭・Woolsthorpe",
+     "caption": "白光退去。濕草、石牆，和白日天空裡沒有墜落的月亮。"
     }
    ]
   }

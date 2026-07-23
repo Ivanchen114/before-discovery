@@ -18,7 +18,7 @@ if (JSON.stringify(assets) !== JSON.stringify(json)) fail("assets.js 與 assets.
 
 const entries = new Map(assets.entries.map((entry) => [entry.id, entry]));
 const expectedBackgrounds = {
-  "D0-1": "bg_ch03_print_room_1642",
+  "D0-1": "bg_ch04_woolsthorpe_orchard_1665",
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
@@ -69,6 +69,23 @@ if (assets.speakerSide.Newton !== "right" || assets.speakerSide.Halley !== "left
   fail("Newton／Halley 雙槽站位未鎖定");
 if (assets.chapterThumbnail.ch04 !== "chapter_thumbnail_ch04")
   fail("第四章章節縮圖未接上");
+
+const chapter4Transition = assets.sceneFx?.["D0-1"];
+if (!chapter4Transition || chapter4Transition.fx !== "montage" || chapter4Transition.steps?.length !== 3)
+  fail("第四章章首缺 1642→1655→1665 三拍穿越");
+for (const id of [
+  "ch04_transition_1642_question_opens_v01",
+  "ch04_transition_1655_paper_passage_v01",
+  "ch04_transition_1665_woolsthorpe_arrival_v01"
+]) {
+  const entry = entries.get(id);
+  if (!entry?.path || entry.w !== 1672 || entry.h !== 941)
+    fail("第四章穿越板宣告錯誤:" + id);
+  if (!existsSync(path.join(here, "../../public/assets", entry.path)))
+    fail("第四章穿越板檔案不存在:" + id);
+}
+if (chapter4Transition.steps[2]?.plate !== "ch04_transition_1665_woolsthorpe_arrival_v01")
+  fail("第四章穿越最後一拍沒有落地 Woolsthorpe");
 
 const promptPath = path.join(here, "../../public/assets/audio/ch04/PROMPTS_BGM_CH4_GEMINI_20260723.md");
 const prompts = readFileSync(promptPath, "utf-8");
