@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /greybox/chapter.html
+Disallow: /greybox/chapter2.html
+Disallow: /greybox/chapter3.html
+Disallow: /greybox/index.html
+Disallow: /greybox/tests/
+Disallow: /spike_workshop/
+
+Sitemap: https://before-discovery.vercel.app/sitemap.xml
