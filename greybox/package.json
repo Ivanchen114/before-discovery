@@ -6,6 +6,6 @@
   "scripts": {
     "build:ch4-data": "node tools/build-ch4-data.mjs",
     "build:stage": "node tools/build-stage.mjs",
-    "test": "node tests/run-node.mjs"
+    "test": "node tests/run-node.mjs && node tests/run-ch4-art.mjs"
   }
 }

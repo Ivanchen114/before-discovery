@@ -64,7 +64,21 @@
   "C3-3": "bg_ch03_public_demonstration",
   "C3-4": "bg_ch03_public_demonstration",
   "CE-1": "bg_ch03_print_room_1642",
-  "CE-2": "bg_ch03_print_room_1642"
+  "CE-2": "bg_ch03_print_room_1642",
+  "D0-1": "bg_ch03_print_room_1642",
+  "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
+  "D1-1": "bg_ch04_woolsthorpe_study_1665",
+  "D1-2": "bg_ch04_woolsthorpe_study_1665",
+  "D1-3": "bg_ch04_woolsthorpe_study_1665",
+  "D2-1": "bg_ch04_cambridge_hooke_letter_1679",
+  "D2-2": "bg_ch04_cambridge_hooke_letter_1679",
+  "D2-3": "bg_ch04_cambridge_halley_1684",
+  "D3-1": "bg_ch04_cambridge_halley_1684",
+  "D3-2": "bg_ch04_greenwich_observatory_1680s",
+  "D3-3": "bg_ch04_london_printshop_1687",
+  "D3-4": "bg_ch04_london_printshop_1687",
+  "DE-1": "bg_ch04_london_printshop_1687",
+  "DE-2": "bg_ch04_typecase_collision_epilogue"
  },
  "apparatusBriefings": {
   "ch1:A2-2": {
@@ -1361,6 +1375,116 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_marseille_harbor_dawn_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_woolsthorpe_orchard_1665",
+   "kind": "bg",
+   "label": "1665 Woolsthorpe 果園",
+   "path": "ch04/backgrounds/ch04_bg_woolsthorpe_orchard_1665_v01.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_woolsthorpe_orchard_1665_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_woolsthorpe_study_1665",
+   "kind": "bg",
+   "label": "1665 Woolsthorpe 工作室",
+   "path": "ch04/backgrounds/ch04_bg_woolsthorpe_study_1665_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_woolsthorpe_study_1665_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_cambridge_hooke_letter_1679",
+   "kind": "bg",
+   "label": "1679 Cambridge・Hooke 書信",
+   "path": "ch04/backgrounds/ch04_bg_cambridge_hooke_letter_1679_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_cambridge_hooke_letter_1679_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_cambridge_halley_1684",
+   "kind": "bg",
+   "label": "1684 Cambridge・Halley 來訪",
+   "path": "ch04/backgrounds/ch04_bg_cambridge_halley_1684_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_cambridge_halley_1684_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_greenwich_observatory_1680s",
+   "kind": "bg",
+   "label": "1680 年代 Greenwich 觀測室",
+   "path": "ch04/backgrounds/ch04_bg_greenwich_observatory_1680s_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_greenwich_observatory_1680s_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_london_printshop_1687",
+   "kind": "bg",
+   "label": "1687 London 印刷室",
+   "path": "ch04/backgrounds/ch04_bg_london_printshop_1687_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_london_printshop_1687_master_v01.png"
+  },
+  {
+   "id": "bg_ch04_typecase_collision_epilogue",
+   "kind": "bg",
+   "label": "章末鉛字盒碰撞",
+   "path": "ch04/backgrounds/ch04_bg_typecase_collision_epilogue_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_typecase_collision_epilogue_master_v01.png"
+  },
+  {
+   "id": "dialogue_newton22",
+   "kind": "portrait",
+   "label": "Isaac Newton 22 歲（合理重建）",
+   "path": "ch04/characters/ch04_char_newton22_v01.webp",
+   "firstScreen": true,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch04/characters/ch04_char_newton22_alpha_v02.png"
+  },
+  {
+   "id": "dialogue_newton41",
+   "kind": "portrait",
+   "label": "Isaac Newton 約 41 歲（合理重建）",
+   "path": "ch04/characters/ch04_char_newton41_v01.webp",
+   "firstScreen": false,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch04/characters/ch04_char_newton41_alpha_v02.png"
+  },
+  {
+   "id": "dialogue_halley28",
+   "kind": "portrait",
+   "label": "Edmond Halley 28 歲（合理重建）",
+   "path": "ch04/characters/ch04_char_halley28_v01.webp",
+   "firstScreen": false,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch04/characters/ch04_char_halley28_alpha_v02.png"
+  },
+  {
+   "id": "chapter_thumbnail_ch04",
+   "kind": "cg",
+   "label": "第四章章節縮圖",
+   "path": "ch04/backgrounds/ch04_bg_woolsthorpe_orchard_1665_v01.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_woolsthorpe_orchard_1665_master_v01.png"
   }
  ],
  "sceneDialoguePortrait": {
@@ -1597,7 +1721,50 @@
   },
   "CE-2": {
    "伽桑狄": "dialogue_gassendi48"
-  }
+  },
+  "D0-1": {},
+  "D0-2": {
+   "Newton": "dialogue_newton22"
+  },
+  "D1-1": {
+   "Newton": "dialogue_newton22"
+  },
+  "D1-2": {
+   "Newton": "dialogue_newton22"
+  },
+  "D1-3": {
+   "Newton": "dialogue_newton22"
+  },
+  "D2-1": {
+   "Newton": "dialogue_newton41"
+  },
+  "D2-2": {
+   "Newton": "dialogue_newton41"
+  },
+  "D2-3": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28"
+  },
+  "D3-1": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28"
+  },
+  "D3-2": {
+   "Newton": "dialogue_newton41"
+  },
+  "D3-3": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28"
+  },
+  "D3-4": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28"
+  },
+  "DE-1": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28"
+  },
+  "DE-2": {}
  },
  "speakerDialoguePortrait": {
   "助手": "dialogue_assistant_earnest",
@@ -1605,7 +1772,9 @@
   "年輕人": "dialogue_galileo26_neutral",
   "伽桑狄": "dialogue_gassendi48",
   "艦長": "dialogue_captain50",
-  "艾蒂安": "dialogue_etienne17"
+  "艾蒂安": "dialogue_etienne17",
+  "Newton": "dialogue_newton41",
+  "Halley": "dialogue_halley28"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -1615,7 +1784,9 @@
   "主持": "right",
   "伽桑狄": "right",
   "艦長": "left",
-  "艾蒂安": "left"
+  "艾蒂安": "left",
+  "Newton": "right",
+  "Halley": "left"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -2485,7 +2656,8 @@
  },
  "chapterThumbnail": {
   "ch02": "chapter_thumbnail_ch02",
-  "ch03": "chapter_thumbnail_ch03"
+  "ch03": "chapter_thumbnail_ch03",
+  "ch04": "chapter_thumbnail_ch04"
  }
 };
  if (typeof module === "object" && module.exports) { module.exports = data; }

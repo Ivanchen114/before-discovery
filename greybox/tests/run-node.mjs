@@ -258,7 +258,12 @@ tests.push({
     const ids = new Set(assets.entries.map((e) => e.id));
     const scenes2Portrait = require("../data/scenes2.js");
     const scenes3Portrait = require("../data/scenes3.js");
-    const allPortraitScenes = scenes.scenes.concat(scenes2Portrait.scenes, scenes3Portrait.scenes);
+    const scenes4Portrait = require("../data/scenes4.js");
+    const allPortraitScenes = scenes.scenes.concat(
+      scenes2Portrait.scenes,
+      scenes3Portrait.scenes,
+      scenes4Portrait.scenes
+    );
     const sceneIds = new Set(allPortraitScenes.map((s) => s.id));
     const sdp = assets.sceneDialoguePortrait || {};
     const EARLY = /^(P0-|A1-)/;                 /* 1590:26 歲伽利略/58 歲辛普里奧 */
@@ -295,7 +300,8 @@ tests.push({
     const ldp = assets.lineDialoguePortrait || [];
     const scenesText = readFileSync(path.join(here, "../data/scenes.json"), "utf-8") +
       readFileSync(path.join(here, "../data/scenes2.json"), "utf-8") +
-      readFileSync(path.join(here, "../data/scenes3.json"), "utf-8");
+      readFileSync(path.join(here, "../data/scenes3.json"), "utf-8") +
+      readFileSync(path.join(here, "../data/scenes4.json"), "utf-8");
     const debateText = readFileSync(path.join(here, "../data/debate.json"), "utf-8") +
       readFileSync(path.join(here, "../data/debate2.json"), "utf-8");
     for (const r of ldp) {
