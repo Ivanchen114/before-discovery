@@ -7,7 +7,7 @@
   "G1": "航船桅頂落石",
   "G2": "船艙共同運動",
   "G3": "加速／減速對照",
-  "G4": "雙參考物疊圖",
+  "G4": "雙參考物對照",
   "G5": "反對失效，不等於主張得證"
  },
  "evidenceSummary": {
@@ -15,7 +15,7 @@
   "G1": "停船基準與三次穩速落石：石頭相對船落在桅腳附近。",
   "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
   "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
- "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
+ "G4": "同一事件的岸上與船上紀錄；分開逐拍讀、配對同號鼓點，再扣除桅杆位置後可互相轉換。",
  "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。"
  },
  "publicDemo": {
@@ -146,7 +146,7 @@
   {
    "id":"C2-2","title":"船一改變主意","nodes":[
     {"id":"n1","type":"line","speaker":"stage","text":"裝置維持不變。這次只改放手之後的船速：加槳，或收槳。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"speed-change","hint":"先封存加速與減速的落點預測，再各做一次對照。","until":{"ship":"g3"},"next":"n2"},
+    {"id":"e1","type":"embed","system":"ship","phase":"speed-change","hint":"先封存加速與減速的落點預測，至少各做一次；之後仍可自由重做比較。","until":{"ship":"g3"},"next":"n2"},
     {"id":"n2","type":"line","speaker":"艦長","text":"所以第一回看見的落後，不是假的。","next":"n3"},
     {"id":"n3","type":"line","speaker":"旅人(你)","text":"不是假的。只是它證明的是船在加速，不是石頭天生會忘記前行。","next":"n4"},
     {"id":"n4","type":"line","speaker":"伽桑狄","text":"失敗紀錄，現在升格成證據。","next":"g1"},
@@ -155,14 +155,14 @@
   },
   {
    "id":"C2-3","title":"岸上的紙，船上的紙","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"艾蒂安帶回岸上紙帶；旅人攤開船上紙帶。兩張都標著同一串鼓點。","next":"n2"},
+    {"id":"n1","type":"line","speaker":"stage","text":"艾蒂安把岸上紙攤在上方；旅人把船上紙攤在下方。兩張分開顯示，都標著同一串鼓點。","next":"n2"},
     {"id":"n2","type":"line","speaker":"艾蒂安","text":"我的石頭往前走。","next":"n3"},
     {"id":"n3","type":"line","speaker":"艦長","text":"我的石頭直直落。","next":"n4"},
     {"id":"n4","type":"line","speaker":"伽桑狄","text":"很好。現在誰要把誰的紙燒掉？","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"overlay","hint":"先讓同一聲鼓相認，再扣除每個時刻桅杆向前的位移。","until":{"ship":"g4"},"next":"n5"},
+    {"id":"e1","type":"embed","system":"ship","phase":"overlay","hint":"先逐拍讀懂兩張紙各自量什麼，再配對同號鼓點，最後扣除同一時刻的桅杆位置。","until":{"ship":"g4"},"next":"n5"},
     {"id":"n5","type":"line","speaker":"旅人(你)","text":"兩張圖沒有互相推翻。它們只是各自把不同的東西當作不動。","next":"n6"},
     {"id":"n6","type":"line","speaker":"伽桑狄","text":"一句話如果沒先回答『相對誰』，通常只說了一半。","next":"s1"},
-    {"id":"s1","type":"system","speaker":"system","text":"取得證據：雙參考物疊圖。解鎖操作詞：切換參考物。現代整理詞「參考系」留到史實頁。","effects":[{"flag":["referenceNamed","1"]}],"next":"g1"},
+    {"id":"s1","type":"system","speaker":"system","text":"取得證據：雙參考物對照。解鎖操作詞：切換參考物。現代整理詞「參考系」留到史實頁。","effects":[{"flag":["referenceNamed","1"]}],"next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-4"}
    ]
   },

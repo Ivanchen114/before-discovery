@@ -1873,13 +1873,33 @@ tests.push({
     s = Engine3.setSpeedPrediction(s, "behind", "ahead").state;
     s = Engine3.runSpeedChange(s, "accelerating").state; s = Engine3.runSpeedChange(s, "decelerating").state;
     if (s.evidence.g3) throw new Error("變速對照完成後自動取得 G3");
-    if (!s.speedRuns.accelerating.matched || !s.speedRuns.decelerating.matched) throw new Error("變速預測未押中");
+    if (!Array.isArray(s.speedRuns.accelerating) || !Array.isArray(s.speedRuns.decelerating) ||
+        !s.speedRuns.accelerating[0].matched || !s.speedRuns.decelerating[0].matched)
+      throw new Error("變速預測未押中或未改成可重做紀錄");
+    const speedDay = s.days;
+    const repeatedSpeed = Engine3.runSpeedChange(s, "accelerating");
+    if (repeatedSpeed.noop || repeatedSpeed.error) throw new Error("變速對照完成後不能自由重做");
+    s = repeatedSpeed.state;
+    if (s.speedRuns.accelerating.length !== 2 || s.speedRuns.accelerating[1].offset !== -0.66 ||
+        s.days !== speedDay + 1)
+      throw new Error("變速重做未保存新紀錄、循環 fixture 或計入成本");
     claim = Engine3.assertG3(s, ["accelerating"], "speed-change-breaks-shared-motion");
     if (claim.ok || claim.state.evidence.g3) throw new Error("只引用單一船況仍可取得 G3");
     claim = Engine3.assertG3(s, ["accelerating", "decelerating"], "stone-loses-force");
     if (claim.ok || claim.state.evidence.g3) throw new Error("錯誤 G3 概念仍可成立");
     s = Engine3.assertG3(s, ["accelerating", "decelerating"], "speed-change-breaks-shared-motion").state;
     if (!s.evidence.g3) throw new Error("變速斷言未取得 G3");
+    const pristineOverlay = JSON.stringify(s);
+    if (Engine3.alignRecords(s, "sameBeats").error !== "records-unread" || JSON.stringify(s) !== pristineOverlay)
+      throw new Error("未逐拍讀完兩張紙仍可直接配對，或錯誤動作污染狀態");
+    for (let beat = 0; beat < 4; beat++) {
+      const read = Engine3.inspectRecordBeat(s);
+      if (read.error || read.beat !== beat || read.state.overlay.inspectionBeat !== beat)
+        throw new Error("逐拍閱讀沒有依序亮起 0、1、2、3");
+      s = read.state;
+    }
+    if (!s.overlay.inspected || s.overlay.preview !== "inspection")
+      throw new Error("四拍讀完後沒有解鎖時間配對");
     const beforeOverlay = JSON.stringify(s);
     let wrongAlign = Engine3.alignRecords(s, "endpoints");
     if (wrongAlign.ok !== false || wrongAlign.state.overlay.preview !== "endpoints" ||
@@ -1900,8 +1920,11 @@ tests.push({
     if (wrongTransform.ok !== false || wrongTransform.state.overlay.preview !== "scaleOnly")
       throw new Error("等比例縮放不能自由重試");
     let restarted = Engine3.resetOverlay(wrongTransform.state);
-    if (restarted.state.overlay.preview !== "initial" || restarted.state.overlay.aligned || restarted.state.overlay.transformed)
+    if (restarted.state.overlay.preview !== "initial" || restarted.state.overlay.aligned ||
+        restarted.state.overlay.transformed || restarted.state.overlay.inspected ||
+        restarted.state.overlay.inspectionBeat !== -1)
       throw new Error("雙紙帶不能自由重置");
+    for (let beat = 0; beat < 4; beat++) restarted = Engine3.inspectRecordBeat(restarted.state);
     s = Engine3.alignRecords(restarted.state, "sameBeats").state;
     s = Engine3.transformRecords(s, "subtractMast").state;
     if (!s.overlay.aligned || !s.overlay.transformed || s.overlay.preview !== "subtractMast")
@@ -1943,6 +1966,22 @@ tests.push({
 });
 
 tests.push({
+  name: "第三章變速舊存檔|單筆加減速可遷移並繼續累積",
+  fn: () => {
+    let s = Engine3.initialState();
+    s.predictions = { accelerating: "behind", decelerating: "ahead", locked: true };
+    s.speedRuns = {
+      accelerating: { state:"accelerating", offset:-0.72, predicted:"behind", outcome:"behind", matched:true, day:1 },
+      decelerating: null
+    };
+    const out = Engine3.runSpeedChange(s, "accelerating");
+    if (out.error || out.noop || !Array.isArray(out.state.speedRuns.accelerating) ||
+        out.state.speedRuns.accelerating.length !== 2 || out.state.speedRuns.accelerating[1].offset !== -0.66)
+      throw new Error("舊版單筆變速紀錄未平順遷移成可重做格式");
+  }
+});
+
+tests.push({
   name: "第三章全章走查|17 場黃金路徑、五證據、回顧與史實頁完整通關",
   fn: () => {
     const N3 = Narrative._factory(scenes3, Engine3, {});
@@ -1960,7 +1999,7 @@ tests.push({
         else if (v.phase === "steady-mast") { for (let i=0;i<3;i++) act("runMast", { window: "stable" }); act("assertG1", { baselineIds:[1,2,3], mastIds:[2,3,4], concept:"steady-shares-motion" }); }
         else if (v.phase === "cabin") { for (const vs of ["dock","steady"]) for (const t of ["drip","toss"]) act("runCabin", { vesselState: vs, test: t }); act("assertG2", { cells:["dock:drip","dock:toss","steady:drip","steady:toss"], concept:"steady-matches-dock" }); }
         else if (v.phase === "speed-change") { act("setSpeedPrediction", { accelerating: "behind", decelerating: "ahead" }); act("runSpeedChange", { kind: "accelerating" }); act("runSpeedChange", { kind: "decelerating" }); act("assertG3", { kinds:["accelerating","decelerating"], concept:"speed-change-breaks-shared-motion" }); }
-        else if (v.phase === "overlay") { act("alignRecords", { pair: "sameBeats" }); act("transformRecords", { kind: "subtractMast" }); act("assertG4", { records:["shore","ship"], concept:"same-event-different-reference" }); }
+        else if (v.phase === "overlay") { for (let i=0;i<4;i++) act("inspectRecordBeat"); act("alignRecords", { pair: "sameBeats" }); act("transformRecords", { kind: "subtractMast" }); act("assertG4", { records:["shore","ship"], concept:"same-event-different-reference" }); }
         else if (v.phase === "public-demo") for (const step of Engine3._PUBLIC_STEPS) act("runPublicStep", { step });
         else if (v.phase === "audit") for (const [q,e] of [["wind","G2"],["acceleration","G3"],["paths","G4"]]) act("answerAudit", { questionId:q, evidenceId:e });
         else if (v.phase === "boundary") act("setBoundary", { choice: "honest" });
@@ -1990,6 +2029,9 @@ tests.push({
     if (San.sanitizeImport3(badClaim, scenes3).ok) throw new Error("非法航船斷言未被拒");
     const badOverlay = JSON.parse(N3.serialize(good)); badOverlay.lab.overlay.preview = "teleport";
     if (San.sanitizeImport3(badOverlay, scenes3).ok) throw new Error("非法紙帶預覽狀態未被拒");
+    const badSpeed = JSON.parse(N3.serialize(good));
+    badSpeed.lab.speedRuns.accelerating = [{ state:"accelerating", offset:Infinity, predicted:"behind", outcome:"behind", matched:true }];
+    if (San.sanitizeImport3(badSpeed, scenes3).ok) throw new Error("非法變速讀值未被拒");
     const badPublic = JSON.parse(N3.serialize(good)); badPublic.lab.publicDemo.procedure = ["repeat"];
     if (San.sanitizeImport3(badPublic, scenes3).ok) throw new Error("亂序公開演示程序未被拒");
     const legacyPublic = JSON.parse(N3.serialize(good));
@@ -2081,16 +2123,19 @@ tests.push({
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
       '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
       if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
-    for (const frag of ["只把兩張紙的終點疊在一起", "把相同編號的鼓點逐一對齊", "把其中一張等比例縮放",
-      "每一拍都用石頭位置減去桅杆位置", "shipPaperSheet", "shipBeatConnector",
-      "shipPaperEndpointHalo", "shipPaperMeasure", "shipPaperTransformArrow", "shipPaperPath converted revealed",
-      "重新攤開兩張紙，從頭試", "window.setTimeout", "為什麼一張彎、一張直，卻都能成立"])
+    for (const frag of ["讀第 ", "只拿兩張紙最後一點當成同一時刻", "把同號鼓點配成同一時刻",
+      "把船上紙等比例縮小", "每一拍：石頭離岸 − 桅杆離岸", "shipPaperSheet",
+      "上｜岸上紀錄：尺固定在碼頭", "下｜船上紀錄：尺固定在桅杆（桅杆＝0）",
+      "shipPaperTransformArrow", "shipPaperPath converted revealed", "兩張紙分開，從頭再讀",
+      "想看數學寫法（選讀，不影響過關）", "window.setTimeout", "為什麼一張彎、一張直，卻都能成立"])
       if (!ui.includes(frag)) throw new Error("G4 程式紙帶／可重試契約缺失:" + frag);
     if (!ui.includes('if (phase === "overlay") return null;'))
       throw new Error("G4 仍會把靜態完成圖載入互動主畫面");
-    for (const frag of [".shipPaperBeatLabel", ".shipPaperStepLabel", "@keyframes ship-paper-endpoints",
-      "@keyframes ship-paper-align", "@keyframes ship-paper-scale", "@keyframes ship-transform-arrow"])
+    for (const frag of [".shipPaperBeatLabel", ".shipPaperStepLabel", ".shipPaperSheetLayer.dim",
+      ".shipPaperPairBadge.wrong", ".shipPaperConvertedPanel", "@keyframes ship-transform-arrow"])
       if (!html.includes(frag)) throw new Error("G4 鼓點／紙張動作樣式缺失:" + frag);
+    for (const frag of ["再做「放手後加槳」", "再做「放手後收槳」", "平均相對桅腳", "仍可重做"])
+      if (!ui.includes(frag)) throw new Error("G3 自由重做／累積摘要契約缺失:" + frag);
     for (const frag of ["先用紀錄組成一個公平比較", "單看行船紀錄夠嗎", "還無法回答它『和什麼相同』",
       "一次接近可能只是巧合", "cfg.selectionReady", 'typeof cfg.incomplete === "function"'])
       if (!ui.includes(frag)) throw new Error("G1 兩組資料比較提示缺失:" + frag);

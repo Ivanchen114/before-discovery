@@ -735,6 +735,7 @@
     else if (action === "setSpeedPrediction" && Engine.setSpeedPrediction) r = Engine.setSpeedPrediction(state.lab, args.accelerating, args.decelerating);
     else if (action === "runSpeedChange" && Engine.runSpeedChange) r = Engine.runSpeedChange(state.lab, args.kind);
     else if (action === "assertG3" && Engine.assertG3) r = Engine.assertG3(state.lab, args.kinds, args.concept);
+    else if (action === "inspectRecordBeat" && Engine.inspectRecordBeat) r = Engine.inspectRecordBeat(state.lab);
     else if (action === "alignRecords" && Engine.alignRecords) r = Engine.alignRecords(state.lab, args.pair);
     else if (action === "transformRecords" && Engine.transformRecords) r = Engine.transformRecords(state.lab, args.kind);
     else if (action === "resetOverlay" && Engine.resetOverlay) r = Engine.resetOverlay(state.lab);

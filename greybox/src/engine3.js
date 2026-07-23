@@ -39,7 +39,7 @@
     y: [0, 1, 4, 9],
     shipStoneX: [0, 0, 0, 0]
   };
-  var OVERLAY_PREVIEWS = ["initial", "endpoints", "sameBeats", "scaleOnly", "subtractMast"];
+  var OVERLAY_PREVIEWS = ["initial", "inspection", "endpoints", "sameBeats", "scaleOnly", "subtractMast"];
   var PUBLIC_STEPS = ["baseline", "stable-window", "no-push", "seal-prediction", "repeat"];
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
@@ -72,15 +72,28 @@
         s.cabin[vessel][test] = old.length > 0;
       });
     });
+    if (!s.speedRuns) s.speedRuns = { accelerating: [], decelerating: [] };
+    ["accelerating", "decelerating"].forEach(function (kind) {
+      var old = s.speedRuns[kind];
+      /* v1 每種變速船況只能保存一筆；轉成可追加陣列，保留既有進度。 */
+      if (!Array.isArray(old)) s.speedRuns[kind] = old ? [old] : [];
+    });
     if (!s.claims) s.claims = { g1: [], g2: [], g3: [], g4: [] };
     ["g1", "g2", "g3", "g4"].forEach(function (id) { if (!Array.isArray(s.claims[id])) s.claims[id] = []; });
-    if (!s.overlay) s.overlay = { aligned: false, transformed: false, activeReference: "shore", preview: "initial" };
+    if (!s.overlay) s.overlay = {
+      aligned: false, transformed: false, activeReference: "shore",
+      preview: "initial", inspectionBeat: -1, inspected: false
+    };
     if (typeof s.overlay.aligned !== "boolean") s.overlay.aligned = false;
     if (typeof s.overlay.transformed !== "boolean") s.overlay.transformed = false;
     if (s.overlay.activeReference !== "shore" && s.overlay.activeReference !== "ship") s.overlay.activeReference = "shore";
     if (OVERLAY_PREVIEWS.indexOf(s.overlay.preview) < 0) {
       s.overlay.preview = s.overlay.transformed ? "subtractMast" : (s.overlay.aligned ? "sameBeats" : "initial");
     }
+    if (!Number.isInteger(s.overlay.inspectionBeat) || s.overlay.inspectionBeat < -1 || s.overlay.inspectionBeat > 3)
+      s.overlay.inspectionBeat = -1;
+    if (typeof s.overlay.inspected !== "boolean")
+      s.overlay.inspected = !!(s.overlay.aligned || s.overlay.transformed);
     if (!s.publicDemo) s.publicDemo = { procedure: [], runs: 0, predictionsSealed: false, complete: false };
     if (!Array.isArray(s.publicDemo.procedure)) s.publicDemo.procedure = [];
     if (typeof s.publicDemo.predictionsSealed !== "boolean") {
@@ -112,8 +125,11 @@
       cabin: { dock: { drip: false, toss: false }, steady: { drip: false, toss: false } },
       cabinResults: { dock: { drip: [], toss: [] }, steady: { drip: [], toss: [] } },
       predictions: { accelerating: null, decelerating: null, locked: false },
-      speedRuns: { accelerating: null, decelerating: null },
-      overlay: { aligned: false, transformed: false, activeReference: "shore", preview: "initial" },
+      speedRuns: { accelerating: [], decelerating: [] },
+      overlay: {
+        aligned: false, transformed: false, activeReference: "shore",
+        preview: "initial", inspectionBeat: -1, inspected: false
+      },
       publicDemo: { procedure: [], runs: 0, predictionsSealed: false, complete: false },
       audit: { wind: false, acceleration: false, paths: false, boundary: false, overclaimTried: false },
       claims: { g1: [], g2: [], g3: [], g4: [] },
@@ -209,28 +225,42 @@
   function runSpeedChange(state0, kind) {
     if (!state0.predictions.locked) return err(state0, "prediction-required");
     if (kind !== "accelerating" && kind !== "decelerating") return err(state0, "unknown-speed-state");
-    if (state0.speedRuns[kind]) return { state: state0, noop: true };
-    var s = clone(state0), vals = MAST[kind], expected = kind === "accelerating" ? "behind" : "ahead";
+    var s = ensureNewFields(clone(state0)), vals = MAST[kind];
+    var runs = s.speedRuns[kind], expected = kind === "accelerating" ? "behind" : "ahead";
     s.days += 1;
-    s.speedRuns[kind] = { state: kind, offset: vals[0], predicted: s.predictions[kind],
-      outcome: expected, matched: s.predictions[kind] === expected, day: s.days };
-    var complete = !!(s.speedRuns.accelerating && s.speedRuns.decelerating);
-    return { state: s, run: clone(s.speedRuns[kind]), claimReady: complete };
+    var run = { id: runs.length + 1, state: kind, offset: vals[runs.length % vals.length],
+      predicted: s.predictions[kind], outcome: expected,
+      matched: s.predictions[kind] === expected, day: s.days };
+    runs.push(run);
+    var complete = s.speedRuns.accelerating.length > 0 && s.speedRuns.decelerating.length > 0;
+    return { state: s, run: clone(run), claimReady: complete };
   }
   function assertG3(state0, kinds, concept) {
     var s = ensureNewFields(clone(state0));
     var picked = unique(kinds || []).sort();
-    var complete = !!(s.speedRuns.accelerating && s.speedRuns.decelerating);
-    var signs = complete && s.speedRuns.accelerating.offset < 0 && s.speedRuns.decelerating.offset > 0;
+    var complete = s.speedRuns.accelerating.length > 0 && s.speedRuns.decelerating.length > 0;
+    var signs = complete &&
+      mean(s.speedRuns.accelerating.map(function (r) { return r.offset; })) < 0 &&
+      mean(s.speedRuns.decelerating.map(function (r) { return r.offset; })) > 0;
     var ok = signs && JSON.stringify(picked) === JSON.stringify(["accelerating", "decelerating"]) &&
       concept === "speed-change-breaks-shared-motion";
     recordClaim(s, "g3", { sources: picked, concept: concept }, ok);
     if (ok) s.evidence.g3 = true;
     return { state: s, ok: ok, reason: ok ? null : "claim-mismatch", evidence: ok ? "G3" : null };
   }
+  function inspectRecordBeat(state0) {
+    if (!state0.evidence.g3) return err(state0, "g3-required");
+    var s = ensureNewFields(clone(state0));
+    var next = s.overlay.inspectionBeat >= PAPER.beats.length - 1 ? 0 : s.overlay.inspectionBeat + 1;
+    s.overlay.inspectionBeat = next;
+    s.overlay.preview = "inspection";
+    if (next === PAPER.beats.length - 1) s.overlay.inspected = true;
+    return { state: s, ok: true, beat: next, inspected: s.overlay.inspected, preview: "inspection" };
+  }
   function alignRecords(state0, pair) {
     if (!state0.evidence.g3) return err(state0, "g3-required");
     var s = ensureNewFields(clone(state0));
+    if (!s.overlay.inspected) return err(state0, "records-unread");
     if (pair === "endpoints" || pair === "thirdFourth") {
       s.overlay.aligned = false; s.overlay.transformed = false; s.overlay.preview = "endpoints";
       return { state: s, ok: false, reason: "beats-mismatch", preview: "endpoints" };
@@ -253,7 +283,10 @@
   function resetOverlay(state0) {
     if (!state0.evidence.g3) return err(state0, "g3-required");
     var s = ensureNewFields(clone(state0));
-    s.overlay = { aligned: false, transformed: false, activeReference: "shore", preview: "initial" };
+    s.overlay = {
+      aligned: false, transformed: false, activeReference: "shore",
+      preview: "initial", inspectionBeat: -1, inspected: false
+    };
     return { state: s, ok: true, preview: "initial" };
   }
   function assertG4(state0, records, concept) {
@@ -306,7 +339,7 @@
     setRelease: setRelease, calibratePlumb: calibratePlumb, runBaseline: runBaseline,
     runMast: runMast, runCabin: runCabin, setSpeedPrediction: setSpeedPrediction,
     assertG1: assertG1, assertG2: assertG2, assertG3: assertG3, assertG4: assertG4,
-    runSpeedChange: runSpeedChange, alignRecords: alignRecords,
+    runSpeedChange: runSpeedChange, inspectRecordBeat: inspectRecordBeat, alignRecords: alignRecords,
     transformRecords: transformRecords, resetOverlay: resetOverlay, setReference: setReference,
     runPublicStep: runPublicStep, answerAudit: answerAudit, setBoundary: setBoundary,
     baselineReady: baselineReady,

@@ -191,8 +191,26 @@
     if (typeof lab.overlay.aligned !== "boolean" || typeof lab.overlay.transformed !== "boolean" ||
         ["shore", "ship"].indexOf(lab.overlay.activeReference) < 0 ||
         (lab.overlay.preview != null &&
-          ["initial", "endpoints", "sameBeats", "scaleOnly", "subtractMast"].indexOf(lab.overlay.preview) < 0))
+          ["initial", "inspection", "endpoints", "sameBeats", "scaleOnly", "subtractMast"].indexOf(lab.overlay.preview) < 0) ||
+        (lab.overlay.inspectionBeat != null &&
+          (!isInt(lab.overlay.inspectionBeat) || lab.overlay.inspectionBeat < -1 || lab.overlay.inspectionBeat > 3)) ||
+        (lab.overlay.inspected != null && typeof lab.overlay.inspected !== "boolean"))
       return fail("雙紙帶操作紀錄格式錯誤");
+    for (var speedKind of ["accelerating", "decelerating"]) {
+      /* v1 單筆物件與 v1.2 可重做陣列都接受；進引擎後統一遷移為陣列。 */
+      var speedCell = lab.speedRuns[speedKind];
+      var speedRows = speedCell == null ? [] : (Array.isArray(speedCell) ? speedCell : [speedCell]);
+      if (speedRows.length > 100) return fail("變速比較紀錄筆數異常");
+      for (var sr = 0; sr < speedRows.length; sr++) {
+        var speedRun = speedRows[sr];
+        if (!speedRun || speedRun.state !== speedKind ||
+            typeof speedRun.offset !== "number" || !isFinite(speedRun.offset) ||
+            ["behind", "foot", "ahead"].indexOf(speedRun.predicted) < 0 ||
+            ["behind", "ahead"].indexOf(speedRun.outcome) < 0 ||
+            typeof speedRun.matched !== "boolean")
+          return fail("變速比較紀錄含無法辨識的讀值");
+      }
+    }
     var publicOrder = ["baseline", "stable-window", "no-push", "seal-prediction", "repeat"];
     var legacyPublicOrder = ["baseline", "stable-window", "no-push", "repeat"];
     var publicProcedure = lab.publicDemo.procedure;

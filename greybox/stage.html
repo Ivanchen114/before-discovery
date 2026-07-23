@@ -1454,27 +1454,34 @@
   .shipSimBadge { fill: rgba(20,19,15,.76); stroke: #b9955e; stroke-width: 3; }.shipSimBadge.done { fill: rgba(65,98,66,.82); }
   .shipSimBadgeText { fill: #f7e6c6; font: 700 21px var(--font-ui); }
   .shipSimDeckAxis { stroke: rgba(235,207,149,.82); stroke-width: 5; }
+  .shipSimLandingHistory { fill: rgba(246,215,151,.45); stroke: rgba(52,38,25,.72); stroke-width: 2; }
   .shipTapeTool { background: radial-gradient(circle at 50% 35%,rgba(101,125,119,.26),transparent 56%),linear-gradient(150deg,#19201f,#0d1111); }
   .shipPaperSheet { fill: rgba(239,222,181,.76); stroke-width: 3; filter: drop-shadow(0 5px 8px rgba(0,0,0,.42)); }
-  .shipPaperSheet.shore { stroke: #4d7890; }.shipPaperSheet.ship { fill: rgba(222,193,151,.58); stroke: #a56c45; stroke-dasharray: 12 7; }
-  .shipPaperSheetLayer.ship.endpoints { animation: ship-paper-endpoints .62s ease-out both; }
-  .shipPaperSheetLayer.ship.sameBeats { animation: ship-paper-align .62s ease-out both; }
-  .shipPaperSheetLayer.ship.scaleOnly { transform-origin: 0 0; animation: ship-paper-scale .66s ease-out both; }
+  .shipPaperSheet.shore { stroke: #4d7890; }.shipPaperSheet.ship { fill: rgba(222,193,151,.72); stroke: #a56c45; stroke-dasharray: 12 7; }
+  .shipPaperSheetLayer { transition: opacity .3s ease; }
+  .shipPaperSheetLayer.dim { opacity: .28; }
   .shipPaperPath { fill: none; stroke: #275d7a; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 900; stroke-dashoffset: 900; animation: ship-draw-path 1.05s ease-out forwards; }
   .shipPaperPath.ship { stroke: #9a4f2e; opacity: .78; }.shipPaperPath.ship.revealed { opacity: 1; }
+  .shipPaperPath.ship.scaled { stroke-width: 4; opacity: .7; }
   .shipPaperPath.converted { stroke: #1b7f9d; stroke-width: 5; opacity: .96; }
   .shipPaperBeat { fill: #fff1c9; stroke-width: 3; }.shipPaperBeat.shore { stroke: #275d7a; }.shipPaperBeat.ship { stroke: #9a4f2e; }
+  .shipPaperBeat.focused, .shipPaperPosition.focused { fill: #ffdd74; stroke: #a24d26; stroke-width: 5; animation: ship-beat .42s ease-out both; }
   .shipPaperBeatLabel { fill: #3c2b1e; paint-order: stroke; stroke: rgba(246,227,184,.88); stroke-width: 4; font: 800 15px var(--font-ui); }
-  .shipBeatConnector { stroke-width: 3; stroke-dasharray: 7 6; transition: all .55s ease; }
-  .shipBeatConnector.misaligned { stroke: rgba(221,114,72,.8); }.shipBeatConnector.aligned { stroke: rgba(78,137,91,.95); stroke-dasharray: none; }
   .shipPaperPosition { stroke-width: 3; }.shipPaperPosition.shore { fill: #d7edf4; stroke: #275d7a; }.shipPaperPosition.ship { fill: #f4d5bd; stroke: #9a4f2e; }
   .shipPaperPosition.converted { fill: #bcebf0; stroke: #126d88; animation: ship-beat .42s ease-out both; }
-  .shipPaperEndpoint { fill: #f3d47f; stroke-width: 4; }.shipPaperEndpoint.shore { stroke: #275d7a; }.shipPaperEndpoint.ship { stroke: #9a4f2e; }
-  .shipPaperEndpointHalo { fill: none; stroke: #ffdd74; stroke-width: 5; animation: ship-endpoint-pulse .7s ease-out both; }
   .shipPaperTransformArrow { stroke: #1b7f9d; stroke-width: 4; stroke-dasharray: 8 5; animation: ship-transform-arrow .65s ease-out both; }
   .shipPaperArrowMarker path { fill: #1b7f9d; }
-  .shipPaperMeasure { stroke: #754d2d; stroke-width: 3; marker-start: url(#ship-paper-arrow); marker-end: url(#ship-paper-arrow); }
   .shipDiagram .shipPaperLabel { fill: #352619; paint-order: stroke; stroke: rgba(244,225,181,.88); stroke-width: 5; font: 800 19px var(--font-ui); }
+  .shipDiagram .shipPaperNote { fill: #574331; font: 700 15px var(--font-ui); }
+  .shipPaperMastTrack, .shipPaperFixedMast { stroke: #81623f; stroke-width: 3; stroke-dasharray: 7 5; }
+  .shipPaperSameX { stroke: rgba(65,90,101,.35); stroke-width: 2; stroke-dasharray: 5 5; }
+  .shipPaperSameX.focused { stroke: #d07a35; stroke-width: 4; }
+  .shipPaperMastMarker { fill: none; stroke: #754d2d; stroke-width: 4; }
+  .shipPaperMastMarker.focused { stroke: #d07a35; stroke-width: 6; }
+  .shipDiagram .shipPaperPairBadge { fill: #f5dfad; paint-order: stroke; stroke: rgba(18,12,8,.94); stroke-width: 6; font: 800 16px var(--font-ui); }
+  .shipDiagram .shipPaperPairBadge.wrong { fill: #ffc0a5; }.shipDiagram .shipPaperPairBadge.right { fill: #bfe6c2; }
+  .shipPaperScaledOutline { fill: rgba(255,248,224,.24); stroke: #9a4f2e; stroke-width: 3; stroke-dasharray: 8 6; }
+  .shipPaperConvertedPanel { fill: rgba(188,235,240,.28); stroke: #126d88; stroke-width: 3; }
   .shipDiagram .shipPaperCallout { fill: #ffe4a0; paint-order: stroke; stroke: rgba(18,12,8,.94); stroke-width: 6; font: 800 16px var(--font-ui); }
   .shipDiagram .shipPaperCallout.converted { fill: #bcebf0; }
   .shipDiagram .shipPaperStepLabel { fill: #f4dfb7; paint-order: stroke; stroke: rgba(18,12,8,.94); stroke-width: 7; font: 700 17px var(--font-ui); }
@@ -1487,14 +1494,10 @@
   @keyframes ship-land { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   @keyframes ship-draw-path { to { stroke-dashoffset: 0; } }
   @keyframes ship-beat { from { transform: scale(.35); } to { transform: scale(1); } }
-  @keyframes ship-paper-endpoints { from { transform: translate(65px,0); } to { transform: translate(30px,0); } }
-  @keyframes ship-paper-align { from { transform: translate(30px,0); } to { transform: translate(-40px,0); } }
-  @keyframes ship-paper-scale { from { transform: translate(-40px,0) scale(1); } to { transform: translate(70px,60px) scale(.78); } }
-  @keyframes ship-endpoint-pulse { from { opacity: 0; transform: scale(.45); transform-origin: 850px 75px; } to { opacity: 1; transform: scale(1); transform-origin: 850px 75px; } }
   @keyframes ship-transform-arrow { from { stroke-dashoffset: 70; opacity: .2; } to { stroke-dashoffset: 0; opacity: 1; } }
   @media (prefers-reduced-motion: reduce) {
     .shipScenePlate, .shipSimStone.running, .shipSimDrop.running, .shipSimTossBall.running, .shipSimLanding,
-    .shipPaperPath, .shipPaperBeat, .shipPaperSheetLayer.ship, .shipPaperEndpointHalo, .shipPaperTransformArrow {
+    .shipPaperPath, .shipPaperBeat, .shipPaperSheetLayer, .shipPaperTransformArrow {
       animation-duration: .01ms !important; animation-delay: 0ms !important;
     }
   }
@@ -1509,6 +1512,9 @@
   .shipLab .shipAction.danger { color: #6d3027; background: #ead5c5; border-color: #a06354; }
   .shipNote, .shipMessage { margin: 7px 0; padding: 7px 9px; border-left: 4px solid #8d653d; background: rgba(132,91,47,.09); }
   .shipStepPrompt { color: #493522; font-weight: 650; line-height: 1.55; }
+  .shipMathOptional { margin: 9px 0; padding: 8px 10px; border: 1px solid rgba(105,77,46,.35); background: rgba(255,250,234,.38); }
+  .shipMathOptional summary { cursor: pointer; color: #65431f; font-weight: 750; }
+  .shipMathOptional p { margin: 7px 0 0; line-height: 1.5; }
   .shipTapeRetry { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(91,68,43,.35); }
   .shipMessage { white-space: pre-line; min-height: 26px; }.shipGate { float: right; min-width: 220px; }
   .shipTable { width: 100%; margin: 8px 0 !important; font-size: 13px !important; }.shipTable th { background: rgba(112,79,45,.12); }
