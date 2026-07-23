@@ -8,7 +8,7 @@
 
   function encode(chapter, state) {
     if (chapter === "ch1") return JSON.stringify(state);
-    if (chapter !== "ch2" && chapter !== "ch3") return JSON.stringify(state);
+    if (chapter !== "ch2" && chapter !== "ch3" && chapter !== "ch4") return JSON.stringify(state);
     return JSON.stringify({
       format: FORMAT,
       envelopeVersion: VERSION,
@@ -26,7 +26,7 @@
     if (!("format" in value)) return { legacy: true, value: value };
     if (value.format !== FORMAT) return { error: "format" };
     if (value.envelopeVersion !== VERSION) return { error: "envelope-version" };
-    if (value.chapter !== "ch1" && value.chapter !== "ch2" && value.chapter !== "ch3") return { error: "chapter" };
+    if (value.chapter !== "ch1" && value.chapter !== "ch2" && value.chapter !== "ch3" && value.chapter !== "ch4") return { error: "chapter" };
     if (!value.payload || typeof value.payload !== "object" || Array.isArray(value.payload)) return { error: "payload" };
     return { envelope: true, chapter: value.chapter, payload: value.payload };
   }

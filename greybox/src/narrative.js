@@ -16,7 +16,7 @@
 
   /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
      不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
-  var CHAPTER_ID = /^ch[123]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var CHAPTER_ID = /^ch[1234]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : 1;
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = "SC-R1";
@@ -618,6 +618,18 @@
       if (until.ship === "audit") return !!(sh.audit && sh.audit.wind && sh.audit.acceleration && sh.audit.paths);
       if (until.ship === "g5") return !!se.g5;
     }
+    if (until.orbit) {
+      var ob = state.lab || {}, oe = ob.evidence || {};
+      if (until.orbit === "tangent") return !!(ob.orbitLab && ob.orbitLab.tangentRecord);
+      if (until.orbit === "closed") return !!(ob.orbitLab && ob.orbitLab.complete);
+      if (until.orbit === "k1") return !!oe.k1;
+      if (until.orbit === "k2") return !!oe.k2;
+      if (until.orbit === "k3") return !!oe.k3;
+      if (until.orbit === "press-opening")
+        return !!(ob.proof && ob.proof.press && ob.proof.press.openingChoice);
+      if (until.orbit === "k4") return !!oe.k4;
+      if (until.orbit === "k5") return !!oe.k5;
+    }
     return true;
   }
 
@@ -744,6 +756,30 @@
     else if (action === "runPublicStep" && Engine.runPublicStep) r = Engine.runPublicStep(state.lab, args.step);
     else if (action === "answerAudit" && Engine.answerAudit) r = Engine.answerAudit(state.lab, args.questionId, args.evidenceId);
     else if (action === "setBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
+    /* 第四章軌道、跨尺度反驗與行動制校樣。 */
+    else if (action === "advanceTransition" && Engine.advanceTransition) r = Engine.advanceTransition(state.lab, args.cardId);
+    else if (action === "startOrbitAttempt" && Engine.startOrbitAttempt) r = Engine.startOrbitAttempt(state.lab);
+    else if (action === "commitDeflection" && Engine.commitDeflection) r = Engine.commitDeflection(state.lab, args.vector);
+    else if (action === "runConsequence" && Engine.runConsequence) r = Engine.runConsequence(state.lab);
+    else if (action === "repeatOrbitRule" && Engine.repeatOrbitRule) r = Engine.repeatOrbitRule(state.lab);
+    else if (action === "assertK1" && Engine.assertK1) r = Engine.assertK1(state.lab, args.records, args.concept);
+    else if (action === "setScale" && Engine.setScale) r = Engine.setScale(state.lab, args.distanceRatio, args.timeRatio);
+    else if (action === "tryDistanceLaw" && Engine.tryDistanceLaw) r = Engine.tryDistanceLaw(state.lab, args.exponent);
+    else if (action === "lockDistanceLaw" && Engine.lockDistanceLaw) r = Engine.lockDistanceLaw(state.lab, args.exponent);
+    else if (action === "unlockDistanceLaw" && Engine.unlockDistanceLaw) r = Engine.unlockDistanceLaw(state.lab);
+    else if (action === "resetPlanetReveals" && Engine.resetPlanetReveals) r = Engine.resetPlanetReveals(state.lab);
+    else if (action === "predictPlanet" && Engine.predictPlanet) r = Engine.predictPlanet(state.lab, args.id);
+    else if (action === "assertK2" && Engine.assertK2) r = Engine.assertK2(state.lab, args.records, args.concept);
+    else if (action === "assertK3" && Engine.assertK3) r = Engine.assertK3(state.lab, args.records, args.concept);
+    else if (action === "runModel" && Engine.runModel) r = Engine.runModel(state.lab, args.model, args.caseId);
+    else if (action === "assertK4" && Engine.assertK4) r = Engine.assertK4(state.lab, args.records, args.claim);
+    else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
+    else if (action === "assignCredit" && Engine.assignCredit) r = Engine.assignCredit(state.lab, args.contribution, args.person);
+    else if (action === "submitPartialProof" && Engine.submitPartialProof) r = Engine.submitPartialProof(state.lab, args.scope);
+    else if (action === "deferPress" && Engine.deferPress) r = Engine.deferPress(state.lab, args.reason);
+    else if (action === "setProofBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
+    else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
+    else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
@@ -754,6 +790,10 @@
     ["G1", "G2", "G3", "G4", "G5"].forEach(function (id) {
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
         grantEvidence(state, id, "ship3");
+    });
+    ["K1", "K2", "K3", "K4", "K5"].forEach(function (id) {
+      if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
+        grantEvidence(state, id, "orbit4");
     });
     if (r.repDelta) applyRep(state, r.repDelta, "ship3." + action);
     if (action === "judge") {

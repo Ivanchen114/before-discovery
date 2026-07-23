@@ -7,7 +7,7 @@
   var lastLineScene = null;
   /* 任何會讓對話框退場、把畫面交給大型互動的視圖，都必須等玩家親手收掉最後一句。
      ship 曾漏列，造成第三章台詞一播完就自動切進航船實驗。 */
-  var YIELD_VIEWS = { debate: 1, lab: 1, ship: 1, review: 1, histfacts: 1 };
+  var YIELD_VIEWS = { debate: 1, lab: 1, ship: 1, orbit: 1, review: 1, histfacts: 1 };
   function syncFlags() {
     var active = typing || waiting || queue.length > 0 || ackPending;
     body.classList.toggle("held", active);

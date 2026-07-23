@@ -167,6 +167,17 @@
         "最後只說證據夠重的話——淘汰『必落船尾』的反對，不等於直接證成地球正在運動。"
       ];
       $("btnLabIntroGo").textContent = "登上實驗船";
+    } else if (CHAPTER_ID === "ch4") {
+      title.textContent = "旅人筆記・軌道與出版備忘";
+      lines = [
+        "先讓錯路走完——沒有偏折、朝外或過強，都會先演成完整路徑；後果結束後才看提示。",
+        "每拍都重新找地心——月亮位置改了，下一支向內箭頭的方向也會跟著改；不要照抄紙面角度。",
+        "先比較，再封存——距離與時間先拉到同一尺度，至少試兩條律，才能鎖下一條去碰未揭露資料。",
+        "舊預測不能消失——解鎖改律時，先前封存的 Mars／Jupiter 預測仍保留並劃線。",
+        "公平比較模型——Moon 一格不夠；反平方與簡單共轉渦旋都要跑 Moon、Planets、Comet。",
+        "出版沒有倒數——閱讀、重排與預覽不耗窗口；只有送樣或明列理由延後，才讓排程往前走。"
+      ];
+      $("btnLabIntroGo").textContent = "開始畫軌道";
     } else {
       return;
     }
@@ -178,7 +189,7 @@
     if (!box || box.children.length) return;
     var ids = CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] :
       CHAPTER_ID === "ch3" ? ["ship3_g1_mast_dock", "ship3_g2_cabin"] :
-      ["prop_water_clock", "prop_ball_groove"];
+      CHAPTER_ID === "ch4" ? [] : ["prop_water_clock", "prop_ball_groove"];
     ids.forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;

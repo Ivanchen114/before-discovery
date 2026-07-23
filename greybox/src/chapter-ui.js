@@ -10,7 +10,7 @@
   var DEBATE = window.GB.DATA.debate || {};
   var TEXT = window.GB.TextFormat || null;
   var ENVELOPE = window.GB.SaveEnvelope || null;
-  var CHAPTER_ID = N.CHAPTER_ID || (/^ch[123]$/.test(SCENES.chapter) ? SCENES.chapter : "ch1");
+  var CHAPTER_ID = N.CHAPTER_ID || (/^ch[1234]$/.test(SCENES.chapter) ? SCENES.chapter : "ch1");
   var KEY = window.BD_SAVE_KEY || "bd_ch1_save"; /* R-SAV2:chapter2.html 覆寫為 bd_ch2_save;未設=第一章原值,灰盒零差異 */
   var SERIES_KEY = "bd_series_progress_v1";
   var state = null;
@@ -76,6 +76,7 @@
     if (!window.GB.Sanitize) return { ok: false, reason: "進度檢查功能未就緒" };
     if (CHAPTER_ID === "ch2") return window.GB.Sanitize.sanitizeImport2(s, SCENES, window.GB.Engine2);
     if (CHAPTER_ID === "ch3") return window.GB.Sanitize.sanitizeImport3(s, SCENES, window.GB.Engine3);
+    if (CHAPTER_ID === "ch4") return window.GB.Sanitize.sanitizeImport4(s, SCENES, window.GB.Engine4);
     return window.GB.Sanitize.sanitizeImport(s, PATTERNS, SCENES);
   }
   function showNewWarn(text) {
@@ -124,7 +125,7 @@
     try {
       var parsed = JSON.parse(localStorage.getItem(SERIES_KEY) || "null");
       if (!parsed || parsed.schemaVersion !== 1 || !parsed.chapters || typeof parsed.chapters !== "object") return empty;
-      ["ch1", "ch2", "ch3"].forEach(function (id) {
+      ["ch1", "ch2", "ch3", "ch4"].forEach(function (id) {
         var v = parsed.chapters[id];
         if (!v || v.completed !== true) delete parsed.chapters[id];
       });
@@ -309,6 +310,13 @@
         " 對照" + (g.g4 ? "●" : "○") + " 邊界" + (g.g5 ? "●" : "○");
       $("e3Val").title = "第三章的五步證據鏈：穩速桅落、封閉船艙、加減速對照、雙參考物對照、證據邊界。";
       $("dayVal").parentElement.title = "天數記錄校準、重複測量與公開驗證所花的時間。";
+    } else if (CHAPTER_ID === "ch4") {
+      var k4 = state.lab.evidence || {};
+      $("e3Val").textContent = "月地模型：改向" + (k4.k1 ? "●" : "○") +
+        " 縮放" + (k4.k2 ? "●" : "○") + " 預測" + (k4.k3 ? "●" : "○") +
+        " 反驗" + (k4.k4 ? "●" : "○") + " 邊界" + (k4.k5 ? "●" : "○");
+      $("e3Val").title = "第四章的五步證據鏈：逐拍改向、地月縮放、未揭露預測、雙模型反驗、出版邊界。";
+      $("dayVal").parentElement.title = "天數只記錄可重做的模型工作；出版壓力另由送樣／延後行動推進，不按閱讀時間倒數。";
     } else {
     var e3 = state.lab.evidence.e3;
     /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
@@ -322,6 +330,11 @@
       var audit = state.lab.audit || {};
       var sealed = ["wind", "acceleration", "paths"].filter(function (k) { return audit[k]; }).length;
       $("perVal").textContent = sealed ? ("公開質詢：" + sealed + "/3") : "";
+    } else if (CHAPTER_ID === "ch4") {
+      var press = state.lab.proof && state.lab.proof.press;
+      $("perVal").textContent = press
+        ? (press.scheduleLost ? "出版：重新排程" : "校樣窗口：" + press.window + "/" + press.reservedWindows)
+        : "";
     } else $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
     $("modeVal").textContent = "模式：" + (state.mode === "scholar" ? "學者" : "探索");
     $("sceneVal").textContent = "場景：" + playerSceneTitle(state.cursor.scene);
@@ -2071,6 +2084,405 @@
     }
   }
 
+  /* ---------- 第四章軌道／跨尺度／校樣工作台 ---------- */
+  var orbit4Msg = "";
+  var orbit4EmbedKey = "";
+  var orbit4LastResult = null;
+  function orbit4Error(code) {
+    var map = {
+      "orbit-attempt-required": "先把月亮放回同一個起點。",
+      "consequence-required": "這條錯路還沒走完。先看完後果，提示才會出現。",
+      "three-vectors-complete": "三拍偏折已完成；請讓同一規則續跑一圈。",
+      "three-valid-vectors-required": "還需要三支方向、大小都站得住的偏折箭頭。",
+      "no-consequence": "目前沒有待播放的錯誤路徑。",
+      "k1-required": "先用切線逃逸與閉合軌道建立『一直改向的路』。",
+      "bad-scale": "距離與時間倍率必須落在工作台可顯示的範圍。",
+      "bad-exponent": "距離律指數限 0.0～3.0，且每次以 0.1 調整。",
+      "two-trials-required": "至少先試過兩種不同的距離律，才能封存其中一種。",
+      "trial-required-before-lock": "這個指數還沒真正試算過，不能直接封存。",
+      "law-lock-required": "先把一條距離律封存，觀測紙才會翻面。",
+      "observation-already-revealed": "這張觀測紙已經揭露；若要改律，舊預測會保留劃線，不能假裝沒看過。",
+      "unlock-law-first": "先解開目前封存的距離律。",
+      "k2-k3-required": "月球跨尺度與兩顆行星的封存預測都成立後，才能公平比較模型。",
+      "k4-required": "先讓兩個模型都跑完三種天空，再整理證明。",
+      "partial-window-passed": "完整模型比較已完成，現在不能把它假裝成早先的局部短稿。",
+      "delay-reason-required": "延後不是空白按鈕；請留下可檢查的理由。",
+      "dishonest-partial-scope": "短稿只能說月球與行星目前支持的範圍，不能偷帶尚未完成的彗星比較。"
+    };
+    return map[code] || "這一步目前不能成立；請檢查眼前的紀錄與先後順序。";
+  }
+  function doOrbit(action, args, okText) {
+    var oldEvidence = JSON.stringify(state.lab.evidence || {});
+    var r = N.labAction(state, action, args || {});
+    if (r.error) {
+      orbit4Msg = "✕ " + orbit4Error(r.error);
+      renderAll();
+      return;
+    }
+    setState(r.state);
+    orbit4LastResult = { action: action, result: r.result || {}, stamp: Date.now() };
+    var rr = r.result || {};
+    if (action === "commitDeflection" && rr.ok === false && rr.consequence) {
+      orbit4Msg = "路徑已經偏離。先讓它走完，再判斷是哪裡出了問題。";
+    } else if (action === "runConsequence") {
+      var kind = rr.consequence && rr.consequence.kind;
+      orbit4Msg = {
+        tangent: "後果看完：沒有偏折，月亮沿切線越走越遠。下一次請找出指向地心的方向。",
+        outward: "後果看完：箭頭朝外，月亮比切線幽靈路徑離得更快。比較箭頭與地心的位置。",
+        impact: "後果看完：方向向內，但改得太多，路徑穿進地球。把箭頭縮短。",
+        unstable: "後果看完：方向或大小偏離容忍帶，軌道忽近忽遠。讓箭頭更接近地心方向，長度約一格。"
+      }[kind] || "後果已完整保留；現在可以調整後重試。";
+    } else if (rr.ok === false) {
+      orbit4Msg = "✕ " + ({
+        "claim-mismatch": "資料與結論沒有接上。先看哪兩筆紀錄真的比較了同一件事。",
+        "comparison-overclaim": "只看月球不足以裁決；也不能把簡單渦旋的失配寫成所有介質模型都被否定。",
+        "geometry-break": "來源放錯後，證明圖上的相應幾何真的斷開了；可自由換回正確來源。",
+        "mechanism-slot-empty": "規則算出了作用與運動的關係，但機制槽沒有任何資料可填。",
+        "credit-lines-break": "把概念、觀測、證明與出版全給一人，四條史料接口會斷開。",
+        "printed-broken-proof": "印刷機已壓出這張斷鏈校樣。錯稿保留、窗口前進，所有證據仍可重排。"
+      }[rr.reason || rr.consequence] || "這個主張還沒有被目前紀錄支持。");
+    } else {
+      orbit4Msg = typeof okText === "function" ? okText(rr) : (okText || "✓ 已留下可檢查的紀錄。");
+    }
+    var after = state.lab.evidence || {};
+    if (oldEvidence !== JSON.stringify(after)) {
+      var before = JSON.parse(oldEvidence || "{}");
+      ["k1", "k2", "k3", "k4", "k5"].forEach(function (k) {
+        if (!before[k] && after[k])
+          orbit4Msg = "◆ 取得證據：" + (SCENES.evidenceNames[k.toUpperCase()] || "新證據") + "\n" + orbit4Msg;
+      });
+    }
+    renderAll();
+  }
+  function orbit4Mission(phase) {
+    return {
+      tangent: ["先讓直線走完", "拿掉所有偏折，觀察月亮原有速度會把它帶去哪裡。"],
+      vectors: ["每一拍，往裡改一點", "調整箭頭方向與長度；錯誤會先演成路徑，之後才提示。"],
+      claim: ["讓規則自己走", "比較無偏折與閉合軌道，選出資料真正支持的說法。"],
+      scale: ["地上與天上的同一把尺", "實際縮放距離與時間，至少試兩種距離律，再看月球量級。"],
+      planets: ["先寫答案，再拆蠟封", "封存一條律，再揭露 Mars 與 Jupiter；改律不會刪掉舊預測。"],
+      "press-opening": ["第一輪校樣先到了", "送誠實短稿或明列理由延後；停留與閱讀不會消耗窗口。"],
+      models: ["一條規則穿過三種天空", "兩模型都跑 Moon、Planets、Comet，再比較殘差與補丁。"],
+      proof: ["把證明送進印刷台", "接好證明、分配信用、守住末句；錯送會留下真正的錯稿。"]
+    }[phase] || ["第四章工作台", "讓每一步都留下可重做、可追查的紀錄。"];
+  }
+  function orbit4Svg(parent, lab, phase) {
+    var fig = ship3El("figure", null, parent, "orbitDiagram");
+    fig.setAttribute("aria-label", "第四章「" + orbit4Mission(phase)[0] + "」可操作模型");
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 640 400");
+    svg.setAttribute("role", "img");
+    fig.appendChild(svg);
+    function draw(tag, attrs, text) {
+      var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+      if (text != null) n.textContent = displayText(text);
+      svg.appendChild(n); return n;
+    }
+    draw("rect", { x: 0, y: 0, width: 640, height: 400, class: "orbitSky" });
+    [[70,45],[555,62],[120,330],[510,300],[380,48],[590,190]].forEach(function (p) {
+      draw("circle", { cx:p[0], cy:p[1], r:2, class:"orbitStar" });
+    });
+    var o = lab.orbitLab || {}, scale = 128, cx = 310, cy = 205;
+    if (phase === "scale" || phase === "planets") {
+      draw("circle", { cx: 115, cy: 205, r: 58, class:"orbitEarth" });
+      draw("line", { x1:173, y1:205, x2:540, y2:205, class:"orbitScaleLine" });
+      draw("circle", { cx:540, cy:205, r:12, class:"orbitMoon" });
+      draw("text", { x:115, y:286, "text-anchor":"middle", class:"orbitLabel" }, "地表：1 秒落下 4.9 m");
+      draw("text", { x:540, y:286, "text-anchor":"middle", class:"orbitLabel" }, "月球：60 秒偏離切線");
+      draw("text", { x:356, y:183, "text-anchor":"middle", class:"orbitScaleText" },
+        (lab.scaleLab.earthRadiusRatio || 60) + " 個地球半徑");
+    } else if (phase === "models") {
+      draw("path", { d:"M85 205 C160 90 255 90 320 205 S480 320 560 205", class:"orbitModelPath gravity" });
+      draw("path", { d:"M85 205 C180 130 245 285 320 205 S470 140 560 205", class:"orbitModelPath vortex" });
+      draw("text", { x:145,y:55,class:"orbitLabel" }, "同一距離律");
+      draw("text", { x:405,y:355,class:"orbitLabel" }, "簡單共轉渦旋");
+    } else if (phase === "proof" || phase === "press-opening") {
+      var labels = ["原有前進","向內改向","距離律","封存預測","模型比較"];
+      labels.forEach(function (t, i) {
+        var x = 72 + i * 120;
+        draw("circle", { cx:x, cy:190, r:30, class:"orbitProofNode " + (lab.evidence["k" + (i + 1)] ? "got" : "") });
+        draw("text", { x:x, y:247, "text-anchor":"middle", class:"orbitLabel" }, t);
+        if (i < labels.length - 1) draw("line", { x1:x+31,y1:190,x2:x+89,y2:190,class:"orbitProofLink" });
+      });
+      draw("text", { x:320,y:90,"text-anchor":"middle",class:"orbitPressStamp" },
+        lab.proof.press.scheduleLost ? "原排程已錯過・仍可完成" :
+          "校樣窗口 " + lab.proof.press.window + "／" + lab.proof.press.reservedWindows);
+    } else {
+      draw("circle", { cx:cx, cy:cy, r:58, class:"orbitEarth" });
+      draw("circle", { cx:cx, cy:cy, r:136, class:"orbitGuide" });
+      var path = (o.consequence ? o.consequence.path :
+        (o.path && o.path.length ? o.path : [{x:1,y:0}]));
+      if (path.length > 1) {
+        var d = path.map(function (p, i) {
+          return (i ? "L" : "M") + (cx + p.x * scale) + " " + (cy - p.y * scale);
+        }).join(" ");
+        draw("path", { d:d, class:"orbitPath " + (o.consequence ? "consequence" : "") });
+      }
+      var last = path[path.length - 1] || {x:1,y:0};
+      draw("circle", { cx:cx+last.x*scale, cy:cy-last.y*scale, r:11, class:"orbitMoon" });
+      if (o.velocity) {
+        var px = cx + (o.position ? o.position.x : 1) * scale;
+        var py = cy - (o.position ? o.position.y : 0) * scale;
+        draw("line", { x1:px,y1:py,x2:px+(o.velocity.x||0)*260,y2:py-(o.velocity.y||0)*260,class:"orbitVelocity" });
+      }
+    }
+    var cap = ship3El("figcaption", null, fig);
+    cap.textContent = phase === "vectors" && o.consequence
+      ? "錯誤路徑會完整留下；看完後果才會顯示診斷。"
+      : (phase === "scale" ? "畫面座標會跟著倍率真的改變；數學細節可展開，不妨礙操作主線。"
+      : (phase === "proof" ? "送樣才消耗窗口；閱讀、換來源、重排與預覽都免費。" : orbit4Mission(phase)[1]));
+    return fig;
+  }
+  function orbit4Table(parent, heads, rows) {
+    if (!rows.length) return;
+    ship3Table(parent, heads, rows);
+  }
+  function orbit4Select(parent, values, labels, current) {
+    return ship3Select(parent, values, labels, current);
+  }
+  function renderOrbit(v, box) {
+    var ek = v.scene + "/" + v.nodeId;
+    if (ek !== orbit4EmbedKey) { orbit4EmbedKey = ek; orbit4Msg = ""; orbit4LastResult = null; }
+    var lab = state.lab, ev = lab.evidence || {}, mission = orbit4Mission(v.phase);
+    box.className = "orbitLab";
+    var head = ship3El("header", null, box, "orbitHead");
+    ship3El("small", "第四章・軌道與出版工作台", head);
+    ship3El("h2", mission[0], head);
+    ship3El("p", mission[1], head);
+    var chips = ship3El("div", null, head, "orbitEvidenceChips");
+    [["K1","改向"],["K2","縮放"],["K3","預測"],["K4","反驗"],["K5","邊界"]].forEach(function (p) {
+      ship3El("span", (ev[p[0].toLowerCase()] ? "✓ " : "○ ") + p[1], chips, ev[p[0].toLowerCase()] ? "got" : "");
+    });
+    var body = ship3El("div", null, box, "orbitBody");
+    var visual = ship3El("section", null, body, "orbitVisual");
+    orbit4Svg(visual, lab, v.phase);
+    var work = ship3El("section", null, body, "orbitWork");
+    var o = lab.orbitLab, sc = lab.scaleLab, pl = lab.planetLab, ml = lab.modelLab, proof = lab.proof;
+
+    if (v.phase === "tangent") {
+      ship3El("h3", "一、先拿掉所有偏折", work);
+      ship3El("p", "按下後，月亮至少走四拍；工作台不會在它離開前搶先給答案。", work, "orbitNote");
+      ship3Btn(work, "不改方向，讓月亮走下一拍", function () {
+        var start = N.labAction(state, "startOrbitAttempt", {});
+        if (start.error) { orbit4Msg = "✕ " + orbit4Error(start.error); renderAll(); return; }
+        setState(start.state);
+        var commit = N.labAction(state, "commitDeflection", { vector:{dx:0,dy:0} });
+        if (commit.error) { orbit4Msg = "✕ " + orbit4Error(commit.error); renderAll(); return; }
+        setState(commit.state);
+        orbit4Msg = "切線路徑已出現。先讓它走完。";
+        renderAll();
+      }, "orbitAction primary", !!(o.consequence && !o.consequence.played));
+      if (o.consequence && !o.consequence.played)
+        ship3Btn(work, "▶ 看完這條路的後果", function () { doOrbit("runConsequence", {}); }, "orbitAction consequence");
+    }
+    if (v.phase === "vectors") {
+      ship3El("h3", "二、畫三拍偏折", work);
+      if (!o.attempt || o.complete || (o.consequence && o.consequence.played))
+        ship3Btn(work, "把月亮放回同一個起點", function () { doOrbit("startOrbitAttempt", {}, "✓ 起點、原速度與切線幽靈線已復原。"); }, "orbitAction");
+      if (o.attempt && !(o.consequence && !o.consequence.played) && o.step < 3) {
+        var px = o.position ? o.position.x : 1, py = o.position ? o.position.y : 0;
+        var inwardDeg = Math.atan2(-py, -px) * 180 / Math.PI;
+        var controls = ship3El("div", null, work, "orbitVectorControls");
+        var angleLab = ship3El("label", "箭頭方向 ", controls);
+        var angle = ship3El("input", null, angleLab); angle.type = "range"; angle.min = "-180"; angle.max = "180"; angle.step = "1"; angle.value = String(Math.round(inwardDeg));
+        var angleOut = ship3El("output", Math.round(inwardDeg) + "°", angleLab);
+        angle.oninput = function () { angleOut.textContent = angle.value + "°"; };
+        var strengthLab = ship3El("label", "箭頭長度 ", controls);
+        var strength = ship3El("input", null, strengthLab); strength.type = "range"; strength.min = "0"; strength.max = "3"; strength.step = "0.05"; strength.value = "1";
+        var strengthOut = ship3El("output", "1.00 格", strengthLab);
+        strength.oninput = function () { strengthOut.textContent = Number(strength.value).toFixed(2) + " 格"; };
+        ship3Btn(controls, "畫下第 " + (o.step + 1) + " 支箭頭", function () {
+          var a = Number(angle.value) * Math.PI / 180, mag = 0.058 * Number(strength.value);
+          doOrbit("commitDeflection", { vector:{dx:Math.cos(a)*mag,dy:Math.sin(a)*mag} },
+            "✓ 這一拍的速度已由原速度與向內偏折真正合成。");
+        }, "orbitAction primary");
+      }
+      if (o.consequence && !o.consequence.played)
+        ship3Btn(work, "▶ 先看完錯誤路徑", function () { doOrbit("runConsequence", {}); }, "orbitAction consequence");
+      if (o.ruleRepeatReady && !o.complete)
+        ship3Btn(work, "沿同一規則續跑一圈", function () { doOrbit("repeatOrbitRule", {}, "✓ 規則跑完一圈；小幅誤差帶保留在圖上。"); }, "orbitAction primary");
+      orbit4Table(work, ["拍","偏折 x","偏折 y","與地心夾角"], (o.deflectionVectors || []).map(function (r) {
+        return [r.step + 1, r.dx.toFixed(3), r.dy.toFixed(3), r.angleDeg.toFixed(1) + "°"];
+      }));
+    }
+    if (v.phase === "claim") {
+      ship3El("h3", "三、哪一句真的來自兩筆紀錄？", work);
+      ship3El("p", "來源：無偏折的切線逃逸＋逐拍向內偏折的閉合軌道。", work, "orbitNote");
+      [
+        ["forward-push","月亮需要一股沿圓周向前推的力"],
+        ["forward-plus-inward-turn","月亮保留前進；指向地球的作用持續改變速度方向"],
+        ["stop-restart","月亮每一拍先停下，再朝地球重新出發"]
+      ].forEach(function (c) {
+        ship3Btn(work, c[1], function () {
+          doOrbit("assertK1", { records:["tangent","closed"], concept:c[0] },
+            "✓ 向前的部分原本就有；可見的新作用只負責持續改向。");
+        }, "orbitAction " + (c[0] === "forward-plus-inward-turn" ? "primary" : ""));
+      });
+    }
+    if (v.phase === "scale") {
+      ship3El("h3", "四、把同一模型真的拉到月亮", work);
+      var sr = ship3El("div", null, work, "orbitScaleControls");
+      var dl = ship3El("label", "距離：", sr); var dist = ship3El("input", null, dl);
+      dist.type="range"; dist.min="1"; dist.max="100"; dist.step="1"; dist.value=String(sc.earthRadiusRatio);
+      var dOut=ship3El("output",sc.earthRadiusRatio+" R⊕",dl); dist.oninput=function(){dOut.textContent=dist.value+" R⊕";};
+      var tl = ship3El("label", "時間：", sr); var time = ship3El("input", null, tl);
+      time.type="range"; time.min="1"; time.max="120"; time.step="1"; time.value=String(sc.timeRatio);
+      var tOut=ship3El("output",sc.timeRatio+" s",tl); time.oninput=function(){tOut.textContent=time.value+" s";};
+      ship3Btn(sr, "套用這個尺度", function () { doOrbit("setScale", {distanceRatio:Number(dist.value),timeRatio:Number(time.value)}, "✓ 地球與月球的畫面座標已按新尺度重排。"); }, "orbitAction");
+      var er = ship3El("div", null, work, "orbitLawControls");
+      var elab = ship3El("label", "距離律 n＝", er); var exponent = ship3El("input", null, elab);
+      exponent.type="range"; exponent.min="0"; exponent.max="3"; exponent.step=".1"; exponent.value=String(sc.exponent == null ? 1 : sc.exponent);
+      var eOut=ship3El("output",Number(exponent.value).toFixed(1),elab); exponent.oninput=function(){eOut.textContent=Number(exponent.value).toFixed(1);};
+      ship3Btn(er, "試算這條律", function () { doOrbit("tryDistanceLaw", {exponent:Number(exponent.value)}, function (rr) {
+        return "已試算：月球 60 秒偏離切線 " + rr.trial.moonSagM.toFixed(2) + " m。";
+      }); }, "orbitAction primary");
+      orbit4Table(work, ["試算","n","月球偏折","與 4.9 m 誤差"], (sc.trials || []).map(function (t) {
+        return [t.id,t.exponent.toFixed(1),t.moonSagM.toFixed(2)+" m",t.moonErrorPct.toFixed(1)+"%"];
+      }));
+      if ((sc.trials || []).length) {
+        var exps = Array.from(new Set(sc.trials.map(function(t){return String(t.exponent);})));
+        var labels={}; exps.forEach(function(x){labels[x]="n＝"+Number(x).toFixed(1);});
+        var lockRow=ship3El("div",null,work,"orbitRow");
+        var lock=orbit4Select(lockRow,exps,labels,String(sc.lawLocked == null ? exps[exps.length-1] : sc.lawLocked));
+        ship3Btn(lockRow,sc.lawLocked==null?"封存這條律":"改封存律",function(){doOrbit("lockDistanceLaw",{exponent:Number(lock.value)},"✓ 距離律已先封存；之後揭露的資料不能倒過來改寫它。");},"orbitAction");
+      }
+      if (!ev.k2 && sc.trials.length >= 2)
+        ship3Btn(work,"用地表落體、月球偏折與 60／60 尺度提出斷言",function(){
+          doOrbit("assertK2",{records:["earth-fall","moon-sag","scale-60-60"],concept:"inverse-square-cross-scale"},
+            "✓ 反平方在 60／60 尺度上把地上與天上的量級接起來。");
+        },"orbitAction primary");
+      var math=ship3El("details",null,work,"orbitMathOptional");
+      ship3El("summary","展開數學：這裡究竟算了什麼？",math);
+      ship3El("p","工作台使用 a(r) ∝ 1/rⁿ。教學 fixture 中，地表 1 秒落下 4.9 m；距離 60 倍、時間 60 秒時，n＝0 得 17,640 m，n＝1 得 294 m，n＝2 得 4.9 m。公式是檢查工具，不是操作門票。",math);
+    }
+    if (v.phase === "planets") {
+      ship3El("h3", "五、讓規則在看答案前先冒險", work);
+      ship3El("p","觀測紙只有在預測存檔後才翻面。若解鎖改律，舊預測會保留並劃線。",work,"orbitNote");
+      ["mars","jupiter"].forEach(function(id){
+        var row=ship3El("section",null,work,"orbitPlanetCard");
+        ship3El("b",id==="mars"?"Mars｜距離 1.52":"Jupiter｜距離 5.20",row);
+        var prior=pl.predictions.filter(function(p){return p.planet===id;});
+        if (!pl.revealed[id]) ship3Btn(row,"封存預測，再揭露觀測",function(){doOrbit("predictPlanet",{id:id},function(rr){
+          return "✓ 預測 " + rr.prediction.prediction.toFixed(3) + " 已先封存；觀測 " + rr.prediction.actual.toFixed(2) + " 現在才揭露。";
+        });},"orbitAction primary");
+        prior.forEach(function(p){ship3El("p",(p.superseded?"（舊律，保留） ":"")+"預測 "+p.prediction.toFixed(3)+"｜觀測 "+p.actual.toFixed(2)+"｜殘差 "+p.residualPct.toFixed(2)+"%",row,p.superseded?"superseded":"");});
+      });
+      var change=ship3El("div",null,work,"orbitRow");
+      ship3Btn(change,"解鎖距離律（保留舊預測）",function(){doOrbit("unlockDistanceLaw",{},"距離律已解鎖；舊預測仍在桌上，不會被洗掉。");},"orbitAction");
+      if (sc.lawLocked==null) {
+        var tried=Array.from(new Set(sc.trials.map(function(t){return String(t.exponent);}))), labs={};tried.forEach(function(x){labs[x]="n＝"+Number(x).toFixed(1);});
+        if (tried.length) {
+          var relock=orbit4Select(change,tried,labs,tried[tried.length-1]);
+          ship3Btn(change,"重新封存",function(){doOrbit("lockDistanceLaw",{exponent:Number(relock.value)},"✓ 新律已封存。若要重新預測，先重置未揭露資料；舊紀錄仍保留。");},"orbitAction");
+          ship3Btn(change,"另開未揭露副本",function(){doOrbit("resetPlanetReveals",{},"✓ 新觀測副本仍封著；舊預測保留為歷史紀錄。");},"orbitAction");
+        }
+      }
+      if (!ev.k3 && pl.crossScalePass)
+        ship3Btn(work,"用兩張封存預測提出斷言",function(){doOrbit("assertK3",{records:["mars-sealed","jupiter-sealed"],concept:"withheld-data-prediction"},"✓ 兩個週期都在揭露前留下預測，並通過殘差帶。");},"orbitAction primary");
+    }
+    if (v.phase === "press-opening") {
+      ship3El("h3","六、彗星比較尚未完成，第一輪位置已到",work);
+      var pressBox=ship3El("section",null,work,"orbitPressBox");
+      ship3El("b","目前能支持：月球＋行星。尚缺：彗星＋替代模型比較。",pressBox);
+      ship3Btn(pressBox,"送出範圍較小的誠實短稿",function(){doOrbit("submitPartialProof",{scope:"moon-planets"},"✓ 短稿已送：支持範圍與尚未完成欄同時印出。");},"orbitAction primary");
+      ship3Btn(pressBox,"放掉本輪，等待完整反驗",function(){doOrbit("deferPress",{reason:"等待彗星與替代模型比較"},"✓ 本輪未印錯稿；延後理由與排程成本已保留。");},"orbitAction");
+    }
+    if (v.phase === "models") {
+      ship3El("h3","七、同一組天空，兩個模型都得跑",work);
+      var matrix=ship3El("div",null,work,"orbitModelGrid");
+      [["inverseSquare","反平方"],["simpleVortex","簡單共轉渦旋"]].forEach(function(m){
+        ["moon","planets","comet"].forEach(function(c){
+          var exists=ml.runs.some(function(r){return r.model===m[0]&&r.caseId===c;});
+          ship3Btn(matrix,(exists?"✓ ":"")+m[1]+" × "+({moon:"Moon",planets:"Planets",comet:"Comet"}[c]),function(){
+            doOrbit("runModel",{model:m[0],caseId:c},function(rr){return "已跑："+rr.run.note+"｜殘差 "+rr.run.residual.toFixed(1)+"%｜補丁 "+rr.run.patches;});
+          },"orbitAction",exists);
+        });
+      });
+      orbit4Table(work,["模型","天空","殘差","補丁","結果"],ml.runs.map(function(r){
+        return [r.model==="inverseSquare"?"反平方":"簡單渦旋",r.caseId,r.residual.toFixed(1)+"%",r.patches,r.fit==="pass"?"通過":"需補丁"];
+      }));
+      if (!ev.k4 && ml.gravityComplete && ml.vortexComplete) {
+        [
+          ["moon-only","月球一格相合，已足以裁決所有模型"],
+          ["same-rule-fewer-patches","反平方用同一條規則跨過三種天空；簡單渦旋需加入較多補丁"],
+          ["all-vortices-refuted","這證明所有渦旋與介質模型永遠不可能成立"]
+        ].forEach(function(c){
+          ship3Btn(work,c[1],function(){
+            var records=[];["inverseSquare","simpleVortex"].forEach(function(m){["moon","planets","comet"].forEach(function(k){records.push(m+":"+k);});});
+            doOrbit("assertK4",{records:records,claim:c[0]},"✓ 這個比較只涵蓋本章明列的兩個模型版本，結論沒有越界。");
+          },"orbitAction "+(c[0]==="same-rule-fewer-patches"?"primary":""));
+        });
+      }
+    }
+    if (v.phase === "proof") {
+      ship3El("h3","八、接鏈、署名、末句",work);
+      var status=ship3El("p",(proof.press.scheduleLost?"原排程已錯過；完整稿仍可重新排入。":"目前校樣窗口："+proof.press.window+"／"+proof.press.reservedWindows),work,"orbitPressStatus");
+      status.setAttribute("role","status");
+      var slotDefs=[
+        ["inertia","原有運動",["M2","M3","K1"]],
+        ["inward","向內改向",["K1","K2","K4"]],
+        ["distance","距離律",["K2","K3","K1"]],
+        ["withheld","未揭露預測",["K3","K2","K4"]],
+        ["model","模型比較",["K4","K3","K2"]]
+      ];
+      slotDefs.forEach(function(d){
+        var row=ship3El("div",null,work,"orbitProofRow");ship3El("label",d[1]+"：",row);
+        var labels={
+          M2:"前章：拋體保留原有前進",
+          M3:"前章：共同運動不因鬆手消失",
+          K1:"一直改向的路",
+          K2:"地上與天上的同一把尺",
+          K3:"沒看答案前的兩個週期",
+          K4:"一條規則穿過三種天空"
+        };
+        var cur=(proof.slots.find(function(r){return r.slot===d[0];})||{}).evidenceId||d[2][0];
+        var pick=orbit4Select(row,d[2],labels,cur);
+        ship3Btn(row,"放入",function(){doOrbit("placeProofLink",{slot:d[0],evidenceId:pick.value},"✓ 來源已放入；可繼續換，不耗窗口。");},"orbitAction");
+      });
+      var credits=[
+        ["direction","切線／直接運動與向中心吸引","Hooke"],
+        ["publication","1684 追問與出版推動","Halley"],
+        ["observations","行星、衛星與彗星觀測","Flamsteed"],
+        ["proof","數學證明與跨天體整合","Newton"]
+      ];
+      credits.forEach(function(d){
+        var row=ship3El("div",null,work,"orbitCreditRow");ship3El("label",d[1]+"：",row);
+        var people=["Hooke","Halley","Flamsteed","Newton"],labels={};people.forEach(function(p){labels[p]=p;});
+        var pick=orbit4Select(row,people,labels,proof.attribution[d[0]]||"Newton");
+        ship3Btn(row,"署名",function(){doOrbit("assignCredit",{contribution:d[0],person:pick.value},"信用線已重接；送樣前仍可修改。");},"orbitAction");
+      });
+      ship3El("h4","末句：這本書究竟證明到哪裡？",work);
+      [
+        ["mechanismSolved","我們已證明引力如何穿過空間作用"],
+        ["newtonAlone","Newton 一人完成概念、觀測、證明與出版"],
+        ["ruleEstablished","我們建立可跨地表與天空反驗的規則；引力如何作用，仍未決"]
+      ].forEach(function(c){
+        ship3Btn(work,(proof.boundaryChoice===c[0]?"✓ ":"")+c[1],function(){doOrbit("setProofBoundary",{choice:c[0]},"末句已放入預覽；尚未送印，也沒有消耗窗口。");},"orbitAction "+(c[0]==="ruleEstablished"?"primary":""));
+      });
+      var actions=ship3El("div",null,work,"orbitProofActions");
+      ship3Btn(actions,"免費預覽校樣",function(){doOrbit("previewProof",{},function(rr){
+        var p=rr.preview;return p.complete?"✓ 預覽完整；仍須親手送出才取得完成證據。":"預覽發現：缺槽 "+p.missing.join("、")+"；錯槽 "+p.wrong.join("、")+"；署名待修 "+p.creditWrong.join("、")+"。";
+      });},"orbitAction");
+      ship3Btn(actions,"送出本輪校樣",function(){doOrbit("submitProof",{},"✓ 完整校樣已壓下，錯稿與延後紀錄都沒有被成功畫面洗掉。");},"orbitAction primary");
+      ship3Btn(actions,"放掉本輪，再檢查一次",function(){doOrbit("deferPress",{reason:"再核對證明來源、信用與末句"},"本輪已明列理由延後；證據與目前排版全部保留。");},"orbitAction");
+      if (proof.press.proofs.length || proof.press.delays.length) {
+        var history=ship3El("details",null,work,"orbitPressHistory");ship3El("summary","查看所有錯稿與延後紀錄",history);
+        proof.press.proofs.forEach(function(p,i){ship3El("p","校樣 "+(i+1)+"｜"+(p.complete?"完整":"不完整")+"｜"+(p.kind||""),history,p.complete?"complete":"wrong");});
+        proof.press.delays.forEach(function(d,i){ship3El("p","延後 "+(i+1)+"｜"+d.reason,history,"delay");});
+      }
+    }
+    var msg=ship3El("p",orbit4Msg||"每個操作都可重做；錯誤先留下可見後果，再出現提示。",work,"orbitMessage");
+    msg.setAttribute("role","status");
+    if (N.embedReady(state)) {
+      ship3Btn(work,"▶ 收好紀錄，回到故事",function(){
+        var r=N.embedComplete(state);
+        if(r.error){orbit4Msg="✕ "+r.error;renderAll();return;}
+        setState(r.state);orbit4Msg="";renderAll();
+      },"orbitGate primary");
+    }
+  }
+
   /* ---------- 主渲染 ---------- */
   function renderAll() {
     renderStatus();
@@ -2114,6 +2526,10 @@
       renderShip(v, box);
       return;
     }
+    if (v.type === "embed" && v.system === "orbit") {
+      renderOrbit(v, box);
+      return;
+    }
     if (v.type === "embed" && v.system === "debrief") {
       renderDebrief(v, box);
       return;
@@ -2138,7 +2554,7 @@
         box.appendChild(lab);
         return ta;
       });
-      mkBtn(box, CHAPTER_ID === "ch3" ? "封存第三章" : (CHAPTER_ID === "ch2" ? "封存第二章" : "封存第一章"), function () {
+      mkBtn(box, CHAPTER_ID === "ch4" ? "封存第四章" : (CHAPTER_ID === "ch3" ? "封存第三章" : (CHAPTER_ID === "ch2" ? "封存第二章" : "封存第一章")), function () {
         var r = N.setReview(state, tas[0].value, tas[1].value);
         if (r.error) { addLine("system", r.error, "system"); return; }
         setState(r.state);
@@ -2221,7 +2637,10 @@
     renderAll();
   }
 
-  function chapterLabel() { return CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章"); }
+  function chapterLabel() {
+    return CHAPTER_ID === "ch4" ? "第四章" :
+      (CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章"));
+  }
   function readProjection() {
     if (CHAPTER_ID !== "ch2") return null;
     try {
@@ -2236,16 +2655,19 @@
     location.href = u.href;
   }
   function configureSeriesTitle() {
-    document.title = CHAPTER_ID === "ch3"
+    document.title = CHAPTER_ID === "ch4"
+      ? "《發現之前》第四章：月亮一直在掉（舞台版）"
+      : (CHAPTER_ID === "ch3"
       ? "《發現之前》第三章：船艙裡的靜止（舞台版）"
       : (CHAPTER_ID === "ch2" ? "《發現之前》第二章：第一寸的弧線（舞台版）"
-        : "《發現之前》第一章：重物的渴望（舞台版）");
+        : "《發現之前》第一章：重物的渴望（舞台版）"));
     var progress = readSeriesProgress();
-    var completedCount = ["ch1", "ch2", "ch3"].filter(function (id) { return progress.chapters[id]; }).length;
+    var completedCount = ["ch1", "ch2", "ch3", "ch4"].filter(function (id) { return progress.chapters[id]; }).length;
     var status = document.querySelector(".chapterStatusText span");
-    if (status) status.textContent = "系列進度 " + completedCount + "/3";
+    if (status) status.textContent = "系列進度 " + completedCount + "/4";
     var meta = document.querySelector(".chapterStatusText strong");
-    if (meta) meta.textContent = CHAPTER_ID === "ch3" ? "第三章・船艙裡的靜止" : (CHAPTER_ID === "ch2" ? "第二章・第一寸的弧線" : "第一章・重物的渴望");
+    if (meta) meta.textContent = CHAPTER_ID === "ch4" ? "第四章・月亮一直在掉" :
+      (CHAPTER_ID === "ch3" ? "第三章・船艙裡的靜止" : (CHAPTER_ID === "ch2" ? "第二章・第一寸的弧線" : "第一章・重物的渴望"));
     var legend = document.querySelector("#titleCard fieldset legend");
     if (legend) legend.textContent = "從" + chapterLabel() + "開始・選擇模式（中途不可換）";
     $("btnNew").textContent = "開始" + chapterLabel();
@@ -2315,7 +2737,8 @@
         var blob = new Blob([text], { type: "application/json" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        var chapterFileLabel = CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章");
+        var chapterFileLabel = CHAPTER_ID === "ch4" ? "第四章" :
+          (CHAPTER_ID === "ch3" ? "第三章" : (CHAPTER_ID === "ch2" ? "第二章" : "第一章"));
         a.download = "發現之前_" + chapterFileLabel + "_書信碼_" + new Date().toISOString().slice(0, 10) + ".txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e3) {} }, 3000);

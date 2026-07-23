@@ -14,8 +14,10 @@ const scenes = require("../data/scenes.js");
 const scenes2 = require("../data/scenes2.js");
 const Engine = require("../src/engine.js");
 const Engine3 = require("../src/engine3.js");
+const Engine4 = require("../src/engine4.js");
 const Narrative = require("../src/narrative.js");
 const scenes3 = require("../data/scenes3.js");
+const scenes4 = require("../data/scenes4.js");
 const TextFormat = require("../src/text-format.js");
 const buildSuite = require("./suite.js");
 const buildNarrativeSuite = require("./narrative-suite.js");
@@ -879,29 +881,34 @@ tests.push({
 });
 
 tests.push({
-  name: "三章章尾接力|史實回聲→未解問題→下一章出口(GB-ADR-028)",
+  name: "四章章尾接力|史實回聲→未解問題→下一章出口(GB-ADR-028)",
   fn: () => {
     const ch1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
     const ch2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
     const ch3 = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
+    const ch4 = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
     const e2 = ch1.scenes.find((s) => s.id === "E-2");
     const be2 = ch2.scenes.find((s) => s.id === "BE-2");
     const ce2 = ch3.scenes.find((s) => s.id === "CE-2");
+    const de2 = ch4.scenes.find((s) => s.id === "DE-2");
     const e2Text = e2.nodes.map((n) => n.text || "").join("\n");
     const be2Text = be2.nodes.map((n) => n.text || "").join("\n");
     const ce2Text = ce2.nodes.map((n) => n.text || "").join("\n");
+    const de2Text = de2.nodes.map((n) => n.text || "").join("\n");
     if (!e2Text.includes("羽毛不再被空氣拖慢") || !e2Text.includes("重量沒有替鎚子換來更早的落地"))
       throw new Error("第一章月球鎚羽未說清無空氣與重量邊界");
     if (!be2Text.includes("球桿早已留在身後") || !be2Text.includes("沒有東西繼續推它,它為什麼還在走"))
       throw new Error("第二章月球高爾夫未接到第三章共同運動問題");
     if (!ce2Text.includes("月亮為什麼沒有沿直線離開"))
       throw new Error("第三章 runtime 漏接凍結劇本的月亮未解問題");
+    if (!de2Text.includes("碰撞之後") || !de2Text.includes("什麼應該守住"))
+      throw new Error("第四章 runtime 漏接碰撞守恆未解問題");
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const frag of ["進入第二章", "stage.html?chapter=ch02", "進入第三章", "stage.html?chapter=ch03", "船艙裡的靜止"])
+    for (const frag of ["進入第二章", "stage.html?chapter=ch02", "進入第三章", "stage.html?chapter=ch03",
+      "進入第四章", "stage.html?chapter=ch04", "船艙裡的靜止", "月亮一直在掉"])
       if (!sui.includes(frag)) throw new Error("章末直接接力缺失:" + frag);
     for (const placeholder of ["下一頁，仍未寫定", "旅程將繼續"])
       if (sui.includes(placeholder)) throw new Error("章末仍殘留通用佔位句:" + placeholder);
-    if (sui.includes("月亮一直在掉")) throw new Error("第三章章末提前公布未核准的第四章章名");
   }
 });
 
@@ -2180,6 +2187,7 @@ tests.push({
       JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8")),
       JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8")),
       JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8")),
+      JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8")),
       JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"))
     ];
     const visibleKeys = new Set([
@@ -2188,7 +2196,7 @@ tests.push({
     ]);
     const leaks = [];
     /* 實驗紀錄 #1、主張 #1 是玩家親手產生且需要引用的流水號，刻意不列為內部 ID。 */
-    const internalId = /(?:^|[^A-Za-z0-9])(?:E[1-9](?:\.[a-z])?|F[1-9]|G[1-9]|S[1-9]|P[1-9]|(?:P0|INT|[ABC][0-9]+|BE|CE|SC)-[A-Za-z0-9-]+|GB-ADR-\d+|R-[A-Z0-9-]+|run\s*#)(?:$|[^A-Za-z0-9])/;
+    const internalId = /(?:^|[^A-Za-z0-9])(?:E[1-9](?:\.[a-z])?|F[1-9]|G[1-9]|K[1-9]|S[1-9]|P[1-9]|(?:P0|INT|[ABCD][0-9]+|BE|CE|DE|SC)-[A-Za-z0-9-]+|GB-ADR-\d+|R-[A-Z0-9-]+|run\s*#)(?:$|[^A-Za-z0-9])/;
     function walk(value, key) {
       if (typeof value === "string" && visibleKeys.has(key) && internalId.test(value)) leaks.push(value);
       else if (Array.isArray(value)) value.forEach((x) => walk(x, ""));
@@ -2196,7 +2204,7 @@ tests.push({
     }
     sceneSets.forEach((x) => walk(x, ""));
     if (leaks.length) throw new Error("玩家可見字串仍含製作代碼：" + leaks[0]);
-    const debate2 = sceneSets[3];
+    const debate2 = sceneSets[4];
     if (!debate2.chapter.fr.scholar.slotPrompt.includes("依序選三句")) throw new Error("學者模式未改成白話任務");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     if (ui.includes('d.fr.slots.join(" → ")')) throw new Error("介面仍把內部槽位 id 顯示給玩家");
@@ -2225,17 +2233,21 @@ tests.push({
 });
 
 tests.push({
-  name: "長局存檔回歸|三章 601 筆合法對話不得被通用上限誤殺",
+  name: "長局存檔回歸|四章 601 筆合法對話不得被通用上限誤殺",
   fn: () => {
     const San = require("../src/sanitize.js");
     const scenes2 = require("../data/scenes2.js");
     const Engine2 = require("../src/engine2.js");
     const N2 = Narrative._factory(scenes2, Engine2, require("../data/debate2.js"));
     const N3 = Narrative._factory(scenes3, Engine3, {});
+    const scenes4 = require("../data/scenes4.js");
+    const Engine4 = require("../src/engine4.js");
+    const N4 = Narrative._factory(scenes4, Engine4, {});
     const cases = [
       { state: Narrative.initialState("explore"), scene: "P0-1", check: (s) => San.sanitizeImport(s, patterns, scenes) },
       { state: N2.initialState("explore"), scene: "B0-1", check: (s) => San.sanitizeImport2(s, scenes2, Engine2) },
-      { state: N3.initialState("explore"), scene: "C0-1", check: (s) => San.sanitizeImport3(s, scenes3) }
+      { state: N3.initialState("explore"), scene: "C0-1", check: (s) => San.sanitizeImport3(s, scenes3) },
+      { state: N4.initialState("explore"), scene: "D0-1", check: (s) => San.sanitizeImport4(s, scenes4, Engine4) }
     ];
     cases.forEach((c, i) => {
       c.state.transcript = Array.from({ length: 601 }, () => ({ scene: c.scene, speaker: "system", text: "合法長局紀錄" }));
@@ -2290,11 +2302,253 @@ tests.push({
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    for (const frag of ["bd_series_progress_v1", "markChapterComplete(state)", 'completedAt: prev.completedAt', 'sm.textContent = complete ? "✓ 已完成"', '"系列進度 " + completedCount + "/3"'])
+    for (const frag of ["bd_series_progress_v1", "markChapterComplete(state)", 'completedAt: prev.completedAt', 'sm.textContent = complete ? "✓ 已完成"', '"系列進度 " + completedCount + "/4"'])
       if (!ui.includes(frag)) throw new Error("通關章印契約缺失：" + frag);
     if (!html.includes(".chapterPick.isComplete")) throw new Error("首頁缺通關章印視覺");
     for (const frag of ['localStorage.getItem(KEY + "_corrupt")', "inspectSaveText(backup)", "已恢復先前被誤判並備份的進度"])
       if (!ui.includes(frag)) throw new Error("誤判備份復原契約缺失：" + frag);
+  }
+});
+
+tests.push({
+  name: "第四章資料鏡像與手點轉場|14 場全可達、JSON 同源、年份與尾聲不自動跳",
+  fn: () => {
+    const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
+    const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts4.json"), "utf-8"));
+    if (JSON.stringify(scenes4) !== JSON.stringify(sj)) throw new Error("scenes4 鏡像漂移");
+    if (JSON.stringify(require("../data/histfacts4.js")) !== JSON.stringify(hj)) throw new Error("histfacts4 鏡像漂移");
+    if (scenes4.chapter !== "ch4" || scenes4.title !== "月亮一直在掉" || scenes4.scenes.length !== 14)
+      throw new Error("第四章識別或場景數錯誤");
+    const sm = new Map(scenes4.scenes.map((s) => [s.id, new Set(s.nodes.map((n) => n.id))]));
+    for (const s of scenes4.scenes) for (const n of s.nodes) {
+      if (n.next && !sm.get(s.id).has(n.next)) throw new Error("next 不存在:" + s.id + "/" + n.id);
+      if (n.scene && !sm.has(n.scene)) throw new Error("goto 場景不存在:" + n.scene);
+      for (const o of n.options || []) if (!sm.get(s.id).has(o.next)) throw new Error("option.next 不存在:" + s.id + "/" + o.id);
+    }
+    const all = JSON.stringify(sj);
+    for (const year of ["1655","1665","1679","1684","1687"]) if (!all.includes(year)) throw new Error("缺年卡:" + year);
+    const timed = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
+    if (/setTimeout[\s\S]{0,180}(?:choose|advance|embedComplete)/.test(timed))
+      throw new Error("舞台仍可能用計時器代按劇情轉場");
+    for (const sceneId of ["D0-1","D2-1","D2-3","DE-1"]) {
+      const sc = scenes4.scenes.find((s) => s.id === sceneId);
+      if (!(sc.nodes || []).some((n) => n.type === "choice")) throw new Error("年份轉場缺手點閘:" + sceneId);
+    }
+  }
+});
+
+tests.push({
+  name: "第四章軌道引擎|切線、朝外、過強與三拍閉合皆先演後果且不自動給證據",
+  fn: () => {
+    let s = Engine4.initialState();
+    const before = JSON.stringify(s);
+    let r = Engine4.commitDeflection(s, { dx:0, dy:0 });
+    if (r.error !== "orbit-attempt-required" || JSON.stringify(s) !== before) throw new Error("未開局守衛或純函式失效");
+    s = Engine4.startOrbitAttempt(s).state;
+    r = Engine4.commitDeflection(s, { dx:0, dy:0 });
+    if (r.ok !== false || r.consequence.kind !== "tangent" || r.consequence.played) throw new Error("無偏折未生成待播放切線後果");
+    if (r.consequence.path.length < 5 || Math.hypot(r.consequence.path.at(-1).x, r.consequence.path.at(-1).y) <= 1.3)
+      throw new Error("切線後果沒有明顯遠離");
+    s = r.state;
+    if (Engine4.commitDeflection(s, { dx:-.058,dy:0 }).error !== "consequence-required")
+      throw new Error("後果未看完仍可直接重畫");
+    s = Engine4.runConsequence(s).state;
+    if (!s.orbitLab.tangentRecord || s.evidence.k1) throw new Error("切線紀錄遺失或自動取得證據");
+    s = Engine4.startOrbitAttempt(s).state;
+    r = Engine4.commitDeflection(s, { dx:.058,dy:0 });
+    if (r.consequence.kind !== "outward") throw new Error("朝外箭頭未生成更快遠離後果");
+    const outwardEnd = r.consequence.path.at(-1);
+    if (Math.hypot(outwardEnd.x,outwardEnd.y) <= Math.hypot(1,1.2)) throw new Error("朝外路徑沒有比切線更遠");
+    s = Engine4.runConsequence(r.state).state;
+    s = Engine4.startOrbitAttempt(s).state;
+    r = Engine4.commitDeflection(s, { dx:-.18,dy:0 });
+    if (!["impact","unstable"].includes(r.consequence.kind)) throw new Error("過強向內未撞地／失穩");
+    s = Engine4.runConsequence(r.state).state;
+    s = Engine4.startOrbitAttempt(s).state;
+    for (let i=0;i<3;i++) {
+      const p=s.orbitLab.position, m=Math.hypot(p.x,p.y);
+      r=Engine4.commitDeflection(s,{dx:-p.x/m*.058,dy:-p.y/m*.058});
+      if (!r.ok) throw new Error("容忍帶內偏折遭拒，第 "+(i+1)+" 拍");
+      s=r.state;
+    }
+    if (!s.orbitLab.ruleRepeatReady || s.evidence.k1) throw new Error("三拍狀態或手動斷言邊界錯");
+    s=Engine4.repeatOrbitRule(s).state;
+    if (!s.orbitLab.complete || s.orbitLab.path.length<33 || s.evidence.k1) throw new Error("閉合續跑或證據邊界錯");
+    r=Engine4.assertK1(s,["closed","tangent"],"forward-push");
+    if (r.ok || r.state.evidence.k1) throw new Error("向前推力錯解仍取得證據");
+    s=Engine4.assertK1(s,["tangent","closed"],"forward-plus-inward-turn").state;
+    if (!s.evidence.k1) throw new Error("正確兩紀錄斷言未成立");
+  }
+});
+
+tests.push({
+  name: "第四章跨尺度引擎|座標真的縮放、n=0/1/2 fixture、兩試算後才可鎖律",
+  fn: () => {
+    let s=Engine4.initialState(); s.evidence.k1=true;
+    let r=Engine4.setScale(s,30,45); s=r.state;
+    if (s.scaleLab.actualCoordinates.moonX!==30 || !s.scaleLab.scaleHistory.length) throw new Error("尺度只換文字、未改座標／歷史");
+    s=Engine4.setScale(s,60,60).state;
+    const vals={};
+    for (const n of [0,1,2]) { r=Engine4.tryDistanceLaw(s,n); s=r.state; vals[n]=r.trial.moonSagM; }
+    if (vals[0]!==17640 || vals[1]!==294 || vals[2]!==4.9) throw new Error("距離律教學 fixture 漂移:"+JSON.stringify(vals));
+    let one=Engine4.initialState(); one.evidence.k1=true; one=Engine4.tryDistanceLaw(one,2).state;
+    if (Engine4.lockDistanceLaw(one,2).error!=="two-trials-required") throw new Error("只試一條律仍可封存");
+    s=Engine4.lockDistanceLaw(s,2).state;
+    if (s.scaleLab.lawLocked!==2) throw new Error("試算後封存失敗");
+    r=Engine4.assertK2(s,["earth-fall","moon-sag"],"inverse-square-cross-scale");
+    if (r.ok) throw new Error("缺 60／60 來源仍取得跨尺度證據");
+    s=Engine4.assertK2(s,["earth-fall","moon-sag","scale-60-60"],"inverse-square-cross-scale").state;
+    if (!s.evidence.k2) throw new Error("跨尺度正確斷言未成立");
+  }
+});
+
+tests.push({
+  name: "第四章封存預測|觀測先藏、預測先存、殘差守衛、解鎖不刪舊稿",
+  fn: () => {
+    let s=Engine4.initialState(); s.evidence.k1=true;
+    s=Engine4.tryDistanceLaw(s,1).state; s=Engine4.tryDistanceLaw(s,2).state;
+    s=Engine4.lockDistanceLaw(s,2).state;
+    if (s.planetLab.revealed.mars || s.planetLab.revealed.jupiter) throw new Error("行星觀測開局未隱藏");
+    let r=Engine4.predictPlanet(s,"mars"); s=r.state;
+    if (!r.prediction.sealed || !r.prediction.revealedAfterSeal || !s.planetLab.revealed.mars || !r.prediction.pass)
+      throw new Error("Mars 沒有先封存再揭露或殘差未過");
+    r=Engine4.predictPlanet(s,"jupiter"); s=r.state;
+    if (!s.planetLab.crossScalePass || !r.prediction.pass) throw new Error("兩顆行星殘差未通過 3% 帶");
+    r=Engine4.assertK3(s,["mars-sealed"],"withheld-data-prediction");
+    if (r.ok) throw new Error("只用一顆行星仍取得證據");
+    s=Engine4.assertK3(s,["mars-sealed","jupiter-sealed"],"withheld-data-prediction").state;
+    if (!s.evidence.k3) throw new Error("兩筆未揭露預測未成立");
+    const old=JSON.stringify(s.planetLab.predictions);
+    s=Engine4.unlockDistanceLaw(s).state;
+    if (!s.planetLab.predictions.every((p)=>p.superseded) || JSON.stringify(s.planetLab.predictions)===old)
+      throw new Error("解鎖未保留並標記舊預測");
+  }
+});
+
+tests.push({
+  name: "第四章雙模型反驗|Moon 不單獨裁決，兩模型三案例齊後才可提出有限主張",
+  fn: () => {
+    let s=Engine4.initialState(); s.evidence.k2=true; s.evidence.k3=true;
+    for (const m of Engine4._MODELS) s=Engine4.runModel(s,m,"moon").state;
+    let r=Engine4.assertK4(s,["inverseSquare:moon","simpleVortex:moon"],"same-rule-fewer-patches");
+    if (r.ok) throw new Error("只跑 Moon 就取得模型證據");
+    for (const m of Engine4._MODELS) for (const c of ["planets","comet"]) s=Engine4.runModel(s,m,c).state;
+    const records=[]; for (const m of Engine4._MODELS) for (const c of Engine4._CASES) records.push(m+":"+c);
+    r=Engine4.assertK4(s,records,"all-vortices-refuted");
+    if (r.ok || r.state.evidence.k4) throw new Error("永久否定所有渦旋的越界主張被受理");
+    s=Engine4.assertK4(s,records,"same-rule-fewer-patches").state;
+    if (!s.evidence.k4 || !s.modelLab.gravityComplete || !s.modelLab.vortexComplete) throw new Error("完整有限比較未成立");
+    const vortex=s.modelLab.runs.filter((x)=>x.model==="simpleVortex");
+    if (!vortex.find((x)=>x.caseId==="moon"&&x.patches===0) || !vortex.find((x)=>x.caseId==="comet"&&x.patches>0))
+      throw new Error("簡單渦旋未被公平呈現為月球可說、跨案例需補丁");
+  }
+});
+
+tests.push({
+  name: "第四章校樣窗口|無倒數、局部稿／延後／錯稿皆留痕，三輪後仍可完成",
+  fn: () => {
+    let s=Engine4.initialState(); s.evidence.k2=true; s.evidence.k3=true;
+    const idle=JSON.stringify(s.proof.press);
+    for(let i=0;i<1000;i++) Engine4.previewProof(s);
+    if(JSON.stringify(s.proof.press)!==idle) throw new Error("閱讀／預覽竟推進校樣窗口");
+    s=Engine4.submitPartialProof(s,"moon-planets").state;
+    if(s.proof.press.window!==2 || s.proof.press.proofs[0].complete || s.evidence.k5) throw new Error("誠實短稿沒有留下範圍或誤給完成證據");
+    s=Engine4.deferPress(s,"等待彗星比較").state;
+    if(s.proof.press.window!==3 || !s.proof.press.delays.length) throw new Error("主動延後未推進並留理由");
+    s.evidence.k4=true;
+    let bad=Engine4.submitProof(s); s=bad.state;
+    if(bad.ok!==false || !s.proof.press.scheduleLost || s.proof.press.status!=="schedule-lost" || !s.proof.press.rushTried)
+      throw new Error("第三輪錯稿未先印出或未轉重新排程");
+    for(const [slot,id] of [["inertia","M2"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])
+      s=Engine4.placeProofLink(s,slot,id).state;
+    for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT)) s=Engine4.assignCredit(s,c,p).state;
+    s=Engine4.setBoundary(s,"ruleEstablished").state;
+    const final=Engine4.submitProof(s);
+    if(!final.ok || !final.state.evidence.k5 || !final.state.proof.press.scheduleLost)
+      throw new Error("錯過原排程後不能完成，或成功洗掉排程成本");
+  }
+});
+
+tests.push({
+  name: "第四章證明邊界|錯槽斷幾何、英雄化斷署名、機制空白可預覽但送樣才完成",
+  fn: () => {
+    let s=Engine4.initialState(); s.evidence.k4=true;
+    let r=Engine4.placeProofLink(s,"distance","K1");
+    if(r.ok!==false || r.consequence!=="geometry-break") throw new Error("錯來源未生成斷鏈後果");
+    s=r.state;
+    for(const [slot,id] of [["inertia","M3"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])
+      s=Engine4.placeProofLink(s,slot,id).state;
+    for(const c of Object.keys(Engine4._CREDIT_EXPECT)) s=Engine4.assignCredit(s,c,"Newton").state;
+    r=Engine4.setBoundary(s,"newtonAlone"); s=r.state;
+    if(r.ok || r.consequence!=="credit-lines-break") throw new Error("單一英雄末句沒有可見斷線");
+    if(Engine4.previewProof(s).preview.creditWrong.length!==3) throw new Error("信用錯配未被預覽辨識");
+    for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT)) s=Engine4.assignCredit(s,c,p).state;
+    r=Engine4.setBoundary(s,"mechanismSolved"); s=r.state;
+    if(r.ok || r.consequence!=="mechanism-slot-empty" || !s.proof.overclaimTried) throw new Error("機制越界未保留嘗試與空槽");
+    s=Engine4.setBoundary(s,"ruleEstablished").state;
+    if(!Engine4.previewProof(s).preview.complete || s.evidence.k5) throw new Error("預覽自動完成或正確鏈仍不完整");
+    s=Engine4.submitProof(s).state;
+    if(!s.evidence.k5) throw new Error("親手送出完整校樣後仍未取得完成證據");
+  }
+});
+
+tests.push({
+  name: "第四章全章走查|14 場、五證據、三時段、回顧、史實頁與章別存檔完整通關",
+  fn: () => {
+    const N4=Narrative._factory(scenes4,Engine4,{});
+    let s=N4.initialState("explore"), guard=0;
+    const act=(name,args)=>{const r=N4.labAction(s,name,args||{});if(r.error)throw new Error(name+":"+r.error);s=r.state;return r.result;};
+    while(!s.ended&&guard++<500){
+      const v=N4.view(s);
+      if(v.type==="line"||v.type==="system"||v.type==="histfacts"){const r=N4.advance(s);if(r.error)throw new Error(r.error);s=r.state;continue;}
+      if(v.type==="choice"){const r=N4.choose(s,v.options[0].id);if(r.error)throw new Error(r.error);s=r.state;continue;}
+      if(v.type==="review"){s=N4.setReview(s,"若地球不再吸引，月球沿當下切線前進。","建立跨尺度可反驗規則，機制仍未知。").state;continue;}
+      if(v.type==="embed"&&v.system==="orbit"){
+        if(v.phase==="tangent"){act("startOrbitAttempt");act("commitDeflection",{vector:{dx:0,dy:0}});act("runConsequence");}
+        else if(v.phase==="vectors"){act("startOrbitAttempt");for(let i=0;i<3;i++){const p=s.lab.orbitLab.position,m=Math.hypot(p.x,p.y);act("commitDeflection",{vector:{dx:-p.x/m*.058,dy:-p.y/m*.058}});}act("repeatOrbitRule");}
+        else if(v.phase==="claim")act("assertK1",{records:["tangent","closed"],concept:"forward-plus-inward-turn"});
+        else if(v.phase==="scale"){act("setScale",{distanceRatio:60,timeRatio:60});act("tryDistanceLaw",{exponent:1});act("tryDistanceLaw",{exponent:2});act("lockDistanceLaw",{exponent:2});act("assertK2",{records:["earth-fall","moon-sag","scale-60-60"],concept:"inverse-square-cross-scale"});}
+        else if(v.phase==="planets"){act("predictPlanet",{id:"mars"});act("predictPlanet",{id:"jupiter"});act("assertK3",{records:["mars-sealed","jupiter-sealed"],concept:"withheld-data-prediction"});}
+        else if(v.phase==="press-opening")act("deferPress",{reason:"等待彗星與替代模型比較"});
+        else if(v.phase==="models"){for(const m of Engine4._MODELS)for(const c of Engine4._CASES)act("runModel",{model:m,caseId:c});const rec=[];for(const m of Engine4._MODELS)for(const c of Engine4._CASES)rec.push(m+":"+c);act("assertK4",{records:rec,claim:"same-rule-fewer-patches"});}
+        else if(v.phase==="proof"){for(const [slot,id] of [["inertia","M2"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])act("placeProofLink",{slot,evidenceId:id});for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT))act("assignCredit",{contribution:c,person:p});act("setProofBoundary",{choice:"ruleEstablished"});act("submitProof");}
+        else throw new Error("未知 orbit phase:"+v.phase);
+        const done=N4.embedComplete(s);if(done.error)throw new Error(v.phase+" 閘未過:"+done.error);s=done.state;continue;
+      }
+      if(v.type==="end"){s=N4.advance(s).state;continue;}
+      throw new Error("第四章走查卡住:"+JSON.stringify(v));
+    }
+    if(!s.ended||guard>=500)throw new Error("第四章未完章");
+    for(const id of ["K1","K2","K3","K4","K5"])if(!s.evidence[id])throw new Error("缺章節證據:"+id);
+    if(!s.review.q1||!s.review.q2)throw new Error("第四章自由回述未保存");
+    if(N4.CHAPTER_ID!=="ch4"||N4.SAVE_SCHEMA!==1||s.chapter!=="ch4")throw new Error("第四章 schema／章別未隔離");
+    const San=require("../src/sanitize.js");
+    if(!San.sanitizeImport4(JSON.parse(N4.serialize(s)),scenes4,Engine4).ok)throw new Error("合法完章存檔遭拒");
+    const Env=require("../src/save-envelope.js"), decoded=Env.decode(Env.encode("ch4",s));
+    if(!decoded.envelope||decoded.chapter!=="ch4")throw new Error("第四章書信封套往返失敗");
+  }
+});
+
+tests.push({
+  name: "第四章舞台接線與可及性|獨立入口、軌道視圖、44px 操作、橫屏與減少動態",
+  fn: () => {
+    const html=readFileSync(path.join(here,"../stage.html"),"utf-8");
+    const ui=readFileSync(path.join(here,"../src/chapter-ui.js"),"utf-8");
+    const sui=readFileSync(path.join(here,"../src/stage-ui.js"),"utf-8");
+    for(const frag of ['data-chapter="ch04"',"data/scenes4.js","data/histfacts4.js","src/engine4.js",'requested === "ch04"','before-discovery:chapter4:v1'])
+      if(!html.includes(frag))throw new Error("第四章入口接線缺失:"+frag);
+    for(const frag of ["renderOrbit","orbit4Svg",'v.system === "orbit"',"submitPartialProof","setProofBoundary","submitProof","月地模型：改向"])
+      if(!ui.includes(frag))throw new Error("第四章 UI 接線缺失:"+frag);
+    for(const frag of ['d.system === "orbit" ? "orbit"',"走進軌道工作台",'stage.html?chapter=ch04',"軌道與出版備忘"])
+      if(!sui.includes(frag))throw new Error("舞台軌道視圖／接力缺失:"+frag);
+    if(!html.includes(".orbitLab .orbitAction { min-height:42px") && !html.includes(".orbitLab .orbitAction { min-height: 42px"))
+      throw new Error("第四章主要操作未接近 44px 觸控目標");
+    if(!html.includes("@media (prefers-reduced-motion:reduce)") || !html.includes(".orbitPath"))
+      throw new Error("第四章減少動態未保留因果路徑");
+    if(!html.includes("max-height:520px") || !html.includes(".orbitBody"))
+      throw new Error("第四章橫屏低高度排版缺失");
+    if(/setInterval|countdown|deadlineSeconds/.test(ui.slice(ui.indexOf("第四章軌道"))))
+      throw new Error("出版壓力誤做成倒數計時");
   }
 });
 

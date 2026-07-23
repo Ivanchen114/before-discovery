@@ -268,8 +268,89 @@
     return { ok: true, state: state };
   }
 
+  /* 第四章白名單：軌道向量、跨尺度預測、模型比較與校樣窗口。
+     匯入檔只能攜帶有限的數值／列舉；證據仍須能由引擎動作路徑重建。 */
+  function sanitizeImport4(state, scenes, engine4) {
+    if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
+    var generic = scrub(state, 0, { n: LIMITS.maxNodes });
+    if (generic) return fail(generic);
+    if (state.schemaVersion !== 1 || state.chapter !== "ch4") return fail("存檔版本或章節不相容");
+    if (state.mode !== "explore" && state.mode !== "scholar") return fail("遊戲模式無法辨識");
+    if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("信譽數值錯誤");
+    var sceneIds = {}, nodeIds = {};
+    (scenes && scenes.scenes || []).forEach(function (s) {
+      sceneIds[s.id] = 1; nodeIds[s.id] = {};
+      (s.nodes || []).forEach(function (n) { nodeIds[s.id][n.id] = 1; });
+    });
+    if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
+      return fail("存檔中的故事位置無法辨識");
+    var lab = state.lab;
+    if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
+        !lab.orbitLab || !lab.scaleLab || !lab.planetLab || !lab.modelLab || !lab.proof || !lab.evidence)
+      return fail("第四章實驗紀錄格式錯誤");
+    if (!isInt(lab.orbitLab.attempt) || lab.orbitLab.attempt < 0 || lab.orbitLab.attempt > 999 ||
+        !isInt(lab.orbitLab.step) || lab.orbitLab.step < 0 || lab.orbitLab.step > 3 ||
+        !Array.isArray(lab.orbitLab.path) || lab.orbitLab.path.length > 200 ||
+        !Array.isArray(lab.orbitLab.deflectionVectors) || lab.orbitLab.deflectionVectors.length > 3)
+      return fail("軌道路徑紀錄格式錯誤");
+    for (var pi = 0; pi < lab.orbitLab.path.length; pi++) {
+      var point = lab.orbitLab.path[pi];
+      if (!point || !isFinite(point.x) || !isFinite(point.y)) return fail("軌道路徑含無法辨識的座標");
+    }
+    if (!isFinite(lab.scaleLab.earthRadiusRatio) || lab.scaleLab.earthRadiusRatio < 1 ||
+        lab.scaleLab.earthRadiusRatio > 100 || !isFinite(lab.scaleLab.timeRatio) ||
+        lab.scaleLab.timeRatio < 1 || lab.scaleLab.timeRatio > 120 ||
+        !Array.isArray(lab.scaleLab.trials) || lab.scaleLab.trials.length > 100)
+      return fail("跨尺度工作台紀錄格式錯誤");
+    for (var ti = 0; ti < lab.scaleLab.trials.length; ti++) {
+      var trial = lab.scaleLab.trials[ti];
+      if (!trial || !isFinite(trial.exponent) || trial.exponent < 0 || trial.exponent > 3 ||
+          !isFinite(trial.moonSagM)) return fail("距離律試算紀錄格式錯誤");
+    }
+    if (lab.scaleLab.lawLocked !== null &&
+        (!isFinite(lab.scaleLab.lawLocked) || lab.scaleLab.lawLocked < 0 || lab.scaleLab.lawLocked > 3))
+      return fail("封存距離律格式錯誤");
+    if (!Array.isArray(lab.planetLab.predictions) || lab.planetLab.predictions.length > 100 ||
+        !lab.planetLab.revealed || !lab.planetLab.residuals) return fail("行星預測紀錄格式錯誤");
+    for (var pr = 0; pr < lab.planetLab.predictions.length; pr++) {
+      var pred = lab.planetLab.predictions[pr];
+      if (!pred || ["mars", "jupiter"].indexOf(pred.planet) < 0 ||
+          !isFinite(pred.prediction) || !isFinite(pred.residualPct) ||
+          typeof pred.sealed !== "boolean" || typeof pred.pass !== "boolean")
+        return fail("行星預測含無法辨識的資料");
+    }
+    if (!Array.isArray(lab.modelLab.runs) || lab.modelLab.runs.length > 100)
+      return fail("模型比較紀錄格式錯誤");
+    for (var mr = 0; mr < lab.modelLab.runs.length; mr++) {
+      var run = lab.modelLab.runs[mr];
+      if (!run || ["inverseSquare", "simpleVortex"].indexOf(run.model) < 0 ||
+          ["moon", "planets", "comet"].indexOf(run.caseId) < 0 ||
+          !isFinite(run.residual) || !isInt(run.patches) || run.patches < 0)
+        return fail("模型比較含無法辨識的資料");
+    }
+    var press = lab.proof.press;
+    if (!press || !isInt(press.window) || press.window < 1 || press.window > 3 ||
+        press.reservedWindows !== 3 || ["open", "schedule-lost"].indexOf(press.status) < 0 ||
+        typeof press.scheduleLost !== "boolean" || !Array.isArray(press.proofs) ||
+        !Array.isArray(press.delays) || press.proofs.length > 100 || press.delays.length > 100)
+      return fail("校樣窗口紀錄格式錯誤");
+    var evidenceIds = ["k1", "k2", "k3", "k4", "k5"];
+    for (var ei = 0; ei < evidenceIds.length; ei++)
+      if (typeof lab.evidence[evidenceIds[ei]] !== "boolean") return fail("第四章證據狀態格式錯誤");
+    if (engine4 && lab.evidence.k5 && !engine4._proofAudit(lab).complete)
+      return fail("完成證據與校樣內容不一致");
+    if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
+    for (var t = 0; t < state.transcript.length; t++) {
+      var line = state.transcript[t];
+      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2000)
+        return fail("對話紀錄中有一筆格式錯誤");
+    }
+    return { ok: true, state: state };
+  }
+
   var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2,
-    sanitizeImport3: sanitizeImport3, _scrub: scrub, LIMITS: LIMITS };
+    sanitizeImport3: sanitizeImport3, sanitizeImport4: sanitizeImport4,
+    _scrub: scrub, LIMITS: LIMITS };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Sanitize = api; }
 })(typeof self !== "undefined" ? self : this);

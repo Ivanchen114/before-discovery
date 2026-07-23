@@ -15,7 +15,7 @@
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
   var TEXT = window.GB.TextFormat || null;
-  var CHAPTER_ID = /^ch[123]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var CHAPTER_ID = /^ch[1234]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var TYPE_MS = 40;                    /* 逐字基速 */
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
@@ -367,7 +367,7 @@
   var lastLineScene = null;
   /* 任何會讓對話框退場、把畫面交給大型互動的視圖，都必須等玩家親手收掉最後一句。
      ship 曾漏列，造成第三章台詞一播完就自動切進航船實驗。 */
-  var YIELD_VIEWS = { debate: 1, lab: 1, ship: 1, review: 1, histfacts: 1 };
+  var YIELD_VIEWS = { debate: 1, lab: 1, ship: 1, orbit: 1, review: 1, histfacts: 1 };
   function syncFlags() {
     var active = typing || waiting || queue.length > 0 || ackPending;
     body.classList.toggle("held", active);
@@ -544,7 +544,9 @@
   $("controls").addEventListener("click", function () { if (needKickoff) needKickoff = false; }, true);
   document.addEventListener("bd:view", function (ev) {
     var d = ev.detail, view;
-    if (d.type === "embed") view = d.system === "ship" ? "ship" : ((d.system === "incline" || d.system === "catapult") ? "lab" : "debate");
+    if (d.type === "embed") view = d.system === "ship" ? "ship"
+      : (d.system === "orbit" ? "orbit"
+      : ((d.system === "incline" || d.system === "catapult") ? "lab" : "debate"));
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
@@ -574,10 +576,18 @@
           nextHref = "stage.html?chapter=ch03";
         } else if (CHAPTER_ID === "ch3") {
           nc.querySelector(".ncSealed").textContent = "第三章《船艙裡的靜止》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一個問題";
-          nc.querySelector(".ncTitle").textContent = "月亮為什麼沒有沿直線離開?";
+          nc.querySelector(".ncNext").textContent = "下一章";
+          nc.querySelector(".ncTitle").textContent = "月亮一直在掉";
           nc.querySelector(".ncHook").textContent = "船上的石頭保留前行;如果月亮也在前行,究竟是什麼讓它不斷轉彎?";
-          nc.querySelector(".ncSys").textContent = "第四章仍在製作。第三章進度與筆記已封存於這台裝置。";
+          nc.querySelector(".ncSys").textContent = "第四章現已開放。第三章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第四章";
+          nextHref = "stage.html?chapter=ch04";
+        } else if (CHAPTER_ID === "ch4") {
+          nc.querySelector(".ncSealed").textContent = "第四章《月亮一直在掉》——已封存";
+          nc.querySelector(".ncNext").textContent = "下一個問題";
+          nc.querySelector(".ncTitle").textContent = "碰撞之後，什麼應該守住?";
+          nc.querySelector(".ncHook").textContent = "一本帳記方向與運動總量；另一本帳記能抬多高、壓多深。兩本帳都有人說是真的。";
+          nc.querySelector(".ncSys").textContent = "第五章仍在製作。第四章進度與筆記已封存於這台裝置。";
         }
         nextBtn.hidden = !nextHref;
         nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
@@ -592,10 +602,11 @@
     /* 大型互動轉場確認閘：主實驗首次進場、信譽修復、首次辯論。
        A2-3/e2/e3c 是同一工作階段的連續任務，不重複把玩家趕出再請進來。 */
     var fromStory = prevView === "narration" || prevView === "choice";
-    var gateLab = (view === "lab" || view === "ship") && fromStory &&
+    var gateLab = (view === "lab" || view === "ship" || view === "orbit") && fromStory &&
       ((d.scene === "A2-2" && d.nodeId === "e1") ||
        (d.scene === "B2-3" && d.nodeId === "e1") ||
-       (d.scene === "C1-1" && d.nodeId === "e1") || d.scene === "SC-R1");
+       (d.scene === "C1-1" && d.nodeId === "e1") ||
+       (d.scene === "D1-1" && d.nodeId === "e1") || d.scene === "SC-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
@@ -603,14 +614,15 @@
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
         : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
-        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")));
+        : (CHAPTER_ID === "ch4" ? "▸ 走進軌道工作台"
+        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))));
       $("btnEmbark").hidden = false;
       syncFlags();
-    } else if ((view === "lab" || view === "ship") && !labIntroSeen && !body.classList.contains("embarkGate")) {
+    } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {
       labIntroSeen = true; /* 非閘道路徑(讀檔直落實驗台):照舊直接給備忘卡 */
       setTimeout(showLabIntro, 0);
     }
-    if (view !== "lab" && view !== "ship" && view !== "debate") {
+    if (view !== "lab" && view !== "ship" && view !== "orbit" && view !== "debate") {
       pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
     }
     if (view === "debate" && !debIntroSeen && !body.classList.contains("embarkGate")) { /* 讀檔直落辯論 */
@@ -940,6 +952,17 @@
         "最後只說證據夠重的話——淘汰『必落船尾』的反對，不等於直接證成地球正在運動。"
       ];
       $("btnLabIntroGo").textContent = "登上實驗船";
+    } else if (CHAPTER_ID === "ch4") {
+      title.textContent = "旅人筆記・軌道與出版備忘";
+      lines = [
+        "先讓錯路走完——沒有偏折、朝外或過強，都會先演成完整路徑；後果結束後才看提示。",
+        "每拍都重新找地心——月亮位置改了，下一支向內箭頭的方向也會跟著改；不要照抄紙面角度。",
+        "先比較，再封存——距離與時間先拉到同一尺度，至少試兩條律，才能鎖下一條去碰未揭露資料。",
+        "舊預測不能消失——解鎖改律時，先前封存的 Mars／Jupiter 預測仍保留並劃線。",
+        "公平比較模型——Moon 一格不夠；反平方與簡單共轉渦旋都要跑 Moon、Planets、Comet。",
+        "出版沒有倒數——閱讀、重排與預覽不耗窗口；只有送樣或明列理由延後，才讓排程往前走。"
+      ];
+      $("btnLabIntroGo").textContent = "開始畫軌道";
     } else {
       return;
     }
@@ -951,7 +974,7 @@
     if (!box || box.children.length) return;
     var ids = CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] :
       CHAPTER_ID === "ch3" ? ["ship3_g1_mast_dock", "ship3_g2_cabin"] :
-      ["prop_water_clock", "prop_ball_groove"];
+      CHAPTER_ID === "ch4" ? [] : ["prop_water_clock", "prop_ball_groove"];
     ids.forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;
