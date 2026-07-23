@@ -1666,7 +1666,7 @@ tests.push({
     if (!f3 || f3.kind !== "card" || f3.path !== "ch02/cards/card_F3.webp" || f3.w !== 1200 || f3.h !== 750)
       throw new Error("F3 一拋一放證據圖資產宣告缺失");
     if (!existsSync(path.join(here, "../../public/assets/", f3.path))) throw new Error("F3 證據圖檔不存在");
-    for (const match of ["三輪紀錄在案", "如果物體真的要等推力用盡才下墜"])
+    for (const match of ["三輪紀錄在案", "若它要等推力用完才下墜"])
       if (!rules.some((r) => r.scene === "B2-4" && r.match === match && r.items.some((x) => x.asset === "card_F3")))
         throw new Error("F3 判讀／回述缺專用圖:" + match);
     const viewRules = assets.viewFocusVisual || [];
@@ -1822,9 +1822,9 @@ tests.push({
       return (scene?.nodes || []).map((n) => n.text || "").join("\n");
     };
     for (const [id, phrase] of [
-      ["C0-2", "我的船可以借，我的名字不借"],
+      ["C0-2", "船借你們。結果沒查清楚以前"],
       ["C1-2", "少一項，別再跟我談公開"],
-      ["C2-2", "我把加速時看見的事，說成所有行船都會發生"],
+      ["C2-2", "我把加速那一回，當成了所有的船"],
       ["C2-2", "誰想護短，我都叫停"],
       ["C2-4", "人群要的是一個夠大的結論"],
       ["C3-1", "兩邊都只會挑自己愛看的那一筆"],
