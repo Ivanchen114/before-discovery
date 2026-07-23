@@ -1433,7 +1433,7 @@
       "g2-required": "先完成停船與穩速船艙的四格對照。",
       "prediction-required": "先把加速與減速的落點預測鎖定，再看結果。",
       "prediction-locked": "預測已經用墨封存，結果出來前不能改。",
-      "same-direction": "加速與減速若押同一方向，就沒有真正比較兩種速度改變。",
+      "same-direction": "加速與減速若都記成同一方向，就沒有真正比較兩種速度改變。",
       "g3-required": "先完成加速／減速對照，才有兩種參考物可疊。",
       "alignment-required": "兩張紙必須先用同一串鼓點對齊，不能只把端點硬湊在一起。",
       "g4-required": "先把船上與岸上紀錄轉成可以互相對照的兩張圖。",
@@ -1451,24 +1451,31 @@
     else {
       setState(r.state);
       var rr = r.result || {};
+      var delayedOverlayFeedback = null;
       if (rr.ok === false) {
         var why = {
-          "beats-mismatch": "終點相同不代表途中時刻相同。請把兩張紙上相同編號的鼓點逐一對齊。",
+          "beats-mismatch": "終點雖然重合了，但同一編號的鼓點仍錯開；你比較到的不是同一時刻。",
           "wrong-transform": "縮放只會改變圖的大小，不能改變參考物。請逐拍算『石頭相對岸的位置－桅杆相對岸的位置』。",
           "evidence-mismatch": "這張證據沒有直接回答這道質詢。換一張真正做過相應對照的紀錄。",
           "claim-mismatch": "這組紀錄還不足以支持你選的說法。檢查是否混入受干擾的紀錄，或把現象解釋成了資料沒有測量的原因。",
           "overclaim": "這場實驗排除一個反對，卻沒有直接量到地球正在運動。把結論收回證據邊界。"
         };
         var tailored = typeof failText === "function" ? failText(rr) : failText;
-        ship3Msg = "✕ " + (tailored || why[rr.reason] || "這一步還不能成立。");
+        var feedback = tailored || why[rr.reason] || "這一步還不能成立。";
+        if ((action === "alignRecords" || action === "transformRecords") && rr.preview) {
+          /* G4 的錯誤先在紙帶上完整演出，再補診斷；避免提示搶在可觀察後果之前。 */
+          ship3Msg = "";
+          delayedOverlayFeedback = { preview: rr.preview, text: "✕ " + feedback };
+        } else ship3Msg = "✕ " + feedback;
       } else ship3Msg = typeof okText === "function" ? okText(rr) : (okText || "✓ 已記錄。");
       var visualKinds = {
         runBaseline: "mast-dock",
         runMast: args && args.window === "stable" ? "mast-steady" : "mast-accelerating",
         runCabin: "cabin-" + ((args && args.vesselState) || "dock") + "-" + ((args && args.test) || "drip"),
         runSpeedChange: "speed-" + ((args && args.kind) || "accelerating"),
-        alignRecords: "tapes-align",
-        transformRecords: "tapes-transform",
+        alignRecords: args && args.pair === "sameBeats" ? "tapes-beats" : "tapes-endpoints",
+        transformRecords: args && args.kind === "scaleOnly" ? "tapes-scale" : "tapes-subtract",
+        resetOverlay: "tapes-reset",
         setReference: "tapes-reference-" + ((args && args.ref) || "shore"),
         runPublicStep: "public-" + ((args && args.step) || "baseline"),
         setBoundary: "boundary-" + ((args && args.choice) || "honest")
@@ -1485,6 +1492,19 @@
           if (!old[k] && after[k]) ship3Msg = "◆ 取得證據：" + (SCENES.evidenceNames[k.toUpperCase()] || "新證據") + "\n" + ship3Msg;
         });
       }
+      if (delayedOverlayFeedback) {
+        renderAll();
+        var pendingFeedback = delayedOverlayFeedback;
+        var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        window.setTimeout(function () {
+          var overlay = state.lab && state.lab.overlay;
+          if (overlay && overlay.preview === pendingFeedback.preview) {
+            ship3Msg = pendingFeedback.text;
+            renderAll();
+          }
+        }, reduced ? 0 : 720);
+        return;
+      }
     }
     renderAll();
   }
@@ -1494,8 +1514,8 @@
       "first-failure": ["故意保留一次失敗", "在船剛離岸、仍加速時放手；別刪掉異常，先看它跟哪個條件一起出現。"],
       "steady-mast": ["等船近似穩速", "用鼓點與岸標挑出穩定窗口，完成三次桅頂落石。"],
       cabin: ["把風留在甲板外", "停船與穩速時，各做滴水與拋接；四格都完成才能比較。"],
-      "speed-change": ["讓船改變速度", "先押加速與減速的落點，再各做一次；預測必須先封存。"],
-      overlay: ["讓兩張紙相認", "先對齊同一時刻，再把岸上位置換算成相對桅杆的位置，最後解釋一彎一直為何都正確。"],
+      "speed-change": ["讓船改變速度", "先封存加速與減速的落點預測，再各做一次；結果出現後不改答案。"],
+      overlay: ["讓兩張紙相認", "直接操作兩份同一事件的記錄，觀察每個動作究竟改變紙張、時間或參考物。"],
       "public-demo": ["把程序公開", "按可重做的順序公布基準、穩速窗口、釋放方法與重複結果。"],
       audit: ["三道公開質詢", "每一問選一張真正做過相應對照的證據。"],
       boundary: ["最後的證據邊界", "指出這場演示排除了什麼，又沒有直接證明什麼。"]
@@ -1551,6 +1571,8 @@
     return panel;
   }
   function ship3VisualId(phase) {
+    /* G4 必須由目前操作狀態即時繪製；靜態完成圖只留在資產庫，不進互動主畫面。 */
+    if (phase === "overlay") return null;
     var map = ASSETS && ASSETS.shipExperimentVisuals;
     if (!map) return null;
     var spec = map[phase];
@@ -1574,10 +1596,10 @@
     var ns = "http://www.w3.org/2000/svg";
     var svg = document.createElementNS(ns, "svg");
     svg.setAttribute("viewBox", "0 0 1000 563"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("class", "shipSimLayer"); fig.appendChild(svg);
-    function draw(tag, cls, attrs, text) {
+    function draw(tag, cls, attrs, text, parentNode) {
       var n = document.createElementNS(ns, tag); if (cls) n.setAttribute("class", cls);
       Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
-      if (text != null) n.textContent = text; svg.appendChild(n); return n;
+      if (text != null) n.textContent = text; (parentNode || svg).appendChild(n); return n;
     }
 
     if (phase === "baseline" || phase === "first-failure" || phase === "steady-mast") {
@@ -1620,33 +1642,103 @@
       draw("text", "shipSimAxisText", { x: 206, y: 501 }, "船尾"); draw("text", "shipSimAxisText", { x: sx - 25, y: 501 }, "桅腳"); draw("text", "shipSimAxisText", { x: 680, y: 501 }, "船頭");
       draw("text", "shipSimState", { x: 760, y: 76, "text-anchor": "end" }, kind === "accelerating" ? "加槳：船加速" : "收槳：船減速");
     } else if (phase === "overlay") {
-      /* 兩張紙從作答一開始就同時可見：岸上看見彎路，船上看見近乎直落。
-         玩家先用鼓點建立同時性，再親手把岸上座標換成相對桅杆的座標。 */
-      var beats = [0, 1, 2, 3], shoreXs = [210, 395, 580, 765], shoreY = [286, 295, 323, 371];
-      var shipX = 510, shipY = [384, 402, 430, 476];
-      draw("path", "shipPaperPath shore", { d: "M" + shoreXs.map(function (x, i) { return x + " " + shoreY[i]; }).join(" L") });
-      draw("path", "shipPaperPath ship " + (lab.overlay.aligned ? "revealed" : "preview"), {
-        d: "M" + shipY.map(function (y) { return shipX + " " + y; }).join(" L")
-      });
-      if (lab.overlay.transformed) {
-        /* 藍線是岸上紀錄扣掉桅杆前進後的結果；略向右錯開，讓兩條重合線仍可辨認。 */
-        draw("path", "shipPaperPath converted revealed", {
-          d: "M" + shipY.map(function (y) { return (shipX + 7) + " " + y; }).join(" L")
-        });
-      }
+      /* 兩張紙、鼓點、連線、縮放與座標轉換全由狀態即時繪製。
+         紙帶上的鼓點是同時性標記；路徑點另記錄各參考物下的位置。 */
+      var overlay = lab.overlay || {};
+      var preview = overlay.preview || (overlay.transformed ? "subtractMast" : (overlay.aligned ? "sameBeats" : "initial"));
+      var beats = [0, 1, 2, 3];
+      var beatShoreX = [170, 350, 530, 710], beatShipLocalX = [210, 390, 570, 750];
+      var paperY = [260, 284, 329, 404], shorePathX = [240, 370, 525, 710], relativeX = 500;
+      var shift = preview === "endpoints" ? 30 : ((preview === "sameBeats" || preview === "scaleOnly" || preview === "subtractMast") ? -40 : 65);
+      var scaled = preview === "scaleOnly";
+      function shipGlobalX(x) { return scaled ? (-40 + 110 + x * .78) : x + shift; }
+      function shipGlobalY(y) { return scaled ? (60 + y * .78) : y; }
+      var shipBeatX = beatShipLocalX.map(shipGlobalX), shipBeatY = shipGlobalY(150);
+
+      fig.classList.add("shipTapeTool", "preview-" + preview);
+      fig.setAttribute("aria-label", "雙紙帶操作：" + ({
+        initial: "兩份參考物不同的記錄尚未對齊。",
+        endpoints: "紙帶終點已重合，但相同編號鼓點仍錯開。",
+        sameBeats: "相同編號鼓點已逐拍對齊。",
+        scaleOnly: "船上紙長寬一起縮小，但參考物沒有改變。",
+        subtractMast: "岸上位置逐拍扣除桅杆位移，轉換後與船上記錄重合。"
+      }[preview] || "雙紙帶等待操作。"));
+
+      var defs = draw("defs");
+      var arrow = draw("marker", "shipPaperArrowMarker", {
+        id: "ship-paper-arrow", viewBox: "0 0 10 10", refX: 8, refY: 5,
+        markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse"
+      }, null, defs);
+      draw("path", "", { d: "M 0 0 L 10 5 L 0 10 z" }, null, arrow);
+
+      var shoreSheet = draw("g", "shipPaperSheetLayer shore");
+      draw("rect", "shipPaperSheet shore", { x: 70, y: 45, width: 840, height: 455, rx: 12 }, null, shoreSheet);
+      draw("text", "shipPaperLabel shore", { x: 92, y: 79 }, "岸上紙｜石頭相對岸", shoreSheet);
+      draw("path", "shipPaperPath shore", {
+        d: "M" + shorePathX.map(function (x, i) { return x + " " + paperY[i]; }).join(" L")
+      }, null, shoreSheet);
       beats.forEach(function (b, i) {
-        draw("circle", "shipPaperBeat shore " + (lab.overlay.aligned ? "aligned" : ""), { cx: shoreXs[i], cy: shoreY[i], r: 8 });
-        draw("circle", "shipPaperBeat ship " + (lab.overlay.aligned ? "aligned" : ""), { cx: shipX, cy: shipY[i], r: 8 });
-        if (lab.overlay.aligned) {
-          draw("text", "shipPaperBeatLabel", { x: shoreXs[i], y: shoreY[i] - 13, "text-anchor": "middle" }, String(b));
-          draw("text", "shipPaperBeatLabel", { x: shipX - 18, y: shipY[i] + 5, "text-anchor": "end" }, String(b));
-        }
+        draw("circle", "shipPaperBeat shore", { cx: beatShoreX[i], cy: 105, r: 9 }, null, shoreSheet);
+        draw("text", "shipPaperBeatLabel", { x: beatShoreX[i], y: 110, "text-anchor": "middle" }, String(b), shoreSheet);
+        draw("circle", "shipPaperPosition shore", { cx: shorePathX[i], cy: paperY[i], r: 8 }, null, shoreSheet);
       });
-      draw("text", "shipPaperLabel", { x: 830, y: 305, "text-anchor": "end" }, "岸上紙｜向前且下落");
-      draw("text", "shipPaperLabel", { x: 830, y: 404, "text-anchor": "end" }, "船上紙｜相對桅杆直落");
-      if (!lab.overlay.aligned) draw("text", "shipPaperStepLabel", { x: 505, y: 531, "text-anchor": "middle" }, "先用鼓點找出兩張紙上的同一時刻");
-      else if (!lab.overlay.transformed) draw("text", "shipPaperStepLabel", { x: 505, y: 531, "text-anchor": "middle" }, "時刻已對齊；下一步把岸上位置換成相對桅杆的位置");
-      else draw("text", "shipPaperStepLabel", { x: 505, y: 531, "text-anchor": "middle" }, "換算後兩條直落紀錄重合");
+      draw("circle", "shipPaperEndpoint shore", { cx: 850, cy: 75, r: 11 }, null, shoreSheet);
+
+      var shipTransform = scaled
+        ? "translate(-40 0) translate(110 60) scale(.78)"
+        : "translate(" + shift + " 0)";
+      var shipSheet = draw("g", "shipPaperSheetLayer ship " + preview, { transform: shipTransform });
+      draw("rect", "shipPaperSheet ship", { x: 110, y: 45, width: 840, height: 455, rx: 12 }, null, shipSheet);
+      draw("text", "shipPaperLabel ship", { x: 132, y: 178 }, "船上紙｜石頭相對桅杆", shipSheet);
+      draw("path", "shipPaperPath ship revealed", {
+        d: "M" + paperY.map(function (y) { return "540 " + y; }).join(" L")
+      }, null, shipSheet);
+      beats.forEach(function (b, i) {
+        draw("circle", "shipPaperBeat ship", { cx: beatShipLocalX[i], cy: 150, r: 9 }, null, shipSheet);
+        draw("text", "shipPaperBeatLabel", { x: beatShipLocalX[i], y: 155, "text-anchor": "middle" }, String(b), shipSheet);
+        draw("circle", "shipPaperPosition ship", { cx: 540, cy: paperY[i], r: 8 }, null, shipSheet);
+      });
+      draw("circle", "shipPaperEndpoint ship", { cx: 820, cy: 75, r: 11 }, null, shipSheet);
+
+      /* 對應鼓點的連線畫在紙面之上；逐拍對齊後才全部垂直。 */
+      beats.forEach(function (b, i) {
+        draw("line", "shipBeatConnector " + (overlay.aligned && !scaled ? "aligned" : "misaligned"), {
+          x1: beatShoreX[i], y1: 105, x2: shipBeatX[i], y2: shipBeatY
+        });
+      });
+
+      if (preview === "endpoints") {
+        draw("circle", "shipPaperEndpointHalo", { cx: 850, cy: 75, r: 23 });
+        draw("text", "shipPaperCallout", { x: 850, y: 39, "text-anchor": "middle" }, "終點重合");
+      }
+      if (scaled) {
+        draw("line", "shipPaperMeasure", { x1: 186, y1: 461, x2: 838, y2: 461 });
+        draw("line", "shipPaperMeasure", { x1: 838, y1: 120, x2: 838, y2: 461 });
+        draw("text", "shipPaperCallout", { x: 512, y: 482, "text-anchor": "middle" }, "長與寬同倍率縮小");
+      }
+      if (overlay.transformed) {
+        /* 箭頭保留每一拍「岸上位置－桅杆位移」的操作痕跡。 */
+        beats.forEach(function (b, i) {
+          draw("line", "shipPaperTransformArrow", {
+            x1: shorePathX[i], y1: paperY[i], x2: relativeX, y2: paperY[i],
+            "marker-end": "url(#ship-paper-arrow)"
+          });
+          draw("circle", "shipPaperPosition converted", { cx: relativeX, cy: paperY[i], r: 7 });
+        });
+        draw("path", "shipPaperPath converted revealed", {
+          d: "M" + paperY.map(function (y) { return relativeX + " " + y; }).join(" L")
+        });
+        draw("text", "shipPaperCallout converted", { x: 500, y: 231, "text-anchor": "middle" }, "逐拍扣除桅杆位移");
+      }
+
+      var stepText = {
+        initial: "兩張紙記的是同一事件，但紙邊與鼓點都還沒對齊",
+        endpoints: "終點雖重合，0、1、2、3 號同時刻仍彼此錯開",
+        sameBeats: "同編號連線已變直：現在比較的是同一時刻",
+        scaleOnly: "紙變小了；彎路與直路的參考物關係沒有改變",
+        subtractMast: "每拍扣除桅杆位移後，岸上記錄轉成船上直落記錄"
+      };
+      draw("text", "shipPaperStepLabel", { x: 500, y: 535, "text-anchor": "middle" }, stepText[preview]);
     } else {
       [228, 350, 472, 594, 716].forEach(function (x, i) {
         var got = !!lab.evidence["g" + (i + 1)];
@@ -1659,10 +1751,17 @@
       cap.textContent = "親手按下滴水或拋接：停船與近似穩速要各做一次，結果才有資格比較。";
     } else if (phase === "speed-change") {
       cap.textContent = "石頭離手後保留原先速度；船再加速或減速，才改變它相對桅腳的落點。";
-    } else if (phase === "overlay" && lab.overlay.transformed) {
-      cap.textContent = lab.overlay.activeReference === "ship"
-        ? "目前以船為參考：扣除桅杆位移後，石頭相對桅杆近乎直落。"
-        : "目前以岸為參考：石頭保有前行，同時向下加速。";
+    } else if (phase === "overlay") {
+      var overlayPreview = lab.overlay.preview || (lab.overlay.transformed ? "subtractMast" : (lab.overlay.aligned ? "sameBeats" : "initial"));
+      cap.textContent = ({
+        initial: "兩張半透明紙帶是可操作記錄，不是完成圖。先試著讓它們相認。",
+        endpoints: "終點真的疊在一起了；但斜著的編號連線顯示，你比較的仍不是同一時刻。",
+        sameBeats: "0、1、2、3 號鼓點已逐拍對齊；下一步要改的是位置所相對的物體。",
+        scaleOnly: "整張船上紙的長與寬一起縮小；路徑外形變小，參考物仍然沒換。",
+        subtractMast: lab.overlay.activeReference === "ship"
+          ? "目前以船為參考：箭頭保留逐拍扣除桅杆位移的痕跡，兩條直落記錄重合。"
+          : "目前以岸為參考：原始彎路仍保留，石頭一邊前行、一邊向下加速。"
+      })[overlayPreview] || "比較兩張紙帶上的同一事件。";
     } else if (phase === "public-demo" || phase === "audit" || phase === "boundary") {
       cap.textContent = "把五張證據分開擺好：它們共同支持模型，但每張只能回答自己真正測過的問題。";
     } else cap.textContent = "按下放手後，石頭與落點會依這次船況實際演出；失敗紀錄同樣保留。";
@@ -1802,7 +1901,7 @@
         success: "◆ 第二項主張成立：四格資料沒有提供分辨停船與近似穩速的可靠差異。" });
     }
     if (v.phase === "speed-change") {
-      ship3El("h3", "五、先押加速與減速", work);
+      ship3El("h3", "五、先封存加速與減速預測", work);
       if (!lab.predictions.locked) {
         var pr = ship3El("div", null, work, "shipPredict");
         ship3El("label", "放手後船加速：", pr); var pa = ship3Select(pr, ["behind", "foot", "ahead"], { behind: "偏向船尾", foot: "桅腳附近", ahead: "偏向船頭" }, "behind");
@@ -1814,7 +1913,7 @@
         ship3Btn(work, (lab.speedRuns.decelerating ? "✓ " : "") + "放手後收槳", function () { doShip("runSpeedChange", { kind: "decelerating" }, "減速結果已揭曉：石頭相對船偏前。"); }, "shipAction", !!lab.speedRuns.decelerating);
       }
       var speedRows = ["accelerating", "decelerating"].filter(function (k) { return !!lab.speedRuns[k]; }).map(function (k) {
-        var r = lab.speedRuns[k]; return [k === "accelerating" ? "放手後加速" : "放手後減速", (r.offset > 0 ? "+" : "") + r.offset.toFixed(2), r.outcome === "behind" ? "偏船尾" : "偏船頭", r.matched ? "押中" : "未押中"];
+        var r = lab.speedRuns[k]; return [k === "accelerating" ? "放手後加速" : "放手後減速", (r.offset > 0 ? "+" : "") + r.offset.toFixed(2), r.outcome === "behind" ? "偏船尾" : "偏船頭", r.matched ? "符合預測" : "不符預測"];
       });
       if (speedRows.length) ship3Table(work, ["船況", "相對桅腳", "方向", "預測"], speedRows);
       if (!ev.g3 && speedRows.length === 2) ship3ClaimPanel(work, { key: "g3", title: "提出第三項主張：為什麼加速與減速留下相反偏移？",
@@ -1827,7 +1926,7 @@
       ship3El("h3", "六、同一事件，兩張紙", work);
       if (!lab.overlay.aligned) {
         ship3El("p", "第一步｜兩張紙都標了 0、1、2、3 號鼓點。要比較同一時刻，應該怎麼對齊？", work, "shipNote shipStepPrompt");
-        ship3Btn(work, "只把兩張紙的終點疊在一起", function () { doShip("alignRecords", { pair: "thirdFourth" }); });
+        ship3Btn(work, "只把兩張紙的終點疊在一起", function () { doShip("alignRecords", { pair: "endpoints" }); });
         ship3Btn(work, "把相同編號的鼓點逐一對齊", function () { doShip("alignRecords", { pair: "sameBeats" }, "✓ 第一步完成：相同鼓點代表同一時刻。現在可以比較兩張紙。"); });
       } else if (!lab.overlay.transformed) {
         ship3El("p", "第二步｜岸上紙同時記了石頭與桅杆的位置。要得到『石頭相對桅杆』的路徑，應該怎麼換算？", work, "shipNote shipStepPrompt");
@@ -1850,24 +1949,28 @@
           action: "assertG4", args: function (picked, concept) { return { records: picked, concept: concept }; },
           success: "◆ 第四項主張成立：兩張紙不是互相否定，而是在回答『相對誰』。" });
       }
+      if ((lab.overlay.preview || "initial") !== "initial") {
+        var retry = ship3El("div", null, work, "shipTapeRetry");
+        ship3Btn(retry, "重新攤開兩張紙，從頭試", function () {
+          doShip("resetOverlay", {}, "↺ 兩張紙已回到尚未對齊的狀態；所有操作都可以再做。");
+        }, "shipAction");
+      }
     }
     if (v.phase === "public-demo") {
       ship3El("h3", "七、公開演示：先把質疑放到桌上", work);
-      ship3El("p", "艦長不接受一排勾號。他要你說清楚：別人照著做，為什麼也該得到同樣的結果？", work, "shipNote");
-      var steps = [
-        ["baseline", "停船時本來就落在桅腳。船動之後，拿什麼比較？", "公開停船時的落點基準", "艦長：好。先讓大家看見船不動時，落點本來就會有一點散。"],
-        ["stable-window", "你是不是只挑了一段看起來最漂亮的船速？", "公開怎麼判定近似穩速", "艾蒂安：鼓點和岸標都留著，誰都能重新判斷這段船速。"],
-        ["no-push", "放手的人若偷推一下，也能做出漂亮結果。", "公開不額外推石頭的釋放法", "艦長：門閂由我抽。這次不靠你們互相作證。"],
-        ["repeat", "一次落在桅腳，也可能只是運氣。", "先留下預測，再公開重做三次", "艦長：三次都留下。現在我問結果，不再懷疑手法。"]
-      ];
+      var publicDemo = SCENES.publicDemo || {};
+      ship3El("p", publicDemo.purpose || "反對者要在結果出現前檢查程序，才能排除事後挑條件或改口。", work, "shipNote");
+      var steps = publicDemo.steps || [];
       steps.forEach(function (st, i) {
-        var done = lab.publicDemo.procedure.indexOf(st[0]) >= 0;
+        var done = lab.publicDemo.procedure.indexOf(st.id) >= 0;
         var active = i === lab.publicDemo.procedure.length;
         var card = ship3El("section", null, work, "shipCrossExam " + (done ? "resolved" : (active ? "active" : "pending")));
         ship3El("span", done ? "已回答" : "第 " + (i + 1) + " 問", card, "shipCrossExamStep");
-        ship3El("b", "艦長：「" + st[1] + "」", card, "shipCrossExamQuote");
-        if (done) ship3El("p", st[3], card, "shipCrossExamReply");
-        else ship3Btn(card, st[2], function () { doShip("runPublicStep", { step: st[0] }, "✓ 程序已公開，對方的質疑留在桌上。"); }, "shipAction primary", !active);
+        ship3El("b", (st.speaker || "艦長") + "：「" + st.question + "」", card, "shipCrossExamQuote");
+        if (done) ship3El("p", st.reply, card, "shipCrossExamReply");
+        else ship3Btn(card, st.action, function () {
+          doShip("runPublicStep", { step: st.id }, "✓ 程序已公開，質疑與回答一起留在桌上。");
+        }, "shipAction primary", !active);
       });
     }
     if (v.phase === "audit") {

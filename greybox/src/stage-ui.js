@@ -532,6 +532,16 @@
     enqueue(d);
   });
   var needKickoff = false;
+  function kickoffStoryFromExplicitTransition() {
+    if (!needKickoff) return false;
+    var btns = $("controls").querySelectorAll("button");
+    if (btns.length !== 1 || typing || waiting || queue.length) return false;
+    needKickoff = false;
+    btns[0].click();
+    return true;
+  }
+  /* 沒有轉場資產的未來章節仍可由玩家自己按控制列開始；一旦親手操作，就取消待啟動旗標。 */
+  $("controls").addEventListener("click", function () { if (needKickoff) needKickoff = false; }, true);
   document.addEventListener("bd:view", function (ev) {
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship" : ((d.system === "incline" || d.system === "catapult") ? "lab" : "debate");
@@ -577,14 +587,8 @@
         setTimeout(function () { try { (nextHref ? nextBtn : $("ncTitleBtn")).focus(); } catch (e) {} }, 950);
       }
     }
-    if (needKickoff && view === "narration" && $("prologueCard").hidden) {
-      /* 全新開局:題詞卡收掉後,代玩家按一次繼續,首句自動開演 */
-      needKickoff = false;
-      setTimeout(function () {
-        var btns = $("controls").querySelectorAll("button");
-        if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
-      }, 0);
-    }
+    /* 全新章節的第一句不在 bd:view 自動代按；只由序章「啟程」或蒙太奇「進入故事」的
+       明確玩家操作呼叫 kickoffStoryFromExplicitTransition。 */
     /* 大型互動轉場確認閘：主實驗首次進場、信譽修復、首次辯論。
        A2-3/e2/e3c 是同一工作階段的連續任務，不重複把玩家趕出再請進來。 */
     var fromStory = prevView === "narration" || prevView === "choice";
@@ -676,9 +680,9 @@
   });
 
   /* ---------- 序幕 P0-0「螢幕前」(v03 六板,文字直生於圖;00:49 固定入圖,程式不疊可見 UI) ----------
-     點擊或 Enter/Space=下一拍;「跳過 ▸」與 Esc=整段跳過(原則 #19);
+     「下一幕」或 Enter/Space=逐拍前進;Esc=整段跳過(原則 #19);
      地磁風暴=系列電磁線環形伏筆,可神祕者為異常增幅非成因。 */
-  var mzBeat = -1, mzTimers = [];
+  var mzBeat = -1;
   /* v03 六板(Sol 20260720,文字直生於圖):拍→板映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;
      程式僅交叉淡化+字幕+題詞+無障礙文字——禁再疊可見文章/新聞/通知/游標/動態時鐘(00:49 已入圖) */
   var MZ_PLATE = [1, 1, 2, 3, 3, 4, 5, 6, 6];
@@ -704,13 +708,12 @@
   }
   function mzReset() {
     mzBeat = -1;
-    mzTimers.forEach(clearTimeout); mzTimers = [];
     mzPlateCur = 0; mzPlateActive = "B";
     $("mzPlateA").classList.remove("on"); $("mzPlateB").classList.remove("on");
     $("mzSr").textContent = "";
     $("mzTitleLines").hidden = true;
     $("mzCaption").textContent = "";
-    $("btnPrologueGo").textContent = "跳過 ▸";
+    $("btnPrologueGo").textContent = "下一幕";
   }
   var MZ = [
     function () { mzCap("深夜,零點四十九分。房間裡,只剩平板的光。"); },
@@ -749,12 +752,9 @@
   }
   function dismissPrologue() {
     if ($("prologueCard").hidden) return;
-    mzTimers.forEach(clearTimeout); mzTimers = [];
     $("prologueCard").hidden = true;
     if (needKickoff) { /* 序幕收場才開演 */
-      needKickoff = false;
-      var btns = $("controls").querySelectorAll("button");
-      if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
+      kickoffStoryFromExplicitTransition();
     } else { /* 焦點交回舞台可操作控制 */
       setTimeout(function () {
         var b = $("controls").querySelector("button");
@@ -766,10 +766,9 @@
       document.dispatchEvent(new CustomEvent("bd:scene", { detail: { sceneId: "P0-1", transitionReplay: true } }));
     }, 0);
   }
-  $("btnPrologueGo").addEventListener("click", dismissPrologue);
-  $("prologueCard").addEventListener("click", function (ev) {
-    if (ev.target.closest("button")) return;
-    mzNext();
+  $("btnPrologueGo").addEventListener("click", function () {
+    if (mzBeat >= MZ.length - 1) dismissPrologue();
+    else mzNext();
   });
 
   /* ---------- 辯論備忘卡(首次進辯論廳;? 鈕重看)+信譽首動提示 ---------- */
@@ -991,7 +990,7 @@
 
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
-    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己的快轉 */
+    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己逐幕推進 */
     if (!$("notebook").hidden) return;
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("apparatusSurvey").hidden) return;
@@ -1003,7 +1002,10 @@
   });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
-    if (!$("fxJump").hidden) { ev.preventDefault(); ev.stopPropagation(); endSceneFx(); return; } /* 蒙太奇:鍵盤也能跳 */
+    if (!$("fxJump").hidden) { /* 蒙太奇:每次鍵盤操作只前進一幕；按鈕保留原生鍵盤行為 */
+      if (ev.target && ev.target.closest && ev.target.closest("button")) return;
+      ev.preventDefault(); ev.stopPropagation(); advanceSceneFx(); return;
+    }
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
     if (!$("prologueCard").hidden) { /* 序幕:Enter/Space=下一拍;焦點在跳過鈕時交還原生 */
       if (ev.target && ev.target.closest && ev.target.closest("button")) return;
@@ -1204,6 +1206,8 @@
     if (!$("debIntro").hidden) { ev.preventDefault(); $("debIntro").hidden = true; $("btnDebHelp").focus(); }
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal(筆記+序幕皆圍欄) */
+    var fx = $("fxJump");
+    if (!fx.hidden && !fx.contains(ev.target)) { $("btnFxNext").focus(); return; }
     var nb = $("notebook");
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");
@@ -1614,11 +1618,11 @@
     animRaf = requestAnimationFrame(step);
   });
 
-  /* ---------- 章首／時間跳躍蒙太奇(sceneFx,僅活戲) ---------- */
+  /* ---------- 章首／時間跳躍蒙太奇(sceneFx,僅活戲；逐幕手動推進) ---------- */
   var liveStarted = false;
   document.addEventListener("bd:start", function () { liveStarted = true; });
-  /* 資料層每一步指定 plate/label/caption；程式只負責溶接，不把章名、年份或台詞寫死。 */
-  var fxTimers = [], fxClosing = false, activeSceneFx = null;
+  /* 資料層每一步指定 plate/label/caption；程式只負責溶接與手動節拍，不把章名、年份或台詞寫死。 */
+  var fxClosing = false, activeSceneFx = null, activeFxIndex = 0, activeFxSlot = "A";
   function fxYearShow(label) {
     var el = $("fxYear");
     el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
@@ -1640,10 +1644,11 @@
     return true;
   }
   function fxClear() {
-    fxTimers.forEach(clearTimeout); fxTimers = [];
     $("fxPlateA").classList.remove("on"); $("fxPlateB").classList.remove("on");
     fxYearShow(""); fxCaptionShow("");
     activeSceneFx = null;
+    activeFxIndex = 0;
+    activeFxSlot = "A";
     fxClosing = false;
   }
   function fxStepShow(slot, step) {
@@ -1653,20 +1658,29 @@
     fxCaptionShow(step.caption);
     return hasArt;
   }
-  function closeSceneFx(delay) {
-    fxTimers.push(setTimeout(function () {
-      $("fxJump").hidden = true;
-      fxClear();
-      resumeTyping();
-    }, delay));
+  function fxControlsUpdate() {
+    var steps = (activeSceneFx && activeSceneFx.steps) || [];
+    $("fxProgress").textContent = steps.length ? (activeFxIndex + 1) + " / " + steps.length : "";
+    $("btnFxNext").textContent = activeFxIndex >= steps.length - 1 ? "進入故事" : "下一幕";
+    $("btnFxSkip").hidden = steps.length <= 1;
   }
-  function endSceneFx() { /* 跳過=直達最後一板，短停後離開 */
+  function endSceneFx() { /* 明確跳過：關閉整段；自動計時永遠不得呼叫 */
     if ($("fxJump").hidden || fxClosing) return;
     fxClosing = true;
-    fxTimers.forEach(clearTimeout); fxTimers = [];
+    $("fxJump").hidden = true;
+    fxClear();
+    resumeTyping();
+    if (!kickoffStoryFromExplicitTransition()) $("btnDrawer").focus();
+  }
+  function advanceSceneFx() {
+    if ($("fxJump").hidden || fxClosing) return;
     var steps = (activeSceneFx && activeSceneFx.steps) || [];
-    if (steps.length) fxStepShow("A", steps[steps.length - 1]);
-    closeSceneFx(700);
+    if (activeFxIndex >= steps.length - 1) { endSceneFx(); return; }
+    activeFxIndex++;
+    activeFxSlot = activeFxSlot === "A" ? "B" : "A";
+    fxStepShow(activeFxSlot, steps[activeFxIndex]);
+    fxControlsUpdate();
+    if (activeFxIndex % 2) SFX.whoosh(); else SFX.paper();
   }
   function playSceneFx(sceneId) {
     var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[sceneId];
@@ -1675,28 +1689,19 @@
     var steps = fx.steps || [];
     if (!steps.length) return false;
     steps.forEach(function (step) { if (step.plate) preloadEntry(assetEntry(step.plate)); });
-    box.hidden = false;
     fxClear();
+    box.hidden = false;
     activeSceneFx = fx;
+    activeFxIndex = 0;
+    activeFxSlot = "A";
     pauseTyping(); /* 蒙太奇播放時,台詞停一拍——動畫管情緒,台詞管答案 */
-    var last = steps[steps.length - 1];
-    var hasArt = !!(last.plate && assetEntry(last.plate));
-    if (reduced || !hasArt) { /* 減少動態或無資產:直達末板，仍保留時地人文字 */
-      fxStepShow("A", last);
-      closeSceneFx(1100);
-      return true;
-    }
     fxStepShow("A", steps[0]);
-    steps.slice(1).forEach(function (step, idx) {
-      fxTimers.push(setTimeout(function () {
-        fxStepShow(idx % 2 ? "A" : "B", step);
-        if (idx % 2) SFX.whoosh(); else SFX.paper();
-      }, (idx + 1) * 1500));
-    });
-    closeSceneFx(Math.max(2100, steps.length * 1500 + 500));
+    fxControlsUpdate();
+    $("btnFxNext").focus();
     return true;
   }
-  $("fxJump").addEventListener("click", endSceneFx); /* 點擊快轉(原則 #19:演出永遠可跳) */
+  $("btnFxNext").addEventListener("click", advanceSceneFx);
+  $("btnFxSkip").addEventListener("click", endSceneFx);
   var lastFxScene = null; /* 蒙太奇只在「場景切換」那一刻放一次——bd:scene 每句都廣播,不去重會逐句重播 */
   document.addEventListener("bd:scene", function (ev) {
     var sid = ev.detail.sceneId;

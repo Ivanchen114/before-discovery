@@ -145,6 +145,8 @@
     if (!$("debIntro").hidden) { ev.preventDefault(); $("debIntro").hidden = true; $("btnDebHelp").focus(); }
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal(筆記+序幕皆圍欄) */
+    var fx = $("fxJump");
+    if (!fx.hidden && !fx.contains(ev.target)) { $("btnFxNext").focus(); return; }
     var nb = $("notebook");
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");

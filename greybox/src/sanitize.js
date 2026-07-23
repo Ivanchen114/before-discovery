@@ -188,6 +188,24 @@
     }
     if (!lab.cabin || !lab.predictions || !lab.speedRuns || !lab.overlay || !lab.publicDemo || !lab.audit || !lab.evidence)
       return fail("航船實驗有必要紀錄缺失");
+    if (typeof lab.overlay.aligned !== "boolean" || typeof lab.overlay.transformed !== "boolean" ||
+        ["shore", "ship"].indexOf(lab.overlay.activeReference) < 0 ||
+        (lab.overlay.preview != null &&
+          ["initial", "endpoints", "sameBeats", "scaleOnly", "subtractMast"].indexOf(lab.overlay.preview) < 0))
+      return fail("雙紙帶操作紀錄格式錯誤");
+    var publicOrder = ["baseline", "stable-window", "no-push", "seal-prediction", "repeat"];
+    var legacyPublicOrder = ["baseline", "stable-window", "no-push", "repeat"];
+    var publicProcedure = lab.publicDemo.procedure;
+    var validPublicPrefix = Array.isArray(publicProcedure) && publicProcedure.length <= publicOrder.length &&
+      publicProcedure.every(function (step, index) { return step === publicOrder[index]; });
+    var validLegacyPublic = Array.isArray(publicProcedure) &&
+      publicProcedure.length === legacyPublicOrder.length &&
+      publicProcedure.every(function (step, index) { return step === legacyPublicOrder[index]; });
+    if ((!validPublicPrefix && !validLegacyPublic) || !isInt(lab.publicDemo.runs) ||
+        lab.publicDemo.runs < 0 || lab.publicDemo.runs > 3 ||
+        typeof lab.publicDemo.complete !== "boolean" ||
+        (lab.publicDemo.predictionsSealed != null && typeof lab.publicDemo.predictionsSealed !== "boolean"))
+      return fail("公開演示程序紀錄格式錯誤");
     /* v1.1 追加欄位採可選驗證，讓 v1 舊存檔仍可匯入；引擎第一次相關動作會補齊。 */
     if (lab.cabinResults != null) {
       for (var vessel of ["dock", "steady"]) for (var test of ["drip", "toss"]) {

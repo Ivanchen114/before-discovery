@@ -737,6 +737,7 @@
     else if (action === "assertG3" && Engine.assertG3) r = Engine.assertG3(state.lab, args.kinds, args.concept);
     else if (action === "alignRecords" && Engine.alignRecords) r = Engine.alignRecords(state.lab, args.pair);
     else if (action === "transformRecords" && Engine.transformRecords) r = Engine.transformRecords(state.lab, args.kind);
+    else if (action === "resetOverlay" && Engine.resetOverlay) r = Engine.resetOverlay(state.lab);
     else if (action === "assertG4" && Engine.assertG4) r = Engine.assertG4(state.lab, args.records, args.concept);
     else if (action === "setReference" && Engine.setReference) r = Engine.setReference(state.lab, args.ref);
     else if (action === "runPublicStep" && Engine.runPublicStep) r = Engine.runPublicStep(state.lab, args.step);

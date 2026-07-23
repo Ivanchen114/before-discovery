@@ -39,6 +39,8 @@
     y: [0, 1, 4, 9],
     shipStoneX: [0, 0, 0, 0]
   };
+  var OVERLAY_PREVIEWS = ["initial", "endpoints", "sameBeats", "scaleOnly", "subtractMast"];
+  var PUBLIC_STEPS = ["baseline", "stable-window", "no-push", "seal-prediction", "repeat"];
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   function err(state, code) { return { state: state, error: code }; }
@@ -72,6 +74,19 @@
     });
     if (!s.claims) s.claims = { g1: [], g2: [], g3: [], g4: [] };
     ["g1", "g2", "g3", "g4"].forEach(function (id) { if (!Array.isArray(s.claims[id])) s.claims[id] = []; });
+    if (!s.overlay) s.overlay = { aligned: false, transformed: false, activeReference: "shore", preview: "initial" };
+    if (typeof s.overlay.aligned !== "boolean") s.overlay.aligned = false;
+    if (typeof s.overlay.transformed !== "boolean") s.overlay.transformed = false;
+    if (s.overlay.activeReference !== "shore" && s.overlay.activeReference !== "ship") s.overlay.activeReference = "shore";
+    if (OVERLAY_PREVIEWS.indexOf(s.overlay.preview) < 0) {
+      s.overlay.preview = s.overlay.transformed ? "subtractMast" : (s.overlay.aligned ? "sameBeats" : "initial");
+    }
+    if (!s.publicDemo) s.publicDemo = { procedure: [], runs: 0, predictionsSealed: false, complete: false };
+    if (!Array.isArray(s.publicDemo.procedure)) s.publicDemo.procedure = [];
+    if (typeof s.publicDemo.predictionsSealed !== "boolean") {
+      /* v1 舊存檔把「先留預測」包在 repeat 裡；完整舊程序視為已封存。 */
+      s.publicDemo.predictionsSealed = s.publicDemo.procedure.indexOf("repeat") >= 0;
+    }
     return s;
   }
   function recordClaim(s, id, payload, ok) {
@@ -98,8 +113,8 @@
       cabinResults: { dock: { drip: [], toss: [] }, steady: { drip: [], toss: [] } },
       predictions: { accelerating: null, decelerating: null, locked: false },
       speedRuns: { accelerating: null, decelerating: null },
-      overlay: { aligned: false, transformed: false, activeReference: "shore" },
-      publicDemo: { procedure: [], runs: 0, complete: false },
+      overlay: { aligned: false, transformed: false, activeReference: "shore", preview: "initial" },
+      publicDemo: { procedure: [], runs: 0, predictionsSealed: false, complete: false },
       audit: { wind: false, acceleration: false, paths: false, boundary: false, overclaimTried: false },
       claims: { g1: [], g2: [], g3: [], g4: [] },
       evidence: { g1: false, g2: false, g3: false, g4: false, g5: false }
@@ -215,15 +230,31 @@
   }
   function alignRecords(state0, pair) {
     if (!state0.evidence.g3) return err(state0, "g3-required");
-    if (pair !== "sameBeats") return { state: state0, ok: false, reason: "beats-mismatch" };
-    var s = clone(state0); s.overlay.aligned = true;
-    return { state: s, ok: true };
+    var s = ensureNewFields(clone(state0));
+    if (pair === "endpoints" || pair === "thirdFourth") {
+      s.overlay.aligned = false; s.overlay.transformed = false; s.overlay.preview = "endpoints";
+      return { state: s, ok: false, reason: "beats-mismatch", preview: "endpoints" };
+    }
+    if (pair !== "sameBeats") return err(state0, "unknown-alignment");
+    s.overlay.aligned = true; s.overlay.transformed = false; s.overlay.preview = "sameBeats";
+    return { state: s, ok: true, preview: "sameBeats" };
   }
   function transformRecords(state0, kind) {
     if (!state0.overlay.aligned) return err(state0, "alignment-required");
-    if (kind !== "subtractMast") return { state: state0, ok: false, reason: "wrong-transform" };
-    var s = clone(state0); s.overlay.transformed = true; s.overlay.activeReference = "ship";
-    return { state: s, ok: true, paper: clone(PAPER), claimReady: true };
+    var s = ensureNewFields(clone(state0));
+    if (kind === "scaleOnly") {
+      s.overlay.transformed = false; s.overlay.preview = "scaleOnly";
+      return { state: s, ok: false, reason: "wrong-transform", preview: "scaleOnly" };
+    }
+    if (kind !== "subtractMast") return err(state0, "unknown-transform");
+    s.overlay.transformed = true; s.overlay.activeReference = "ship"; s.overlay.preview = "subtractMast";
+    return { state: s, ok: true, preview: "subtractMast", paper: clone(PAPER), claimReady: true };
+  }
+  function resetOverlay(state0) {
+    if (!state0.evidence.g3) return err(state0, "g3-required");
+    var s = ensureNewFields(clone(state0));
+    s.overlay = { aligned: false, transformed: false, activeReference: "shore", preview: "initial" };
+    return { state: s, ok: true, preview: "initial" };
   }
   function assertG4(state0, records, concept) {
     var s = ensureNewFields(clone(state0));
@@ -241,10 +272,11 @@
   }
   function runPublicStep(state0, step) {
     if (!state0.evidence.g4) return err(state0, "g4-required");
-    var order = ["baseline", "stable-window", "no-push", "repeat"];
-    var expect = order[state0.publicDemo.procedure.length];
+    var base = ensureNewFields(clone(state0));
+    var expect = PUBLIC_STEPS[base.publicDemo.procedure.length];
     if (step !== expect) return err(state0, "wrong-public-order");
-    var s = clone(state0); s.publicDemo.procedure.push(step);
+    var s = base; s.publicDemo.procedure.push(step);
+    if (step === "seal-prediction") s.publicDemo.predictionsSealed = true;
     if (step === "repeat") { s.publicDemo.runs = 3; s.publicDemo.complete = true; s.days += 3; }
     return { state: s, complete: s.publicDemo.complete };
   }
@@ -275,10 +307,11 @@
     runMast: runMast, runCabin: runCabin, setSpeedPrediction: setSpeedPrediction,
     assertG1: assertG1, assertG2: assertG2, assertG3: assertG3, assertG4: assertG4,
     runSpeedChange: runSpeedChange, alignRecords: alignRecords,
-    transformRecords: transformRecords, setReference: setReference,
+    transformRecords: transformRecords, resetOverlay: resetOverlay, setReference: setReference,
     runPublicStep: runPublicStep, answerAudit: answerAudit, setBoundary: setBoundary,
     baselineReady: baselineReady,
-    _FIXTURE: { baseline: BASE, mast: MAST, cabin: CABIN, paper: PAPER }, _AUDIT: AUDIT
+    _FIXTURE: { baseline: BASE, mast: MAST, cabin: CABIN, paper: PAPER },
+    _AUDIT: AUDIT, _PUBLIC_STEPS: PUBLIC_STEPS.slice()
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.GB = root.GB || {}; root.GB.Engine3 = api;

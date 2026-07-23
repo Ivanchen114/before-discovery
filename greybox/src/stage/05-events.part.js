@@ -14,6 +14,16 @@
     enqueue(d);
   });
   var needKickoff = false;
+  function kickoffStoryFromExplicitTransition() {
+    if (!needKickoff) return false;
+    var btns = $("controls").querySelectorAll("button");
+    if (btns.length !== 1 || typing || waiting || queue.length) return false;
+    needKickoff = false;
+    btns[0].click();
+    return true;
+  }
+  /* 沒有轉場資產的未來章節仍可由玩家自己按控制列開始；一旦親手操作，就取消待啟動旗標。 */
+  $("controls").addEventListener("click", function () { if (needKickoff) needKickoff = false; }, true);
   document.addEventListener("bd:view", function (ev) {
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship" : ((d.system === "incline" || d.system === "catapult") ? "lab" : "debate");
@@ -59,14 +69,8 @@
         setTimeout(function () { try { (nextHref ? nextBtn : $("ncTitleBtn")).focus(); } catch (e) {} }, 950);
       }
     }
-    if (needKickoff && view === "narration" && $("prologueCard").hidden) {
-      /* 全新開局:題詞卡收掉後,代玩家按一次繼續,首句自動開演 */
-      needKickoff = false;
-      setTimeout(function () {
-        var btns = $("controls").querySelectorAll("button");
-        if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
-      }, 0);
-    }
+    /* 全新章節的第一句不在 bd:view 自動代按；只由序章「啟程」或蒙太奇「進入故事」的
+       明確玩家操作呼叫 kickoffStoryFromExplicitTransition。 */
     /* 大型互動轉場確認閘：主實驗首次進場、信譽修復、首次辯論。
        A2-3/e2/e3c 是同一工作階段的連續任務，不重複把玩家趕出再請進來。 */
     var fromStory = prevView === "narration" || prevView === "choice";

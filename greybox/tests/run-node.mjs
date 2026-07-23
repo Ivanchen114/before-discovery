@@ -433,10 +433,30 @@ tests.push({
     if (stageHtml.includes("fxPages") || stageHtml.includes("bdFlip"))
       throw new Error("四頁 CSS 假翻頁應已退場");
     if (sui.includes("Math.round(from + span")) throw new Error("逐年計數應已移除");
-    for (const frag of ['id="fxPlateA"', 'id="fxPlateB"', 'id="fxCaption"'])
-      if (!stageHtml.includes(frag)) throw new Error("三板溶接槽缺失:" + frag);
-    for (const frag of ["SFX.paper", "endSceneFx", "fx.steps", "activeSceneFx"])
+    for (const frag of ['id="fxPlateA"', 'id="fxPlateB"', 'id="fxCaption"',
+      'id="fxProgress"', 'id="btnFxSkip"', 'id="btnFxNext"'])
+      if (!stageHtml.includes(frag)) throw new Error("逐幕轉場控制缺失:" + frag);
+    for (const frag of ["SFX.paper", "endSceneFx", "advanceSceneFx", "fx.steps", "activeSceneFx", "activeFxIndex"])
       if (!sui.includes(frag)) throw new Error("蒙太奇要素缺失:" + frag);
+    if (sui.includes("(idx + 1) * 1500") || sui.includes("steps.length * 1500"))
+      throw new Error("章首／時間跳躍仍以固定秒數自動換拍");
+    if (sui.includes('$("fxJump").addEventListener("click"'))
+      throw new Error("整張轉場畫面仍可誤觸換幕；只能由明確按鈕逐幕推進");
+    if (sui.includes('$("prologueCard").addEventListener("click"'))
+      throw new Error("序章整張畫面仍可誤觸換幕；只能由明確按鈕或鍵盤逐幕推進");
+    if (sui.includes('needKickoff && view === "narration"') ||
+        !sui.includes("kickoffStoryFromExplicitTransition"))
+      throw new Error("章首仍會在 bd:view 背景代按，或缺少明確轉場啟動點");
+    const montageStart = sui.indexOf("章首／時間跳躍蒙太奇");
+    const montageEnd = sui.indexOf("支柱破裂", montageStart);
+    const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
+    if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
+      throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
+    if (!stageHtml.includes("stage-ui.js?v=20260723-manual-transitions-all"))
+      throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
+    if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
+        sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))
+      throw new Error("序章可見按鈕應逐拍前進，不得直接跳過整段");
     const p01 = JSON.stringify(scenes.scenes.find((s) => s.id === "P0-1"));
     const intText = JSON.stringify(scenes.scenes.find((s) => s.id === "INT-1"));
     const b01 = JSON.stringify(scenes2.scenes.find((s) => s.id === "B0-1"));
@@ -1760,6 +1780,7 @@ tests.push({
   name: "第三章終局與角色聲線|公開質詢不是流程清單；四角色各守語氣",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const shipUi = ui.slice(ui.indexOf("第三章航船實驗"));
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const script = readFileSync(path.join(here, "../../04_劇本/第三章完整劇本_不推也會走_v0.1.1.md"), "utf-8");
     const voices = readFileSync(path.join(here, "../../02_設計/發現之前_角色聲線與對話規範_v0.1.md"), "utf-8");
@@ -1769,8 +1790,25 @@ tests.push({
       if (!ui.includes(frag)) throw new Error("第三章終局缺少可見攻防:" + frag);
     for (const frag of ["shipCrossExam", "shipCrossExamQuote", "shipCrossExamReply"])
       if (!html.includes(frag)) throw new Error("公開質詢視覺層級缺失:" + frag);
-    if (!script.includes("CH3-CR-004") || !script.includes("【質詢一・基準】"))
+    if (!script.includes("CH3-CR-004") || !script.includes("CH3-CR-006") || !script.includes("【質詢一・基準】"))
       throw new Error("第三章劇本未同步公開質詢重做");
+    const publicScene = scenes3.scenes.find((s) => s.id === "C3-1");
+    const publicText = (publicScene?.nodes || []).map((n) => n.text || n.hint || "").join("\n");
+    if (!scenes3.publicDemo || scenes3.publicDemo.steps.length !== 5 ||
+        JSON.stringify(scenes3.publicDemo.steps.map((s) => s.id)) !== JSON.stringify(Engine3._PUBLIC_STEPS))
+      throw new Error("公開演示資料源與引擎程序順序漂移");
+    if (!ui.includes("SCENES.publicDemo") || ui.includes("停船時本來就落在桅腳。船動之後，拿什麼比較？"))
+      throw new Error("公開演示 UI 未由第三章資料源供應台詞");
+    if (!publicText.includes(scenes3.publicDemo.tokenRule) || !script.includes(scenes3.publicDemo.tokenRule))
+      throw new Error("預測木籌的非投票規則未同步到劇本與 runtime");
+    for (const step of scenes3.publicDemo.steps) {
+      const reply = step.reply.replace(/^[^：]+：/, "");
+      if (!script.includes(step.question) || !script.includes(reply))
+        throw new Error("公開演示劇本／runtime 台詞漂移:" + step.id);
+    }
+    for (const betting of ["先押", "押在", "下注", "改注", "押中", "未押中"])
+      if (JSON.stringify(scenes3).includes(betting) || script.includes(betting) || shipUi.includes(betting))
+        throw new Error("預測木籌仍被寫成賭博:" + betting);
     for (const role of ["### 伽桑狄", "### 艦長", "### 艾蒂安", "### 非法庭型終局攻防"])
       if (!voices.includes(role)) throw new Error("角色聲線規範缺失:" + role);
     if (voices.includes("### 加桑迪")) throw new Error("伽桑狄姓名仍有舊錯字");
@@ -1780,6 +1818,10 @@ tests.push({
       if (visible.includes(phrase)) throw new Error("第三章仍有隱喻代替因果或突兀書面句:" + phrase);
     if (!principles.includes("終局對抗不能退化成流程清單"))
       throw new Error("第三章踩坑未沉澱為設計原則");
+    if (!principles.includes("玩家看見的操作動詞必須在模型裡真的發生") ||
+        !principles.includes("錯誤選擇先完整呈現可觀察後果") ||
+        !principles.includes("可逆的科學操作必須允許重試"))
+      throw new Error("G4 程式紙帶踩坑未沉澱為設計原則");
   }
 });
 
@@ -1831,10 +1873,32 @@ tests.push({
     if (claim.ok || claim.state.evidence.g3) throw new Error("錯誤 G3 概念仍可成立");
     s = Engine3.assertG3(s, ["accelerating", "decelerating"], "speed-change-breaks-shared-motion").state;
     if (!s.evidence.g3) throw new Error("變速斷言未取得 G3");
-    if (Engine3.alignRecords(s, "thirdFourth").ok !== false) throw new Error("錯誤對齊未被拒");
-    s = Engine3.alignRecords(s, "sameBeats").state;
-    if (Engine3.transformRecords(s, "scaleOnly").ok !== false) throw new Error("錯誤換參考物未被拒");
+    const beforeOverlay = JSON.stringify(s);
+    let wrongAlign = Engine3.alignRecords(s, "endpoints");
+    if (wrongAlign.ok !== false || wrongAlign.state.overlay.preview !== "endpoints" ||
+        wrongAlign.state.overlay.aligned || wrongAlign.state.overlay.transformed)
+      throw new Error("疊終點沒有留下可見預覽，或污染正確旗標");
+    if (JSON.stringify(s) !== beforeOverlay) throw new Error("疊終點變異輸入狀態");
+    wrongAlign = Engine3.alignRecords(wrongAlign.state, "endpoints");
+    if (wrongAlign.ok !== false || wrongAlign.state.overlay.preview !== "endpoints")
+      throw new Error("疊終點不能自由重試");
+    s = Engine3.alignRecords(wrongAlign.state, "sameBeats").state;
+    if (!s.overlay.aligned || s.overlay.transformed || s.overlay.preview !== "sameBeats")
+      throw new Error("逐拍對齊未留下正確狀態");
+    let wrongTransform = Engine3.transformRecords(s, "scaleOnly");
+    if (wrongTransform.ok !== false || wrongTransform.state.overlay.preview !== "scaleOnly" ||
+        !wrongTransform.state.overlay.aligned || wrongTransform.state.overlay.transformed)
+      throw new Error("等比例縮放沒有留下可見預覽，或污染正確旗標");
+    wrongTransform = Engine3.transformRecords(wrongTransform.state, "scaleOnly");
+    if (wrongTransform.ok !== false || wrongTransform.state.overlay.preview !== "scaleOnly")
+      throw new Error("等比例縮放不能自由重試");
+    let restarted = Engine3.resetOverlay(wrongTransform.state);
+    if (restarted.state.overlay.preview !== "initial" || restarted.state.overlay.aligned || restarted.state.overlay.transformed)
+      throw new Error("雙紙帶不能自由重置");
+    s = Engine3.alignRecords(restarted.state, "sameBeats").state;
     s = Engine3.transformRecords(s, "subtractMast").state;
+    if (!s.overlay.aligned || !s.overlay.transformed || s.overlay.preview !== "subtractMast")
+      throw new Error("扣除桅杆位移未留下轉換狀態");
     if (s.evidence.g4) throw new Error("換算兩張紙後自動取得 G4");
     claim = Engine3.assertG4(s, ["ship"], "same-event-different-reference");
     if (claim.ok || claim.state.evidence.g4) throw new Error("只引用單一參考系仍可取得 G4");
@@ -1842,7 +1906,9 @@ tests.push({
     if (claim.ok || claim.state.evidence.g4) throw new Error("錯誤 G4 概念仍可成立");
     s = Engine3.assertG4(s, ["shore", "ship"], "same-event-different-reference").state;
     if (!s.evidence.g4) throw new Error("雙紙帶斷言未取得 G4");
-    for (const step of ["baseline", "stable-window", "no-push", "repeat"]) s = Engine3.runPublicStep(s, step).state;
+    for (const step of Engine3._PUBLIC_STEPS) s = Engine3.runPublicStep(s, step).state;
+    if (!s.publicDemo.predictionsSealed || !s.publicDemo.complete || s.publicDemo.runs !== 3)
+      throw new Error("公開演示未獨立封存預測或完成三次重複");
     for (const [q, e] of [["wind", "G2"], ["acceleration", "G3"], ["paths", "G4"]]) s = Engine3.answerAudit(s, q, e).state;
     const before = JSON.stringify(s);
     const over = Engine3.setBoundary(s, "overclaim");
@@ -1888,7 +1954,7 @@ tests.push({
         else if (v.phase === "cabin") { for (const vs of ["dock","steady"]) for (const t of ["drip","toss"]) act("runCabin", { vesselState: vs, test: t }); act("assertG2", { cells:["dock:drip","dock:toss","steady:drip","steady:toss"], concept:"steady-matches-dock" }); }
         else if (v.phase === "speed-change") { act("setSpeedPrediction", { accelerating: "behind", decelerating: "ahead" }); act("runSpeedChange", { kind: "accelerating" }); act("runSpeedChange", { kind: "decelerating" }); act("assertG3", { kinds:["accelerating","decelerating"], concept:"speed-change-breaks-shared-motion" }); }
         else if (v.phase === "overlay") { act("alignRecords", { pair: "sameBeats" }); act("transformRecords", { kind: "subtractMast" }); act("assertG4", { records:["shore","ship"], concept:"same-event-different-reference" }); }
-        else if (v.phase === "public-demo") for (const step of ["baseline","stable-window","no-push","repeat"]) act("runPublicStep", { step });
+        else if (v.phase === "public-demo") for (const step of Engine3._PUBLIC_STEPS) act("runPublicStep", { step });
         else if (v.phase === "audit") for (const [q,e] of [["wind","G2"],["acceleration","G3"],["paths","G4"]]) act("answerAudit", { questionId:q, evidenceId:e });
         else if (v.phase === "boundary") act("setBoundary", { choice: "honest" });
         else throw new Error("未知 ship phase:" + v.phase);
@@ -1915,6 +1981,13 @@ tests.push({
     const badClaim = JSON.parse(N3.serialize(good));
     badClaim.lab.claims.g1.push({ sources:["baseline:1,2,3"], concept:"teleport", ok:false });
     if (San.sanitizeImport3(badClaim, scenes3).ok) throw new Error("非法航船斷言未被拒");
+    const badOverlay = JSON.parse(N3.serialize(good)); badOverlay.lab.overlay.preview = "teleport";
+    if (San.sanitizeImport3(badOverlay, scenes3).ok) throw new Error("非法紙帶預覽狀態未被拒");
+    const badPublic = JSON.parse(N3.serialize(good)); badPublic.lab.publicDemo.procedure = ["repeat"];
+    if (San.sanitizeImport3(badPublic, scenes3).ok) throw new Error("亂序公開演示程序未被拒");
+    const legacyPublic = JSON.parse(N3.serialize(good));
+    legacyPublic.lab.publicDemo = { procedure:["baseline","stable-window","no-push","repeat"], runs:3, complete:true };
+    if (!San.sanitizeImport3(legacyPublic, scenes3).ok) throw new Error("舊版四步公開演示存檔失去相容性");
     const legacy = JSON.parse(N3.serialize(good)); delete legacy.lab.claims; delete legacy.lab.cabinResults;
     if (!San.sanitizeImport3(legacy, scenes3).ok) throw new Error("追加斷言欄位後舊存檔失去相容性");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
@@ -2001,12 +2074,16 @@ tests.push({
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
       '"speed-"', '"accelerating"', '"decelerating"', "shipPaperPath", "shipEvidenceSeal"])
       if (!ui.includes(frag)) throw new Error("第三章互動模擬接線缺失:" + frag);
-    for (const frag of ["把相同編號的鼓點逐一對齊", "每一拍都用石頭位置減去桅杆位置",
-      "岸上紙｜向前且下落", "船上紙｜相對桅杆直落", "shipPaperPath converted revealed",
-      "為什麼一張彎、一張直，卻都能成立"])
-      if (!ui.includes(frag)) throw new Error("G4 雙參考物題圖／題序缺失:" + frag);
-    if (!html.includes(".shipPaperBeatLabel") || !html.includes(".shipPaperStepLabel"))
-      throw new Error("G4 鼓點與分步提示樣式缺失");
+    for (const frag of ["只把兩張紙的終點疊在一起", "把相同編號的鼓點逐一對齊", "把其中一張等比例縮放",
+      "每一拍都用石頭位置減去桅杆位置", "shipPaperSheet", "shipBeatConnector",
+      "shipPaperEndpointHalo", "shipPaperMeasure", "shipPaperTransformArrow", "shipPaperPath converted revealed",
+      "重新攤開兩張紙，從頭試", "window.setTimeout", "為什麼一張彎、一張直，卻都能成立"])
+      if (!ui.includes(frag)) throw new Error("G4 程式紙帶／可重試契約缺失:" + frag);
+    if (!ui.includes('if (phase === "overlay") return null;'))
+      throw new Error("G4 仍會把靜態完成圖載入互動主畫面");
+    for (const frag of [".shipPaperBeatLabel", ".shipPaperStepLabel", "@keyframes ship-paper-endpoints",
+      "@keyframes ship-paper-align", "@keyframes ship-paper-scale", "@keyframes ship-transform-arrow"])
+      if (!html.includes(frag)) throw new Error("G4 鼓點／紙張動作樣式缺失:" + frag);
     for (const frag of ["先用紀錄組成一個公平比較", "單看行船紀錄夠嗎", "還無法回答它『和什麼相同』",
       "一次接近可能只是巧合", "cfg.selectionReady", 'typeof cfg.incomplete === "function"'])
       if (!ui.includes(frag)) throw new Error("G1 兩組資料比較提示缺失:" + frag);

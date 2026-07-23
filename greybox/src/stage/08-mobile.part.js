@@ -1,6 +1,6 @@
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
-    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己的快轉 */
+    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己逐幕推進 */
     if (!$("notebook").hidden) return;
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("apparatusSurvey").hidden) return;
@@ -12,7 +12,10 @@
   });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
-    if (!$("fxJump").hidden) { ev.preventDefault(); ev.stopPropagation(); endSceneFx(); return; } /* 蒙太奇:鍵盤也能跳 */
+    if (!$("fxJump").hidden) { /* 蒙太奇:每次鍵盤操作只前進一幕；按鈕保留原生鍵盤行為 */
+      if (ev.target && ev.target.closest && ev.target.closest("button")) return;
+      ev.preventDefault(); ev.stopPropagation(); advanceSceneFx(); return;
+    }
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
     if (!$("prologueCard").hidden) { /* 序幕:Enter/Space=下一拍;焦點在跳過鈕時交還原生 */
       if (ev.target && ev.target.closest && ev.target.closest("button")) return;

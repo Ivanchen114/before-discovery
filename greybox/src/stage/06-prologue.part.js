@@ -1,7 +1,7 @@
   /* ---------- 序幕 P0-0「螢幕前」(v03 六板,文字直生於圖;00:49 固定入圖,程式不疊可見 UI) ----------
-     點擊或 Enter/Space=下一拍;「跳過 ▸」與 Esc=整段跳過(原則 #19);
+     「下一幕」或 Enter/Space=逐拍前進;Esc=整段跳過(原則 #19);
      地磁風暴=系列電磁線環形伏筆,可神祕者為異常增幅非成因。 */
-  var mzBeat = -1, mzTimers = [];
+  var mzBeat = -1;
   /* v03 六板(Sol 20260720,文字直生於圖):拍→板映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;
      程式僅交叉淡化+字幕+題詞+無障礙文字——禁再疊可見文章/新聞/通知/游標/動態時鐘(00:49 已入圖) */
   var MZ_PLATE = [1, 1, 2, 3, 3, 4, 5, 6, 6];
@@ -27,13 +27,12 @@
   }
   function mzReset() {
     mzBeat = -1;
-    mzTimers.forEach(clearTimeout); mzTimers = [];
     mzPlateCur = 0; mzPlateActive = "B";
     $("mzPlateA").classList.remove("on"); $("mzPlateB").classList.remove("on");
     $("mzSr").textContent = "";
     $("mzTitleLines").hidden = true;
     $("mzCaption").textContent = "";
-    $("btnPrologueGo").textContent = "跳過 ▸";
+    $("btnPrologueGo").textContent = "下一幕";
   }
   var MZ = [
     function () { mzCap("深夜,零點四十九分。房間裡,只剩平板的光。"); },
@@ -72,12 +71,9 @@
   }
   function dismissPrologue() {
     if ($("prologueCard").hidden) return;
-    mzTimers.forEach(clearTimeout); mzTimers = [];
     $("prologueCard").hidden = true;
     if (needKickoff) { /* 序幕收場才開演 */
-      needKickoff = false;
-      var btns = $("controls").querySelectorAll("button");
-      if (btns.length === 1 && !typing && !waiting && !queue.length) btns[0].click();
+      kickoffStoryFromExplicitTransition();
     } else { /* 焦點交回舞台可操作控制 */
       setTimeout(function () {
         var b = $("controls").querySelector("button");
@@ -89,8 +85,7 @@
       document.dispatchEvent(new CustomEvent("bd:scene", { detail: { sceneId: "P0-1", transitionReplay: true } }));
     }, 0);
   }
-  $("btnPrologueGo").addEventListener("click", dismissPrologue);
-  $("prologueCard").addEventListener("click", function (ev) {
-    if (ev.target.closest("button")) return;
-    mzNext();
+  $("btnPrologueGo").addEventListener("click", function () {
+    if (mzBeat >= MZ.length - 1) dismissPrologue();
+    else mzNext();
   });

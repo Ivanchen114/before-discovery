@@ -15,8 +15,19 @@
   "G1": "停船基準與三次穩速落石：石頭相對船落在桅腳附近。",
   "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
   "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
-  "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
-  "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。"
+ "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
+ "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。"
+ },
+ "publicDemo": {
+  "purpose": "私人結果可以被事後說成挑了漂亮船速、暗中多推，或只成功一次。這次讓反對者在結果出現前檢查程序。",
+  "tokenRule": "木籌不是拿來投票決定真相。它只是不讓任何人在結果出來後，偷偷改口。",
+  "steps": [
+   {"id":"baseline","speaker":"艦長","question":"停船時本來就落在桅腳。船動之後，拿什麼比較？","action":"公開停船時的落點基準","reply":"艦長：好。先讓大家看見船不動時，落點本來就會有一點散。"},
+   {"id":"stable-window","speaker":"艦長","question":"你是不是只挑了一段看起來最漂亮的船速？","action":"公開怎麼判定近似穩速","reply":"艾蒂安：鼓點和岸標都留著，誰都能重新判斷這段船速。"},
+   {"id":"no-push","speaker":"艦長","question":"放手的人若偷推一下，也能做出漂亮結果。","action":"公開不額外推石頭的釋放法","reply":"艦長：門閂由我抽。這次不靠你們互相作證。"},
+   {"id":"seal-prediction","speaker":"艦長","question":"結果出來後，誰都能說自己早就猜中。你怎麼留下原本的預測？","action":"把預測木籌封存在三格記錄板","reply":"伽桑狄：每枚木籌的位置先記下，結果出來後誰都不能移動。它不決定真相，只防止改口。"},
+   {"id":"repeat","speaker":"艦長","question":"一次落在桅腳，也可能只是運氣。","action":"依同一程序公開重做三次","reply":"艦長：三次都留下。現在我問結果，不再懷疑手法。"}
+  ]
  },
  "scenes": [
   {
@@ -42,17 +53,17 @@
   },
   {
    "id": "C0-2",
-   "title": "先押一個落點",
+   "title": "先封存一個落點",
    "nodes": [
-    {"id":"n1","type":"line","speaker":"stage","text":"碼頭木板畫著船頭、桅腳、船尾三格。艦長、槳手和商人各押一枚木籌。","next":"n2"},
+    {"id":"n1","type":"line","speaker":"stage","text":"碼頭木板畫著船頭、桅腳、船尾三格。艦長、槳手和商人各把一枚預測木籌放進一格。","next":"n2"},
     {"id":"n2","type":"line","speaker":"艦長","text":"船往前，石頭往下。當然落在後面。你從奔馬上跳下來，也不會停在馬鞍正下方。","next":"n3"},
     {"id":"n3","type":"line","speaker":"伽桑狄","text":"奔馬會上下顛，也會忽快忽慢。先別拿它和近似穩速的船混在一起。","next":"q1"},
-    {"id":"q1","type":"choice","speaker":"system","text":"先押一個落點。結果出來前不能改注。","options":[
+    {"id":"q1","type":"choice","speaker":"system","text":"把預測木籌放進一格。實驗前封存，結果出來後不能移動。","options":[
      {"id":"foot","text":"桅腳附近","effects":[{"flag":["initialPrediction","foot"]}],"next":"n4"},
      {"id":"behind","text":"船尾方向","effects":[{"flag":["initialPrediction","behind"]}],"next":"n4"},
      {"id":"ahead","text":"船頭方向","effects":[{"flag":["initialPrediction","ahead"]}],"next":"n4"}
     ]},
-    {"id":"n4","type":"line","speaker":"伽桑狄","text":"寫下來。先押，才知道結果究竟改變了誰。","next":"g1"},
+    {"id":"n4","type":"line","speaker":"伽桑狄","text":"寫下來。先封存，才知道結果究竟改變了誰的想法。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C0-3"}
    ]
   },
@@ -94,7 +105,7 @@
     {"id":"r1","type":"line","speaker":"伽桑狄","text":"如果不先問哪個條件沒站穩，重做只是把錯誤寫得更整齊。","next":"q1"},
     {"id":"r2","type":"line","speaker":"艦長","text":"剛才談的是船追過石頭，怎麼忽然變成石頭的體重？","next":"q1"},
     {"id":"n3","type":"line","speaker":"旅人(你)","text":"鼓點還在加快，岸標間距也一段比一段大。放手後，船繼續加速，追到石頭前面。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"伽桑狄","text":"那不是書輸了。是我們根本沒照書下注。","next":"s1"},
+    {"id":"n4","type":"line","speaker":"伽桑狄","text":"那不是書錯了。是我們根本沒照書上的條件做。","next":"s1"},
     {"id":"s1","type":"system","speaker":"system","text":"保留失敗紀錄：搶跑的船。它會在之後成為加速度邊界的證據。","effects":[{"flag":["failureDiagnosed","1"]}],"next":"g1"},
     {"id":"g1","type":"goto","scene":"C1-3"}
    ]
@@ -135,7 +146,7 @@
   {
    "id":"C2-2","title":"船一改變主意","nodes":[
     {"id":"n1","type":"line","speaker":"stage","text":"裝置維持不變。這次只改放手之後的船速：加槳，或收槳。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"speed-change","hint":"先押加速與減速的落點，再各做一次對照。","until":{"ship":"g3"},"next":"n2"},
+    {"id":"e1","type":"embed","system":"ship","phase":"speed-change","hint":"先封存加速與減速的落點預測，再各做一次對照。","until":{"ship":"g3"},"next":"n2"},
     {"id":"n2","type":"line","speaker":"艦長","text":"所以第一回看見的落後，不是假的。","next":"n3"},
     {"id":"n3","type":"line","speaker":"旅人(你)","text":"不是假的。只是它證明的是船在加速，不是石頭天生會忘記前行。","next":"n4"},
     {"id":"n4","type":"line","speaker":"伽桑狄","text":"失敗紀錄，現在升格成證據。","next":"g1"},
@@ -166,16 +177,17 @@
     {"id":"r1","type":"line","speaker":"伽桑狄","text":"重力正在讓它往下變快。你不能一邊看見運動改變，一邊說任何運動都不變。","next":"q1"},
     {"id":"r2","type":"line","speaker":"伽桑狄","text":"別為了保住舊直覺，換個名字又塞進一股看不見的推力。","next":"q1"},
     {"id":"n2","type":"line","speaker":"旅人(你)","text":"不再接觸，不等於把已有的前行歸零。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"伽桑狄","text":"明天讓整個碼頭先下注。","next":"g1"},
+    {"id":"n3","type":"line","speaker":"伽桑狄","text":"明天讓整個碼頭先封存預測，再看結果。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C3-1"}
    ]
   },
   {
    "id":"C3-1","title":"馬賽港公開演示","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"船員、學生、商人與官員站滿碼頭。每個人先把木籌押在船頭、桅腳或船尾。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"伽桑狄","text":"條件由你公開。結果也由你留下。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"public-demo","hint":"依序公開停船基準、穩速窗口、無額外推石頭與三次重複。","until":{"ship":"public"},"next":"n3"},
-    {"id":"n3","type":"line","speaker":"stage","text":"三次落點都聚在桅腳的基準散布附近。原先押船尾的木籌沒有被拿走；預測與結果一起留在木板上。","next":"g1"},
+    {"id":"n1","type":"line","speaker":"stage","text":"船員、學生、商人與官員站滿碼頭。每個人先把預測木籌放進船頭、桅腳或船尾的記錄格。","next":"n1b"},
+    {"id":"n1b","type":"line","speaker":"伽桑狄","text":"木籌不是拿來投票決定真相。它只是不讓任何人在結果出來後，偷偷改口。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"伽桑狄","text":"條件由你公開；艦長先檢查，再由大家一起留下結果。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"public-demo","hint":"依序公開停船基準、穩速窗口、無額外推石頭、封存預測與三次重複。","until":{"ship":"public"},"next":"n3"},
+    {"id":"n3","type":"line","speaker":"stage","text":"三次落點都聚在桅腳的基準散布附近。原先預測船尾的木籌仍封在格中；預測與結果一起留在木板上。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C3-2"}
    ]
   },
