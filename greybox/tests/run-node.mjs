@@ -1790,8 +1790,15 @@ tests.push({
       if (!ui.includes(frag)) throw new Error("第三章終局缺少可見攻防:" + frag);
     for (const frag of ["shipCrossExam", "shipCrossExamQuote", "shipCrossExamReply"])
       if (!html.includes(frag)) throw new Error("公開質詢視覺層級缺失:" + frag);
-    if (!script.includes("CH3-CR-004") || !script.includes("CH3-CR-006") || !script.includes("【質詢一・基準】"))
+    if (!script.includes("CH3-CR-004") || !script.includes("CH3-CR-006") ||
+        !script.includes("CH3-CR-007") || !script.includes("【質詢一・基準】"))
       throw new Error("第三章劇本未同步公開質詢重做");
+    const c21 = scenes3.scenes.find((s) => s.id === "C2-1");
+    const c21Reply = c21?.nodes.find((n) => n.id === "r1")?.text;
+    const steadyReply = "岸上的旗號正等距掠過——船在前進，而且走得很穩。你不能只看船艙，就忽略甲板上的紀錄。";
+    if (c21Reply !== steadyReply || !script.includes(steadyReply) ||
+        JSON.stringify(scenes3).includes("岸上的旗號已經顯示船速在變"))
+      throw new Error("CH3-CR-007 穩速段駁斥台詞未同步或物理語意回歸");
     const publicScene = scenes3.scenes.find((s) => s.id === "C3-1");
     const publicText = (publicScene?.nodes || []).map((n) => n.text || n.hint || "").join("\n");
     if (!scenes3.publicDemo || scenes3.publicDemo.steps.length !== 5 ||
