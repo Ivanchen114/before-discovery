@@ -11,6 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const patterns = require("../data/patterns.js");
 const debate = require("../data/debate.js");
 const scenes = require("../data/scenes.js");
+const scenes2 = require("../data/scenes2.js");
 const Engine = require("../src/engine.js");
 const Engine3 = require("../src/engine3.js");
 const Narrative = require("../src/narrative.js");
@@ -392,7 +393,7 @@ tests.push({
 });
 
 tests.push({
-  name: "體感層|滾球重播/時間跳躍/支柱破裂/音效掛點/E2 示意圖(總監 20260720 全開)",
+  name: "體感層|滾球重播/資料驅動時間蒙太奇/支柱破裂/音效掛點/E2 示意圖",
   fn: () => {
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
@@ -403,33 +404,47 @@ tests.push({
       if (!cui.includes('"' + evName + '"')) throw new Error("chapter-ui 缺掛點:" + evName);
       if (!sui.includes('"' + evName + '"')) throw new Error("stage-ui 未訂閱:" + evName);
     }
-    /* sceneFx 三板偽影片(Sol 交接 20260720):場景存在/三板資產齊/尺寸 1920×1080/四里程碑年份 */
-    const sceneIds = new Set(scenes.scenes.map((s) => s.id));
+    /* 章首與跨年蒙太奇：三章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
+    const sceneIds = new Set([].concat(scenes.scenes, scenes2.scenes, scenes3.scenes).map((s) => s.id));
     const entryById = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
     for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
       if (!sceneIds.has(sc)) throw new Error("sceneFx 指向不存在場景:" + sc);
-      if (fx.fx !== "timejump") throw new Error("sceneFx 未知效果:" + fx.fx);
-      if (!Array.isArray(fx.years) || !fx.years.every((y) => typeof y === "number"))
-        throw new Error("timejump 年份里程碑非法");
-      if (!Array.isArray(fx.plates) || fx.plates.length !== 3) throw new Error("timejump 需三板");
-      for (const pid of fx.plates) {
-        const e = entryById[pid];
-        if (!e) throw new Error("板圖不存在:" + pid);
-        if (e.w !== 1920 || e.h !== 1080) throw new Error("板圖尺寸非 1920×1080:" + pid);
+      if (fx.fx !== "montage") throw new Error("sceneFx 未知效果:" + fx.fx);
+      if (!Array.isArray(fx.steps) || fx.steps.length < 1 || fx.steps.length > 3)
+        throw new Error("montage 應有 1–3 個節拍:" + sc);
+      for (const step of fx.steps) {
+        const e = entryById[step.plate];
+        if (!e) throw new Error("板圖不存在:" + step.plate);
+        if (!(e.w > 0 && e.h > 0) || e.w / e.h < 1.74 || e.w / e.h > 1.8)
+          throw new Error("板圖應為 16:9 安全比例:" + step.plate);
+        if (!String(step.label || "").trim() || !String(step.caption || "").trim())
+          throw new Error("蒙太奇節拍缺時地標籤或敘事字幕:" + sc);
       }
     }
-    const int1 = assets.sceneFx && assets.sceneFx["INT-1"];
-    if (!int1) throw new Error("INT-1 十一年跳躍未註冊");
-    if (JSON.stringify(int1.years) !== JSON.stringify([1592, 1597, 1602, 1603]))
-      throw new Error("INT-1 年份應為四里程碑 1592/1597/1602/1603(不逐年計數)");
+    for (const id of ["P0-1", "INT-1", "B0-1", "C0-1"])
+      if (!assets.sceneFx || !assets.sceneFx[id]) throw new Error("章首／交棒蒙太奇未註冊:" + id);
+    const int1 = assets.sceneFx["INT-1"];
+    if (JSON.stringify(int1.steps.map((s) => s.label)) !== JSON.stringify(["1592｜比薩 → 帕多瓦", "1597–1602｜帕多瓦", "1603｜帕多瓦"]))
+      throw new Error("INT-1 年份與地點里程碑應為 1592 比薩→帕多瓦／1597–1602 帕多瓦／1603 帕多瓦");
+    const c0 = assets.sceneFx["C0-1"];
+    if (c0.steps[c0.steps.length - 1].plate !== "ch03_transition_1640_gassendi_handoff_v01")
+      throw new Error("C0-1 最後一拍應完成伽桑狄交棒");
     /* 禁四頁 CSS 假翻頁與逐年計數回歸 */
     if (stageHtml.includes("fxPages") || stageHtml.includes("bdFlip"))
       throw new Error("四頁 CSS 假翻頁應已退場");
     if (sui.includes("Math.round(from + span")) throw new Error("逐年計數應已移除");
-    for (const frag of ['id="fxPlateA"', 'id="fxPlateB"'])
+    for (const frag of ['id="fxPlateA"', 'id="fxPlateB"', 'id="fxCaption"'])
       if (!stageHtml.includes(frag)) throw new Error("三板溶接槽缺失:" + frag);
-    for (const frag of ["SFX.paper", "endSceneFx", "fx.years"])
+    for (const frag of ["SFX.paper", "endSceneFx", "fx.steps", "activeSceneFx"])
       if (!sui.includes(frag)) throw new Error("蒙太奇要素缺失:" + frag);
+    const p01 = JSON.stringify(scenes.scenes.find((s) => s.id === "P0-1"));
+    const intText = JSON.stringify(scenes.scenes.find((s) => s.id === "INT-1"));
+    const b01 = JSON.stringify(scenes2.scenes.find((s) => s.id === "B0-1"));
+    const c01 = JSON.stringify(scenes3.scenes.find((s) => s.id === "C0-1"));
+    for (const word of ["1590", "比薩", "我知道伽利略"]) if (!p01.includes(word)) throw new Error("第一章首次落地缺章首定位:" + word);
+    for (const word of ["十一年", "1603"]) if (!intText.includes(word)) throw new Error("第一章十一年跳躍缺定位:" + word);
+    for (const word of ["1608", "證據得從頭做"]) if (!b01.includes(word)) throw new Error("第二章章首缺適應／任務定位:" + word);
+    for (const word of ["1632", "1640", "不是伽利略"]) if (!c01.includes(word)) throw new Error("第三章交棒缺時間／人物定位:" + word);
     /* 音效=合成零資產;偏好走 sessionStorage(存檔純度不破);HUD 有開關 */
     if (!sui.includes("AudioContext")) throw new Error("音效合成器缺失");
     if (!sui.includes("sessionStorage")) throw new Error("音效偏好未持久化(sessionStorage)");

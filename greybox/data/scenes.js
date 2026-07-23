@@ -1,8 +1,8 @@
-/* data/scenes.js — 執行載體(file:// 相容)。規範鏡像:scenes.json(R-DATA-06 鏡像測試把關)。
-   內容由 tools/gen_scenes.py 產出後人工維護;台詞=劇本 v0.2.2(+GB-ADR 變更註記)。 */
+/* data/scenes.js — 第一章場景執行載體（file:// 相容）。規範鏡像:scenes.json。
+   ⚠ 本檔為生成物；請改 scenes.json 後執行 node tools/build-ch1-data.mjs。 */
 (function (root) {
-  "use strict";
-  var data = {
+ "use strict";
+ var data = {
  "startScene": "P0-1",
  "evidenceNames": {
   "S1": "德爾夫特來的信",
@@ -22,7 +22,28 @@
      "id": "n1",
      "type": "line",
      "speaker": "stage",
-     "text": "白光散去。鐘聲。石板路,遠處一座微微傾斜的塔。",
+     "text": "白光退去得太快。腳下不是家裡的地板,而是冰涼石板;遠處鐘聲正響。",
+     "next": "n1a"
+    },
+    {
+     "id": "n1a",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "等等——這是哪裡?那座斜塔……比薩?",
+     "next": "n1b"
+    },
+    {
+     "id": "n1b",
+     "type": "system",
+     "speaker": "system",
+     "text": "1590 年,義大利・比薩。你的衣服、口袋與平板都還在,城市卻早了四百多年。",
+     "next": "n1c"
+    },
+    {
+     "id": "n1c",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "我知道伽利略會在這裡。但知道課本裡的答案,能在這裡做什麼?",
      "next": "n2"
     },
     {
@@ -863,13 +884,27 @@
      "type": "system",
      "speaker": "system",
      "text": "1592——他到了帕多瓦。教幾何、天文,還有築城術。\n1597——他做了一種軍用羅盤,賣得不錯。學生住滿了他的房子。\n這些年——債主的信仍然來,只是不再催得那麼急。\n1602——擺、斜面。他又開始半夜起床了。",
+     "next": "n2a"
+    },
+    {
+     "id": "n2a",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "我只是低頭翻一頁,世界卻替我翻了十一年。",
      "next": "n3"
     },
     {
      "id": "n3",
      "type": "line",
      "speaker": "stage",
-     "text": "筆記停在一頁空白。抬頭——已不是比薩的書房。運河的水光在天花板上晃。",
+     "text": "1603 年,帕多瓦。筆記停在一頁空白。抬頭——已不是比薩的書房。運河的水光在天花板上晃。",
+     "next": "n3a"
+    },
+    {
+     "id": "n3a",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "我沒有變。伽利略卻從二十八歲走到三十九歲。原來穿越不是陪人一起過日子,是一次次錯過。",
      "next": "n4"
     },
     {
@@ -1980,6 +2015,6 @@
   ]
  }
 };
-  if (typeof module === "object" && module.exports) { module.exports = data; }
-  else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.scenes = data; }
+ if (typeof module === "object" && module.exports) { module.exports = data; }
+ else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.scenes = data; }
 })(typeof self !== "undefined" ? self : this);

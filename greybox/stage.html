@@ -604,9 +604,14 @@
     cursor: pointer; }
   #fxJump[hidden] { display: none; }
   #fxYear { position: relative; z-index: 2; font-family: var(--font-dialogue); color: #f0e2c4;
-    letter-spacing: 0.3em; font-size: clamp(40px, 7vw, 84px); font-variant-numeric: tabular-nums;
+    letter-spacing: 0.16em; font-size: clamp(32px, 5.3vw, 72px); font-variant-numeric: tabular-nums;
     text-shadow: 0 2px 10px rgba(10, 7, 5, 0.85), 0 0 30px rgba(10, 7, 5, 0.5);
     animation: bdFade var(--motion-medium) ease; }
+  #fxCaption { position: relative; z-index: 2; max-width: min(82vw, 900px); padding: 0.55em 0.9em;
+    font-family: var(--font-ui); color: #f0e2c4; font-size: clamp(17px, 2vw, 27px); line-height: 1.55;
+    letter-spacing: 0.08em; text-align: center; background: rgba(12, 8, 5, 0.58);
+    border-top: 1px solid rgba(207, 169, 107, 0.55); border-bottom: 1px solid rgba(207, 169, 107, 0.55);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.9); animation: bdFade var(--motion-medium) ease; }
   /* 三板偽影片(Sol 交接 §2):溶接 550ms+極小鏡頭推進;禁 rotateY 假翻頁 */
   .fxplate { position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center; opacity: 0;
@@ -614,7 +619,7 @@
   .fxplate.on { opacity: 1; transform: scale(1.035); }
   @media (prefers-reduced-motion: reduce) {
     .fxplate { transition: none; transform: none; }
-    #fxYear { animation: none; }
+    #fxYear, #fxCaption { animation: none; }
   }
   @keyframes bdShake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 2px); }
     40% { transform: translate(5px, -3px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(3px, 2px); } }
@@ -1507,6 +1512,7 @@
     <img id="fxPlateA" class="fxplate" alt="">
     <img id="fxPlateB" class="fxplate" alt="">
     <span id="fxYear"></span>
+    <span id="fxCaption"></span>
   </div>
 
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">

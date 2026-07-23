@@ -84,17 +84,20 @@
     animRaf = requestAnimationFrame(step);
   });
 
-  /* ---------- 時間跳躍(sceneFx,僅活戲) ---------- */
+  /* ---------- 章首／時間跳躍蒙太奇(sceneFx,僅活戲) ---------- */
   var liveStarted = false;
   document.addEventListener("bd:start", function () { liveStarted = true; });
-  /* 三板偽影片(Sol 交接 §2 節奏表):0-0.65 板1/0.65-1.2 溶板2/停/1.8-2.55 溶板3/停穩/3.15-3.4 收。
-     年份=四個劇情里程碑 HTML 淡換(1592/1597/1602/1603),不逐年計數。
-     音三拍:板2 現身=紙頁掠過;兩地溶接=低沉氣流;板3 落定=柔和紙面聲。 */
-  var fxTimers = [], fxClosing = false;
-  function fxYearShow(y) {
+  /* 資料層每一步指定 plate/label/caption；程式只負責溶接，不把章名、年份或台詞寫死。 */
+  var fxTimers = [], fxClosing = false, activeSceneFx = null;
+  function fxYearShow(label) {
     var el = $("fxYear");
     el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
-    el.textContent = String(y);
+    el.textContent = String(label || "");
+  }
+  function fxCaptionShow(caption) {
+    var el = $("fxCaption");
+    el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
+    el.textContent = String(caption || "");
   }
   function fxPlateShow(slot, entryId) {
     var e = assetEntry(entryId);
@@ -109,61 +112,66 @@
   function fxClear() {
     fxTimers.forEach(clearTimeout); fxTimers = [];
     $("fxPlateA").classList.remove("on"); $("fxPlateB").classList.remove("on");
+    fxYearShow(""); fxCaptionShow("");
+    activeSceneFx = null;
     fxClosing = false;
   }
-  function endSceneFx() { /* 跳過=直達板3+1603,短停後離開(單次完成,同既有跳過規則) */
-    if ($("fxJump").hidden || fxClosing) return;
-    fxClosing = true;
-    fxTimers.forEach(clearTimeout); fxTimers = [];
-    var fx = ASSETS.sceneFx["INT-1"];
-    var years = (fx && fx.years) || [];
-    var plates = (fx && fx.plates) || [];
-    if (plates.length) fxPlateShow("A", plates[plates.length - 1]);
-    if (years.length) fxYearShow(years[years.length - 1]);
+  function fxStepShow(slot, step) {
+    if (!step) return false;
+    var hasArt = step.plate ? fxPlateShow(slot, step.plate) : false;
+    fxYearShow(step.label);
+    fxCaptionShow(step.caption);
+    return hasArt;
+  }
+  function closeSceneFx(delay) {
     fxTimers.push(setTimeout(function () {
       $("fxJump").hidden = true;
       fxClear();
       resumeTyping();
-    }, 700));
+    }, delay));
+  }
+  function endSceneFx() { /* 跳過=直達最後一板，短停後離開 */
+    if ($("fxJump").hidden || fxClosing) return;
+    fxClosing = true;
+    fxTimers.forEach(clearTimeout); fxTimers = [];
+    var steps = (activeSceneFx && activeSceneFx.steps) || [];
+    if (steps.length) fxStepShow("A", steps[steps.length - 1]);
+    closeSceneFx(700);
   }
   function playSceneFx(sceneId) {
     var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[sceneId];
-    if (!fx || fx.fx !== "timejump" || !liveStarted || !$("prologueCard").hidden) return;
+    if (!fx || fx.fx !== "montage" || !liveStarted || !$("prologueCard").hidden) return false;
     var box = $("fxJump");
-    var years = fx.years || [], plates = fx.plates || [];
-    (plates || []).forEach(function (id) { preloadEntry(assetEntry(id)); });
+    var steps = fx.steps || [];
+    if (!steps.length) return false;
+    steps.forEach(function (step) { if (step.plate) preloadEntry(assetEntry(step.plate)); });
     box.hidden = false;
     fxClear();
+    activeSceneFx = fx;
     pauseTyping(); /* 蒙太奇播放時,台詞停一拍——動畫管情緒,台詞管答案 */
-    var hasArt = plates.length === 3 && !!assetEntry(plates[0]);
-    if (reduced || !hasArt) { /* 減少動態或無資產:落頁板(或素底)+末年份,約 700ms */
-      if (hasArt) fxPlateShow("A", plates[2]);
-      if (years.length) fxYearShow(years[years.length - 1]);
-      fxTimers.push(setTimeout(function () {
-        $("fxJump").hidden = true; fxClear(); resumeTyping();
-      }, 900));
-      return;
+    var last = steps[steps.length - 1];
+    var hasArt = !!(last.plate && assetEntry(last.plate));
+    if (reduced || !hasArt) { /* 減少動態或無資產:直達末板，仍保留時地人文字 */
+      fxStepShow("A", last);
+      closeSceneFx(1100);
+      return true;
     }
-    fxPlateShow("A", plates[0]); fxYearShow(years[0]);                     /* 0s 板1・1592 */
-    fxTimers.push(setTimeout(function () {
-      fxPlateShow("B", plates[1]); fxYearShow(years[1]); SFX.paper();     /* 0.65s 溶板2・1597・紙頁掠過 */
-    }, 650));
-    fxTimers.push(setTimeout(function () { fxYearShow(years[2]); }, 1200)); /* 1.2s 板2 停留・1602 */
-    fxTimers.push(setTimeout(function () {
-      fxPlateShow("A", plates[2]); fxYearShow(years[3]); SFX.whoosh();    /* 1.8s 溶板3・1603・低沉氣流 */
-    }, 1800));
-    fxTimers.push(setTimeout(function () { SFX.paper(); }, 2550));         /* 2.55s 板3 落定・紙面聲 */
-    fxTimers.push(setTimeout(function () {
-      $("fxJump").hidden = true; fxClear(); resumeTyping();                /* 3.15-3.4s 收,露出帕多瓦 */
-    }, 3400));
+    fxStepShow("A", steps[0]);
+    steps.slice(1).forEach(function (step, idx) {
+      fxTimers.push(setTimeout(function () {
+        fxStepShow(idx % 2 ? "A" : "B", step);
+        if (idx % 2) SFX.whoosh(); else SFX.paper();
+      }, (idx + 1) * 1500));
+    });
+    closeSceneFx(Math.max(2100, steps.length * 1500 + 500));
+    return true;
   }
   $("fxJump").addEventListener("click", endSceneFx); /* 點擊快轉(原則 #19:演出永遠可跳) */
   var lastFxScene = null; /* 蒙太奇只在「場景切換」那一刻放一次——bd:scene 每句都廣播,不去重會逐句重播 */
   document.addEventListener("bd:scene", function (ev) {
     var sid = ev.detail.sceneId;
     if (sid === lastFxScene) return;
-    lastFxScene = sid;
-    playSceneFx(sid);
+    if (playSceneFx(sid)) lastFxScene = sid;
   });
 
   /* ---------- 支柱破裂(bd:debate 差分) ---------- */

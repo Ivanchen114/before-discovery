@@ -84,6 +84,10 @@
         if (b) b.focus(); else $("btnDrawer").focus();
       }, 0);
     }
+    /* P0-1 的 bd:scene 早於序幕結束；序幕退場後重送一次，才不會漏播首次落地蒙太奇。 */
+    setTimeout(function () {
+      document.dispatchEvent(new CustomEvent("bd:scene", { detail: { sceneId: "P0-1", transitionReplay: true } }));
+    }, 0);
   }
   $("btnPrologueGo").addEventListener("click", dismissPrologue);
   $("prologueCard").addEventListener("click", function (ev) {
