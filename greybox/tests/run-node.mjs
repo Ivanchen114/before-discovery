@@ -1777,7 +1777,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章終局與角色聲線|公開質詢不是流程清單；四角色各守語氣",
+  name: "第三章終局與角色聲線|矛盾結果逼出公開驗證；艦長由守門人轉為共同審查者",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const shipUi = ui.slice(ui.indexOf("第三章航船實驗"));
@@ -1786,12 +1786,13 @@ tests.push({
     const voices = readFileSync(path.join(here, "../../02_設計/發現之前_角色聲線與對話規範_v0.1.md"), "utf-8");
     const principles = readFileSync(path.join(here, "../../02_設計/發現之前_設計原則手冊_v0.1.md"), "utf-8");
 
-    for (const frag of ["第 \" + (i + 1) + \" 問", "q[1] + \"的質詢\"", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "官員的提議", "出示這份紀錄"])
+    for (const frag of ["第 \" + (i + 1) + \" 問", "q[1] + \"的質詢\"", "公開驗證：先把條件鎖死", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "官員的提議", "出示這份紀錄"])
       if (!ui.includes(frag)) throw new Error("第三章終局缺少可見攻防:" + frag);
     for (const frag of ["shipCrossExam", "shipCrossExamQuote", "shipCrossExamReply"])
       if (!html.includes(frag)) throw new Error("公開質詢視覺層級缺失:" + frag);
     if (!script.includes("CH3-CR-004") || !script.includes("CH3-CR-006") ||
-        !script.includes("CH3-CR-007") || !script.includes("【質詢一・基準】"))
+        !script.includes("CH3-CR-007") || !script.includes("CH3-CR-009") ||
+        !script.includes("【質詢一・基準】"))
       throw new Error("第三章劇本未同步公開質詢重做");
     const c21 = scenes3.scenes.find((s) => s.id === "C2-1");
     const c21Reply = c21?.nodes.find((n) => n.id === "r1")?.text;
@@ -1803,15 +1804,34 @@ tests.push({
     const publicText = (publicScene?.nodes || []).map((n) => n.text || n.hint || "").join("\n");
     if (!scenes3.publicDemo || scenes3.publicDemo.steps.length !== 5 ||
         JSON.stringify(scenes3.publicDemo.steps.map((s) => s.id)) !== JSON.stringify(Engine3._PUBLIC_STEPS))
-      throw new Error("公開演示資料源與引擎程序順序漂移");
+      throw new Error("公開驗證資料源與引擎程序順序漂移");
     if (!ui.includes("SCENES.publicDemo") || ui.includes("停船時本來就落在桅腳。船動之後，拿什麼比較？"))
-      throw new Error("公開演示 UI 未由第三章資料源供應台詞");
+      throw new Error("公開驗證 UI 未由第三章資料源供應台詞");
     if (!publicText.includes(scenes3.publicDemo.tokenRule) || !script.includes(scenes3.publicDemo.tokenRule))
       throw new Error("預測木籌的非投票規則未同步到劇本與 runtime");
     for (const step of scenes3.publicDemo.steps) {
       const reply = step.reply.replace(/^[^：]+：/, "");
       if (!script.includes(step.question) || !script.includes(reply))
-        throw new Error("公開演示劇本／runtime 台詞漂移:" + step.id);
+        throw new Error("公開驗證劇本／runtime 台詞漂移:" + step.id);
+    }
+    if (!scenes3.publicDemo.purpose.includes("兩邊都能挑一筆") ||
+        new Set(scenes3.publicDemo.steps.map((s) => s.speaker)).size < 4)
+      throw new Error("公開驗證缺少前段因果，或仍退化成艦長一人逐條報流程");
+    const sceneText = (id) => {
+      const scene = scenes3.scenes.find((s) => s.id === id);
+      return (scene?.nodes || []).map((n) => n.text || "").join("\n");
+    };
+    for (const [id, phrase] of [
+      ["C0-2", "我的船可以借，我的名字不借"],
+      ["C1-2", "少一項，別再跟我談公開"],
+      ["C2-2", "我把加速時看見的事，說成所有行船都會發生"],
+      ["C2-2", "誰想護短，我都叫停"],
+      ["C2-4", "人群要的是一個夠大的結論"],
+      ["C3-1", "兩邊都只會挑自己愛看的那一筆"],
+      ["C3-3", "我的船只替今天量到的事作證。這句，我簽"]
+    ]) {
+      if (!sceneText(id).includes(phrase) || !script.includes(phrase))
+        throw new Error("CH3-CR-009 人物轉折未同步:" + id + "/" + phrase);
     }
     for (const betting of ["先押", "押在", "下注", "改注", "押中", "未押中"])
       if (JSON.stringify(scenes3).includes(betting) || script.includes(betting) || shipUi.includes(betting))
@@ -1825,6 +1845,9 @@ tests.push({
       if (visible.includes(phrase)) throw new Error("第三章仍有隱喻代替因果或突兀書面句:" + phrase);
     if (!principles.includes("終局對抗不能退化成流程清單"))
       throw new Error("第三章踩坑未沉澱為設計原則");
+    if (!principles.includes("合理反對者必須被證據改變") ||
+        !principles.includes("公開不是宣傳、投票或自動製造高潮"))
+      throw new Error("第三章公開因果與人物轉向未沉澱為設計原則");
     if (!principles.includes("玩家看見的操作動詞必須在模型裡真的發生") ||
         !principles.includes("錯誤選擇先完整呈現可觀察後果") ||
         !principles.includes("可逆的科學操作必須允許重試"))

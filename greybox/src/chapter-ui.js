@@ -308,7 +308,7 @@
         " 船艙" + (g.g2 ? "●" : "○") + " 變速" + (g.g3 ? "●" : "○") +
         " 對照" + (g.g4 ? "●" : "○") + " 邊界" + (g.g5 ? "●" : "○");
       $("e3Val").title = "第三章的五步證據鏈：穩速桅落、封閉船艙、加減速對照、雙參考物對照、證據邊界。";
-      $("dayVal").parentElement.title = "天數記錄校準、重複測量與公開演示所花的時間。";
+      $("dayVal").parentElement.title = "天數記錄校準、重複測量與公開驗證所花的時間。";
     } else {
     var e3 = state.lab.evidence.e3;
     /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
@@ -1438,8 +1438,8 @@
       "records-unread": "先逐拍讀完 0、1、2、3 號鼓點，確認每張紙各自在記什麼。",
       "alignment-required": "兩張紙必須先把同號鼓點配成同一時刻，不能只看終點。",
       "g4-required": "先把船上與岸上紀錄轉成可以互相對照的兩張圖。",
-      "wrong-public-order": "公開演示的程序不能跳步：基準、穩速窗口、無額外推力、重複三次。",
-      "public-demo-required": "先完成公開演示，再回答質詢。",
+      "wrong-public-order": "公開驗證不能跳步：基準、穩速窗口、無額外推力、封存預測、重複三次。",
+      "public-demo-required": "先完成公開驗證，再回答質詢。",
       "evidence-not-owned": "這張證據尚未取得，不能拿來回答。",
       "audit-incomplete": "三道質詢尚未全部封存。"
     };
@@ -1520,7 +1520,7 @@
       overlay: ["讓兩張紙相認", "先分開讀岸上與船上紀錄，再配對同一時刻，最後換成相對桅杆的位置。"],
       "public-demo": ["把程序公開", "按可重做的順序公布基準、穩速窗口、釋放方法與重複結果。"],
       audit: ["三道公開質詢", "每一問選一張真正做過相應對照的證據。"],
-      boundary: ["最後的證據邊界", "指出這場演示排除了什麼，又沒有直接證明什麼。"]
+      boundary: ["最後的證據邊界", "指出這場公開驗證排除了什麼，又沒有直接證明什麼。"]
     };
     return m[phase] || ["航船實驗", "完成眼前的比較。"];
   }
@@ -2013,7 +2013,7 @@
       }
     }
     if (v.phase === "public-demo") {
-      ship3El("h3", "七、公開演示：先把質疑放到桌上", work);
+      ship3El("h3", "七、公開驗證：先把條件鎖死", work);
       var publicDemo = SCENES.publicDemo || {};
       ship3El("p", publicDemo.purpose || "反對者要在結果出現前檢查程序，才能排除事後挑條件或改口。", work, "shipNote");
       var steps = publicDemo.steps || [];
@@ -2031,10 +2031,10 @@
     }
     if (v.phase === "audit") {
       ship3El("h3", "八、三道公開質詢", work);
-      ship3El("p", "每一張紀錄只能回答它真正測過的問題。選錯不會抹掉紀錄，但艦長會指出缺口。", work, "shipNote");
+      ship3El("p", "每一張紀錄只能回答它真正測過的問題。選錯不會抹掉紀錄，提問者會指出缺口。", work, "shipNote");
       var questions = [
-        ["wind", "艦長", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "艦長：封閉船艙裡也得到相同結果。好，不能只拿甲板風來解釋。", "艦長：那一筆就在甲板上，風也在。它不能替自己排除風。"],
-        ["acceleration", "艦長", "船艙裡看不出差別，第一次落石為什麼仍落在桅後？", "艦長：所以條件是近似穩速，不是任何船況都一樣。", "艦長：船艙只比了停船和近似穩速，回答不了船速正在改變的情況。"],
+        ["wind", "商人", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "艦長：封閉船艙裡也得到相同結果。這一問我接受，不能只拿甲板風解釋。", "商人：那一筆就在甲板上，風也在；不能替自己排除風。"],
+        ["acceleration", "槳手", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "艦長：我第一回看見的落後沒有錯；錯的是把加速結果說成所有船況。", "槳手：船艙只比停船和穩速，回答不了船速正在改變。"],
         ["paths", "艾蒂安", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "艾蒂安：兩張紙記的是同一顆石頭；參考物不同，畫出的路徑就不同。", "艾蒂安：這份紀錄沒有把船上與岸上的位置放到同一組時刻裡。"]
       ];
       questions.forEach(function (q) {
@@ -2057,7 +2057,7 @@
       ship3El("b", "「就寫：今天在馬賽，我們證明了地球正在運動。」", official, "shipCrossExamQuote");
       ship3El("p", "這句話最像勝利，也最容易越過證據。", official, "shipCrossExamReply");
       ship3Btn(work, "順勢宣告：這證明地球正在運動", function () { doShip("setBoundary", { choice: "overclaim" }); }, "shipAction danger");
-      ship3Btn(work, "收住結論：它只排除了『船動，石頭就一定落後』", function () { doShip("setBoundary", { choice: "honest" }, "✓ 你沒有放棄勝利；你把勝利留在證據真正走到的地方。"); }, "shipAction primary");
+      ship3Btn(work, "收住結論：它只排除了『船動，石頭就一定落後』", function () { doShip("setBoundary", { choice: "honest" }, "✓ 艦長願意簽下這個有邊界的結論：船只替今天量到的事作證。"); }, "shipAction primary");
     }
 
     var msg = ship3El("p", ship3Msg || "先完成本段目的；所有失敗紀錄都會保留，不必重開遊戲。", work, "shipMessage");
