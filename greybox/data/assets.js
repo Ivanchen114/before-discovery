@@ -2241,7 +2241,21 @@
   "C3-3": "ch3Public",
   "C3-4": "ch3Public",
   "CE-1": "ch3Print",
-  "CE-2": "ch3Print"
+  "CE-2": "ch3Print",
+  "D0-1": "ch4Orchard",
+  "D0-2": "ch4Orchard",
+  "D1-1": "ch4Orbit",
+  "D1-2": "ch4Orbit",
+  "D1-3": "ch4Orbit",
+  "D2-1": "ch4Hooke",
+  "D2-2": "ch4Hooke",
+  "D2-3": "ch4Predictions",
+  "D3-1": "ch4Press",
+  "D3-2": "ch4Greenwich",
+  "D3-3": "ch4Press",
+  "D3-4": "ch4Press",
+  "DE-1": "ch4Principia",
+  "DE-2": "ch4Principia"
  },
  "audioBasePath": "../public/assets/audio/",
  "bgmVersion": 2,
@@ -2435,6 +2449,59 @@
    "repeatGapMs": 5000,
    "clips": [
     "ch03/Ch3_Print_Room_1642.mp3"
+   ]
+  },
+  "ch4Orchard": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Orchard_Question.mp3"
+   ]
+  },
+  "ch4Orbit": {
+   "mode": "milestone",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Orbit_Workbench_A.mp3",
+    "ch04/Ch4_Orbit_Workbench_B.mp3",
+    "ch04/Ch4_Orbit_Workbench_C.mp3"
+   ]
+  },
+  "ch4Hooke": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Hooke_Letter_1679.mp3"
+   ]
+  },
+  "ch4Predictions": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Sealed_Predictions.mp3"
+   ]
+  },
+  "ch4Greenwich": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Greenwich_Comet.mp3"
+   ]
+  },
+  "ch4Press": {
+   "mode": "milestone",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Press_Window_A.mp3",
+    "ch04/Ch4_Press_Window_B.mp3",
+    "ch04/Ch4_Press_Window_C.mp3"
+   ]
+  },
+  "ch4Principia": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch04/Ch4_Principia_1687.mp3"
    ]
   },
   "silence": {

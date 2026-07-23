@@ -1518,7 +1518,7 @@
     var mood = sceneCue(ev.detail.sceneId);
     if (mood && mood !== BGM.current()) BGM.play(mood);
   });
-  document.addEventListener("bd:view", function (ev) { /* 三章實驗／演示 A/B/C:依認知里程碑,不按時間輪播 */
+  document.addEventListener("bd:view", function (ev) { /* 四章實驗／演示 A/B/C:依認知里程碑,不按時間輪播 */
     var d = ev.detail || {};
     if (BGM.current() === "workshop") {
       if (d.scene === "A2-2" && (d.nodeId === "c1" || d.nodeId === "n3")) BGM.variant(1);
@@ -1544,6 +1544,20 @@
       /* A=公開設下條件；B=結果上桌與逐筆稽核；C=拒絕過度宣稱、守住結論邊界。 */
       if (d.scene === "C3-3" || d.scene === "C3-4") BGM.variant(2);
       else if (d.scene === "C3-2" || (d.scene === "C3-1" && ["n3", "g1"].indexOf(d.nodeId) >= 0)) BGM.variant(1);
+      else BGM.variant(0);
+      return;
+    }
+    if (BGM.current() === "ch4Orbit") {
+      /* A=只看切線離開；B=逐拍加入向內改向；C=讓同一規則持續跑。 */
+      if (d.scene === "D1-3") BGM.variant(2);
+      else if (d.scene === "D1-2") BGM.variant(1);
+      else BGM.variant(0);
+      return;
+    }
+    if (BGM.current() === "ch4Press") {
+      /* A=第一輪窗口；B=證明與署名上版；C=守住機制空白並送出校樣。 */
+      if (d.scene === "D3-4") BGM.variant(2);
+      else if (d.scene === "D3-3") BGM.variant(1);
       else BGM.variant(0);
     }
   });

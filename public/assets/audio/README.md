@@ -52,6 +52,17 @@
 | `ch03/Ch3_Public_Demonstration_B.mp3` | ch3Public B | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
 | `ch03/Ch3_Public_Demonstration_C.mp3` | ch3Public C | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
 | `ch03/Ch3_Print_Room_1642.mp3` | ch3Print | 同上 | 同上 | 同上 | 同上 | 2026-07-22 |
+| `ch04/Ch4_Orchard_Question.mp3` | ch4Orchard | AI 生成（第四章提示詞包） | Google Gemini（Lyria）生成 | 同上 | 陳育詮（生成）/Codex（整合） | 2026-07-24 |
+| `ch04/Ch4_Orbit_Workbench_A.mp3` | ch4Orbit A | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Orbit_Workbench_B.mp3` | ch4Orbit B | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Orbit_Workbench_C.mp3` | ch4Orbit C | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Hooke_Letter_1679.mp3` | ch4Hooke | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Sealed_Predictions.mp3` | ch4Predictions | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Greenwich_Comet.mp3` | ch4Greenwich | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Press_Window_A.mp3` | ch4Press A | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Press_Window_B.mp3` | ch4Press B | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Press_Window_C.mp3` | ch4Press C | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch04/Ch4_Principia_1687.mp3` | ch4Principia | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
 
 `ch01/Beneath_the_Chisel.mp3` 與 `ch01/Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `ch01/Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
 
@@ -94,11 +105,13 @@
 
 完整提示詞、共同動機與驗收規則：`ch03/PROMPTS_BGM_CH3_GEMINI_20260722.md`。
 
-## 第四章生成交接（2026-07-23）
+## 第四章 runtime（Codex 整合，2026-07-24）
 
-- 十一首獨立提示詞已完成：果園 1 首、軌道工作台 A／B／C、Hooke 書信、封存預測、Greenwich 彗星、校樣窗口 A／B／C、1687 出版尾聲。
+- 十一首 MP3 已到齊並接入 runtime：雙聲道、44.1 kHz、192 kbps，長度約 24.89–30.77 秒，總量約 7.0 MB。
 - 本章共同聲音識別為 G Dorian；「原有前進」與「向內改向」是兩個可分辨、可重新對齊的聲部，不使用太空合成器或倒數配樂。
-- 目前尚未收到音檔，因此 `assets.json` 刻意不登錄不存在的第四章 MP3。生成、真人聽感驗收與授權列補齊後才接入 runtime。
+- 軌道工作台 A／B／C 依 D1-1／D1-2／D1-3 切換；校樣窗口 A／B／C 依 D3-1／D3-3／D3-4 切換。切換只看玩法里程碑，不按秒數輪播。
+- 其餘果園、Hooke 書信、封存預測、Greenwich 彗星與 1687 出版尾聲各用獨立 cue；曲末留白 5 秒後才重播同段，不回退程序低頻聲。
+- 檔案、路徑、容量與 runtime 契約已由自動測試把關；相對音量、中文對白遮蔽與 A／B／C 聽感仍由真人試玩驗收。
 
 完整檔名、逐首提示詞、A／B／C 比對與 runtime 預定對應：`ch04/PROMPTS_BGM_CH4_GEMINI_20260723.md`。
 

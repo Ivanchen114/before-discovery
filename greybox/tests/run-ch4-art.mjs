@@ -109,12 +109,72 @@ for (const line of prompts.split("\n"))
   if (line.startsWith(">") && /(沿用上一首|同上)/.test(line))
     fail("獨立生成提示詞仍依賴跨首上下文");
 
-for (const [cue, spec] of Object.entries(assets.bgmFiles || {})) {
-  if (!spec || !Array.isArray(spec.clips)) continue;
-  for (const clip of spec.clips) {
+const expectedSceneBgm = {
+  "D0-1": "ch4Orchard",
+  "D0-2": "ch4Orchard",
+  "D1-1": "ch4Orbit",
+  "D1-2": "ch4Orbit",
+  "D1-3": "ch4Orbit",
+  "D2-1": "ch4Hooke",
+  "D2-2": "ch4Hooke",
+  "D2-3": "ch4Predictions",
+  "D3-1": "ch4Press",
+  "D3-2": "ch4Greenwich",
+  "D3-3": "ch4Press",
+  "D3-4": "ch4Press",
+  "DE-1": "ch4Principia",
+  "DE-2": "ch4Principia"
+};
+for (const [scene, cue] of Object.entries(expectedSceneBgm))
+  if (assets.sceneBgm?.[scene] !== cue) fail("第四章場景音樂映射錯誤:" + scene);
+
+const expectedBgmFiles = {
+  ch4Orchard: ["ch04/Ch4_Orchard_Question.mp3"],
+  ch4Orbit: [
+    "ch04/Ch4_Orbit_Workbench_A.mp3",
+    "ch04/Ch4_Orbit_Workbench_B.mp3",
+    "ch04/Ch4_Orbit_Workbench_C.mp3"
+  ],
+  ch4Hooke: ["ch04/Ch4_Hooke_Letter_1679.mp3"],
+  ch4Predictions: ["ch04/Ch4_Sealed_Predictions.mp3"],
+  ch4Greenwich: ["ch04/Ch4_Greenwich_Comet.mp3"],
+  ch4Press: [
+    "ch04/Ch4_Press_Window_A.mp3",
+    "ch04/Ch4_Press_Window_B.mp3",
+    "ch04/Ch4_Press_Window_C.mp3"
+  ],
+  ch4Principia: ["ch04/Ch4_Principia_1687.mp3"]
+};
+let chapter4MusicBytes = 0;
+for (const [cue, clips] of Object.entries(expectedBgmFiles)) {
+  const spec = assets.bgmFiles?.[cue];
+  const expectedMode = clips.length === 3 ? "milestone" : "once";
+  if (spec?.mode !== expectedMode) fail("第四章音樂播放模式錯誤:" + cue);
+  if (spec?.repeatGapMs !== 5000) fail("第四章音樂重播間隔錯誤:" + cue);
+  if (JSON.stringify(spec?.clips) !== JSON.stringify(clips)) fail("第四章音樂清單錯誤:" + cue);
+  for (const clip of clips) {
     const file = path.join(here, "../../public/assets/audio", clip);
     if (!existsSync(file)) fail("runtime 音樂接到不存在檔案:" + cue + " → " + clip);
+    const bytes = statSync(file).size;
+    if (bytes < 100 * 1024) fail("第四章音樂檔案異常過小:" + clip);
+    if (bytes > 3 * 1024 * 1024) fail("第四章音樂超過單檔 3 MB 預算:" + clip);
+    const header = readFileSync(file).subarray(0, 3);
+    const isMp3 = header.toString("ascii") === "ID3" || (header[0] === 0xff && (header[1] & 0xe0) === 0xe0);
+    if (!isMp3) fail("第四章音樂不是可辨識的 MP3:" + clip);
+    chapter4MusicBytes += bytes;
   }
 }
+if (chapter4MusicBytes > 10 * 1024 * 1024) fail("第四章音樂超過全章 10 MB 預算");
 
-console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、兩齡 Newton、Halley、11 首獨立提示詞與零斷鏈");
+const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+for (const fragment of [
+  'BGM.current() === "ch4Orbit"',
+  'd.scene === "D1-2"',
+  'd.scene === "D1-3"',
+  'BGM.current() === "ch4Press"',
+  'd.scene === "D3-3"',
+  'd.scene === "D3-4"'
+])
+  if (!stageUi.includes(fragment)) fail("第四章三段式音樂缺里程碑切換:" + fragment);
+
+console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、兩齡 Newton、Halley、11 首正式 BGM 與零斷鏈");
