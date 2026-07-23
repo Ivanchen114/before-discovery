@@ -1793,6 +1793,12 @@ tests.push({
     if (!s.evidence.g1) throw new Error("玩家選對資料與概念後未取得 G1");
     for (const vs of ["dock", "steady"]) for (const t of ["drip", "toss"]) s = Engine3.runCabin(s, vs, t).state;
     if (s.evidence.g2) throw new Error("船艙四格完成後自動取得 G2");
+    const cabinDay = s.days;
+    const repeatedCabin = Engine3.runCabin(s, "dock", "drip");
+    if (repeatedCabin.noop || repeatedCabin.error) throw new Error("船艙四格完成後不能自由重做");
+    s = repeatedCabin.state;
+    if (!Array.isArray(s.cabinResults.dock.drip) || s.cabinResults.dock.drip.length !== 2 || s.days !== cabinDay + 1)
+      throw new Error("船艙重做未保存新紀錄或未計入成本");
     const cabinCells = ["dock:drip", "dock:toss", "steady:drip", "steady:toss"];
     claim = Engine3.assertG2(s, cabinCells.slice(0, 3), "steady-matches-dock");
     if (claim.ok || claim.state.evidence.g2) throw new Error("船艙資料不足仍可取得 G2");
@@ -1828,6 +1834,23 @@ tests.push({
     if (over.ok !== false || over.repDelta !== -1 || JSON.stringify(s) !== before) throw new Error("誇大結論的代價／純函式失效");
     s = Engine3.setBoundary(s, "honest").state;
     if (!s.evidence.g5) throw new Error("誠實邊界未取得 G5");
+  }
+});
+
+tests.push({
+  name: "第三章船艙舊存檔|單筆四格可遷移並繼續重做",
+  fn: () => {
+    let s = Engine3.initialState();
+    s.evidence.g1 = true;
+    s.cabin.dock.drip = true;
+    s.cabinResults = {
+      dock: { drip: { offset: 0.03, spread: 0.06 }, toss: null },
+      steady: { drip: null, toss: null }
+    };
+    const out = Engine3.runCabin(s, "dock", "drip");
+    if (out.error || out.noop || !Array.isArray(out.state.cabinResults.dock.drip) ||
+        out.state.cabinResults.dock.drip.length !== 2)
+      throw new Error("舊版單筆船艙紀錄未平順遷移成可重做格式");
   }
 });
 

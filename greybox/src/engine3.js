@@ -15,9 +15,17 @@
     steady: [-0.04, 0.05, 0.02],
     decelerating: [0.69, 0.63, 0.71]
   };
+  /* 每格保留三筆可循環重做的確定性 fixture。重做不是刷答案：它讓玩家
+     檢查結果是否可重複；四格各一筆只負責解鎖推論。 */
   var CABIN = {
-    dock: { drip: { offset: 0.03, spread: 0.06 }, toss: { offset: -0.04, spread: 0.09 } },
-    steady: { drip: { offset: 0.05, spread: 0.07 }, toss: { offset: -0.03, spread: 0.08 } }
+    dock: {
+      drip: [{ offset: 0.03, spread: 0.06 }, { offset: -0.02, spread: 0.07 }, { offset: 0.04, spread: 0.05 }],
+      toss: [{ offset: -0.04, spread: 0.09 }, { offset: 0.05, spread: 0.08 }, { offset: -0.02, spread: 0.10 }]
+    },
+    steady: {
+      drip: [{ offset: 0.05, spread: 0.07 }, { offset: -0.03, spread: 0.06 }, { offset: 0.02, spread: 0.08 }],
+      toss: [{ offset: -0.03, spread: 0.08 }, { offset: 0.04, spread: 0.09 }, { offset: -0.02, spread: 0.07 }]
+    }
   };
   var AUDIT = {
     wind: { correct: "G2", prompt: "甲板有風，怎麼知道不是風把石頭帶回桅腳？" },
@@ -45,7 +53,23 @@
       Math.max.apply(null, rows.map(function (r) { return Math.abs(r.offset); })) <= 0.20;
   }
   function ensureNewFields(s) {
-    if (!s.cabinResults) s.cabinResults = { dock: { drip: null, toss: null }, steady: { drip: null, toss: null } };
+    if (!s.cabin) s.cabin = { dock: { drip: false, toss: false }, steady: { drip: false, toss: false } };
+    if (!s.cabinResults) s.cabinResults = { dock: { drip: [], toss: [] }, steady: { drip: [], toss: [] } };
+    ["dock", "steady"].forEach(function (vessel) {
+      if (!s.cabin[vessel]) s.cabin[vessel] = { drip: false, toss: false };
+      if (!s.cabinResults[vessel]) s.cabinResults[vessel] = { drip: [], toss: [] };
+      ["drip", "toss"].forEach(function (test) {
+        var old = s.cabinResults[vessel][test];
+        if (!Array.isArray(old)) {
+          /* 舊存檔每格只有一個彙整物件；轉成第一筆原始紀錄。若只有完成旗標，
+             用既有 fixture 補回該筆，避免已完成的四格被重置。 */
+          old = old && typeof old.offset === "number" ? [old] :
+            (s.cabin[vessel][test] ? [clone(CABIN[vessel][test][0])] : []);
+          s.cabinResults[vessel][test] = old;
+        }
+        s.cabin[vessel][test] = old.length > 0;
+      });
+    });
     if (!s.claims) s.claims = { g1: [], g2: [], g3: [], g4: [] };
     ["g1", "g2", "g3", "g4"].forEach(function (id) { if (!Array.isArray(s.claims[id])) s.claims[id] = []; });
     return s;
@@ -71,7 +95,7 @@
       baselineRuns: [],
       mastRuns: [],
       cabin: { dock: { drip: false, toss: false }, steady: { drip: false, toss: false } },
-      cabinResults: { dock: { drip: null, toss: null }, steady: { drip: null, toss: null } },
+      cabinResults: { dock: { drip: [], toss: [] }, steady: { drip: [], toss: [] } },
       predictions: { accelerating: null, decelerating: null, locked: false },
       speedRuns: { accelerating: null, decelerating: null },
       overlay: { aligned: false, transformed: false, activeReference: "shore" },
@@ -131,21 +155,25 @@
     if (!state0.evidence.g1) return err(state0, "g1-required");
     if (vesselState !== "dock" && vesselState !== "steady") return err(state0, "unknown-vessel-state");
     if (test !== "drip" && test !== "toss") return err(state0, "unknown-cabin-test");
-    if (state0.cabin[vesselState][test]) return { state: state0, noop: true };
-    var s = ensureNewFields(clone(state0)); s.cabin[vesselState][test] = true; s.days += 1;
-    s.cabinResults[vesselState][test] = clone(CABIN[vesselState][test]);
+    var s = ensureNewFields(clone(state0));
+    var runs = s.cabinResults[vesselState][test];
+    var fixture = CABIN[vesselState][test][runs.length % CABIN[vesselState][test].length];
+    s.cabin[vesselState][test] = true; s.days += 1;
+    var result = { id: runs.length + 1, near: true, vesselState: vesselState, test: test,
+      offset: fixture.offset, spread: fixture.spread, day: s.days };
+    runs.push(result);
     var complete = ["dock", "steady"].every(function (v) {
-      return s.cabin[v].drip && s.cabin[v].toss;
+      return s.cabinResults[v].drip.length > 0 && s.cabinResults[v].toss.length > 0;
     });
-    return { state: s, result: { near: true, vesselState: vesselState, test: test,
-      offset: CABIN[vesselState][test].offset, spread: CABIN[vesselState][test].spread }, claimReady: complete };
+    return { state: s, result: clone(result), claimReady: complete };
   }
   function assertG2(state0, cells, concept) {
     var s = ensureNewFields(clone(state0));
     var required = ["dock:drip", "dock:toss", "steady:drip", "steady:toss"];
     var picked = unique(cells || []).sort();
     var complete = required.every(function (key) {
-      var p = key.split(":"); return !!(s.cabinResults[p[0]] && s.cabinResults[p[0]][p[1]]);
+      var p = key.split(":"); return !!(s.cabinResults[p[0]] &&
+        Array.isArray(s.cabinResults[p[0]][p[1]]) && s.cabinResults[p[0]][p[1]].length);
     });
     var ok = complete && JSON.stringify(picked) === JSON.stringify(required.slice().sort()) && concept === "steady-matches-dock";
     recordClaim(s, "g2", { sources: picked, concept: concept }, ok);

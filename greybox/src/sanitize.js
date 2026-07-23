@@ -192,9 +192,16 @@
     if (lab.cabinResults != null) {
       for (var vessel of ["dock", "steady"]) for (var test of ["drip", "toss"]) {
         var cell = lab.cabinResults[vessel] && lab.cabinResults[vessel][test];
-        if (cell != null && (!cell || typeof cell.offset !== "number" || !isFinite(cell.offset) ||
-            typeof cell.spread !== "number" || !isFinite(cell.spread) || cell.spread < 0 || cell.spread > 10))
-          return fail("船艙比較紀錄含無法辨識的讀值");
+        /* v1.2 改為每格可重做、保存多筆；仍接受 v1.1 的單一彙整物件。 */
+        var cells = cell == null ? [] : (Array.isArray(cell) ? cell : [cell]);
+        if (cells.length > 100) return fail("船艙比較紀錄筆數異常");
+        for (var cr = 0; cr < cells.length; cr++) {
+          var cabinRun = cells[cr];
+          if (!cabinRun || typeof cabinRun.offset !== "number" || !isFinite(cabinRun.offset) ||
+              typeof cabinRun.spread !== "number" || !isFinite(cabinRun.spread) ||
+              cabinRun.spread < 0 || cabinRun.spread > 10)
+            return fail("船艙比較紀錄含無法辨識的讀值");
+        }
       }
     }
     if (lab.claims != null) {

@@ -1761,22 +1761,40 @@
     }
     if (v.phase === "cabin") {
       ship3El("h3", "四、封閉船艙四格", work);
+      ship3El("p", "先讓四種條件各留下一筆，便能開始比較；若你懷疑某一格只是巧合，可以隨時重做。", work, "shipNote shipStepPrompt");
+      function cabinRuns(vessel, test) {
+        var cell = lab.cabinResults && lab.cabinResults[vessel] && lab.cabinResults[vessel][test];
+        if (Array.isArray(cell)) return cell;
+        return cell ? [cell] : [];
+      }
+      function cabinMean(rows, key) {
+        return rows.reduce(function (sum, row) { return sum + row[key]; }, 0) / rows.length;
+      }
       [["dock", "停船"], ["steady", "近似穩速"]].forEach(function (vs) {
         var card = ship3El("div", null, work, "shipCabinCard"); ship3El("b", vs[1], card);
         [["drip", "滴水入碗"], ["toss", "向上拋接"]].forEach(function (t) {
-          ship3Btn(card, (lab.cabin[vs[0]][t[0]] ? "✓ " : "") + t[1], function () {
-            doShip("runCabin", { vesselState: vs[0], test: t[0] }, "✓ " + vs[1] + "・" + t[1] + "已記錄。");
-          }, "shipAction", lab.cabin[vs[0]][t[0]]);
+          var count = cabinRuns(vs[0], t[0]).length;
+          var label = count ? "再做「" + t[1] + "」（已有 " + count + " 筆）" : t[1];
+          ship3Btn(card, label, function () {
+            var next = cabinRuns(vs[0], t[0]).length + 1;
+            doShip("runCabin", { vesselState: vs[0], test: t[0] },
+              "✓ " + vs[1] + "・" + t[1] + "第 " + next + " 筆已記錄；仍可重做。");
+          }, "shipAction", false);
         });
       });
       var cabinRows = [];
       [["dock", "停船"], ["steady", "近似穩速"]].forEach(function (vs) {
         [["drip", "滴水"], ["toss", "拋接"]].forEach(function (t) {
-          var rr = lab.cabinResults && lab.cabinResults[vs[0]] && lab.cabinResults[vs[0]][t[0]];
-          if (rr) cabinRows.push([vs[1], t[1], (rr.offset > 0 ? "+" : "") + rr.offset.toFixed(2), rr.spread.toFixed(2)]);
+          var rows = cabinRuns(vs[0], t[0]);
+          if (rows.length) {
+            var offset = cabinMean(rows, "offset");
+            var spread = cabinMean(rows, "spread");
+            cabinRows.push([vs[1], t[1], rows.length,
+              (offset > 0 ? "+" : "") + offset.toFixed(2), spread.toFixed(2)]);
+          }
         });
       });
-      if (cabinRows.length) ship3Table(work, ["船況", "操作", "平均偏移（掌寬）", "散布"], cabinRows);
+      if (cabinRows.length) ship3Table(work, ["船況", "操作", "筆數", "平均偏移（掌寬）", "平均散布"], cabinRows);
       if (!ev.g2 && cabinRows.length === 4) ship3ClaimPanel(work, { key: "g2", title: "提出第二項主張：停船與穩速船艙能否分辨？",
         sources: [["dock:drip", "停船・滴水"], ["dock:toss", "停船・拋接"], ["steady:drip", "穩速・滴水"], ["steady:toss", "穩速・拋接"]].map(function (x) { return { id: x[0], label: x[1] }; }),
         concepts: [["air-is-gone", "船艙裡沒有空氣，所以結果相同"], ["ship-too-slow", "船走得太慢，差異還沒出現"], ["steady-matches-dock", "在這些局部操作裡，停船與近似穩速的結果相近"]],
