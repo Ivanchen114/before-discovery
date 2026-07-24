@@ -27,6 +27,23 @@
     return text;
   }
 
+  /* 玩家介面統一使用中文人名；內部 speaker／狀態鍵仍保留英文，避免破壞肖像、存檔與判定。 */
+  function playerText(value) {
+    if (value === null || value === undefined) return value;
+    var text = normalizeZhPunctuation(value);
+    [
+      [/\bIsaac Newton\b/g, "艾薩克・牛頓"],
+      [/\bEdmond Halley\b/g, "愛德蒙・哈雷"],
+      [/\bRobert Hooke\b/g, "羅伯特・虎克"],
+      [/\bJohn Flamsteed\b/g, "約翰・佛蘭斯蒂德"],
+      [/\bNewton\b/g, "牛頓"],
+      [/\bHalley\b/g, "哈雷"],
+      [/\bHooke\b/g, "虎克"],
+      [/\bFlamsteed\b/g, "佛蘭斯蒂德"]
+    ].forEach(function (entry) { text = text.replace(entry[0], entry[1]); });
+    return text;
+  }
+
   /* 場景 title 是作者工具與玩家介面共用的資料欄位；公開顯示時移除製作流程標籤。
      場景 id、存檔游標與原始 title 一律不改，舊進度仍可讀。 */
   function playerSceneTitle(value) {
@@ -60,6 +77,7 @@
 
   var api = {
     normalizeZhPunctuation: normalizeZhPunctuation,
+    playerText: playerText,
     playerSceneTitle: playerSceneTitle,
     normalizeTextNodes: normalizeTextNodes
   };

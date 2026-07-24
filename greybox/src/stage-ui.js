@@ -20,7 +20,9 @@
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
   function $(id) { return document.getElementById(id); }
-  function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
+  function displayText(value) {
+    return TEXT ? (TEXT.playerText ? TEXT.playerText(value) : TEXT.normalizeZhPunctuation(value)) : value;
+  }
   var body = document.body;
 
   var reduced = false;
@@ -454,7 +456,7 @@
     var isNarr = item.cls === "stage", isSys = item.cls === "system";
     var showName = item.speaker && !isNarr && !isSys;
     np.style.display = showName ? "" : "none";
-    np.textContent = showName ? (TEXT ? TEXT.normalizeZhPunctuation(item.speaker) : item.speaker) : "";
+    np.textContent = showName ? displayText(item.speaker) : "";
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
     $("dialogue").dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */

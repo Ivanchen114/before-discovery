@@ -38,6 +38,10 @@ tests.push({
       throw new Error("場景製作術語未在呈現邊界移除");
     if (TextFormat.playerSceneTitle("修復:用證據道歉") !== "用證據道歉")
       throw new Error("修復節點標籤未在呈現邊界移除");
+    const people = "Isaac Newton、Edmond Halley、Robert Hooke、John Flamsteed；Newton、Halley、Hooke、Flamsteed";
+    const zhPeople = "艾薩克・牛頓、愛德蒙・哈雷、羅伯特・虎克、約翰・佛蘭斯蒂德；牛頓、哈雷、虎克、佛蘭斯蒂德";
+    if (TextFormat.playerText(people) !== zhPeople)
+      throw new Error("第四章玩家介面仍會外漏英文人名:" + TextFormat.playerText(people));
   }
 });
 
@@ -475,7 +479,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260724-cinematic-transitions"))
+    if (!stageHtml.includes("stage-ui.js?v=20260724-zh-character-names"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))

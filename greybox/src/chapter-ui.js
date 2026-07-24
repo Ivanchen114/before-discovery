@@ -47,7 +47,9 @@
       question: ""
     };
   }
-  function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
+  function displayText(value) {
+    return TEXT ? (TEXT.playerText ? TEXT.playerText(value) : TEXT.normalizeZhPunctuation(value)) : value;
+  }
   function sceneTitleText(value) {
     if (TEXT && TEXT.playerSceneTitle) return TEXT.playerSceneTitle(value);
     return String(value || "故事進行中")
@@ -1447,7 +1449,7 @@
   function ship3Select(parent, values, labels, value) {
     var s = ship3El("select", null, parent, "shipSelect");
     values.forEach(function (v) {
-      var o = document.createElement("option"); o.value = v; o.textContent = labels[v] || v;
+      var o = document.createElement("option"); o.value = v; o.textContent = displayText(labels[v] || v);
       s.appendChild(o);
     });
     if (value != null) s.value = value;

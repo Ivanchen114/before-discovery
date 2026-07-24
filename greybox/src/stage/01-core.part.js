@@ -20,7 +20,9 @@
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
   function $(id) { return document.getElementById(id); }
-  function displayText(value) { return TEXT ? TEXT.normalizeZhPunctuation(value) : value; }
+  function displayText(value) {
+    return TEXT ? (TEXT.playerText ? TEXT.playerText(value) : TEXT.normalizeZhPunctuation(value)) : value;
+  }
   var body = document.body;
 
   var reduced = false;
