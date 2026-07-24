@@ -717,6 +717,10 @@
     color: var(--color-ink-secondary); background: rgba(122,75,42,0.06); }
   #embedGate.ready button { width: 100%; font-family: var(--font-dialogue); font-weight: 600; letter-spacing: 0.12em; }
   @media (max-height: 520px) and (min-width: 701px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+    #btnSfx, #btnFull, #btnDrawer, #btnBackTitle {
+      min-height: 44px;
+    }
+
     body[data-view="lab"] #panelWrap { top: 14%; bottom: 3%; max-height: none; padding: 10px 12px; }
     #lab { grid-template-columns: minmax(280px, 40%) minmax(0, 1fr); gap: 13px; }
     #labBook { padding-left: 12px; }
@@ -1825,7 +1829,7 @@
     .orbitNote,.orbitMessage,.orbitPressStatus { margin:3px 0; padding:3px 5px; font-size:10px; }
     .orbitModelGrid,.orbitCometChoices,.orbitArchiveGrid { gap:2px; }.orbitProofRow,.orbitCreditRow { grid-template-columns:minmax(130px,.9fr) minmax(95px,1fr) max-content; padding:2px 4px; margin:2px 0; font-size:9px; }
     .orbitLawCards { gap:3px; }.orbitLawCard { padding:4px; gap:2px; }.orbitLawCard span { min-height:0; font-size:8px; }
-    .orbitRuleDesigner { gap:3px; padding:4px; }.orbitRuleDesigner .shipSelect { min-height:30px; font-size:9px; }
+    .orbitRuleDesigner { gap:3px; padding:4px; }.orbitRuleDesigner .shipSelect { min-height:44px; font-size:9px; }
     .orbitArchiveCard { padding:4px; gap:2px; }.orbitArchiveReview p,.orbitCometHistory p { padding:2px 4px; margin:2px 0; font-size:8px; }
     .orbitProofTrack { gap:2px; margin:3px 0; }.orbitProofStep { min-height:48px; padding:3px; }
     .orbitProofStep small,.orbitProofStep span { font-size:7px; }.orbitProofStep b { font-size:8px; }
