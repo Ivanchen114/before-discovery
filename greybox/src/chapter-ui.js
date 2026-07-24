@@ -1479,6 +1479,16 @@
       "public-demo-required": "先完成公開驗證，再回答質詢。",
       "evidence-not-owned": "這張證據尚未取得，不能拿來回答。",
       "audit-incomplete": "三道質詢尚未全部封存。"
+      ,"pilot-focus-required": "人手只夠先顧一件事。請先決定這趟要優先查放手、船速，還是重複性。"
+      ,"pilot-required": "先讓你的試航方案真正跑一次，才能從紀錄找缺口。"
+      ,"pilot-diagnosis-required": "先指出試航還漏掉哪一種解釋，再安排完整分工。"
+      ,"protocol-locked": "這份分工已經封存；結果出來後不能換人補洞。"
+      ,"protocol-required": "先讓每個人只有一件工作，並封存分工。"
+      ,"investigation-order-required": "先決定下一個要排除的是變速還是風。"
+      ,"investigations-required": "變速與風的兩條調查都要收完，才能安排雙視角紀錄。"
+      ,"dual-design-required": "先安排岸上與船上各自量什麼、由誰記，再讀兩張紙。"
+      ,"public-criteria-required": "先在看見落點前封存採信標準。"
+      ,"public-screen-required": "先依封存標準把六筆紀錄逐一收下或退回。"
     };
     return map[code] || "這一步目前無法完成，請檢查眼前的實驗條件。";
   }
@@ -1496,6 +1506,17 @@
           "wrong-transform": "縮放只會改變圖的大小，不能改變參考物。請逐拍算『石頭相對岸的位置－桅杆相對岸的位置』。",
           "evidence-mismatch": "這張證據沒有直接回答這道質詢。換一張真正做過相應對照的紀錄。",
           "claim-mismatch": "這組紀錄還不足以支持你選的說法。檢查是否混入受干擾的紀錄，或把現象解釋成了資料沒有測量的原因。",
+          "gap-already-covered": "你選的項目正是這趟已經顧到的部分；試著找紀錄中仍無法排除的另一個解釋。",
+          "protocol-incomplete": "還有工作沒有人負責。只要有一欄空著，這趟就不能追溯。",
+          "role-conflict": "同一個人被安排在兩個位置；放手、敲鼓與觀察不能靠分身同時完成。",
+          "role-mismatch": "這份分工讓人站錯位置或做錯專長。先想清楚誰必須在桅頂、岸上與舵邊。",
+          "local-traces-overread": "兩條局部痕跡幾乎一樣。硬把 A 或 B 指成停船，只是在替未知答案貼標籤。",
+          "wind-design-ambiguous": "只跑單一航向，或只記岸上的風向，會把船自己造成的相對風混進來。",
+          "dual-design-mismatch": "岸上要以碼頭量，船上要以桅杆量；兩邊還必須共用鼓點，且不能讓抽閂者兼任觀察。",
+          "criteria-too-weak": "艦長退回這份標準：它容許變速、手推、單份紀錄或一次巧合混進來。請在揭曉前重新封存。",
+          "screening-incomplete": "六筆紀錄都必須在看見落點前判定收或不收。",
+          "screening-mismatch": "你的判定沒有一致照封存標準執行。艦長只指出編號，不會先揭露落點。",
+          "too-few-public-records": "照這份標準留下的合格紀錄不足以完成你自己要求的重複次數。",
           "overclaim": "伽桑狄：（手掌壓上紙面，墨在掌下暈開）「……停。」這場實驗沒有直接量到地球正在運動。"
         };
         var tailored = typeof failText === "function" ? failText(rr) : failText;
@@ -1507,6 +1528,10 @@
         } else ship3Msg = "✕ " + feedback;
       } else ship3Msg = typeof okText === "function" ? okText(rr) : (okText || "✓ 已記錄。");
       var visualKinds = {
+        runPilot: "pilot-run",
+        runDesignedProtocol: "protocol-run",
+        runCabinBlindPair: "cabin-blind",
+        runWindAudit: "wind-audit",
         runBaseline: "mast-dock",
         runMast: args && args.window === "stable" ? "mast-steady" : "mast-accelerating",
         runCabin: "cabin-" + ((args && args.vesselState) || "dock") + "-" + ((args && args.test) || "drip"),
@@ -1516,6 +1541,9 @@
         transformRecords: args && args.kind === "scaleOnly" ? "tapes-scale" : "tapes-subtract",
         resetOverlay: "tapes-reset",
         setReference: "tapes-reference-" + ((args && args.ref) || "shore"),
+        sealPublicCriteria: "public-criteria",
+        finalizePublicScreen: "public-screen",
+        revealPublicResults: "public-reveal",
         runPublicStep: "public-" + ((args && args.step) || "baseline"),
         setBoundary: "boundary-" + ((args && args.choice) || "honest")
       };
@@ -1549,6 +1577,12 @@
   }
   function ship3Mission(phase) {
     var m = {
+      "pilot-design": ["先決定這趟要查什麼", "人手只夠先顧一件事。三種方案都合理，也都會留下可診斷的缺口。"],
+      protocol: ["把漏洞變成分工", "安排放手、計時、岸上觀察、船上觀察與船況控制；一個人不能同時站兩處。"],
+      investigations: ["追查變速與風", "先選調查順序，再用指紋分清系統性偏移與實驗散布。"],
+      "dual-design": ["自己設計兩個觀察位置", "決定每張紙從哪裡量、共用哪一個時鐘，以及誰負責船上紀錄。"],
+      "public-criteria": ["結果揭曉前，先封採信標準", "先決定什麼紀錄才算數；封存後只看操作條件，不偷看落點。"],
+      "public-screen": ["用自己的標準審紀錄", "六筆資料先遮住落點。逐筆收下或退回，完成後才一起揭曉。"],
       baseline: ["停船基準", "校準鉛垂線，選一種不額外推石頭的釋放法，取得三次乾淨落點。"],
       "first-failure": ["故意保留一次失敗", "在船剛離岸、仍加速時放手；別刪掉異常，先看它跟哪個條件一起出現。"],
       "steady-mast": ["等船近似穩速", "用鼓點與岸標挑出穩定窗口，完成三次桅頂落石。"],
@@ -1754,6 +1788,69 @@
       draw("text", "shipSimState", { x: 790, y: 76, "text-anchor": "end" },
         (kind === "accelerating" ? "加槳：船加速" : "收槳：船減速") +
         (shownRuns.length ? "｜第 " + shownRuns.length + " 次" : ""));
+    } else if (phase === "pilot-design") {
+      var pilotD = lab.design && lab.design.pilot || {};
+      draw("text", "shipSimState", { x: 500, y: 58, "text-anchor": "middle" }, "艦長的舊紀錄：加速時偏向船尾");
+      draw("line", "shipSimDeckAxis", { x1: 165, y1: 385, x2: 835, y2: 385 });
+      draw("line", "shipSimPlumb", { x1: 500, y1: 105, x2: 500, y2: 385 });
+      draw("circle", "shipSimTarget", { cx: 500, cy: 385, r: 27 });
+      draw("circle", "shipSimLandingHistory", { cx: 375, cy: 385, r: 13 });
+      draw("text", "shipSimAxisText", { x: 315, y: 430 }, "舊落點");
+      draw("text", "shipSimAxisText", { x: 465, y: 430 }, "桅腳");
+      [["release", "放手", 245], ["speed", "船速", 500], ["repeat", "重複", 755]].forEach(function (itemD) {
+        var chosenD = pilotD.focus === itemD[0];
+        draw("rect", "shipSimBadge " + (chosenD ? "done" : ""), { x: itemD[2] - 82, y: 476, width: 164, height: 44, rx: 8 });
+        draw("text", "shipSimBadgeText", { x: itemD[2], y: 504, "text-anchor": "middle" }, (chosenD ? "✓ " : "") + itemD[1]);
+      });
+    } else if (phase === "protocol") {
+      var aD = lab.design && lab.design.protocol && lab.design.protocol.assignments || {};
+      var protocolNodesD = [
+        ["release", "桅頂抽閂", 500, 92],
+        ["clock", "甲板敲鼓", 300, 252],
+        ["shore", "岸上記位", 145, 438],
+        ["ship", "船上記錄", 690, 252],
+        ["vessel", "艦長控船", 855, 438]
+      ];
+      protocolNodesD.forEach(function (nD) {
+        draw("line", "shipSimGuide", { x1: 500, y1: 294, x2: nD[2], y2: nD[3] });
+        draw("circle", "shipEvidenceSeal " + (aD[nD[0]] ? "got" : ""), { cx: nD[2], cy: nD[3], r: 48 });
+        draw("text", "shipEvidenceSealText", { x: nD[2], y: nD[3] - 4, "text-anchor": "middle" }, nD[1]);
+        draw("text", "shipSimAxisText", { x: nD[2], y: nD[3] + 20, "text-anchor": "middle" }, aD[nD[0]] ? "已安排" : "待安排");
+      });
+      draw("circle", "shipSimTarget", { cx: 500, cy: 294, r: 38 });
+      draw("text", "shipSimBadgeText", { x: 500, y: 300, "text-anchor": "middle" }, "同一趟");
+    } else if (phase === "investigations") {
+      var designD = lab.design || {}, windD = designD.wind || {}, blindD = designD.cabinBlind || {};
+      draw("text", "shipSimState", { x: 500, y: 56, "text-anchor": "middle" }, "資料指紋：方向是否跟船況一起反轉？");
+      draw("line", "shipSimDeckAxis", { x1: 120, y1: 290, x2: 880, y2: 290 });
+      draw("line", "shipSimPlumb", { x1: 500, y1: 115, x2: 500, y2: 290 });
+      draw("circle", "shipSimTarget", { cx: 500, cy: 290, r: 25 });
+      if (lab.evidence.g3) {
+        draw("circle", "shipSimLanding", { cx: 330, cy: 290, r: 13 });
+        draw("circle", "shipSimLanding", { cx: 670, cy: 290, r: 13 });
+        draw("text", "shipSimAxisText", { x: 330, y: 330, "text-anchor": "middle" }, "加速偏尾");
+        draw("text", "shipSimAxisText", { x: 670, y: 330, "text-anchor": "middle" }, "減速偏頭");
+      }
+      [["盲測", !!blindD.complete, 275], ["往返風向", windD.plan === "relative-roundtrip", 500], ["變速指紋", !!lab.evidence.g3, 725]].forEach(function (badgeD) {
+        draw("rect", "shipSimBadge " + (badgeD[1] ? "done" : ""), { x: badgeD[2] - 90, y: 430, width: 180, height: 48, rx: 8 });
+        draw("text", "shipSimBadgeText", { x: badgeD[2], y: 460, "text-anchor": "middle" }, (badgeD[1] ? "✓ " : "") + badgeD[0]);
+      });
+    } else if (phase === "public-criteria" || phase === "public-screen") {
+      var demoD = lab.publicDemo || {}, decisionsD = demoD.decisions || {};
+      draw("text", "shipSimState", { x: 500, y: 58, "text-anchor": "middle" },
+        demoD.revealed ? "落點已揭曉" : "落點遮住：只看操作條件");
+      (demoD.records || []).forEach(function (rD, iD) {
+        var xD = 135 + iD * 145, acceptedD = decisionsD[rD.id];
+        draw("rect", "shipPaperSheet " + (acceptedD === true ? "shore" : "ship"), { x: xD - 50, y: 150, width: 100, height: 230, rx: 10 });
+        draw("text", "shipPaperLabel", { x: xD, y: 186, "text-anchor": "middle" }, rD.id);
+        draw("text", "shipPaperNote", { x: xD, y: 232, "text-anchor": "middle" }, rD.equalSegments + " 段");
+        draw("text", "shipPaperNote", { x: xD, y: 268, "text-anchor": "middle" }, rD.release === "latch" ? "門閂" : "手放");
+        draw("text", "shipPaperNote", { x: xD, y: 304, "text-anchor": "middle" }, rD.dual ? "雙紀錄" : "單紀錄");
+        draw("text", "shipPaperPairBadge " + (acceptedD === true ? "right" : "wrong"),
+          { x: xD, y: 420, "text-anchor": "middle" },
+          demoD.revealed ? ((rD.offset > 0 ? "+" : "") + rD.offset.toFixed(2)) :
+            (acceptedD === true ? "收" : (acceptedD === false ? "退" : "未判")));
+      });
     } else if (phase === "overlay") {
       /* 先把兩份紀錄上下分開，建立閱讀順序；玩家讀完共同鼓點後，
          才做時間配對與「岸上位置－同拍桅杆位置」的換尺。 */
@@ -1879,7 +1976,7 @@
           ? "目前讀船上紀錄：桅杆固定為 0，石頭近乎直落。"
           : "目前讀岸上紀錄：桅杆每拍前進一格，石頭同時向前並下落。"
       })[overlayPreview] || "比較兩張紙帶上的同一事件。";
-    } else if (phase === "public-demo" || phase === "audit" || phase === "boundary") {
+    } else if (phase === "public-demo" || phase === "public-criteria" || phase === "public-screen" || phase === "audit" || phase === "boundary") {
       cap.textContent = "把五張證據分開擺好：它們共同支持模型，但每張只能回答自己真正測過的問題。";
     } else cap.textContent = "按下放手後，石頭與落點會依這次船況實際演出；失敗紀錄同樣保留。";
     return fig;
@@ -1901,7 +1998,7 @@
     });
     var body = ship3El("div", null, box, "shipBody");
     var visual = ship3El("section", null, body, "shipVisual");
-    if (showPerspectiveIntro) ship3PerspectiveIntro(visual);
+    if (showPerspectiveIntro || v.phase === "dual-design") ship3PerspectiveIntro(visual);
     else ship3Diagram(visual, lab, v.phase);
     var work = ship3El("section", null, body, "shipWork");
 
@@ -1914,6 +2011,316 @@
         ship3Msg = "";
         renderAll();
       }, "shipAction primary");
+    }
+
+    if (v.phase === "pilot-design") {
+      ship3El("h3", "一、第一趟只能先顧一件事", work);
+      ship3El("p", "艦長桌上已有一筆「石頭落在桅後」的舊紀錄。今天人手有限，你不能一次把所有疑點都消掉。先決定最想排除哪一個解釋。", work, "shipNote shipStepPrompt");
+      var pilot = lab.design.pilot;
+      var pilotChoices = [
+        ["release", "顧放手｜用門閂，先排除手推"],
+        ["speed", "顧船速｜把每拍船位記下來"],
+        ["repeat", "顧重複｜同一做法連跑三次"]
+      ];
+      var pilotGrid = ship3El("div", null, work, "shipChoiceGrid");
+      pilotChoices.forEach(function (choice) {
+        ship3Btn(pilotGrid, (pilot.focus === choice[0] ? "✓ " : "") + choice[1], function () {
+          doShip("choosePilotFocus", { focus: choice[0] }, "已把有限人手放在這一項；現在讓方案真正跑一次。");
+        }, "shipAction " + (pilot.focus === choice[0] ? "active" : ""), false);
+      });
+      if (pilot.focus) ship3Btn(work, "執行這趟試航", function () {
+        doShip("runPilot", {}, function (rr) {
+          return "試航留下 " + rr.rows.length + " 筆紀錄。它不是失敗；缺口會告訴你下一趟該補什麼。";
+        });
+      }, "shipAction primary", !!pilot.rows.length);
+      if (pilot.rows.length) {
+        ship3Table(work, ["紀錄", "放手", "船速", "相對桅腳", "可回答的事"], pilot.rows.map(function (r) {
+          return [r.id, r.release === "latch" ? "門閂" : "手放",
+            r.speed === "accelerating" ? "正在加速" : "未量",
+            (r.offset > 0 ? "+" : "") + r.offset.toFixed(2),
+            r.clean ? "放手乾淨" : "放手仍可能擾動"];
+        }));
+        ship3El("p", "哪一個解釋仍然不能靠這趟紀錄排除？", work, "shipNote shipStepPrompt");
+        var gapGrid = ship3El("div", null, work, "shipChoiceGrid");
+        [["release", "可能是放手多推了一下"], ["speed", "可能是船速仍在改變"], ["repeat", "可能只是一次巧合"]].forEach(function (gap) {
+          ship3Btn(gapGrid, gap[1], function () {
+            doShip("diagnosePilot", { gap: gap[0] }, "✓ 你找到仍沒被排除的解釋。下一趟要把這個缺口寫進分工。");
+          });
+        });
+      }
+    }
+
+    if (v.phase === "protocol") {
+      ship3El("h3", "二、五件工作，五個位置", work);
+      ship3El("p", "這次不靠某個人『看得很準』。每件事由不同的人負責，之後才能追問哪一筆是怎麼留下的。", work, "shipNote shipStepPrompt");
+      var protocol = lab.design.protocol;
+      var persons = ["mathieu", "sailor", "etienne", "gassendi", "traveler", "captain"];
+      var personLabels = {
+        mathieu: "馬蒂厄", sailor: "水手", etienne: "艾蒂安",
+        gassendi: "伽桑狄", traveler: "旅人（你）", captain: "艦長"
+      };
+      var slots = [
+        ["release", "桅頂抽閂"],
+        ["clock", "甲板敲等節拍鼓"],
+        ["shore", "岸上記每拍船位"],
+        ["ship", "船上記落點"],
+        ["vessel", "控制船況"]
+      ];
+      slots.forEach(function (slot) {
+        var rowP = ship3El("div", null, work, "shipRow");
+        ship3El("label", slot[1], rowP);
+        var pickP = ship3Select(rowP, persons, personLabels, protocol.assignments[slot[0]] || persons[0]);
+        ship3Btn(rowP, "安排", function () {
+          doShip("setProtocolAssignment", { slot: slot[0], person: pickP.value },
+            "已記下分工；封存前仍可調整。");
+        });
+      });
+      if (!protocol.locked) ship3Btn(work, "檢查衝突並封存分工", function () {
+        doShip("lockProtocol", {}, "✓ 沒有人分身，每個觀察位置都有獨立紀錄者。");
+      }, "shipAction primary");
+      if (protocol.attempts.length) {
+        var latestProtocol = protocol.attempts[protocol.attempts.length - 1];
+        ship3El("p", latestProtocol.ok ? "最近一次檢查：分工可執行。"
+          : (latestProtocol.duplicated ? "最近一次檢查：有人同時被派到兩個位置。"
+            : "最近一次檢查：有人的站位無法完成那件工作。"), work, "shipNote");
+      }
+      if (protocol.locked && !protocol.ran) ship3Btn(work, "照封存分工完成三次穩速落石", function () {
+        doShip("runDesignedProtocol", {}, "✓ 等節拍鼓沒有改變，岸上每拍船位也近乎等距；三筆穩速落點已留下。");
+      }, "shipAction primary");
+      if (protocol.ran) {
+        ship3Table(work, ["紀錄", "船況", "相對桅腳", "用途"], (lab.mastRuns || []).map(function (r) {
+          return [r.id, r.state === "steady" ? "近似穩速" : "加速",
+            (r.offset > 0 ? "+" : "") + r.offset.toFixed(2),
+            r.prior ? "艦長舊紀錄" : "本次獨立分工"];
+        }));
+        if (!ev.g1) {
+          ship3El("p", "三次穩速落點都靠近桅腳。哪一種說法沒有超出紀錄？", work, "shipNote shipStepPrompt");
+          [["steady-shares-motion", "石頭離手時，已經和船一起向前"],
+           ["mast-pulls-stone", "桅杆把石頭拉回桅腳"],
+           ["weight-finds-foot", "石頭會自己尋找桅腳"]].forEach(function (claim) {
+            ship3Btn(work, claim[1], function () {
+              doShip("assertG1Designed", { concept: claim[0] },
+                "◆ 第一項主張成立：近似穩速時，離手的石頭仍保有原先的前行。");
+            });
+          });
+        }
+      }
+    }
+
+    if (v.phase === "investigations") {
+      ship3El("h3", "三、你要先追哪一條？", work);
+      var design = lab.design;
+      if (!design.investigationOrder) {
+        ship3El("p", "舊紀錄偏後，還有兩種合理懷疑：船在變速，或甲板上的風。先選一條，另一條不會消失。", work, "shipNote shipStepPrompt");
+        ship3Btn(work, "先查變速｜做加速／減速反驗", function () {
+          doShip("chooseInvestigationOrder", { order: "speed" }, "✓ 調查順序已記下：先建立變速指紋。");
+        }, "shipAction primary");
+        ship3Btn(work, "先查風｜做往返航向與船艙盲測", function () {
+          doShip("chooseInvestigationOrder", { order: "wind" }, "✓ 調查順序已記下：先查風，但未分類的偏移會先保留。");
+        });
+      } else {
+        ship3El("p", "你選擇先查「" + (design.investigationOrder === "speed" ? "變速" : "風") +
+          "」。兩條都必須完成；順序只改變你何時有資格解讀那筆異常。", work, "shipNote");
+        function speedRows3(kind) {
+          var raw = lab.speedRuns && lab.speedRuns[kind];
+          return Array.isArray(raw) ? raw : (raw ? [raw] : []);
+        }
+        var speedComplete3 = speedRows3("accelerating").length && speedRows3("decelerating").length;
+        var windPrepared3 = design.cabinBlind.complete &&
+          design.wind.plan === "relative-roundtrip" && design.wind.runs.length === 4;
+        var activeSpeed3 = !ev.g3 && (design.investigationOrder === "speed" || windPrepared3);
+        var activeWind3 = !ev.g2 && (!activeSpeed3 || ev.g3);
+
+        if (activeSpeed3) {
+          ship3El("h4", "A｜建立變速的方向指紋", work);
+          if (!lab.predictions.locked) {
+            var pred3 = ship3El("div", null, work, "shipPredict");
+            ship3El("label", "放手後船加速：", pred3);
+            var acc3 = ship3Select(pred3, ["behind", "foot", "ahead"], { behind: "石頭相對偏船尾", foot: "仍在桅腳", ahead: "相對偏船頭" }, "behind");
+            ship3El("label", "放手後船減速：", pred3);
+            var dec3 = ship3Select(pred3, ["behind", "foot", "ahead"], { behind: "石頭相對偏船尾", foot: "仍在桅腳", ahead: "相對偏船頭" }, "ahead");
+            ship3Btn(pred3, "封存兩個預測", function () {
+              doShip("setSpeedPrediction", { accelerating: acc3.value, decelerating: dec3.value },
+                "✓ 預測先留在紙上；現在才讓船變速。");
+            }, "shipAction primary");
+          } else {
+            ship3Btn(work, "抽閂後加槳", function () {
+              doShip("runSpeedChange", { kind: "accelerating" }, "加速留下向船尾偏移的指紋。");
+            }, "shipAction", !!speedRows3("accelerating").length);
+            ship3Btn(work, "抽閂後收槳", function () {
+              doShip("runSpeedChange", { kind: "decelerating" }, "減速留下向船頭偏移的指紋。");
+            }, "shipAction", !!speedRows3("decelerating").length);
+          }
+          if (speedRows3("accelerating").length || speedRows3("decelerating").length) {
+            var rows3 = [];
+            ["accelerating", "decelerating"].forEach(function (kind3) {
+              speedRows3(kind3).forEach(function (r3) {
+                rows3.push([kind3 === "accelerating" ? "加速" : "減速",
+                  (r3.offset > 0 ? "+" : "") + r3.offset.toFixed(2),
+                  r3.offset < 0 ? "船尾" : "船頭"]);
+              });
+            });
+            ship3Table(work, ["船況", "相對桅腳", "方向指紋"], rows3);
+          }
+          if (speedComplete3 && !ev.g3) {
+            [["speed-change-breaks-shared-motion", "石頭保留離手速度；船後來變速，才拉開相對位置"],
+             ["stone-loses-force", "石頭原先的向前推力用完了"],
+             ["wind-reverses", "兩次剛好遇到相反風向"]].forEach(function (claim3) {
+              ship3Btn(work, claim3[1], function () {
+                doShip("assertG3", { kinds: ["accelerating", "decelerating"], concept: claim3[0] },
+                  "◆ 取得變速指紋：加速偏尾、減速偏頭；艦長的舊紀錄可以重新分類了。");
+              });
+            });
+          }
+        } else if (activeWind3) {
+          ship3El("h4", "B｜把風與局部共同運動分開", work);
+          if (!design.cabinBlind.traces.length) {
+            ship3El("p", "艦長會秘密選擇停船或穩速。你只能看兩份局部痕跡，不能靠槳聲或窗外猜。", work, "shipNote shipStepPrompt");
+            ship3Btn(work, "用滴水入碗做兩次盲測", function () {
+              doShip("runCabinBlindPair", { test: "drip" }, "兩條滴水痕跡已編成 A、B；船況仍遮住。");
+            });
+            ship3Btn(work, "用向上拋接做兩次盲測", function () {
+              doShip("runCabinBlindPair", { test: "toss" }, "兩條拋接痕跡已編成 A、B；船況仍遮住。");
+            });
+          } else if (!design.cabinBlind.complete) {
+            ship3Table(work, ["盲測", "平均偏移", "散布"], design.cabinBlind.traces.map(function (trace3) {
+              return [trace3.id, (trace3.offset > 0 ? "+" : "") + trace3.offset.toFixed(2), trace3.spread.toFixed(2)];
+            }));
+            ship3El("p", "光憑這兩條痕跡，能指出哪一趟是停船嗎？", work, "shipNote shipStepPrompt");
+            ship3Btn(work, "A 是停船、B 是穩速", function () { doShip("judgeCabinBlind", { choice: "a-dock" }); });
+            ship3Btn(work, "B 是停船、A 是穩速", function () { doShip("judgeCabinBlind", { choice: "b-dock" }); });
+            ship3Btn(work, "不能可靠分辨", function () {
+              doShip("judgeCabinBlind", { choice: "indistinguishable" },
+                "✓ 只憑這些局部、普通的機械痕跡，停船與近似穩速無法可靠區分。");
+            }, "shipAction primary");
+          }
+          if (design.cabinBlind.complete && design.wind.plan !== "relative-roundtrip") {
+            ship3El("p", "甲板仍有風。怎麼安排航向，才不會把『岸上的風』和『船感受到的相對風』混在一起？", work, "shipNote shipStepPrompt");
+            ship3Btn(work, "只跑一次單一航向", function () {
+              doShip("runWindAudit", { plan: "single-heading" });
+            });
+            ship3Btn(work, "只抄岸上旗子的風向", function () {
+              doShip("runWindAudit", { plan: "shore-wind-only" });
+            });
+            ship3Btn(work, "往返航行，逐趟記相對船的風向與船況", function () {
+              doShip("runWindAudit", { plan: "relative-roundtrip" },
+                "✓ 往返航向完成；穩速筆的偏移落在實驗散布內，異常筆暫依已有指紋分類。");
+            }, "shipAction primary");
+          }
+          if (design.wind.runs.length) {
+            ship3Table(work, ["紀錄", "相對船風向", "船況分類", "相對桅腳"], design.wind.runs.map(function (wr3) {
+              var stateLabel3 = wr3.shipState === "steady" ? "近似穩速" :
+                (wr3.shipState === "accelerating" ? "加速" :
+                  (wr3.shipState === "unclassified" ? "尚無指紋可分類" : "未量"));
+              return [wr3.id, wr3.relativeWind, stateLabel3,
+                (wr3.offset > 0 ? "+" : "") + wr3.offset.toFixed(2)];
+            }));
+          }
+          if (windPrepared3 && !ev.g3) ship3El("p",
+            "W3 明顯偏後，但你還沒有變速的方向指紋。先把它標成『未分類』，接著查變速；不能先替它取名字。",
+            work, "shipNote");
+          if (windPrepared3 && ev.g3 && !ev.g2) {
+            ship3El("p", "現在回看盲測與往返紀錄。哪一句既不否認風，也沒有超出本次精度？", work, "shipNote shipStepPrompt");
+            [["local-common-motion-wind-below-spread", "在這些局部操作中停船與穩速分不出；風的影響未形成超出散布的系統偏移"],
+             ["wind-has-no-effect", "風對落石完全沒有任何影響"],
+             ["no-experiment-detects-motion", "任何實驗都永遠測不出運動"]].forEach(function (g2c) {
+              ship3Btn(work, g2c[1], function () {
+                doShip("assertG2Designed", { concept: g2c[0] },
+                  "◆ 取得局部共同運動證據：本次精度內，風不是穩速落點的系統性主因。");
+              });
+            });
+          }
+        }
+        if (ev.g2 && ev.g3) ship3El("p", "✓ 兩條調查已合卷：舊的落後筆屬於加速指紋；穩速結果未顯示超出散布的風向偏移。", work, "shipNote");
+      }
+    }
+
+    if (v.phase === "dual-design") {
+      ship3El("h3", "四、同一顆石頭，安排兩張獨立紀錄", work);
+      ship3El("p", "兩邊不是畫同一張圖的副本，而是從不同參考物量同一事件。請先把觀察位置與共同時鐘安排好。", work, "shipNote shipStepPrompt");
+      var dual = lab.design.dual;
+      var dualForm = ship3El("div", null, work, "shipProtocolForm");
+      ship3El("label", "岸上紙的位置起點", dualForm);
+      var shoreOrigin4 = ship3Select(dualForm, ["quay", "ship", "mast"], { quay: "碼頭固定點", ship: "船頭", mast: "桅杆" }, dual.setup ? dual.setup.shoreOrigin : "quay");
+      ship3El("label", "船上紙的位置起點", dualForm);
+      var shipOrigin4 = ship3Select(dualForm, ["mast", "quay"], { mast: "桅杆", quay: "碼頭" }, dual.setup ? dual.setup.shipOrigin : "mast");
+      ship3El("label", "兩張紙如何認出同一時刻", dualForm);
+      var clock4 = ship3Select(dualForm, ["shared-drum", "separate-clocks"], { "shared-drum": "共用同一組鼓點", "separate-clocks": "各自憑感覺記時" }, dual.setup ? dual.setup.clock : "shared-drum");
+      ship3El("label", "船上紀錄者", dualForm);
+      var observer4 = ship3Select(dualForm, ["gassendi", "traveler", "mathieu"], { gassendi: "伽桑狄", traveler: "旅人（你）", mathieu: "馬蒂厄（同時在桅頂抽閂）" }, dual.setup ? dual.setup.shipObserver : "gassendi");
+      if (!dual.locked) ship3Btn(work, "檢查並封存雙視角方案", function () {
+        doShip("setDualDesign", { setup: {
+          shoreOrigin: shoreOrigin4.value, shipOrigin: shipOrigin4.value,
+          clock: clock4.value, shipObserver: observer4.value
+        } }, "✓ 艾蒂安在岸上、伽桑狄或你在船上；兩邊共用鼓點，馬蒂厄只負責抽閂。");
+      }, "shipAction primary");
+      if (dual.attempts.length && !dual.locked) ship3El("p",
+        "最近一次方案無法把兩張紙追溯到同一事件。檢查起點、時鐘與是否有人分身。",
+        work, "shipNote");
+      if (dual.locked) ship3El("p", "✓ 雙視角方案已封存。下一段會把艾蒂安與船上紀錄各抄成一張紙。", work, "shipNote");
+    }
+
+    if (v.phase === "public-criteria") {
+      ship3El("h3", "五、先封標準，再看公開結果", work);
+      ship3El("p", "艦長把六筆紀錄的落點蓋住。你先寫下『什麼條件的紀錄才算數』，不能看完漂亮數字才挑資料。", work, "shipNote shipStepPrompt");
+      var critForm = ship3El("div", null, work, "shipProtocolForm");
+      ship3El("label", "至少連續幾段岸標等距", critForm);
+      var seg5 = ship3Select(critForm, ["2", "3", "4"], { "2": "2 段", "3": "3 段", "4": "4 段" }, "3");
+      ship3El("label", "至少要有幾筆合格重複", critForm);
+      var rep5 = ship3Select(critForm, ["2", "3"], { "2": "2 筆", "3": "3 筆" }, "3");
+      ship3El("label", "釋放方式", critForm);
+      var rel5 = ship3Select(critForm, ["hand", "latch"], { hand: "手放也收", latch: "只收門閂無推放手" }, "latch");
+      ship3El("label", "是否要求岸／船雙紀錄", critForm);
+      var dual5 = ship3Select(critForm, ["yes", "no"], { yes: "要，兩張紙都齊", no: "不用，一張也收" }, "yes");
+      ship3Btn(work, lab.publicDemo.criteria ? "修改並重新封存（舊版留痕）" : "用蠟封住這份採信標準", function () {
+        doShip("sealPublicCriteria", { criteria: {
+          equalSegments: Number(seg5.value), repeats: Number(rep5.value),
+          release: rel5.value, requireDual: dual5.value === "yes"
+        } }, "✓ 標準已封存，舊版本若有修改也會留在卷宗裡。");
+      }, "shipAction primary");
+    }
+
+    if (v.phase === "public-screen") {
+      ship3El("h3", "六、落點仍遮住：只審操作紀錄", work);
+      var pd5 = lab.publicDemo;
+      var c5 = pd5.criteria;
+      if (c5) ship3El("p", "封存標準｜等距 ≥ " + c5.equalSegments + " 段；合格重複 ≥ " +
+        c5.repeats + "；" + (c5.release === "latch" ? "門閂放手" : "手放可收") + "；" +
+        (c5.requireDual ? "必須有雙紀錄" : "單份紀錄也收"), work, "shipNote shipStepPrompt");
+      var publicRows5 = (pd5.records || []).map(function (rec5) {
+        return [rec5.id, rec5.equalSegments + " 段", rec5.release === "latch" ? "門閂" : "手放",
+          rec5.dual ? "岸／船俱全" : "只剩一份", pd5.revealed ? ((rec5.offset > 0 ? "+" : "") + rec5.offset.toFixed(2)) : "遮住"];
+      });
+      ship3Table(work, ["編號", "等距岸標", "放手", "紀錄", "落點"], publicRows5);
+      if (!pd5.screened) {
+        (pd5.records || []).forEach(function (rec5) {
+          var row5 = ship3El("div", null, work, "shipRow");
+          ship3El("b", "紀錄 " + rec5.id, row5);
+          var decision5 = pd5.decisions[rec5.id];
+          ship3Btn(row5, (decision5 === true ? "✓ " : "") + "收下", function () {
+            doShip("screenPublicRecord", { recordId: rec5.id, accept: true }, "已依操作條件暫收紀錄 " + rec5.id + "。");
+          }, "shipAction " + (decision5 === true ? "active" : ""));
+          ship3Btn(row5, (decision5 === false ? "✓ " : "") + "退回", function () {
+            doShip("screenPublicRecord", { recordId: rec5.id, accept: false }, "已依操作條件退回紀錄 " + rec5.id + "。");
+          }, "shipAction " + (decision5 === false ? "active" : ""));
+        });
+        ship3Btn(work, "封存六筆判定，請艦長核對", function () {
+          doShip("finalizePublicScreen", {}, "✓ 判定逐筆符合你先封存的標準；現在才可以揭開落點。",
+            function (rr5) {
+              if (rr5.reason === "screening-mismatch")
+                return "艦長只推回編號 " + rr5.mismatch.join("、") + "：你的收退沒有一致照標準。落點仍遮住。";
+              return null;
+            });
+        }, "shipAction primary");
+      } else if (!pd5.revealed) {
+        ship3Btn(work, "一起揭開合格紀錄的落點", function () {
+          doShip("revealPublicResults", {}, function (rr5) {
+            return "✓ 合格的 " + rr5.accepted.length + " 筆都聚在桅腳附近；被退回的異常沒有被刪除。";
+          });
+        }, "shipAction primary");
+      } else {
+        ship3El("p", "✓ 你不是挑了最好看的落點；你先守住標準，再接受符合條件的結果。艦長願意讓名字出現在操作紀錄旁。", work, "shipNote");
+      }
     }
 
     if (v.phase === "baseline") {

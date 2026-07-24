@@ -580,7 +580,7 @@
           nc.querySelector(".ncSealed").textContent = "第三章《船艙裡的靜止》——已封存";
           nc.querySelector(".ncNext").textContent = "下一章";
           nc.querySelector(".ncTitle").textContent = "月亮的無盡墜落";
-          nc.querySelector(".ncHook").textContent = "船上的石頭保留前行;如果月亮也在前行,究竟是什麼讓它不斷轉彎?";
+          nc.querySelector(".ncHook").textContent = "船上的石頭保留前行；如果月亮也在前行，究竟是什麼讓它不斷轉彎？";
           nc.querySelector(".ncSys").textContent = "第四章現已開放。第三章進度與筆記已封存於這台裝置。";
           nextBtn.textContent = "進入第四章";
           nextHref = "stage.html?chapter=ch04";
@@ -644,7 +644,17 @@
     if (target === "debate") {
       if (!debIntroSeen) { debIntroSeen = true; $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }
       else { var db = $("controls").querySelector("button"); if (db) db.focus(); }
-    } else if (targetScene && apparatusBriefing(targetScene) && !apparatusSurveySeen[apparatusBriefingKey(targetScene)]) {
+    } else if (CHAPTER_ID === "ch3" && targetScene === "C1-1") {
+      /* CH3-CR-016：第一個真正選擇就是「先排除哪個解釋」。
+         舊版六項器材踏查與整章答案式備忘都保留在 ? 說明，不再擋在玩家的設計決定前。 */
+      labIntroSeen = true;
+      var ch3First = $("controls").querySelector("button");
+      if (ch3First) ch3First.focus();
+    } else if (
+      targetScene &&
+      apparatusBriefing(targetScene) &&
+      !apparatusSurveySeen[apparatusBriefingKey(targetScene)]
+    ) {
       /* 首次進主實驗先做器材踏查；踏查本身取代自動彈出的長備忘卡，? 仍可重看。 */
       showApparatusSurvey(targetScene, function () {
         labIntroSeen = true;

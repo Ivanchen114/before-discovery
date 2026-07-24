@@ -834,6 +834,16 @@
    "h": 941
   },
   {
+   "id": "ch01_focus_canal_first_arc_v01",
+   "kind": "bg",
+   "label": "小說特寫・運河上第一道未解的弧",
+   "path": "ch01/transitions/ch01_focus_canal_first_arc_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch01/transitions/ch01_focus_canal_first_arc_master_v01.png"
+  },
+  {
    "id": "ch02_transition_old_page_handoff_v01",
    "kind": "bg",
    "label": "章首轉場・1608 舊頁交棒",
@@ -841,6 +851,36 @@
    "firstScreen": false,
    "w": 1672,
    "h": 941
+  },
+  {
+   "id": "ch02_transition_1604_1608_pagefold_v01",
+   "kind": "bg",
+   "label": "章首轉場・1604 至 1608 筆記折頁",
+   "path": "ch02/transitions/ch02_transition_1604_1608_pagefold_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch02/transitions/ch02_transition_1604_1608_pagefold_master_v01.png"
+  },
+  {
+   "id": "ch02_transition_simplicio_returns_v01",
+   "kind": "bg",
+   "label": "章首轉場・辛普里奧攜舊證據回返",
+   "path": "ch02/transitions/ch02_transition_simplicio_returns_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch02/transitions/ch02_transition_simplicio_returns_master_v01.png"
+  },
+  {
+   "id": "ch02_focus_ship_mast_thought_v01",
+   "kind": "bg",
+   "label": "小說特寫・紙上船桅待驗預測",
+   "path": "ch02/transitions/ch02_focus_ship_mast_thought_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch02/transitions/ch02_focus_ship_mast_thought_master_v01.png"
   },
   {
    "id": "ch03_transition_1609_question_departs_v01",
@@ -868,6 +908,26 @@
    "firstScreen": false,
    "w": 1672,
    "h": 941
+  },
+  {
+   "id": "ch03_focus_two_books_1642_v01",
+   "kind": "bg",
+   "label": "小說特寫・兩本書與未朗讀的信",
+   "path": "ch03/transitions/ch03_focus_two_books_1642_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/transitions/ch03_focus_two_books_1642_master_v01.png"
+  },
+  {
+   "id": "ch03_focus_unfinished_arc_to_moon_v01",
+   "kind": "bg",
+   "label": "小說特寫・雙紙帶延長成月亮問題",
+   "path": "ch03/transitions/ch03_focus_unfinished_arc_to_moon_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/transitions/ch03_focus_unfinished_arc_to_moon_master_v01.png"
   },
   {
    "id": "ch04_transition_1642_question_opens_v01",
@@ -2221,6 +2281,50 @@
     }
    ],
    "caption": "第二幕的證據牆：問題來源、前人線索、玩家裝置與親測墨跡並排。"
+  },
+  {
+   "scene": "E-1",
+   "match": "石子劃出一道弧",
+   "items": [
+    {
+     "asset": "ch01_focus_canal_first_arc_v01",
+     "alt": "黃昏的帕多瓦運河上，一顆石子離手後一面向前、一面向水面下降，前方漣漪正在散開"
+    }
+   ],
+   "caption": "第一道未解的弧：石子向前，也在同一刻向下。"
+  },
+  {
+   "scene": "B1-2",
+   "match": "想像一條船順流而下",
+   "items": [
+    {
+     "asset": "ch02_focus_ship_mast_thought_v01",
+     "alt": "雨夜工作室的筆記紙上，一艘想像的船由墨線浮起，石頭停在桅頂上方，落點仍未畫出"
+    }
+   ],
+   "caption": "這只是紙上的待驗預測：先把兩種落點都留給真正的船回答。"
+  },
+  {
+   "scene": "CE-1",
+   "match": "紙張、鉛字與油墨",
+   "items": [
+    {
+     "asset": "ch03_focus_two_books_1642_v01",
+     "alt": "1642 年印刷室的桌上，伽利略的舊書與伽桑狄的新手稿並排，中間放著馬賽實驗紀錄，桌角留著一封未朗讀的信"
+    }
+   ],
+   "caption": "書帶問題到海上；紀錄再把海帶回書裡。桌角那封信，沒有人念出聲。"
+  },
+  {
+   "scene": "CE-2",
+   "match": "把岸上那條路再往前延長",
+   "items": [
+    {
+     "asset": "ch03_focus_unfinished_arc_to_moon_v01",
+     "alt": "兩張同步紙帶上的直落與彎曲記錄並排，旅人的手把岸上曲線延長成一道尚未閉合、通往月亮的巨大弧線"
+    }
+   ],
+   "caption": "第三章只把弧延長了；月亮為什麼沒有沿直線離開，仍在下一頁等答案。"
   }
  ],
  "viewFocusVisual": [
@@ -2276,9 +2380,19 @@
    "fx": "montage",
    "steps": [
     {
+     "plate": "ch02_transition_1604_1608_pagefold_v01",
+     "label": "1604→1608｜筆記只翻一頁",
+     "caption": "窗外換了四次季節；旅人的手，仍是初到比薩那天的手。"
+    },
+    {
      "plate": "ch02_transition_old_page_handoff_v01",
      "label": "1608｜義大利・帕多瓦",
-     "caption": "四年後，《物理學》厚的那一頁，把上一章的問題帶回來。"
+     "caption": "工作室裡多了四年的木屑、器材與批註；問題沒有被收進抽屜。"
+    },
+    {
+     "plate": "ch02_transition_simplicio_returns_v01",
+     "label": "敲門聲｜舊證據回來了",
+     "caption": "辛普里奧把夾進《物理學》的數據紙帶回來——不是認輸，是來問下一題。"
     }
    ]
   },

@@ -608,6 +608,11 @@
     }
     if (until.ship) {
       var sh = state.lab || {}, se = sh.evidence || {};
+      if (until.ship === "pilot") return !!(sh.design && sh.design.pilot && sh.design.pilot.diagnosed);
+      if (until.ship === "protocol") return !!se.g1;
+      if (until.ship === "investigations") return !!(se.g2 && se.g3);
+      if (until.ship === "dual") return !!(sh.design && sh.design.dual && sh.design.dual.locked);
+      if (until.ship === "criteria") return !!(sh.publicDemo && sh.publicDemo.criteria);
       if (until.ship === "baseline") return !!(Engine.baselineReady && Engine.baselineReady(sh));
       if (until.ship === "failure") return !!(sh.mastRuns || []).some(function (r) { return r.state === "accelerating"; });
       if (until.ship === "g1") return !!se.g1;
@@ -741,6 +746,19 @@
     else if (action === "abandonSeries" && Engine.abandonSeries) r = Engine.abandonSeries(state.lab);
     else if (action === "compareBalls" && Engine.compareBalls) r = Engine.compareBalls(state.lab, args.a, args.b);
     /* 第三章船桅／共同運動引擎：仍走同一個 labAction 邊界，UI 不直接改 state。 */
+    else if (action === "choosePilotFocus" && Engine.choosePilotFocus) r = Engine.choosePilotFocus(state.lab, args.focus);
+    else if (action === "runPilot" && Engine.runPilot) r = Engine.runPilot(state.lab);
+    else if (action === "diagnosePilot" && Engine.diagnosePilot) r = Engine.diagnosePilot(state.lab, args.gap);
+    else if (action === "setProtocolAssignment" && Engine.setProtocolAssignment) r = Engine.setProtocolAssignment(state.lab, args.slot, args.person);
+    else if (action === "lockProtocol" && Engine.lockProtocol) r = Engine.lockProtocol(state.lab);
+    else if (action === "runDesignedProtocol" && Engine.runDesignedProtocol) r = Engine.runDesignedProtocol(state.lab);
+    else if (action === "assertG1Designed" && Engine.assertG1Designed) r = Engine.assertG1Designed(state.lab, args.concept);
+    else if (action === "chooseInvestigationOrder" && Engine.chooseInvestigationOrder) r = Engine.chooseInvestigationOrder(state.lab, args.order);
+    else if (action === "runCabinBlindPair" && Engine.runCabinBlindPair) r = Engine.runCabinBlindPair(state.lab, args.test);
+    else if (action === "judgeCabinBlind" && Engine.judgeCabinBlind) r = Engine.judgeCabinBlind(state.lab, args.choice);
+    else if (action === "runWindAudit" && Engine.runWindAudit) r = Engine.runWindAudit(state.lab, args.plan);
+    else if (action === "assertG2Designed" && Engine.assertG2Designed) r = Engine.assertG2Designed(state.lab, args.concept);
+    else if (action === "setDualDesign" && Engine.setDualDesign) r = Engine.setDualDesign(state.lab, args.setup);
     else if (action === "setRelease" && Engine.setRelease) r = Engine.setRelease(state.lab, args.mode);
     else if (action === "calibratePlumb" && Engine.calibratePlumb) r = Engine.calibratePlumb(state.lab);
     else if (action === "runBaseline" && Engine.runBaseline) r = Engine.runBaseline(state.lab);
@@ -758,6 +776,10 @@
     else if (action === "assertG4" && Engine.assertG4) r = Engine.assertG4(state.lab, args.records, args.concept);
     else if (action === "setReference" && Engine.setReference) r = Engine.setReference(state.lab, args.ref);
     else if (action === "runPublicStep" && Engine.runPublicStep) r = Engine.runPublicStep(state.lab, args.step);
+    else if (action === "sealPublicCriteria" && Engine.sealPublicCriteria) r = Engine.sealPublicCriteria(state.lab, args.criteria);
+    else if (action === "screenPublicRecord" && Engine.screenPublicRecord) r = Engine.screenPublicRecord(state.lab, args.recordId, args.accept);
+    else if (action === "finalizePublicScreen" && Engine.finalizePublicScreen) r = Engine.finalizePublicScreen(state.lab);
+    else if (action === "revealPublicResults" && Engine.revealPublicResults) r = Engine.revealPublicResults(state.lab);
     else if (action === "answerAudit" && Engine.answerAudit) r = Engine.answerAudit(state.lab, args.questionId, args.evidenceId);
     else if (action === "setBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     /* 第四章軌道、跨尺度反驗與行動制校樣。 */

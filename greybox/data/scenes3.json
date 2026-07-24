@@ -13,14 +13,14 @@
  "evidenceSummary": {
   "S5": "書中用共同運動回應「地球若動，落石就該落後」的反對；它提出待驗預測，不是實驗結果。",
   "G1": "停船基準與三次穩速落石：石頭相對船落在桅腳附近。",
-  "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
+  "G2": "兩次秘密船況的局部痕跡無法可靠分出停船或近似穩速；往返航向也未顯示超出本次散布的系統風偏。",
   "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
  "G4": "同一事件的岸上與船上紀錄；分開逐拍讀、配對同號鼓點，再扣除桅杆位置後可互相轉換。",
  "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。"
  },
  "publicDemo": {
   "purpose": "船才回港，岸上已有人只傳「第一回落後」，也有人只傳「後來都在桅腳」。艦長因此要求公開重做：每個落點都必須連同船況、鼓點、岸標與釋放方式一起展示。",
-  "tokenRule": "木籌不是賭錢，也不是拿來投票決定真相。它只留下每個人實驗前的判斷，不讓人看完結果才改口。",
+  "tokenRule": "先放答案，後看結果。木籌不是賭錢，也不投票，只防人事後改口。",
   "steps": [
    {"id":"baseline","speaker":"艦長","question":"我先替反對者問：沒有停船基準，誰知道船動時的落點算不算改變？","action":"公開停船時的落點基準","reply":"艦長：基準與散布都掛出來。這一項我認。"},
    {"id":"stable-window","speaker":"商人","question":"你們是不是只挑了一段看起來最漂亮的船速？","action":"公開怎麼判定近似穩速","reply":"艾蒂安：鼓點和岸標都留著，任何人都能重新判斷這段船速。"},
@@ -32,12 +32,12 @@
  "scenes": [
   {
    "id": "C0-1",
-   "title": "馬賽港・頁面翻了三十二年",
+   "title": "馬賽港・頁面翻了三十來年",
    "nodes": [
     {"id":"n1","type":"line","speaker":"stage","text":"1609 年。月球上的白球早已離開球桿，頁角仍留著旅人寫下的問題：沒有東西繼續推它，它為什麼還在走？","next":"n1a"},
     {"id":"n1a","type":"line","speaker":"旅人(你)","text":"（指腹按住空白的下一頁）我以為還會回到他的工作室。","next":"n1b"},
     {"id":"n1b","type":"line","speaker":"stage","text":"旅人翻頁。中間年月折進紙縫；1632 年的《對話》覆上舊問題，把它換成另一個問法：船若向前，桅頂的石頭落在哪裡？","next":"n1c"},
-    {"id":"n1c","type":"line","speaker":"旅人(你)","text":"他們老了三十二年。我沒有。","next":"n1d"},
+    {"id":"n1c","type":"line","speaker":"旅人(你)","text":"他們老了三十來年。我沒有。","next":"n1d"},
     {"id":"n1d","type":"system","speaker":"system","text":"1640 年秋，法國・馬賽。港口沒有熟悉的聲音，也沒有熟悉的人。","next":"n1e"},
     {"id":"n1e","type":"line","speaker":"旅人・心聲","text":"頁面沒有讓我道別。只把他留下的問題，送到另一個人手裡。","next":"n2"},
     {"id":"n2","type":"line","speaker":"stage","text":"海鳥、纜繩與槳帆船。貨箱上坐著一位神父，海風每次掀頁，他都把同一頁壓回去。","next":"n3"},
@@ -74,9 +74,9 @@
     {"id":"n3f","type":"line","speaker":"旅人(你)","text":"（寫下「桅腳」）我知道書上怎麼回答。我還沒看過海怎麼回答。","next":"s0"},
     {"id":"s0","type":"system","speaker":"system","text":"旅人的木籌已封存在桅腳格。這不是猜題，而是把已知推論交給實驗受審。","effects":[{"flag":["initialPrediction","foot"]}],"next":"n3g"},
     {"id":"n3g","type":"line","speaker":"stage","text":"艦長把寫著「船尾」的木籌壓進第三格，名字朝外。","next":"n3h"},
-    {"id":"n3h","type":"line","speaker":"艦長","text":"（轉向馬蒂厄）從停船那一回開始，門閂由你抽。鼓點、岸標、落點，也由你收。","next":"n3i"},
-    {"id":"n3i","type":"line","speaker":"馬蒂厄","text":"照原樣記？","next":"n3j"},
-    {"id":"n3j","type":"line","speaker":"艦長","text":"照原樣。包括不合我意的。","next":"n3k"},
+    {"id":"n3h","type":"line","speaker":"艦長","text":"（轉向馬蒂厄）明天你只管桅頂門閂。鼓點、岸標、船上落點，都要另找人記。","next":"n3i"},
+    {"id":"n3i","type":"line","speaker":"馬蒂厄","text":"只抽門閂，連落點也不下來看？","next":"n3j"},
+    {"id":"n3j","type":"line","speaker":"艦長","text":"對。誰都不許一個人同時站兩處。照原樣記，包括不合我意的。","next":"n3k"},
     {"id":"n3k","type":"line","speaker":"馬蒂厄","text":"（把空白記錄板夾到臂下）那船長也不能改。","next":"n3l"},
     {"id":"n3l","type":"line","speaker":"艦長","text":"尤其不能替我改。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C0-3"}
@@ -84,115 +84,66 @@
   },
   {
    "id": "C0-3",
-   "title": "把句子拆成零件",
+   "title": "艦長已有一筆結果",
    "nodes": [
-    {"id":"n1","type":"line","speaker":"艦長","text":"（用裝貨單敲了敲踏板）你要借船，先講清楚要我配合什麼。船往哪開、開多快、什麼時候放手——講不出來就別上船。","next":"n1a"},
-    {"id":"n1a","type":"line","speaker":"伽桑狄","text":"（沉默片刻，翻開《對話》，把書裡的說法拆抄在六張紙上）……你問得比書仔細。","next":"q1"},
-    {"id":"q1","type":"choice","speaker":"system","text":"艦長要的是能照著做的交代。哪三張真正少不得？","options":[
-     {"id":"right","text":"船近似直線前進、速度近似不變、放手時不額外推石頭","next":"n2"},
-     {"id":"wind","text":"海面完全無風、船一定向東、石頭來自比薩","next":"r1"},
-     {"id":"mix","text":"船近似直線前進、海面完全無風、船一定向東","next":"r2"}
-    ]},
-    {"id":"r1","type":"line","speaker":"艦長","text":"（把「向東」與「來自比薩」兩張卡彈回桌上）連船往哪裡開、石頭哪裡出生都要指定？這不是定律，是航程表。","next":"q1"},
-    {"id":"r2","type":"line","speaker":"艦長","text":"（把「完全無風」與「向東」推回去）風有沒有，我會記；往哪裡開，也可以換一趟。你還沒告訴我，船要不要走穩、放手的人能不能多推。","next":"q1"},
-    {"id":"n2","type":"line","speaker":"伽桑狄","text":"（把選中的三張推到艦長面前）直線、走穩、放手時不多推。先在岸邊做一回，再出港；船若改了速度，也另記。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"艦長","text":"（用指節依次敲過三張紙）我掌舵，船走得穩不穩由我交代。馬蒂厄碰門閂、收原始記錄。你們可以看，可以問，不能替他補一筆。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"馬蒂厄","text":"若我做錯？","next":"n3b"},
-    {"id":"n3b","type":"line","speaker":"伽桑狄","text":"照樣留下來。錯的操作也是結果的一部分。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"stage","text":"艦長把鼓槌交給馬蒂厄，又把一張空白紙交給留在岸上的艾蒂安。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"艦長","text":"馬蒂厄照固定節拍敲鼓。艾蒂安，每聽一聲，就在紙上記船到了哪個岸標。","next":"n5a"},
-    {"id":"n5a","type":"line","speaker":"馬蒂厄","text":"（在自己的紙上畫下同一串鼓點）我也記放手發生在哪一聲。回來把同號鼓點對上，就不用靠誰說自己記得。","next":"n5b"},
-    {"id":"n5b","type":"line","speaker":"艾蒂安","text":"相鄰兩聲之間，船走過的距離若差不多，就是走穩了；一段比一段長，就是還在加速。","next":"n5c"},
-    {"id":"n5c","type":"line","speaker":"艦長","text":"正是。往後誰說船走穩了，先把這兩張紙拿出來。","next":"g1"},
+    {"id":"n1","type":"line","speaker":"艦長","text":"（從裝貨箱底抽出一張皺紙）你們來以前，我已讓人從桅頂放過一次。石頭真落在桅後。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"stage","text":"紙上只記了落點。沒有放手方式，沒有每拍船位，也沒有第二次結果。那個偏後的黑點是真的；它代表什麼，卻仍是空白。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"艦長","text":"你若只想做一回漂亮的，別借。我要知道我那一筆為什麼落後，也要知道你們的新結果憑什麼算數。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"伽桑狄","text":"（把三張空白紙推給旅人）那就別從答案開始。先決定第一趟要排除哪一個解釋。","next":"n5"},
+    {"id":"n5","type":"line","speaker":"艦長","text":"人手只夠先顧一件：放手、船速，或多跑幾次。你選；缺的，讓紀錄自己說。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C1-1"}
    ]
   },
   {
-   "id":"C1-1","title":"停船基準","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"船繫在碼頭。桅腳下鋪細沙；旅人拉好鉛垂線，艾蒂安守著岸標，馬蒂厄站在門閂旁。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"stage","text":"馬蒂厄先用手放開石球。石球在沙上歪向一側。","next":"n2a"},
-    {"id":"n2a","type":"line","speaker":"馬蒂厄","text":"（看著自己的手）我以為只是鬆開。手指還是推了它一下。","next":"n2b"},
-    {"id":"n2b","type":"line","speaker":"伽桑狄","text":"那就換門閂。讓放手只做一件事：不再托住它。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"baseline","hint":"校準鉛垂，選擇不額外推石頭的釋放方式，完成三次乾淨的停船基準。","until":{"ship":"baseline"},"next":"n3"},
-    {"id":"n3","type":"line","speaker":"艾蒂安","text":"（蹲在沙盤旁，用繩圈住三個落點）三個點都在中央附近。不是同一個洞，但擠在一個手掌裡。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"馬蒂厄","text":"（把三次落點逐一抄上記錄板）停船、門閂、三次。原樣留下。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"伽桑狄","text":"（把「完全同點」劃掉，改寫成「散布範圍」）從現在起，只說它落在這個範圍。","next":"g1"},
+   "id":"C1-1","title":"你先排除哪一個解釋","nodes":[
+    {"id":"n1","type":"line","speaker":"stage","text":"第二天，艦長只給一趟短航的人手。三張紙並排放著：放手、船速、重複。旅人只能先拿一張。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"pilot-design","hint":"先把有限人手放在一項；執行試航，再從資料指出仍無法排除的解釋。","until":{"ship":"pilot"},"next":"n2"},
+    {"id":"n2","type":"line","speaker":"艦長","text":"（把不完整的試航紙壓在舊落點旁）這才像一張能用的錯誤。它告訴我們缺什麼，不假裝已經回答完。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"伽桑狄","text":"第一趟沒有白跑。現在把缺口變成下一趟的分工。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C1-2"}
    ]
   },
   {
-   "id":"C1-2","title":"搶跑的船","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"船離岸。槳聲由慢轉快。岸上的艾蒂安揮旗，馬蒂厄抽開門閂——石球重重落在桅腳後方。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"艦長","text":"（量完落點，把尺橫在沙痕與桅腳之間）船尾。第一回，是我押中了。先別替書找理由；把這一筆照原樣留著。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"first-failure","hint":"重現搶跑的一筆，核對鼓點與岸標，找出哪個條件沒有站穩。","until":{"ship":"failure"},"next":"q1"},
-    {"id":"q1","type":"choice","speaker":"system","text":"這筆異常最值得先查什麼？","options":[
-     {"id":"repeat","text":"不看條件，再做一次","next":"r1"},
-     {"id":"weight","text":"換一顆比較輕的石頭","next":"r2"},
-     {"id":"speed","text":"核對放手前後，船怎麼走","next":"n3"}
-    ]},
-    {"id":"r1","type":"line","speaker":"伽桑狄","text":"可以重做。但先找出哪一步出了問題；不然再做一次，還是同樣的亂。","next":"q1"},
-    {"id":"r2","type":"line","speaker":"艦長","text":"剛才談的是船追過石頭，怎麼忽然變成石頭的體重？","next":"q1"},
-    {"id":"n3","type":"line","speaker":"旅人(你)","text":"放手前後，船的速度一樣嗎？","next":"n3b"},
-    {"id":"n3b","type":"line","speaker":"stage","text":"船靠回碼頭。艾蒂安把岸標紙遞上甲板；馬蒂厄將鼓點紙攤在旁邊，兩張紙標著同一串鼓點。","next":"n3c"},
-    {"id":"n3c","type":"line","speaker":"馬蒂厄","text":"（點住放手記號）我在第二聲抽門閂。岸上這張，記的是每一聲鼓響時，船走到哪個岸標。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"艦長","text":"（拿過兩張紙，只看了片刻）……不一樣。（把岸標紙轉向眾人）這一段、這一段、這一段——一段比一段長。船那時還在加速。（停了一下）落後是真的。可我不知道船走穩了會怎樣。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"stage","text":"伽桑狄在落點紙上方補寫「加速中」。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"艦長","text":"（轉向馬蒂厄）下一回還是你。等鼓點穩了、三段岸標也走得一樣，再抽門閂。（看向伽桑狄）別說我只借給你們一艘搶跑的船。","next":"s1"},
-    {"id":"s1","type":"system","speaker":"system","text":"保留失敗紀錄：搶跑的船。它會在之後成為加速度邊界的證據。","effects":[{"flag":["failureDiagnosed","1"]}],"next":"g1"},
+   "id":"C1-2","title":"沒有人可以分身","nodes":[
+    {"id":"n1","type":"line","speaker":"艦長","text":"馬蒂厄若在桅頂抽閂，就不能同時在甲板看落點；艾蒂安若在岸上記船位，也不能替船上補紙。把人放對位置。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"protocol","hint":"安排五個獨立角色，封存分工，完成三次穩速落石並提出第一項主張。","until":{"ship":"protocol"},"next":"n2"},
+    {"id":"n2","type":"line","speaker":"stage","text":"水手敲等節拍鼓。艾蒂安每聽一聲就在岸紙上點出船位；三段相鄰距離近乎相等，馬蒂厄才在桅頂抽閂。船上另有人記落點。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"艦長","text":"（把三筆穩速落點與舊紙並排）新的都在桅腳附近；舊的在後。落點沒有互相說謊，是船況還沒分清。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C1-3"}
    ]
   },
   {
-   "id":"C1-3","title":"等船安靜下來","nodes":[
-    {"id":"n1","type":"line","speaker":"艦長","text":"（在第三段等距岸標下畫線）鼓點穩定還不夠。等連續三段岸標走得差不多，馬蒂厄，再抽門閂。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"steady-mast","hint":"選出近似穩速窗口，完成三次航行落石。","until":{"ship":"g1"},"next":"n2"},
-    {"id":"n2","type":"line","speaker":"馬蒂厄","text":"（核對落點）桅腳。","next":"n2a"},
-    {"id":"n2a","type":"line","speaker":"艦長","text":"再來。","next":"n2b"},
-    {"id":"n2b","type":"line","speaker":"stage","text":"同一段穩速窗口又做兩回。馬蒂厄每次都等到鼓點與岸標一致，才抽開門閂。","next":"n2c"},
-    {"id":"n2c","type":"line","speaker":"艾蒂安","text":"（從岸上高舉紙帶）三回都一樣！船一直往前，石頭也一直往前。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"艦長","text":"（蹲下，把新落點與停船時的沙圈疊著看）三回都在桅杆底下，鼓點和岸標也站得住。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"馬蒂厄","text":"（看向船尾格）要把你的木籌翻過來嗎？","next":"n3b"},
-    {"id":"n3b","type":"line","speaker":"艦長","text":"還不到。甲板上的風還沒有回答。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"伽桑狄","text":"（把岸上紙帶與甲板沙圈並排）岸上看見它向前，船上看見它落在桅腳。兩筆都先留下。","next":"g1"},
+   "id":"C1-3","title":"第一張能站住的紙","nodes":[
+    {"id":"n1","type":"line","speaker":"馬蒂厄","text":"（從桅頂下來，手上只有門閂記號）我只知道自己在哪一聲放手。岸標、鼓點與落點，都不是我補的。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"伽桑狄","text":"這正是它的重量：不是因為誰值得信，而是每一筆都能問回負責的人。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"艦長","text":"我承認穩速三筆站得住。但甲板有風；我的舊紀錄也還在船尾。你們先查哪一個？","next":"g1"},
     {"id":"g1","type":"goto","scene":"C1-4"}
    ]
   },
   {
-   "id":"C1-4","title":"風的辯護","nodes":[
-    {"id":"n1","type":"line","speaker":"艦長","text":"（抹過甲板上的風向線，沒有碰結果紙）別急著把我的名字寫上去。甲板有風；也許是空氣把石頭帶回桅腳。這一關沒過，這張結果就別拿去碼頭上說服人。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"旅人(你)","text":"那就在封閉船艙裡做，先把甲板風排除掉。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"伽桑狄","text":"（推開艙門）那就先查風。若船艙裡仍得到同樣的結果，你就不能再把落點算在甲板風頭上。","next":"g1"},
+   "id":"C1-4","title":"兩條都合理的懷疑","nodes":[
+    {"id":"n1","type":"line","speaker":"stage","text":"艦長把「變速」與「風」寫在兩塊木牌上。兩塊都沒有翻面。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"伽桑狄","text":"變速能解釋方向，風也可能造成偏移。先後由你決定，但不能因為先看到一個好解釋，就把另一塊牌丟進海裡。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"艦長","text":"先查哪一條，就先承受那條資料還不完整的時候。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-1"}
    ]
   },
   {
-   "id":"C2-1","title":"船艙裡的房間","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"低矮船艙裡看不見岸。馬蒂厄守著滴水壺與軟布球；艦長留在舵邊，照岸標把船走穩。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"伽桑狄","text":"（把書上飛蟲與魚的兩行劃掉，只留下滴水和拋接）我們不養飛蟲，也不折磨魚。停船與穩速，各做這兩件事就夠了。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"cabin","hint":"完成停船／穩速兩種狀態下的滴水與拋接四格比較。","until":{"ship":"g2"},"next":"q1"},
-    {"id":"q1","type":"choice","speaker":"system","text":"四格結果最精確的解釋是什麼？","options":[
-     {"id":"still","text":"所以船其實沒有動","next":"r1"},
-     {"id":"shared","text":"船、器材、空氣與我們原本就一起前進","next":"n3"}
-    ]},
-    {"id":"r1","type":"line","speaker":"伽桑狄","text":"岸上的旗號正等距掠過——船在前進，而且走得很穩。你不能只看船艙，就忽略甲板上的紀錄。","next":"q1"},
-    {"id":"n3","type":"line","speaker":"馬蒂厄","text":"停船，水進碗；穩速，水也進碗。球兩回都落回原位附近。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"旅人(你)","text":"（接住落回掌心的布球）鬆手只是不再接觸它，不會拿走它原本已有的前行。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"艦長","text":"（在艙門口站了一會，指向滴水碗）這裡看不出船在動。（又指向甲板上的第一張落點紙）外面那一回，石頭卻落在桅後。同一艘船，同一天——你們要我認哪一邊？","next":"n5"},
-    {"id":"n5","type":"line","speaker":"伽桑狄","text":"哪一邊都別丟。先問：兩回的船，走得一樣嗎？","next":"n5a"},
-    {"id":"n5a","type":"line","speaker":"艦長","text":"船速。","next":"n5b"},
-    {"id":"n5b","type":"line","speaker":"伽桑狄","text":"下一回只改它。","next":"g1"},
+   "id":"C2-1","title":"兩條調查，順序由你","nodes":[
+    {"id":"n1","type":"line","speaker":"stage","text":"一邊是低矮船艙裡的滴水壺與軟布球；一邊是甲板上的門閂、風向旗與加減槳號令。旅人把兩塊木牌翻到同一面。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"艦長","text":"你可以先查風，也可以先查變速。但若一筆資料還沒有分類依據，就老實寫『未分類』，別先替它取一個方便的名字。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"investigations","hint":"選擇調查順序；完成船艙盲測、往返風向與加速／減速反驗，讓兩種解釋都受到檢查。","until":{"ship":"investigations"},"next":"n3"},
+    {"id":"n3","type":"line","speaker":"伽桑狄","text":"海上的風、船身的搖晃、船速的改變，我們都不敢替它省掉。現在舊紙上的方向有了可比較的指紋。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"stage","text":"艦長把舊紀錄推到加速那一欄。黑點沒有移動；改變的是它在卷宗裡的位置。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-2"}
    ]
   },
   {
-   "id":"C2-2","title":"船一改變主意","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"回到甲板。馬蒂厄守門閂，艦長站在舵邊。裝置維持不變，這次只改放手之後的船速：加槳，或收槳。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"speed-change","hint":"先封存加速與減速的落點預測，至少各做一次；之後仍可自由重做比較。","until":{"ship":"g3"},"next":"n2"},
-    {"id":"n2","type":"line","speaker":"馬蒂厄","text":"（把兩張落點紙攤在第一回左右）加速在後，減速在前。第一回跟加速這張同方向。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"艦長","text":"（把第一回的落點紙重新攤開）所以第一回看見的落後，不是假的。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"艦長","text":"我一開始拿奔馬說你們錯。可奔馬會忽快忽慢。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"艦長","text":"我看見落後，沒有看錯。我錯在把加速那一回，說成所有向前走的船都會如此。","next":"n4a"},
-    {"id":"n4a","type":"line","speaker":"stage","text":"艦長把自己的木籌翻過來，卻沒有收走；名字朝外，仍留在船尾格。伽桑狄把三張落點紙並排釘上，沒有再解釋。","next":"g1"},
+   "id":"C2-2","title":"艦長翻過自己的預測","nodes":[
+    {"id":"n1","type":"line","speaker":"艦長","text":"（指著加速偏尾、減速偏頭兩欄）我看見落後，沒有看錯。我錯在把加速那一回，說成所有向前走的船都會如此。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"艦長","text":"我拿奔馬說你們錯。現在看來，奔馬正好提醒了我：它會忽快忽慢。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"stage","text":"他把寫著「船尾」的木籌翻過來，仍留在原格，名字朝外。伽桑狄沒有替他總結，只把舊紙與新的兩種方向指紋釘在一起。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"旅人・心聲","text":"錯的判斷沒有被藏起來。它變成卷宗裡最早的一張紙。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-2B"}
    ]
   },
@@ -201,7 +152,7 @@
     {"id":"n1","type":"line","speaker":"stage","text":"船才靠回石碼頭，纜繩還在水手手裡。踏板外已有人喊：「第一回明明落在後面！」另一頭立刻有人回：「後來三回都在桅腳！」同一天的結果，傳到岸上只剩兩句互相打架的話。","next":"n2"},
     {"id":"n2","type":"line","speaker":"艦長","text":"（聽了一會）我的船才出去一趟，回來已經被你們傳成兩艘了。沒人問它那時走得穩不穩，只挑自己想聽的那一回。","next":"n3"},
     {"id":"n3","type":"line","speaker":"艦長","text":"明天同一時間，當眾再做。鼓點、岸標、門閂，全掛出來。誰要說石頭落後或沒有落後，就連船當時怎麼走一起說。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"艦長","text":"（對馬蒂厄）門閂明天還是你抽。別讓押中的人忽然變成自己的證人。","next":"n5"},
+    {"id":"n4","type":"line","speaker":"艦長","text":"（對馬蒂厄）門閂明天還是你抽。別讓猜對的人忽然變成自己的證人。","next":"n5"},
     {"id":"n5","type":"line","speaker":"馬蒂厄","text":"包括你？","next":"n6"},
     {"id":"n6","type":"line","speaker":"艦長","text":"尤其包括我。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-3"}
@@ -209,20 +160,21 @@
   },
   {
    "id":"C2-3","title":"岸上的紙，船上的紙","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"艾蒂安帶回岸上紙帶，馬蒂厄攤開船上紙帶。兩張分開顯示，都標著同一串鼓點。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"艾蒂安","text":"（按住岸上紙，沿著鼓點逐一指過）我的石頭往前走。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"馬蒂厄","text":"（沿船上紙往下比）我記的是它離桅杆多遠。它幾乎直直落。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"伽桑狄","text":"（把燭火挪到兩張紙中間）很好。現在誰要把誰的紙燒掉？","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"overlay","hint":"先逐拍讀懂兩張紙各自量什麼，再配對同號鼓點，最後扣除同一時刻的桅杆位置。","until":{"ship":"g4"},"next":"n5"},
+    {"id":"n1","type":"line","speaker":"艾蒂安","text":"岸上要記石頭，也要記每拍桅杆離碼頭多遠。可船上那張紙，誰記？從哪裡量？","next":"e0"},
+    {"id":"e0","type":"embed","system":"ship","phase":"dual-design","hint":"安排岸上與船上各自的位置起點、共同鼓點與獨立觀察者。","until":{"ship":"dual"},"next":"n2"},
+    {"id":"n2","type":"line","speaker":"stage","text":"馬蒂厄留在桅頂只抽門閂。艾蒂安守碼頭；伽桑狄在船上記石頭離桅杆的位置。水手敲鼓，白旗在放手那一拍翻下。","next":"n3"},
+    {"id":"n3","type":"line","speaker":"艾蒂安","text":"（按住岸上紙，沿著同號鼓點逐一指過）我的石頭一邊向前、一邊往下。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"伽桑狄","text":"（攤開船上紙）我從桅杆量，它幾乎直直落。現在不要先決定誰看錯；讓兩張紙自己相認。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"overlay","hint":"逐拍讀兩張紙，配對同號鼓點，再把岸上位置換成相對桅杆的位置。","until":{"ship":"g4"},"next":"n5"},
     {"id":"n5","type":"line","speaker":"旅人(你)","text":"（把同號鼓點一一連直）兩張圖沒有互相推翻。它們只是各自把不同的東西當作不動。","next":"n6"},
-    {"id":"n6","type":"line","speaker":"伽桑狄","text":"（用鉛筆敲過兩張紙上的同號鼓點）一句話如果沒先回答『相對誰』，通常只說了一半。","next":"n7"},
-    {"id":"n7","type":"line","speaker":"艦長","text":"（站在兩人後方，雙手都沒有碰紙）明天艾蒂安守岸上，馬蒂厄守船上。我只查船況和木籌。","next":"s1"},
+    {"id":"n6","type":"line","speaker":"伽桑狄","text":"（用鉛筆對齊兩張紙上的同號鼓點）對。先說清楚站在哪裡，量的是離誰多遠。","next":"n7"},
+    {"id":"n7","type":"line","speaker":"艦長","text":"（站在兩人後方，雙手都沒有碰紙）明天艾蒂安仍守岸上，馬蒂厄仍只抽門閂；我查船況。誰都不換位置。","next":"s1"},
     {"id":"s1","type":"system","speaker":"system","text":"取得證據：雙參考物對照。解鎖操作詞：切換參考物。現代整理詞「參考系」留到史實頁。","effects":[{"flag":["referenceNamed","1"]}],"next":"g1"},
     {"id":"g1","type":"goto","scene":"C2-4"}
    ]
   },
   {
-   "id":"C2-4","title":"不推之後，留下什麼","nodes":[
+   "id":"C2-4","title":"把完整卷宗帶回碼頭","nodes":[
     {"id":"n1","type":"line","speaker":"伽桑狄","text":"（把四張紀錄排在《對話》旁，只留一格給結論）現在把話說準。哪一句只說到證據真正支持的範圍？","next":"q1"},
     {"id":"q1","type":"choice","speaker":"system","text":"選出不誇大、也不偷偷造出一股新力的主張。","options":[
      {"id":"forever","text":"物體一旦運動，就會永遠保持任何運動","next":"r1"},
@@ -236,28 +188,28 @@
     {"id":"n2b","type":"line","speaker":"官員","text":"（把草稿攤開）告示總得讓人一眼看懂，馬賽明天要做成什麼。（照著念）馬賽港，落石實驗，證明地球運動。（抬頭）這樣夠清楚了吧？","next":"n2c"},
     {"id":"n2c","type":"line","speaker":"伽桑狄","text":"（按住告示一角）「證明地球運動」這幾個字，哪一筆已經做完的紀錄給你的？","next":"n2d"},
     {"id":"n2d","type":"line","speaker":"艦長","text":"（看了一眼「證明地球運動」）昨天的我會喜歡這句。一眼就知道誰贏。可今天我知道，一眼看懂，常常只是少看了幾張紙。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"伽桑狄","text":"也讓他們看清楚，每一步是怎麼做的。","next":"g1"},
+    {"id":"n3","type":"line","speaker":"伽桑狄","text":"明天不只重做。先讓每個人寫下什麼紀錄才算數，再把落點遮住，一筆一筆審。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"艦長","text":"好。結果無論向哪邊，照自己先寫的規矩收。做得到，我才簽操作紀錄。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C3-1"}
    ]
   },
   {
-   "id":"C3-1","title":"馬賽港公開驗證","nodes":[
-    {"id":"n1","type":"line","speaker":"stage","text":"船員、學生、商人與官員站滿碼頭。每個人先把預測木籌放進船頭、桅腳或船尾的記錄格。艦長那枚翻過面的木籌仍留在船尾，名字朝外。","next":"n1b"},
-    {"id":"n1b","type":"line","speaker":"伽桑狄","text":"（把自己的木籌也先放進一格）木籌不是賭錢，也不是拿來投票決定真相。它只留下每個人實驗前的判斷，不讓人看完結果才改口。","next":"n2"},
-    {"id":"n2","type":"line","speaker":"艦長","text":"（站到記錄板旁）馬蒂厄抽門閂，艾蒂安記岸標；我只查船況。誰中途換條件，我就叫停。每一步若照約定走完，石頭無論落在哪裡，我都認。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"public-demo","hint":"依序公開停船基準、穩速窗口、無額外推石頭、封存預測與三次重複。","until":{"ship":"public"},"next":"n3"},
-    {"id":"n3","type":"line","speaker":"stage","text":"馬蒂厄當眾操作門閂。三次落點都聚在桅腳的基準散布附近；艾蒂安公開岸標，馬蒂厄公開鼓點。預測與結果一起留在木板上。","next":"n3a"},
-    {"id":"n3a","type":"line","speaker":"馬蒂厄","text":"原紙都在。哪一拍開始走穩，你們自己查。","next":"n4"},
-    {"id":"n4","type":"line","speaker":"艦長","text":"門閂從第一回起就由馬蒂厄抽。伽桑狄不碰，我也不碰。條件照約定走完，現在誰若不喜歡結果，不能回頭改做法。","next":"g1"},
+   "id":"C3-1","title":"先封採信標準","nodes":[
+    {"id":"n1","type":"line","speaker":"stage","text":"隔日碼頭站滿人。六筆公開複驗紀錄掛在木板上，落點全用黑布遮住；能看見的只有岸標、放手方式與雙方原紙是否齊全。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"艦長","text":"別先找哪筆好看。你們先寫：幾段等距才叫走穩、要重複幾次、手放能不能收、缺一張紙算不算。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"public-criteria","hint":"在看見任何落點前，封存你願意採信的最低操作標準。","until":{"ship":"criteria"},"next":"n3"},
+    {"id":"n3","type":"line","speaker":"伽桑狄","text":"（把封蠟壓平）標準先於結果。若等會兒有一筆不合胃口，也不能為它臨時加嚴；有一筆太漂亮，也不能替它放寬。","next":"g1"},
     {"id":"g1","type":"goto","scene":"C3-2"}
    ]
   },
   {
-   "id":"C3-2","title":"三道公開質詢","nodes":[
-    {"id":"n1","type":"line","speaker":"艦長","text":"（站在自己翻過面的木籌旁）風、加速，還有岸上與船上的兩張紀錄，都是我昨天問過的。今天輪到碼頭上的人問；你們自己拿紀錄回答。","next":"n1a"},
-    {"id":"n1a","type":"line","speaker":"馬蒂厄","text":"門閂、鼓點與落點原紙都在這裡。問哪一步，就查哪一張。","next":"e1"},
-    {"id":"e1","type":"embed","system":"ship","phase":"audit","hint":"為三道質詢各選一張真正能回答它的證據。","until":{"ship":"audit"},"next":"n2"},
-    {"id":"n2","type":"line","speaker":"伽桑狄","text":"三個問題都回答了。最後還有一個更難的問題：我們到底證明到哪裡？","next":"g1"},
+   "id":"C3-2","title":"先判收不收，再揭落點","nodes":[
+    {"id":"n1","type":"line","speaker":"艦長","text":"馬蒂厄只報放手，艾蒂安只報岸標，伽桑狄交出船上紙。我只報船況。黑布先不掀。","next":"n2"},
+    {"id":"n2","type":"line","speaker":"馬蒂厄","text":"六筆都在。你只能照剛才封的規矩收或退，不能猜哪個落點會幫你。","next":"e1"},
+    {"id":"e1","type":"embed","system":"ship","phase":"public-screen","hint":"落點遮住時逐筆審查；封存收退判定後，再一起揭曉合格結果。","until":{"ship":"public"},"next":"n3"},
+    {"id":"n3","type":"line","speaker":"stage","text":"黑布揭開。三筆合格紀錄聚在桅腳附近；加速、手放與缺紙的三筆仍留在旁邊，沒有被抹掉。","next":"n4"},
+    {"id":"n4","type":"line","speaker":"艦長","text":"你們不是挑中三個漂亮的點。是先守住規矩，漂亮不漂亮都照收。這份操作紀錄，我認。","next":"n5"},
+    {"id":"n5","type":"line","speaker":"伽桑狄","text":"最後還有一行比落點更容易寫壞：我們到底證明到哪裡？","next":"g1"},
     {"id":"g1","type":"goto","scene":"C3-3"}
    ]
   },
@@ -291,7 +243,8 @@
     {"id":"n2","type":"line","speaker":"伽桑狄","text":"（指腹停在《對話》的船艙頁）他把船寫進書裡。","next":"n3"},
     {"id":"n3","type":"line","speaker":"stage","text":"馬賽的落點紙、船速紀錄與雙紙帶攤在兩本書之間。","next":"n4"},
     {"id":"n4","type":"line","speaker":"伽桑狄","text":"（把三份紀錄依次夾進自己的手稿）我們把書帶到海上。現在，把海帶回書裡。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"stage","text":"桌角有一封新到的信：伽利略已於阿爾切特里去世。伽桑狄沒有朗讀，只把《對話》的封面拂平。","next":"g1"},
+    {"id":"n5","type":"line","speaker":"stage","text":"桌角有一封新到的信：伽利略已於阿爾切特里去世。伽桑狄沒有朗讀，只把《對話》的封面拂平。","next":"n6"},
+    {"id":"n6","type":"line","speaker":"旅人・心聲","text":"五十年前，他把第一本空白筆記塞進我手裡。如今他走了，我仍是那天的樣子。","next":"g1"},
     {"id":"g1","type":"goto","scene":"CE-2"}
    ]
   },

@@ -1573,6 +1573,8 @@
   .shipDrop { fill: none; stroke: #e7d49f; stroke-width: 3; stroke-dasharray: 7 5; }.shipShorePath { fill: none; stroke: #86a8b0; stroke-width: 3; stroke-dasharray: 7 5; }
   .shipDiagram:not(.overlay) .shipShorePath { opacity: .28; }.shipDiagram text { fill: #e6d7b8; font: 700 15px var(--font-ui); }.shipRefLabel { font-size: 12px !important; }
   .shipRow, .shipPredict, .shipChoiceGrid, .shipRefToggle { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 7px 0; }
+  .shipProtocolForm { display: grid; grid-template-columns: minmax(155px,.72fr) minmax(210px,1.28fr); align-items: center; gap: 7px 10px; margin: 8px 0; padding: 9px; border: 1px solid rgba(109,77,44,.32); background: rgba(255,255,255,.2); }
+  .shipProtocolForm label { color: #4c3926; font: 700 13px var(--font-ui); }
   .shipSelect { min-height: 40px; flex: 1 1 180px; padding: 5px 8px; color: #2f241b; border: 1px solid #7f5c38; background: rgba(255,251,239,.58); font: 15px var(--font-dialogue); }
   .shipLab .shipAction { min-height: 40px; padding: 6px 11px; color: #2e2118; border: 1px solid #91653a; background: linear-gradient(#ead4aa,#cda36f); font: 600 14px var(--font-dialogue); }
   .shipLab .shipAction:hover { filter: brightness(1.06); }.shipLab .shipAction.active, .shipLab .shipAction.primary { color: #fff0d1; background: linear-gradient(#8c5e32,#65401f); }
@@ -1584,7 +1586,9 @@
   .shipMathOptional p { margin: 7px 0 0; line-height: 1.5; }
   .shipTapeRetry { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(91,68,43,.35); }
   .shipMessage { white-space: pre-line; min-height: 26px; }.shipGate { float: right; min-width: 220px; }
-  .shipTable { width: 100%; margin: 8px 0 !important; font-size: 13px !important; }.shipTable th { background: rgba(112,79,45,.12); }
+  .shipTable { width: 100%; margin: 8px 0 !important; color: #30271f !important; background: rgba(255,251,239,.42); font-size: 13px !important; }
+  .shipTable th { color: #3e2e20 !important; background: rgba(112,79,45,.16); }
+  .shipTable td { color: #30271f !important; background: rgba(255,255,255,.16); }
   .shipClaimPanel { margin: 10px 0 4px; padding: 10px; border: 1px solid rgba(116,77,42,.5); background: rgba(255,250,235,.38); box-shadow: inset 4px 0 #8f6338; }
   .shipClaimPanel h4 { margin: 0 0 4px; color: #4c3420; font-size: 16px; }
   .shipClaimSources { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; margin: 7px 0; }
@@ -2111,22 +2115,22 @@
 <script src="data/series.js"></script>
 <script src="data/patterns.js"></script>
 <script src="data/debate.js"></script>
-<script src="data/debate2.js"></script>
+<script src="data/debate2.js?v=20260724-dialogue-natural-v2"></script>
 <script src="data/histfacts.js"></script>
 <script src="data/histfacts2.js"></script>
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
 <script src="data/assets.js?v=20260724-ch04-cr009"></script>
-<script src="src/sanitize.js?v=20260724-ch04-cr011"></script>
+<script src="src/sanitize.js?v=20260724-ch03-redesign-v1"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js"></script>
+<script src="src/engine3.js?v=20260724-ch03-redesign-v1"></script>
 <script src="src/engine4.js?v=20260724-ch04-cr011"></script>
-<script src="data/scenes.js?v=20260724-chapter-seams"></script>
-<script src="data/scenes2.js?v=20260724-chapter-seams"></script>
-<script src="data/scenes3.js?v=20260724-chapter-seams"></script>
+<script src="data/scenes.js?v=20260724-dialogue-natural-v2"></script>
+<script src="data/scenes2.js?v=20260724-dialogue-natural-v2"></script>
+<script src="data/scenes3.js?v=20260724-ch03-redesign-v1"></script>
 <script src="data/scenes4.js?v=20260724-ch04-cr011"></script>
 <script>
 (function () {
@@ -2158,8 +2162,8 @@
   }
 })();
 </script>
-<script src="src/narrative.js?v=20260724-ch04-cr011"></script>
-<script src="src/chapter-ui.js?v=20260724-ch04-cr011"></script>
-<script src="src/stage-ui.js?v=20260724-zh-character-names"></script>
+<script src="src/narrative.js?v=20260724-ch03-redesign-v1"></script>
+<script src="src/chapter-ui.js?v=20260724-ch03-redesign-v1"></script>
+<script src="src/stage-ui.js?v=20260725-ch03-redesign-v2"></script>
 </body>
 </html>

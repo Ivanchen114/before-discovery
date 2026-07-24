@@ -179,6 +179,48 @@
     if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999) return fail("航船實驗紀錄格式錯誤");
     if ([null, "hand", "string", "latch"].indexOf(lab.release) < 0 || typeof lab.plumbCalibrated !== "boolean")
       return fail("航船實驗的釋放方式或鉛垂校準格式錯誤");
+    if (lab.design != null) {
+      var design = lab.design;
+      if (!design.pilot || !design.protocol || !design.cabinBlind || !design.wind || !design.dual ||
+          [null, "release", "speed", "repeat"].indexOf(design.pilot.focus) < 0 ||
+          [null, "release", "speed", "repeat"].indexOf(design.pilot.diagnosed) < 0 ||
+          !Array.isArray(design.pilot.rows) || design.pilot.rows.length > 20 ||
+          !Array.isArray(design.pilot.missing) || design.pilot.missing.length > 3 ||
+          !Array.isArray(design.pilot.history) || design.pilot.history.length > 20 ||
+          !design.protocol.assignments || !Array.isArray(design.protocol.attempts) ||
+          design.protocol.attempts.length > 50 ||
+          typeof design.protocol.locked !== "boolean" || typeof design.protocol.ran !== "boolean" ||
+          [null, "speed", "wind"].indexOf(design.investigationOrder) < 0 ||
+          !Array.isArray(design.cabinBlind.traces) || design.cabinBlind.traces.length > 4 ||
+          !Array.isArray(design.cabinBlind.judgments) || design.cabinBlind.judgments.length > 20 ||
+          typeof design.cabinBlind.complete !== "boolean" ||
+          !Array.isArray(design.wind.attempts) || design.wind.attempts.length > 20 ||
+          !Array.isArray(design.wind.runs) || design.wind.runs.length > 20 ||
+          typeof design.wind.interpreted !== "boolean" ||
+          !Array.isArray(design.dual.attempts) || design.dual.attempts.length > 20 ||
+          typeof design.dual.locked !== "boolean")
+        return fail("第三章實驗設計卷宗格式錯誤");
+      var assignedPeople = ["mathieu", "sailor", "etienne", "gassendi", "traveler", "captain"];
+      for (var protocolSlot of Object.keys(design.protocol.assignments)) {
+        if (["release", "clock", "shore", "ship", "vessel"].indexOf(protocolSlot) < 0 ||
+            assignedPeople.indexOf(design.protocol.assignments[protocolSlot]) < 0)
+          return fail("第三章分工表含無法辨識的角色");
+      }
+      for (var pilotRow of design.pilot.rows) {
+        if (!pilotRow || typeof pilotRow.offset !== "number" || !isFinite(pilotRow.offset))
+          return fail("第三章試航紀錄含無法辨識的讀值");
+      }
+      for (var blindTrace of design.cabinBlind.traces) {
+        if (!blindTrace || typeof blindTrace.offset !== "number" || !isFinite(blindTrace.offset) ||
+            typeof blindTrace.spread !== "number" || !isFinite(blindTrace.spread))
+          return fail("第三章船艙盲測含無法辨識的讀值");
+      }
+      for (var windRow of design.wind.runs) {
+        if (!windRow || typeof windRow.offset !== "number" || !isFinite(windRow.offset) ||
+            ["steady", "accelerating", "unclassified", "unknown"].indexOf(windRow.shipState) < 0)
+          return fail("第三章風向紀錄含無法辨識的讀值");
+      }
+    }
     if (!Array.isArray(lab.baselineRuns) || !Array.isArray(lab.mastRuns) ||
         lab.baselineRuns.length > 100 || lab.mastRuns.length > 100) return fail("落石紀錄格式錯誤");
     var checkRuns = lab.baselineRuns.concat(lab.mastRuns);
@@ -224,6 +266,31 @@
         typeof lab.publicDemo.complete !== "boolean" ||
         (lab.publicDemo.predictionsSealed != null && typeof lab.publicDemo.predictionsSealed !== "boolean"))
       return fail("公開演示程序紀錄格式錯誤");
+    if (lab.publicDemo.criteria != null) {
+      var crit = lab.publicDemo.criteria;
+      if (!crit || [2, 3, 4].indexOf(crit.equalSegments) < 0 ||
+          [2, 3].indexOf(crit.repeats) < 0 ||
+          ["hand", "latch"].indexOf(crit.release) < 0 ||
+          typeof crit.requireDual !== "boolean" ||
+          !Array.isArray(lab.publicDemo.criteriaHistory) || lab.publicDemo.criteriaHistory.length > 30 ||
+          !lab.publicDemo.decisions || typeof lab.publicDemo.decisions !== "object" ||
+          typeof lab.publicDemo.screened !== "boolean" ||
+          typeof lab.publicDemo.revealed !== "boolean" ||
+          !Array.isArray(lab.publicDemo.records) || lab.publicDemo.records.length > 20)
+        return fail("公開複驗的採信標準格式錯誤");
+      for (var decisionId of Object.keys(lab.publicDemo.decisions)) {
+        if (!/^[A-F]$/.test(decisionId) || typeof lab.publicDemo.decisions[decisionId] !== "boolean")
+          return fail("公開複驗的收退判定格式錯誤");
+      }
+      for (var publicRow of lab.publicDemo.records) {
+        if (!publicRow || !/^[A-F]$/.test(publicRow.id) ||
+            [2, 3, 4].indexOf(publicRow.equalSegments) < 0 ||
+            ["hand", "latch"].indexOf(publicRow.release) < 0 ||
+            typeof publicRow.dual !== "boolean" ||
+            typeof publicRow.offset !== "number" || !isFinite(publicRow.offset))
+          return fail("公開複驗紀錄格式錯誤");
+      }
+    }
     /* v1.1 追加欄位採可選驗證，讓 v1 舊存檔仍可匯入；引擎第一次相關動作會補齊。 */
     if (lab.cabinResults != null) {
       for (var vessel of ["dock", "steady"]) for (var test of ["drip", "toss"]) {
@@ -243,7 +310,8 @@
     if (lab.claims != null) {
       var allowedConcepts = {
         g1: ["mast-pulls-stone", "steady-shares-motion", "weight-finds-foot"],
-        g2: ["air-is-gone", "ship-too-slow", "steady-matches-dock"],
+        g2: ["air-is-gone", "ship-too-slow", "steady-matches-dock",
+          "local-common-motion-wind-below-spread"],
         g3: ["speed-change-breaks-shared-motion", "stone-loses-force", "wind-reverses"],
         g4: ["one-record-false", "same-event-different-reference", "paper-distorts-path"]
       };

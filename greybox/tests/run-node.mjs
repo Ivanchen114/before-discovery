@@ -142,7 +142,7 @@ tests.push({
 });
 
 tests.push({
-  name: "器材踏查|三章配置完備+亮點可及+固定器材非假選擇+舊存檔相容",
+  name: "器材踏查|三章配置完備+第三章重構不強制舊清單+舊存檔相容",
   fn: () => {
     const assets = require("../data/assets.js");
     const ids = new Set(assets.entries.map((e) => e.id));
@@ -190,6 +190,10 @@ tests.push({
     const c3 = assets.apparatusBriefings["ch3:C1-1"];
     for (const id of ["release", "plumb", "sandTray", "timing", "cabin", "paperTapes"])
       if (!c3.items.find((item) => item.id === id)) throw new Error("第三章航船踏查缺器材:" + id);
+    const stageEvents = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
+    if (!stageEvents.includes('CHAPTER_ID === "ch3" && targetScene === "C1-1"') ||
+        !stageEvents.includes("第一個真正選擇就是「先排除哪個解釋」"))
+      throw new Error("第三章重構仍會在玩家選擇首趟查驗前強制舊版器材清單或答案式備忘");
   }
 });
 
@@ -442,6 +446,13 @@ tests.push({
     const int1 = assets.sceneFx["INT-1"];
     if (JSON.stringify(int1.steps.map((s) => s.label)) !== JSON.stringify(["1592｜比薩 → 帕多瓦", "1597–1602｜帕多瓦", "1603｜帕多瓦"]))
       throw new Error("INT-1 年份與地點里程碑應為 1592 比薩→帕多瓦／1597–1602 帕多瓦／1603 帕多瓦");
+    const b0 = assets.sceneFx["B0-1"];
+    if (JSON.stringify(b0.steps.map((s) => s.plate)) !== JSON.stringify([
+      "ch02_transition_1604_1608_pagefold_v01",
+      "ch02_transition_old_page_handoff_v01",
+      "ch02_transition_simplicio_returns_v01"
+    ]))
+      throw new Error("B0-1 應以翻頁／工作室／舊證據回返三拍完成第二章交棒");
     const c0 = assets.sceneFx["C0-1"];
     if (c0.steps[c0.steps.length - 1].plate !== "ch03_transition_1640_gassendi_handoff_v01")
       throw new Error("C0-1 最後一拍應完成伽桑狄交棒");
@@ -479,7 +490,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260724-zh-character-names"))
+    if (!stageHtml.includes("stage-ui.js?v=20260725-ch03-redesign-v2"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))
@@ -1037,7 +1048,7 @@ tests.push({
     /* 逐字抽查(凍結劇本 v0.1.3+總監核准 CH2-CR-002) */
     const flat = JSON.stringify(fromJson);
     for (const frag of ["老夫讀完了。(抬眼)有一個問題。", "這是四年前的舊案,老夫早已記在書裡", "你們答錯題了",
-      "那才是「推力(impetus)」理論押的注", "先不把推論當成紀錄", "這一回,老夫也帶數字來"])
+      "這些才是他的說法會留下結果的地方", "先不把推論當成紀錄", "這一回,老夫也帶數字來"])
       if (!flat.includes(frag)) throw new Error("劇本逐字缺失:" + frag);
     /* 效果抽查:B0-2 a=rep-1/b 線 S3+rep+1;B1-2 F1 */
     const b02 = fromJson.scenes.find((s) => s.id === "B0-2");
@@ -1071,7 +1082,7 @@ tests.push({
       if (visible.includes(phrase)) throw new Error("最後反撲又出現疊加隱喻:" + phrase);
     if ((visible.match(/老夫/g) || []).length < 8) throw new Error("白話化過頭：辛普里奧的老派聲線遺失");
     const script = readFileSync(path.join(here, "../../04_劇本/第二章完整劇本_拋出去的東西_v0.1.3.md"), "utf-8");
-    for (const frag of ["CH2-CR-002", "CH2-CR-004", "CH2-CR-006", "一件物體在同一時間,只能有一種運動", "你們這條規律,究竟適用於哪些情況"])
+    for (const frag of ["CH2-CR-002", "CH2-CR-004", "CH2-CR-006", "前行和下墜不能同時", "你們這條規律,究竟適用於哪些情況"])
       if (!script.includes(frag)) throw new Error("劇本未同步語氣修正:" + frag);
   }
 });
@@ -1132,7 +1143,7 @@ tests.push({
     if (!p2.title.includes("才會開始下墜")) throw new Error("P2 標題仍是未翻譯術語");
     if (!target.text.includes("等它用完") || !target.insight.includes("晚落")) throw new Error("P2 沒把可測預測說滿");
     if (target.weakTo?.evidence !== "F3") throw new Error("P2 弱點不再指向 F3");
-    if (!p2.playerCorrect.includes("應該比原地放下的晚落") || !p2.playerCorrect.includes("向前飛並沒有讓下墜延後"))
+    if (!p2.playerCorrect.includes("飛出去的那顆就該晚落") || !p2.playerCorrect.includes("它從離手那一刻"))
       throw new Error("P2 正解缺『如果—應該—可是—所以』證據鏈");
     if (scenes.evidenceNames.F3 !== "一拋一放・近乎同時落地") throw new Error("F3 名稱未同步白話化");
   }
@@ -1148,7 +1159,7 @@ tests.push({
         f2.includes("各按自己的鐘走"))
       throw new Error("F2 未維持待驗假說語氣");
     const f3 = byId("B2-4", "n3").text;
-    if (!f3.includes("現在才有資格說") || !f3.includes("沒有拖慢垂直下墜") || !f3.includes("聽得出的範圍內"))
+    if (!f3.includes("三筆「分不開」") || !f3.includes("一離手") || !f3.includes("聽得出的範圍裡"))
       throw new Error("F3 缺限定式獨立性結論");
     const b25 = scenes.scenes.find((s) => s.id === "B2-5");
     for (const qid of ["q1", "q2", "q3"]) {
@@ -1158,7 +1169,7 @@ tests.push({
     }
     if (byId("B2-5", "q1").options.find((o) => o.id === "b").next !== "w1b" || byId("B2-5", "w1b").next !== "q1")
       throw new Error("B2-5 證據邊界錯答未原地修正");
-    if (!byId("B2-5", "n5").text.includes("射程才會符合下落高度的平方根關係"))
+    if (!byId("B2-5", "n5").text.includes("射程跟著下落高度的平方根變化"))
       throw new Error("B2-5 組模型未收束至 F2 定量預測");
   }
 });
@@ -1740,7 +1751,7 @@ tests.push({
 });
 
 tests.push({
-  name: "雙章舞台特寫|角色指圖時自動展示證據，換場清除且手機不擋選項",
+  name: "跨章舞台特寫|角色指圖與小說想像畫面同步入鏡，換場清除且手機不擋選項",
   fn: () => {
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const scenes1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
@@ -1753,10 +1764,18 @@ tests.push({
     const rules = assets.lineFocusVisual || [];
     for (const sid of ["P0-2", "A1-2", "A1-5", "A1-7", "A2-2", "A2-4"])
       if (!rules.some((r) => r.scene === sid)) throw new Error("第一章關鍵證據場景缺特寫規則:" + sid);
+    if (!rules.some((r) => r.scene === "E-1" && r.items.some((x) => x.asset === "ch01_focus_canal_first_arc_v01")))
+      throw new Error("第一章運河尾聲缺少『向前又向下』的小說特寫");
     if (rules.some((r) => r.scene === "E-2" && r.items.some((x) => x.asset === "card_E5")))
       throw new Error("月球滿版尾聲不得重複疊上斜面外推證據卡");
     for (const sid of ["B0-2", "B1-1", "B2-1", "B2-2", "B2-4", "B2-5"])
       if (!rules.some((r) => r.scene === sid)) throw new Error("第二章關鍵指圖場景缺特寫規則:" + sid);
+    if (!rules.some((r) => r.scene === "B1-2" && r.items.some((x) => x.asset === "ch02_focus_ship_mast_thought_v01")))
+      throw new Error("第二章船桅思想實驗缺少明確標為待驗預測的想像畫面");
+    if (!rules.some((r) => r.scene === "CE-1" && r.items.some((x) => x.asset === "ch03_focus_two_books_1642_v01")))
+      throw new Error("第三章兩本書與死訊場景缺少敘事特寫");
+    if (!rules.some((r) => r.scene === "CE-2" && r.items.some((x) => x.asset === "ch03_focus_unfinished_arc_to_moon_v01")))
+      throw new Error("第三章末頁缺少未完成弧線交棒第四章的想像畫面");
     const f3 = assets.entries.find((e) => e.id === "card_F3");
     if (!f3 || f3.kind !== "card" || f3.path !== "ch02/cards/card_F3.webp" || f3.w !== 1200 || f3.h !== 750)
       throw new Error("F3 一拋一放證據圖資產宣告缺失");
@@ -1882,8 +1901,40 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章終局與角色聲線|矛盾結果逼出公開驗證；艦長由守門人轉為共同審查者",
+  name: "第三章重構契約|玩家設計實驗、資料指紋、雙盲公開複驗與角色不可分身",
   fn: () => {
+    const ui2 = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const engine2 = readFileSync(path.join(here, "../src/engine3.js"), "utf-8");
+    const script2 = readFileSync(path.join(here, "../../04_劇本/第三章可操作小說重構稿_船艙裡的靜止_v0.3-redesign-draft.md"), "utf-8");
+    const visible2 = JSON.stringify(scenes3);
+    const phases2 = scenes3.scenes.flatMap((s) => s.nodes.filter((n) => n.type === "embed").map((n) => n.phase));
+    for (const phase of ["pilot-design", "protocol", "investigations", "dual-design", "overlay", "public-criteria", "public-screen", "boundary"])
+      if (!phases2.includes(phase)) throw new Error("第三章重構缺互動階段:" + phase);
+    for (const action of ["choosePilotFocus", "diagnosePilot", "setProtocolAssignment", "chooseInvestigationOrder",
+      "runCabinBlindPair", "runWindAudit", "setDualDesign", "sealPublicCriteria", "screenPublicRecord",
+      "finalizePublicScreen", "revealPublicResults"])
+      if (!ui2.includes(action) || !engine2.includes("function " + action))
+        throw new Error("第三章重構動作未接通 UI／引擎:" + action);
+    for (const phrase of [
+      "人手只夠先顧一件",
+      "誰都不許一個人同時站兩處",
+      "尚無指紋可分類",
+      "光憑這兩條痕跡",
+      "落點全用黑布遮住",
+      "標準先於結果"
+    ]) if (!visible2.includes(phrase) && !ui2.includes(phrase))
+      throw new Error("第三章重構缺少可見因果:" + phrase);
+    if (!visible2.includes("馬蒂厄留在桅頂只抽門閂") ||
+        !visible2.includes("伽桑狄在船上記石頭離桅杆的位置") ||
+        visible2.includes("馬蒂厄守船上"))
+      throw new Error("第三章雙視角仍讓馬蒂厄分身");
+    if (!ui2.includes("本次精度內，風不是穩速落點的系統性主因") ||
+        ui2.includes("風對落石完全沒有任何影響\", function"))
+      throw new Error("第三章風的證據邊界被誇大");
+    if (!script2.includes("v0.3.1-redesign-draft") ||
+        !script2.includes("採信標準") || !script2.includes("先遮落點"))
+      throw new Error("第三章可操作小說重構稿版本或核心互動缺失");
+    return;
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const shipUi = ui.slice(ui.indexOf("第三章航船實驗"));
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
@@ -2047,8 +2098,80 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章引擎|停船基準→穩速共同運動→變速邊界→雙參考物→證據邊界",
+  name: "第三章引擎重構|有限資源設計→獨立分工→調查順序→雙視角→遮結果複驗",
   fn: () => {
+    let n = Engine3.initialState();
+    let out = Engine3.choosePilotFocus(n, "release"); n = out.state;
+    out = Engine3.runPilot(n); n = out.state;
+    if (out.rows.length !== 1 || out.missing.join(",") !== "speed,repeat")
+      throw new Error("試航沒有依設計留下可診斷缺口");
+    if (Engine3.diagnosePilot(n, "release").ok !== false)
+      throw new Error("玩家可把已控制的項目誤當缺口");
+    n = Engine3.diagnosePilot(n, "speed").state;
+    const roles = {
+      release:"mathieu", clock:"sailor", shore:"etienne",
+      ship:"gassendi", vessel:"captain"
+    };
+    for (const [slot, person] of Object.entries(roles))
+      n = Engine3.setProtocolAssignment(n, slot, person).state;
+    const wrongRole = Engine3.setProtocolAssignment(n, "ship", "mathieu").state;
+    if (Engine3.lockProtocol(wrongRole).ok !== false)
+      throw new Error("同一人分身仍可封存分工");
+    n = Engine3.lockProtocol(n).state;
+    n = Engine3.runDesignedProtocol(n).state;
+    if (n.evidence.g1) throw new Error("完成實驗後自動取得 G1");
+    n = Engine3.assertG1Designed(n, "steady-shares-motion").state;
+    if (!n.evidence.g1) throw new Error("完整獨立分工未取得 G1");
+
+    n = Engine3.chooseInvestigationOrder(n, "wind").state;
+    n = Engine3.runCabinBlindPair(n, "drip").state;
+    if (Engine3.judgeCabinBlind(n, "a-dock").ok !== false)
+      throw new Error("局部盲測可被硬猜出停船");
+    n = Engine3.judgeCabinBlind(n, "indistinguishable").state;
+    if (Engine3.runWindAudit(n, "single-heading").ok !== false)
+      throw new Error("單一航向錯被當成可靠風向設計");
+    n = Engine3.runWindAudit(n, "relative-roundtrip").state;
+    if (n.design.wind.runs.find((r) => r.id === "W3").shipState !== "unclassified")
+      throw new Error("風先行時，異常筆未保留為未分類");
+    n = Engine3.setSpeedPrediction(n, "behind", "ahead").state;
+    n = Engine3.runSpeedChange(n, "accelerating").state;
+    n = Engine3.runSpeedChange(n, "decelerating").state;
+    n = Engine3.assertG3(n, ["accelerating", "decelerating"], "speed-change-breaks-shared-motion").state;
+    if (!n.evidence.g3 || n.design.wind.runs.find((r) => r.id === "W3").shipState !== "accelerating")
+      throw new Error("變速指紋沒有替先前異常補上分類");
+    n = Engine3.assertG2Designed(n, "local-common-motion-wind-below-spread").state;
+    if (!n.evidence.g2) throw new Error("盲測＋往返風向＋變速分類未取得 G2");
+
+    if (Engine3.setDualDesign(n, {
+      shoreOrigin:"quay", shipOrigin:"mast", clock:"shared-drum", shipObserver:"mathieu"
+    }).ok !== false) throw new Error("抽閂者兼任船上觀察仍可封存");
+    n = Engine3.setDualDesign(n, {
+      shoreOrigin:"quay", shipOrigin:"mast", clock:"shared-drum", shipObserver:"gassendi"
+    }).state;
+    for (let beat = 0; beat < 4; beat++) n = Engine3.inspectRecordBeat(n).state;
+    n = Engine3.alignRecords(n, "sameBeats").state;
+    n = Engine3.transformRecords(n, "subtractMast").state;
+    n = Engine3.assertG4(n, ["shore", "ship"], "same-event-different-reference").state;
+    if (!n.evidence.g4) throw new Error("自行安排雙視角後未取得 G4");
+
+    n = Engine3.sealPublicCriteria(n, {
+      equalSegments:3, repeats:3, release:"latch", requireDual:true
+    }).state;
+    for (const id of ["A","D","F"]) n = Engine3.screenPublicRecord(n, id, true).state;
+    for (const id of ["B","C","E"]) n = Engine3.screenPublicRecord(n, id, false).state;
+    n = Engine3.finalizePublicScreen(n).state;
+    if (!n.publicDemo.screened || n.publicDemo.revealed)
+      throw new Error("公開複驗未在揭曉前完成條件篩選");
+    n = Engine3.revealPublicResults(n).state;
+    if (!n.publicDemo.complete || n.publicDemo.runs !== 3)
+      throw new Error("公開複驗揭曉後未完成三筆合格重複");
+    const beforeBoundary = JSON.stringify(n);
+    const overclaim2 = Engine3.setBoundary(n, "overclaim");
+    if (overclaim2.ok !== false || JSON.stringify(n) !== beforeBoundary)
+      throw new Error("過強主張沒有留下可逆失敗，或變異輸入狀態");
+    n = Engine3.setBoundary(n, "honest").state;
+    if (!n.evidence.g5) throw new Error("有限主張未取得 G5");
+    return;
     let s = Engine3.initialState();
     if (Engine3.runBaseline(s).error !== "plumb-required") throw new Error("未校準可跑基準");
     s = Engine3.setRelease(s, "hand").state; s = Engine3.calibratePlumb(s).state;
@@ -2200,7 +2323,7 @@ tests.push({
   fn: () => {
     const N3 = Narrative._factory(scenes3, Engine3, {});
     let s = N3.initialState("explore"), guard = 0;
-    const pick = { "C0-3": "right", "C1-2": "speed", "C2-1": "shared", "C2-4": "bounded" };
+    const pick = { "C2-4": "bounded" };
     const act = (name, args) => { const r = N3.labAction(s, name, args || {}); if (r.error) throw new Error(name + ":" + r.error); s = r.state; };
     while (!s.ended && guard++ < 600) {
       const v = N3.view(s);
@@ -2208,7 +2331,37 @@ tests.push({
       if (v.type === "choice") { const id = pick[v.scene]; if (!id) throw new Error("未定義黃金選項:" + v.scene); const r = N3.choose(s, id); if (r.error) throw new Error(r.error); s = r.state; continue; }
       if (v.type === "review") { s = N3.setReview(s, "兩張圖選了不同參考物。", "排除必落後，未直接證明地球動。").state; continue; }
       if (v.type === "embed" && v.system === "ship") {
-        if (v.phase === "baseline") { act("setRelease", { mode: "latch" }); act("calibratePlumb"); for (let i=0;i<3;i++) act("runBaseline"); }
+        if (v.phase === "pilot-design") {
+          act("choosePilotFocus", { focus:"release" }); act("runPilot"); act("diagnosePilot", { gap:"speed" });
+        }
+        else if (v.phase === "protocol") {
+          for (const [slot,person] of Object.entries({
+            release:"mathieu", clock:"sailor", shore:"etienne", ship:"gassendi", vessel:"captain"
+          })) act("setProtocolAssignment", { slot, person });
+          act("lockProtocol"); act("runDesignedProtocol");
+          act("assertG1Designed", { concept:"steady-shares-motion" });
+        }
+        else if (v.phase === "investigations") {
+          act("chooseInvestigationOrder", { order:"speed" });
+          act("setSpeedPrediction", { accelerating:"behind", decelerating:"ahead" });
+          act("runSpeedChange", { kind:"accelerating" }); act("runSpeedChange", { kind:"decelerating" });
+          act("assertG3", { kinds:["accelerating","decelerating"], concept:"speed-change-breaks-shared-motion" });
+          act("runCabinBlindPair", { test:"drip" }); act("judgeCabinBlind", { choice:"indistinguishable" });
+          act("runWindAudit", { plan:"relative-roundtrip" });
+          act("assertG2Designed", { concept:"local-common-motion-wind-below-spread" });
+        }
+        else if (v.phase === "dual-design") act("setDualDesign", { setup:{
+          shoreOrigin:"quay", shipOrigin:"mast", clock:"shared-drum", shipObserver:"gassendi"
+        } });
+        else if (v.phase === "public-criteria") act("sealPublicCriteria", { criteria:{
+          equalSegments:3, repeats:3, release:"latch", requireDual:true
+        } });
+        else if (v.phase === "public-screen") {
+          for (const id of ["A","D","F"]) act("screenPublicRecord", { recordId:id, accept:true });
+          for (const id of ["B","C","E"]) act("screenPublicRecord", { recordId:id, accept:false });
+          act("finalizePublicScreen"); act("revealPublicResults");
+        }
+        else if (v.phase === "baseline") { act("setRelease", { mode: "latch" }); act("calibratePlumb"); for (let i=0;i<3;i++) act("runBaseline"); }
         else if (v.phase === "first-failure") act("runMast", { window: "depart" });
         else if (v.phase === "steady-mast") { for (let i=0;i<3;i++) act("runMast", { window: "stable" }); act("assertG1", { baselineIds:[1,2,3], mastIds:[2,3,4], concept:"steady-shares-motion" }); }
         else if (v.phase === "cabin") { for (const vs of ["dock","steady"]) for (const t of ["drip","toss"]) act("runCabin", { vesselState: vs, test: t }); act("assertG2", { cells:["dock:drip","dock:toss","steady:drip","steady:toss"], concept:"steady-matches-dock" }); }
@@ -2256,7 +2409,7 @@ tests.push({
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const x of ['src="data/series.js"', 'src="src/engine3.js"', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
+    for (const x of ['src="data/series.js"', 'src="src/engine3.js', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.route === "ch03"))
