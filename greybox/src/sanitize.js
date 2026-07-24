@@ -328,6 +328,36 @@
           !isFinite(run.residual) || !isInt(run.patches) || run.patches < 0)
         return fail("模型比較含無法辨識的資料");
     }
+    if (lab.cometLab != null) {
+      if (!Array.isArray(lab.cometLab.attempts) || lab.cometLab.attempts.length > 100 ||
+          typeof lab.cometLab.joined !== "boolean" ||
+          (lab.cometLab.selectedConnection != null &&
+            ["hard-kink", "same-orbit"].indexOf(lab.cometLab.selectedConnection) < 0))
+        return fail("彗星接軌紀錄格式錯誤");
+      for (var ca = 0; ca < lab.cometLab.attempts.length; ca++) {
+        var cometAttempt = lab.cometLab.attempts[ca];
+        if (!cometAttempt || ["hard-kink", "same-orbit"].indexOf(cometAttempt.mode) < 0 ||
+            typeof cometAttempt.ok !== "boolean" || typeof cometAttempt.note !== "string" ||
+            cometAttempt.note.length > 240)
+          return fail("彗星接軌含無法辨識的資料");
+      }
+      if (lab.cometLab.joined &&
+          !lab.cometLab.attempts.some(function (a) { return a.mode === "same-orbit" && a.ok; }))
+        return fail("彗星接軌完成狀態與紀錄不一致");
+    }
+    if (lab.archiveLab != null) {
+      if (!Array.isArray(lab.archiveLab.clipped) || lab.archiveLab.clipped.length > 5 ||
+          typeof lab.archiveLab.complete !== "boolean")
+        return fail("旅人筆記回收紀錄格式錯誤");
+      var allowedArchive = ["K1", "K2", "K3", "K4", "K5"];
+      var uniqueArchive = Array.from(new Set(lab.archiveLab.clipped));
+      if (uniqueArchive.length !== lab.archiveLab.clipped.length ||
+          uniqueArchive.some(function (id) { return allowedArchive.indexOf(id) < 0; }) ||
+          lab.archiveLab.complete !== allowedArchive.every(function (id) {
+            return uniqueArchive.indexOf(id) >= 0;
+          }))
+        return fail("旅人筆記回收狀態與紀錄不一致");
+    }
     var press = lab.proof.press;
     if (!press || !isInt(press.window) || press.window < 1 || press.window > 3 ||
         press.reservedWindows !== 3 || ["open", "schedule-lost"].indexOf(press.status) < 0 ||

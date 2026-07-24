@@ -1490,8 +1490,10 @@
   .shipDiagram figcaption { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; padding: 7px 9px; color: #f2e2c2; background: linear-gradient(transparent,rgba(7,7,6,.92) 34%); font: 600 12px/1.45 var(--font-ui); }
   .shipPerspectiveIntro { display: grid; gap: 9px; }
   .shipPerspectiveEyebrow { margin: 0; color: #e8cea0; font: 800 12px var(--font-ui); letter-spacing: .08em; }
-  .shipPerspectiveGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
-  .shipPerspectiveCard { min-width: 0; margin: 0; overflow: hidden; border: 1px solid rgba(222,188,131,.55); background: #111514; box-shadow: 0 8px 18px rgba(0,0,0,.28); }
+  .shipPerspectiveGrid { display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; }
+  .shipPerspectiveCard { min-width: 0; margin: 0; overflow: hidden; display: grid;
+    grid-template-columns: minmax(0,2.15fr) minmax(150px,.85fr);
+    border: 1px solid rgba(222,188,131,.55); background: #111514; box-shadow: 0 8px 18px rgba(0,0,0,.28); }
   .shipPerspectiveFrame { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #171713; }
   .shipPerspectiveImage, .shipPerspectiveTrace { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
   .shipPerspectiveImage { z-index: 0; object-fit: cover; animation: ship-plate-in .32s ease-out both; }
@@ -1500,7 +1502,7 @@
   .shipPerspectiveStone { fill: #f2d38d; stroke: #402a17; stroke-width: 4; }
   .shipPerspectiveStone:not(.p0) { opacity: .84; }
   .shipPerspectiveBadge { position: absolute; z-index: 2; top: 7px; left: 7px; padding: 4px 7px; color: #fff0ce; border: 1px solid rgba(255,226,161,.62); background: rgba(20,17,13,.82); font: 800 10px var(--font-ui); letter-spacing: .06em; }
-  .shipPerspectiveCard figcaption { display: grid; gap: 3px; min-height: 58px; padding: 7px 8px; color: #e7d9bd; font: 600 11px/1.42 var(--font-ui); }
+  .shipPerspectiveCard figcaption { display: grid; align-content: center; gap: 5px; min-height: 58px; padding: 9px 11px; color: #e7d9bd; font: 600 11px/1.42 var(--font-ui); }
   .shipPerspectiveCard figcaption b { color: #fff0ce; font-size: 13px; }
   .shipPerspectiveCard figcaption span { color: #cfc1a7; }
   .shipPerspectiveKey { margin: 0; padding: 7px 9px; color: #f0dfbd; border-left: 4px solid #c18b4e; background: rgba(193,139,78,.14); font: 700 12px/1.45 var(--font-ui); }
@@ -1531,7 +1533,7 @@
   .shipPaperPath.converted { stroke: #1b7f9d; stroke-width: 5; opacity: .96; }
   .shipPaperBeat { fill: #fff1c9; stroke-width: 3; }.shipPaperBeat.shore { stroke: #275d7a; }.shipPaperBeat.ship { stroke: #9a4f2e; }
   .shipPaperBeat.focused, .shipPaperPosition.focused { fill: #ffdd74; stroke: #a24d26; stroke-width: 5; animation: ship-beat .42s ease-out both; }
-  .shipPaperBeatLabel { fill: #3c2b1e; paint-order: stroke; stroke: rgba(246,227,184,.88); stroke-width: 4; font: 800 15px var(--font-ui); }
+  .shipPaperBeatLabel { fill: #21160e; stroke: none; font: 900 18px var(--font-ui); }
   .shipPaperPosition { stroke-width: 3; }.shipPaperPosition.shore { fill: #d7edf4; stroke: #275d7a; }.shipPaperPosition.ship { fill: #f4d5bd; stroke: #9a4f2e; }
   .shipPaperPosition.converted { fill: #bcebf0; stroke: #126d88; animation: ship-beat .42s ease-out both; }
   .shipPaperTransformArrow { stroke: #1b7f9d; stroke-width: 4; stroke-dasharray: 8 5; animation: ship-transform-arrow .65s ease-out both; }
@@ -1611,6 +1613,7 @@
     .shipCabinCard, .shipAuditCard { margin: 3px 0; padding: 4px 6px; font-size: 10px; }
     .shipCrossExam { margin: 3px 0; padding: 5px 7px; }.shipCrossExamStep { margin-bottom: 2px; font-size: 8px; }.shipCrossExamQuote { font-size: 11px; line-height: 1.3; }.shipCrossExamReply { margin-top: 3px; padding-top: 3px; font-size: 9px; }
     .shipPerspectiveIntro { gap: 4px; }.shipPerspectiveGrid { gap: 4px; }.shipPerspectiveEyebrow { font-size: 9px; }
+    .shipPerspectiveCard { grid-template-columns: minmax(0,1fr) minmax(78px,.55fr); }
     .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 3px; font-size: 7px; }
     .shipPerspectiveCard figcaption { min-height: 38px; padding: 3px 4px; font-size: 7px; line-height: 1.25; }
     .shipPerspectiveCard figcaption b { font-size: 9px; }.shipPerspectiveKey { padding: 3px 5px; font-size: 8px; }
@@ -1657,10 +1660,37 @@
     stroke-dasharray:1800; animation:orbit-draw 1.15s ease-out both; }
   .orbitPath.consequence { stroke:#e08a61; }
   .orbitVelocity { stroke:#9dd2eb; stroke-width:4; stroke-dasharray:7 5; }
+  .orbitDeflection { stroke:#efb857; stroke-width:5; stroke-linecap:round;
+    filter:drop-shadow(0 0 5px rgba(239,184,87,.38)); }
+  .orbitDeflectionHead { fill:#efb857; }
   .orbitScaleLine,.orbitProofLink { stroke:#9eacb4; stroke-width:3; stroke-dasharray:8 6; }
   .orbitLabel,.orbitScaleText { fill:#ece4cf; font:700 16px var(--font-ui);
     paint-order:stroke; stroke:#080c13; stroke-width:5; stroke-linejoin:round; }
   .orbitScaleText { fill:#f0cf79; font-size:19px; }
+  .orbitPaper { fill:#d8c9a7; stroke:#756343; stroke-width:3; filter:drop-shadow(0 5px 8px rgba(0,0,0,.35)); }
+  .orbitPaper.moon { fill:#c6b995; stroke:#64778a; stroke-dasharray:10 6; }
+  .orbitPaperTitle { fill:#33281c; font:800 17px var(--font-ui); }
+  .orbitPaperPoint { fill:#f5d792; stroke:#3a2a1c; stroke-width:3; }
+  .orbitPaperPoint.start { fill:#f7ead0; }.orbitPaperPoint.match { fill:#b9dfb1; stroke:#3f6d45; }
+  .orbitPaperPoint.tooStrong,.orbitPaperPoint.tooWeak { fill:#efb28e; stroke:#8b4d35; }
+  .orbitPaperFall { stroke:#6c4d31; stroke-width:5; stroke-linecap:round; }
+  .orbitPaperFall.moon { stroke:#55748c; }.orbitPaperFall.match { stroke:#4d8054; }
+  .orbitPaperFall.tooStrong,.orbitPaperFall.tooWeak { stroke:#a55f40; stroke-dasharray:7 5; }
+  .orbitPaperMeasure { stroke:#725f42; stroke-width:2; stroke-dasharray:7 5; }
+  .orbitPaperMeasure.pending { stroke:#7f8d96; }.orbitPaperMeasure.match { stroke:#4d8054; }
+  .orbitPaperMeasure.tooStrong,.orbitPaperMeasure.tooWeak { stroke:#a55f40; }
+  .orbitPaperCompare { stroke:#7f8d96; stroke-width:3; stroke-dasharray:5 5; }
+  .orbitPaperCompare.match { stroke:#4d8054; stroke-width:5; }
+  .orbitPaperCompare.tooStrong,.orbitPaperCompare.tooWeak { stroke:#a55f40; }
+  .orbitPaperValue { fill:#33281c; font:800 15px var(--font-ui); }
+  .orbitScaleText.match { fill:#a9dfa9; }.orbitScaleText.tooStrong,.orbitScaleText.tooWeak { fill:#f3ad83; }
+  .orbitStringDemo { fill:rgba(22,28,37,.9); stroke:#637b8e; stroke-width:2; }
+  .orbitStringHand { fill:#c79362; stroke:#f1d1a2; stroke-width:2; }
+  .orbitStringBall { fill:#e4cb8b; stroke:#4f3821; stroke-width:3; }
+  .orbitStringRope { stroke:#d9bd7b; stroke-width:4; }
+  .orbitStringArc { fill:none; stroke:#8eb4c7; stroke-width:3; stroke-dasharray:6 5; }
+  .orbitStringTangent { stroke:#efb857; stroke-width:3; stroke-dasharray:5 4; }
+  .orbitStringLabel { fill:#e9dfc9; font:700 12px var(--font-ui); }
   .orbitCaseCard { fill:rgba(35,45,59,.9); stroke:#718ba3; stroke-width:2; }
   .orbitCaseCard.pending { fill:rgba(50,45,48,.82); stroke:#837581; stroke-dasharray:7 6; }
   .orbitCaseCard.pass { fill:rgba(55,78,64,.9); stroke:#98b78f; }
@@ -1671,6 +1701,27 @@
   .orbitMatrixHead { fill:#aec4d2; font:700 14px var(--font-ui); letter-spacing:.04em; }
   .orbitModelPath { fill:none; stroke-width:5; }.orbitModelPath.gravity { stroke:#e0c16a; }
   .orbitModelPath.vortex { stroke:#77a6be; stroke-dasharray:9 7; }
+  .orbitModelGlyph { fill:none; stroke-width:3; opacity:.86; }
+  .orbitModelGlyph.gravity { stroke:#edcc72; }.orbitModelGlyph.vortex { stroke:#8db6c9; stroke-dasharray:6 4; }
+  .orbitModelGlyph.patched { stroke:#df8f68; }
+  .orbitCometPaper { fill:#d8c9a7; stroke:#756343; stroke-width:3; filter:drop-shadow(0 5px 8px rgba(0,0,0,.35)); }
+  .orbitCometTrack { fill:none; stroke-width:5; stroke-linecap:round; }
+  .orbitCometTrack.inbound { stroke:#6e83a0; }.orbitCometTrack.outbound { stroke:#b38358; }
+  .orbitCometPoint { stroke:#f5e6bf; stroke-width:2; }.orbitCometPoint.inbound { fill:#426786; }
+  .orbitCometPoint.outbound { fill:#9b633d; }
+  .orbitCometJoin { fill:none; stroke-width:6; stroke-linejoin:round; }
+  .orbitCometJoin.kink { stroke:#d66f52; stroke-dasharray:7 5; }
+  .orbitCometJoin.joined { stroke:#e7c66e; filter:drop-shadow(0 0 6px rgba(231,198,110,.42)); }
+  .orbitCometGap { stroke:#84929d; stroke-width:3; stroke-dasharray:6 6; }
+  .orbitCometWarn,.orbitCometOk { font:800 15px var(--font-ui); paint-order:stroke; stroke:#080c13; stroke-width:5; }
+  .orbitCometWarn { fill:#ef9b78; }.orbitCometOk { fill:#f0cf79; }
+  .orbitNotebookPage { fill:#ded1b6; stroke:#756343; stroke-width:3; filter:drop-shadow(0 5px 8px rgba(0,0,0,.35)); }
+  .orbitNotebookFold { stroke:#8b7958; stroke-width:3; stroke-dasharray:5 5; }
+  .orbitArchiveSlip { fill:#b7ab91; stroke:#776d5a; stroke-width:2; stroke-dasharray:6 4; }
+  .orbitArchiveSlip.clipped { fill:#f0dfb8; stroke:#8c6b2f; stroke-dasharray:none; filter:drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+  .orbitArchiveId { fill:#4b3d2c; font:900 18px var(--font-ui); }
+  .orbitArchiveLabel { fill:#5d503d; font:700 13px var(--font-ui); }
+  .orbitArchiveClip { fill:none; stroke:#b87935; stroke-width:5; stroke-linecap:round; }
   .orbitProofNode { fill:#1b2834; stroke:#66798a; stroke-width:4; }.orbitProofNode.got { fill:#536843; stroke:#e4ce82; }
   .orbitPressStamp { fill:#efcf79; font:800 20px var(--font-ui); paint-order:stroke; stroke:#080c13; stroke-width:6; }
   .orbitNote,.orbitMessage,.orbitPressStatus { margin:7px 0; padding:7px 9px; border-left:4px solid #657b91;
@@ -1685,6 +1736,8 @@
   .orbitLab .orbitAction:disabled { opacity:.48; cursor:not-allowed; }
   .orbitVectorControls,.orbitScaleControls,.orbitLawControls,.orbitRow,.orbitProofActions {
     display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:7px 0; }
+  .orbitDirectionPrompt { flex:1 0 100%; margin:2px 0 4px; color:#354559; font-weight:800; }
+  .orbitVectorControls .orbitAction { flex:1 1 180px; }
   .orbitVectorControls label,.orbitScaleControls label,.orbitLawControls label { flex:1 1 190px; padding:6px 8px;
     border:1px solid rgba(76,91,105,.3); background:rgba(255,255,255,.22); font:650 13px var(--font-ui); }
   .orbitVectorControls input,.orbitScaleControls input,.orbitLawControls input { width:100%; accent-color:#4f6980; }
@@ -1694,12 +1747,50 @@
   .orbitMathOptional summary,.orbitPressHistory summary { cursor:pointer; color:#435a70; font-weight:800; }
   .orbitPlanetCard,.orbitPressBox { margin:7px 0; padding:9px 10px; border:1px solid rgba(80,96,111,.35);
     background:rgba(255,255,255,.27); }
+  .orbitLawCards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin:8px 0; }
+  .orbitLawCard { display:grid; align-content:start; gap:5px; min-width:0; padding:9px;
+    border:1px solid rgba(80,96,111,.34); background:rgba(255,255,255,.25); }
+  .orbitLawCard.tried { border-color:rgba(74,111,78,.55); box-shadow:inset 4px 0 rgba(74,111,78,.64); }
+  .orbitLawCard b { color:#33485d; line-height:1.35; }.orbitLawCard span { min-height:35px; color:#615541; font-size:12px; line-height:1.4; }
+  .orbitLawCard .orbitAction { width:100%; margin:auto 0 0; }
+  .orbitLockCards,.orbitSourceChoices,.orbitPeopleChoices { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:7px 0; }
+  .orbitSealStatus { margin:8px 0; padding:8px 10px; color:#425e3e; border:1px solid rgba(74,111,78,.45);
+    background:rgba(74,111,78,.1); font-weight:800; }
   .orbitPlanetCard b { display:block; margin-bottom:5px; }.orbitPlanetCard p { margin:4px 0; }
   .orbitPlanetCard .superseded { color:#7d655d; text-decoration:line-through; text-decoration-thickness:2px; }
   .orbitModelGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:7px 0; }
+  .orbitCometChoices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:8px 0; }
+  .orbitCometHistory { margin:8px 0; padding:8px 10px; border:1px solid rgba(80,96,111,.35); background:rgba(255,255,255,.25); }
+  .orbitCometHistory p { margin:5px 0; padding:5px 7px; font-size:12px; line-height:1.45; }
+  .orbitCometHistory p.wrong { border-left:4px solid #a75f42; }.orbitCometHistory p.complete { border-left:4px solid #647b51; }
+  .orbitArchiveGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:8px 0; }
+  .orbitArchiveCard { display:grid; align-content:start; gap:5px; min-width:0; padding:9px;
+    border:1px solid rgba(80,96,111,.35); background:rgba(255,255,255,.25); }
+  .orbitArchiveCard.clipped { border-color:rgba(74,111,78,.55); box-shadow:inset 4px 0 rgba(74,111,78,.64); }
+  .orbitArchiveCard b { color:#34495c; line-height:1.35; }
+  .orbitArchiveReview summary { cursor:pointer; color:#526a80; font:800 12px var(--font-ui); }
+  .orbitArchiveReview p { margin:5px 0; padding:5px 7px; font-size:11px; line-height:1.45; }
+  .orbitArchiveReview .supports { border-left:4px solid #647b51; }
+  .orbitArchiveReview .limits { border-left:4px solid #a75f42; }
+  .orbitArchiveCard .orbitAction { width:100%; margin:auto 0 0; }
   .orbitProofRow,.orbitCreditRow { display:grid; grid-template-columns:minmax(170px,.9fr) minmax(120px,1fr) max-content;
     align-items:center; gap:6px; margin:5px 0; padding:5px 7px; border:1px solid rgba(77,92,107,.24); background:rgba(255,255,255,.2); }
   .orbitProofRow .shipSelect,.orbitCreditRow .shipSelect { min-height:38px; }
+  .orbitProofTrack { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; margin:8px 0 10px; }
+  .orbitProofStep { display:grid; align-content:start; gap:3px; min-width:0; min-height:86px; padding:7px;
+    border:1px solid rgba(77,92,107,.3); background:rgba(255,255,255,.22); }
+  .orbitProofStep small { color:#65788b; font:800 10px var(--font-ui); letter-spacing:.06em; }
+  .orbitProofStep b { color:#35485c; font-size:13px; line-height:1.25; }
+  .orbitProofStep span { color:#6b604e; font-size:10px; line-height:1.35; }
+  .orbitProofStep.done { border-color:rgba(74,111,78,.55); background:rgba(90,126,85,.12); }
+  .orbitProofStep.wrong { border-color:rgba(165,95,64,.6); background:rgba(165,95,64,.1); }
+  .orbitSourceChoices .orbitAction { min-height:58px; line-height:1.35; }
+  .orbitCreditStage { display:grid; gap:5px; margin:7px 0; padding:10px;
+    border:1px solid rgba(80,96,111,.4); background:rgba(255,255,255,.28); }
+  .orbitCreditStage > b { color:#34495c; font-size:16px; }.orbitCreditStage > span { color:#675b48; font-size:12px; }
+  .orbitPeopleChoices { grid-template-columns:repeat(auto-fit,minmax(92px,1fr)); }
+  .orbitCreditSummary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; margin:8px 0; }
+  .orbitCreditSummary span { padding:6px 8px; color:#3f5f41; border:1px solid rgba(74,111,78,.35); background:rgba(74,111,78,.08); font-size:11px; }
   .orbitPressHistory p { margin:5px 0; padding:5px 7px; }.orbitPressHistory p.wrong { border-left:4px solid #a75f42; }
   .orbitPressHistory p.complete { border-left:4px solid #647b51; }.orbitPressHistory p.delay { border-left:4px solid #7f7186; }
   .orbitGate { float:right; min-width:220px; }
@@ -1719,7 +1810,12 @@
     .orbitWork h3 { font-size:14px!important; margin-bottom:4px!important; padding-bottom:3px; }
     .orbitLab .orbitAction { min-height:32px; padding:3px 6px; font-size:10px; margin:2px; }
     .orbitNote,.orbitMessage,.orbitPressStatus { margin:3px 0; padding:3px 5px; font-size:10px; }
-    .orbitModelGrid { gap:2px; }.orbitProofRow,.orbitCreditRow { grid-template-columns:minmax(130px,.9fr) minmax(95px,1fr) max-content; padding:2px 4px; margin:2px 0; font-size:9px; }
+    .orbitModelGrid,.orbitCometChoices,.orbitArchiveGrid { gap:2px; }.orbitProofRow,.orbitCreditRow { grid-template-columns:minmax(130px,.9fr) minmax(95px,1fr) max-content; padding:2px 4px; margin:2px 0; font-size:9px; }
+    .orbitLawCards { gap:3px; }.orbitLawCard { padding:4px; gap:2px; }.orbitLawCard span { min-height:0; font-size:8px; }
+    .orbitArchiveCard { padding:4px; gap:2px; }.orbitArchiveReview p,.orbitCometHistory p { padding:2px 4px; margin:2px 0; font-size:8px; }
+    .orbitProofTrack { gap:2px; margin:3px 0; }.orbitProofStep { min-height:48px; padding:3px; }
+    .orbitProofStep small,.orbitProofStep span { font-size:7px; }.orbitProofStep b { font-size:8px; }
+    .orbitSourceChoices .orbitAction { min-height:36px; }.orbitCreditStage { padding:5px; }
   }
 </style>
 </head>
@@ -2020,18 +2116,18 @@
 <script src="data/histfacts2.js"></script>
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
-<script src="data/assets.js?v=20260724-chapter-seams"></script>
-<script src="src/sanitize.js"></script>
+<script src="data/assets.js?v=20260724-ch04-cr009"></script>
+<script src="src/sanitize.js?v=20260724-ch04-cr011"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
 <script src="src/engine3.js"></script>
-<script src="src/engine4.js?v=20260724-ch04-cr004"></script>
+<script src="src/engine4.js?v=20260724-ch04-cr011"></script>
 <script src="data/scenes.js?v=20260724-chapter-seams"></script>
 <script src="data/scenes2.js?v=20260724-chapter-seams"></script>
 <script src="data/scenes3.js?v=20260724-chapter-seams"></script>
-<script src="data/scenes4.js?v=20260724-chapter-seams"></script>
+<script src="data/scenes4.js?v=20260724-ch04-cr011"></script>
 <script>
 (function () {
   "use strict";
@@ -2062,8 +2158,8 @@
   }
 })();
 </script>
-<script src="src/narrative.js?v=20260724-ch04-cr004"></script>
-<script src="src/chapter-ui.js?v=20260724-chapter-seams"></script>
+<script src="src/narrative.js?v=20260724-ch04-cr011"></script>
+<script src="src/chapter-ui.js?v=20260724-ch04-cr011"></script>
 <script src="src/stage-ui.js?v=20260724-zh-character-names"></script>
 </body>
 </html>

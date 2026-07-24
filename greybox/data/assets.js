@@ -66,7 +66,7 @@
   "C3-4": "bg_ch03_public_demonstration",
   "CE-1": "bg_ch03_print_room_1642",
   "CE-2": "bg_ch03_print_room_1642",
-  "D0-1": "bg_ch04_woolsthorpe_orchard_1665",
+  "D0-1": "bg_ch03_print_room_1642",
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
@@ -1512,6 +1512,16 @@
    "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_typecase_collision_epilogue_master_v01.png"
   },
   {
+   "id": "ch04_prop_tangent_prediction_sheet_v01",
+   "kind": "prop",
+   "label": "牛頓桌上的無作用切線預測紙",
+   "path": "ch04/props/ch04_prop_tangent_prediction_sheet_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v01.png"
+  },
+  {
    "id": "card_K1",
    "kind": "card",
    "label": "K1 一直改向的路",
@@ -1999,6 +2009,17 @@
  ],
  "lineFocusVisual": [
   {
+   "scene": "D1-1",
+   "match": "牛頓沿著選中的方向連出三個點",
+   "items": [
+    {
+     "asset": "ch04_prop_tangent_prediction_sheet_v01",
+     "alt": "牛頓桌上的手繪預測紙：地球旁的月亮沿當下切線直走，沒有自行彎回圓軌道"
+    }
+   ],
+   "caption": "無作用預測紙：若沒有作用改變運動，月亮下一步沿當下切線直走。這是操作前的預測，不是觀測證據。"
+  },
+  {
    "scene": "P0-2",
    "match": "桌上攤著手稿",
    "items": [
@@ -2285,7 +2306,7 @@
     }
    ]
   },
-  "D0-1": {
+  "D0-2": {
    "fx": "montage",
    "steps": [
     {
@@ -2366,7 +2387,7 @@
   "C3-4": "ch3Public",
   "CE-1": "ch3Print",
   "CE-2": "ch3Print",
-  "D0-1": "ch4Orchard",
+  "D0-1": "ch3Print",
   "D0-2": "ch4Orchard",
   "D1-1": "ch4Orbit",
   "D1-2": "ch4Orbit",

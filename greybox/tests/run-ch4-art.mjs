@@ -18,7 +18,7 @@ if (JSON.stringify(assets) !== JSON.stringify(json)) fail("assets.js 與 assets.
 
 const entries = new Map(assets.entries.map((entry) => [entry.id, entry]));
 const expectedBackgrounds = {
-  "D0-1": "bg_ch04_woolsthorpe_orchard_1665",
+  "D0-1": "bg_ch03_print_room_1642",
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
@@ -87,6 +87,20 @@ for (const code of ["K1", "K2", "K3", "K4", "K5"]) {
     fail("第四章證據圖缺可及性文字:" + id);
 }
 
+const tangentSheet = entries.get("ch04_prop_tangent_prediction_sheet_v01");
+if (tangentSheet?.path !== "ch04/props/ch04_prop_tangent_prediction_sheet_v01.webp" ||
+    tangentSheet.w !== 1200 || tangentSheet.h !== 750)
+  fail("無作用切線預測紙宣告錯誤");
+if (!existsSync(path.join(here, "../../public/assets", tangentSheet.path)))
+  fail("無作用切線預測紙 runtime 檔案不存在");
+if (!existsSync(path.join(here, "../../", tangentSheet.sourceMaster)))
+  fail("無作用切線預測紙母版不存在");
+const tangentFocus = (assets.lineFocusVisual || []).find((rule) =>
+  rule.scene === "D1-1" && rule.match.includes("連出三個點"));
+if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v01" ||
+    !tangentFocus.caption.includes("不是觀測證據"))
+  fail("D1-1 選對後未接上切線預測紙或證據邊界");
+
 const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
 if (!/body\[data-view="orbit"\] #panelWrap\s*\{\s*display:\s*block/.test(stageHtml))
   fail("第四章工作台仍可能被全域 display:none 隱藏");
@@ -97,11 +111,18 @@ const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8")
 for (const fragment of [
   "先把預測封存，觀測才翻面",
   "同一批天空，兩個模型都必須跑完",
-  '[["K1","改向"],["K2","跨尺度"],["K3","封存預測"],["K4","模型反驗"],["K5","署名邊界"]]'
+  "指向地球此刻的位置",
+  "不加改向，沿原方向走",
+  '[["一","改向"],["二","跨尺度"],["三","封存預測"],["四","模型反驗"],["五","署名邊界"]]',
+  "把月球紙換成：距離 ×60、時間 ×60",
+  "orbitProofTrack",
+  "orbitStringDemo"
 ])
   if (!chapterUi.includes(fragment)) fail("第四章動態證據視覺缺漏:" + fragment);
+for (const obsolete of ["箭頭方向 ", "箭頭長度 ", 'dist.type="range"', 'exponent.type="range"'])
+  if (chapterUi.includes(obsolete)) fail("D1-2／D2-2 仍殘留已退役滑桿:" + obsolete);
 
-const chapter4Transition = assets.sceneFx?.["D0-1"];
+const chapter4Transition = assets.sceneFx?.["D0-2"];
 if (!chapter4Transition || chapter4Transition.fx !== "montage" || chapter4Transition.steps?.length !== 3)
   fail("第四章章首缺 1642→1665 三拍穿越");
 for (const id of [
@@ -141,7 +162,7 @@ for (const line of prompts.split("\n"))
     fail("獨立生成提示詞仍依賴跨首上下文");
 
 const expectedSceneBgm = {
-  "D0-1": "ch4Orchard",
+  "D0-1": "ch3Print",
   "D0-2": "ch4Orchard",
   "D1-1": "ch4Orbit",
   "D1-2": "ch4Orbit",

@@ -31,6 +31,20 @@
      "type": "line",
      "speaker": "旅人(你)",
      "text": "石頭離開桅杆，仍把原來的前進帶在身上。那月亮呢？",
+     "next": "n2a"
+    },
+    {
+     "id": "n2a",
+     "type": "line",
+     "speaker": "stage",
+     "text": "筆記更前面的一頁透出灰色月面：鎚與羽毛並肩落下；旁邊那道未完成的弧，仍停在原處。",
+     "next": "n2b"
+    },
+    {
+     "id": "n2b",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "鎚和羽只回答了落下，沒有回答一個一直往前、又一直往下的東西，最後會走成什麼。",
      "next": "n3"
     },
     {
@@ -65,35 +79,29 @@
      "id": "c1",
      "type": "choice",
      "speaker": "system",
-     "text": "1642｜馬賽。紙纖維依序露出低雲、石牆與濕草；中間年月折進同一次翻頁。",
+     "text": "1642｜馬賽。港口的浪聲還在紙邊；下一頁沒有日期，也沒有名字。",
      "options": [
       {
        "id": "enter",
        "text": "翻開落下的那一頁",
-       "next": "n7"
+       "next": "g1"
       }
      ]
     },
     {
      "id": "n7",
-     "type": "line",
-     "speaker": "stage",
-     "text": "紙縫打開成真正的果園。旅人跌進濕草，身後沒有海聲，只有風吹過石牆。白日月亮掛在枝葉之間。",
-     "next": "n8"
+     "type": "goto",
+     "scene": "D0-2"
     },
     {
      "id": "n8",
-     "type": "line",
-     "speaker": "旅人(你)",
-     "text": "（撐起身，先聽了一會）不是馬賽。",
-     "next": "n9"
+     "type": "goto",
+     "scene": "D0-2"
     },
     {
      "id": "n9",
-     "type": "system",
-     "speaker": "system",
-     "text": "1665 年，英格蘭・伍爾索普。劍橋因瘟疫停課，一名返鄉的學生正在果園裡。",
-     "next": "g1"
+     "type": "goto",
+     "scene": "D0-2"
     },
     {
      "id": "g1",
@@ -107,6 +115,27 @@
    "title": "果園裡只有下一步",
    "historyTag": "later-recollection+fictional-bridge",
    "nodes": [
+    {
+     "id": "a1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "紙縫打開成真正的果園。旅人跌進濕草，身後沒有海聲，只有風吹過石牆。白日月亮掛在枝葉之間。",
+     "next": "a2"
+    },
+    {
+     "id": "a2",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "（撐起身，先聽了一會）不是馬賽。",
+     "next": "a3"
+    },
+    {
+     "id": "a3",
+     "type": "system",
+     "speaker": "system",
+     "text": "1665 年，英格蘭・伍爾索普。劍橋因瘟疫停課，一名返鄉的學生正在果園裡。",
+     "next": "n1"
+    },
     {
      "id": "n1",
      "type": "line",
@@ -174,57 +203,51 @@
      "id": "n10",
      "type": "line",
      "speaker": "牛頓",
-     "text": "我在看它只走了幾尺。",
+     "text": "（掂了掂蘋果，抬眼看向月亮）我近來一直在想：讓它落下的這股作用，往上能伸多遠。到樹頂還在，到了雲上呢？（停）到了月亮那裡呢？",
      "next": "n11"
     },
     {
      "id": "n11",
      "type": "line",
      "speaker": "旅人(你)",
-     "text": "和月亮之間，還差得很遠。",
+     "text": "如果地球也拉著月亮——",
      "next": "n12"
     },
     {
      "id": "n12",
      "type": "line",
-     "speaker": "牛頓",
-     "text": "遠到不能靠一句「也許一樣」跨過去。",
+     "speaker": "stage",
+     "text": "話才起頭，牛頓便蹲下身，用樹枝在泥上點出地球，把小石子放在旁邊，再在石子前方畫一小段直線。",
      "next": "n13"
     },
     {
      "id": "n13",
      "type": "line",
-     "speaker": "旅人(你)",
-     "text": "如果地球也拉著月亮——",
+     "speaker": "牛頓",
+     "text": "先別替它說完。我問的不是猜得像不像。假設沒有任何作用改變它的運動，下一刻會往哪裡？",
      "next": "n14"
     },
     {
      "id": "n14",
      "type": "line",
-     "speaker": "stage",
-     "text": "牛頓用樹枝在泥上點出地球，把小石子放在旁邊，再在石子前方畫一小段直線。",
-     "next": "n15"
+     "speaker": "旅人・心聲",
+     "text": "我把後半句嚥了回去。他連自己想到一半的念頭，都不肯先說死。",
+     "next": "g1"
     },
     {
      "id": "n15",
-     "type": "line",
-     "speaker": "牛頓",
-     "text": "先別替它說完。沒有任何東西讓它轉彎，下一刻去哪裡？",
-     "next": "n16"
+     "type": "goto",
+     "scene": "D1-1"
     },
     {
      "id": "n16",
-     "type": "line",
-     "speaker": "旅人(你)",
-     "text": "沿著——",
-     "next": "n17"
+     "type": "goto",
+     "scene": "D1-1"
     },
     {
      "id": "n17",
-     "type": "line",
-     "speaker": "牛頓",
-     "text": "（把樹枝遞過來）不要給我一個詞。畫。",
-     "next": "g1"
+     "type": "goto",
+     "scene": "D1-1"
     },
     {
      "id": "g1",
@@ -235,68 +258,124 @@
   },
   {
    "id": "D1-1",
-   "title": "沒有東西讓它轉彎",
+   "title": "先把下一步留下",
    "historyTag": "modern-model",
    "nodes": [
     {
      "id": "n1",
-     "type": "system",
-     "speaker": "system",
-     "text": "這是為玩家製作的可操作重建，不是牛頓 1665 年桌面的復刻。",
+     "type": "line",
+     "speaker": "stage",
+     "text": "牛頓把泥面上的位置抄到紙上，帶旅人回到石屋工作室。紙上有地球、月亮，以及月亮剛才走過的一小段路，只缺下一步。",
      "next": "n2"
     },
     {
      "id": "n2",
      "type": "line",
      "speaker": "牛頓",
-     "text": "讓它照原有方向走。不要幫它。",
-     "next": "e1"
+     "text": "先拿掉所有拉扯。只選下一步。",
+     "next": "c1"
+    },
+    {
+     "id": "c1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "若此刻沒有任何作用改變月亮的運動，它下一步會往哪裡？",
+     "options": [
+      {
+       "id": "tangent",
+       "text": "沿著此刻的方向直走",
+       "next": "ok1"
+      },
+      {
+       "id": "curve",
+       "text": "照原來的圓弧繼續",
+       "next": "w1"
+      },
+      {
+       "id": "inward",
+       "text": "立刻朝地球落下",
+       "next": "w3"
+      }
+     ]
+    },
+    {
+     "id": "w1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人在紙上接了一小段圓弧。牛頓用指甲截住那條線。",
+     "next": "w2"
+    },
+    {
+     "id": "w2",
+     "type": "line",
+     "speaker": "牛頓",
+     "text": "你把要解釋的圓，先塞進答案裡了。沒有東西讓它轉彎。重選。",
+     "next": "c1"
+    },
+    {
+     "id": "w3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人在月亮與地球之間畫了一條直線。牛頓把蘋果放在那條線上。",
+     "next": "w4"
+    },
+    {
+     "id": "w4",
+     "type": "line",
+     "speaker": "牛頓",
+     "text": "這是替它加了一次向內的推動。題目說的是什麼都不加。重選。",
+     "next": "c1"
+    },
+    {
+     "id": "ok1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "牛頓沿著選中的方向連出三個點。紙上留下一條與圓弧分開的直線。",
+     "next": "ok2"
+    },
+    {
+     "id": "ok2",
+     "type": "line",
+     "speaker": "牛頓",
+     "text": "這張先留著。它不是觀測，是我們動手前留下的預測。",
+     "next": "ok3"
+    },
+    {
+     "id": "ok3",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "圓不是它自己會走的路。",
+     "next": "g1"
     },
     {
      "id": "e1",
-     "type": "embed",
-     "system": "orbit",
-     "phase": "tangent",
-     "hint": "先讓月亮在完全不偏折的情況下續走，親眼看完它離開。",
-     "until": {
-      "orbit": "tangent"
-     },
-     "next": "n3"
+     "type": "goto",
+     "scene": "D1-2"
     },
     {
      "id": "n3",
-     "type": "line",
-     "speaker": "旅人(你)",
-     "text": "它沒有繞回來。",
-     "next": "n4"
+     "type": "goto",
+     "scene": "D1-2"
     },
     {
      "id": "n4",
-     "type": "line",
-     "speaker": "牛頓",
-     "text": "你沒有讓它轉彎。",
-     "next": "n5"
+     "type": "goto",
+     "scene": "D1-2"
     },
     {
      "id": "n5",
-     "type": "line",
-     "speaker": "旅人(你)",
-     "text": "所以圓不是它自己會走的路。",
-     "next": "n6"
+     "type": "goto",
+     "scene": "D1-2"
     },
     {
      "id": "n6",
-     "type": "line",
-     "speaker": "stage",
-     "text": "牛頓把離開的石子撿回原位，卻沒有擦掉那條逃逸路徑。",
-     "next": "n7"
+     "type": "goto",
+     "scene": "D1-2"
     },
     {
      "id": "n7",
-     "type": "line",
-     "speaker": "牛頓",
-     "text": "錯路留下。等一下要用。",
-     "next": "g1"
+     "type": "goto",
+     "scene": "D1-2"
     },
     {
      "id": "g1",
@@ -313,8 +392,57 @@
     {
      "id": "n1",
      "type": "line",
+     "speaker": "stage",
+     "text": "牛頓把一顆木球繫到細繩末端，在桌邊甩成一個小圓。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
      "speaker": "牛頓",
-     "text": "前進先留著。只問這一拍，速度要往哪裡改一點。",
+     "text": "它為什麼沒有直走？",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "繩子一直把它拉向你的手。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "stage",
+     "text": "牛頓鬆手。木球沿圓的切線滾出去，停在剛才那張預測紙旁。",
+     "next": "n5"
+    },
+    {
+     "id": "n5",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "繩子一鬆，它就回到紙上的直線。",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "line",
+     "speaker": "牛頓",
+     "text": "繩子不是月亮的答案。它只把問題指出來。",
+     "next": "n7"
+    },
+    {
+     "id": "n7",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "月亮沒有繩子。可它若一直轉彎，就一定有東西持續改變它的速度。",
+     "next": "n8"
+    },
+    {
+     "id": "n8",
+     "type": "line",
+     "speaker": "牛頓",
+     "text": "別急著替那個東西命名。先看每一拍該往哪裡改。",
      "next": "e1"
     },
     {
@@ -322,24 +450,24 @@
      "type": "embed",
      "system": "orbit",
      "phase": "vectors",
-     "hint": "畫三拍偏折。方向或大小錯了，先看完真正路徑，再依後果重試。",
+     "hint": "每一拍只選改向箭頭的方向；箭頭大小先固定。選錯時先看完整路徑，再依後果重試。",
      "until": {
       "orbit": "closed"
      },
-     "next": "n2"
+     "next": "n9"
     },
     {
-     "id": "n2",
+     "id": "n9",
      "type": "line",
      "speaker": "旅人(你)",
      "text": "每一拍都得重新看地球在哪裡。",
-     "next": "n3"
+     "next": "n10"
     },
     {
-     "id": "n3",
+     "id": "n10",
      "type": "line",
      "speaker": "牛頓",
-     "text": "現在別再替它一拍一拍決定。讓同一條規則自己走。",
+     "text": "對。不是固定朝左，是指向當下的地球。",
      "next": "g1"
     },
     {
@@ -368,44 +496,42 @@
     {
      "id": "n1",
      "type": "line",
-     "speaker": "牛頓",
-     "text": "兩張紙都保留了原有前進。第二張多了什麼？",
+     "speaker": "旅人(你)",
+     "text": "它保留原來的前進；新的作用只負責把速度往地球方向改。",
      "next": "n2"
     },
     {
      "id": "n2",
      "type": "line",
-     "speaker": "旅人(你)",
-     "text": "它一直向前，也一直向內偏。",
+     "speaker": "牛頓",
+     "text": "現在才可以說：它一直在掉。",
      "next": "n3"
     },
     {
      "id": "n3",
      "type": "line",
-     "speaker": "牛頓",
-     "text": "現在才可以說：它一直在掉。",
+     "speaker": "旅人(你)",
+     "text": "卻一直錯過地面。",
      "next": "n4"
     },
     {
      "id": "n4",
      "type": "line",
-     "speaker": "旅人(你)",
-     "text": "卻一直錯過地面。",
+     "speaker": "stage",
+     "text": "牛頓在金色箭頭旁寫下一個問號。",
      "next": "n5"
     },
     {
      "id": "n5",
      "type": "line",
-     "speaker": "stage",
-     "text": "牛頓在金色箭頭旁寫下一個問號。",
-     "next": "n6"
-    },
-    {
-     "id": "n6",
-     "type": "line",
      "speaker": "牛頓",
      "text": "方向有了。多少，還沒有。",
      "next": "g1"
+    },
+    {
+     "id": "n6",
+     "type": "goto",
+     "scene": "D2-1"
     },
     {
      "id": "g1",
@@ -444,6 +570,13 @@
      "type": "line",
      "speaker": "虎克・書信",
      "text": "若天體一面保留直行，一面持續受中央吸引，兩種傾向合起來便會改變它的路。吸引若隨距離改變，路徑也會跟著改變。",
+     "next": "n2a"
+    },
+    {
+     "id": "n2a",
+     "type": "system",
+     "speaker": "system",
+     "text": "原信摘句（1679，保留原拼字）：compounding the celestiall motions of the planetts of a direct motion by the tangent & an attractive motion towards the centrall body.",
      "next": "n3"
     },
     {
@@ -486,6 +619,20 @@
      "type": "line",
      "speaker": "stage",
      "text": "牛頓把信推到桌角，卻沒有丟掉。他取出地表落體記錄，壓在虎克的問句旁。",
+     "next": "n8a"
+    },
+    {
+     "id": "n8a",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人的目光越過信紙，落到書架上一冊翻舊的《物理學》；另一冊滿是兩種筆跡的評注本，在記憶裡一閃而過。",
+     "next": "n8b"
+    },
+    {
+     "id": "n8b",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "我第一次想念一個會先重述、再挑邊界的老人。眼前的人不和我爭；他只是不接受。",
      "next": "n9"
     },
     {
@@ -739,6 +886,17 @@
      "type": "line",
      "speaker": "牛頓",
      "text": "我先前認為是兩顆。先把它們放進同一條路。",
+     "next": "e0"
+    },
+    {
+     "id": "e0",
+     "type": "embed",
+     "system": "orbit",
+     "phase": "comet",
+     "hint": "依日期與參考星接續兩疊觀測。只讓紙面端點碰在一起，可能會留下觀測不支持的折角。",
+     "until": {
+      "orbit": "comet-joined"
+     },
      "next": "n1c"
     },
     {
@@ -1025,6 +1183,13 @@
      "type": "line",
      "speaker": "旅人・心聲",
      "text": "我不必成為祕密發明者，才算真的來過。",
+     "next": "n8g"
+    },
+    {
+     "id": "n8g",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人親手把空白名條移出作者欄，再把本章所有做過、錯過與改過的紙收回筆記。",
      "next": "g1"
     },
     {
@@ -1227,6 +1392,17 @@
      "type": "line",
      "speaker": "旅人・心聲",
      "text": "一本書可以有一個作者。讓它出現的歷史，從來不只一雙手。",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "embed",
+     "system": "orbit",
+     "phase": "archive",
+     "hint": "把五份證據逐張夾回旅人筆記；每張紙都能翻看成功、錯路與不能證明的部分。",
+     "until": {
+      "orbit": "archive-complete"
+     },
      "next": "g1"
     },
     {
@@ -1252,8 +1428,8 @@
      "id": "r1",
      "type": "review",
      "prompts": [
-      "若地球突然不再吸引月球，月球下一刻會往哪裡走？為什麼？",
-      "本章建立了什麼規則，又還沒有解釋什麼？"
+      "月亮一直朝著地球掉，為什麼還是沒有掉到地上？",
+      "這條規則算對了整片天空，最後卻停在一格空白前面。那格是什麼？為什麼不能硬把它填上？"
      ],
      "next": "n2"
     },

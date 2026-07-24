@@ -12,6 +12,7 @@
   };
   var CASES = ["moon", "planets", "comet"];
   var MODELS = ["inverseSquare", "simpleVortex"];
+  var ARCHIVE_IDS = ["K1", "K2", "K3", "K4", "K5"];
   var PROOF_EXPECT = {
     inertia: ["M2", "M3"],
     inward: ["K1"],
@@ -70,6 +71,12 @@
         runs: [], gravityComplete: false, vortexComplete: false,
         selectedRecords: [], comparisonClaim: null
       },
+      cometLab: {
+        attempts: [], selectedConnection: null, joined: false
+      },
+      archiveLab: {
+        clipped: [], complete: false
+      },
       proof: {
         slots: [], attribution: {}, hookeScope: null, hookeScopeAttempts: [],
         boundaryChoice: null, overclaimTried: false,
@@ -96,6 +103,14 @@
 
   function startOrbitAttempt(state0) {
     var s = clone(state0);
+    if (!s.orbitLab.tangentRecord) {
+      s.orbitLab.tangentRecord = {
+        id: "tangent",
+        kind: "tangent",
+        path: consequencePath("tangent", { x: 1, y: 0 }, { x: 0, y: 0.24 }),
+        note: "在操作前封存的無作用切線預測"
+      };
+    }
     s.orbitLab.attempt += 1;
     s.orbitLab.step = 0;
     s.orbitLab.path = [{ x: 1, y: 0 }];
@@ -328,6 +343,38 @@
     return { state: s, ok: ok, evidence: ok ? "K3" : null, reason: ok ? null : "claim-mismatch" };
   }
 
+  function ensureCometFields(s) {
+    s.cometLab = s.cometLab || {};
+    if (!Array.isArray(s.cometLab.attempts)) s.cometLab.attempts = [];
+    if (!("selectedConnection" in s.cometLab)) s.cometLab.selectedConnection = null;
+    if (!("joined" in s.cometLab)) s.cometLab.joined = false;
+    return s;
+  }
+
+  function connectCometTracks(state0, mode) {
+    if (!(state0.evidence.k2 && state0.evidence.k3)) return err(state0, "k2-k3-required");
+    if (["hard-kink", "same-orbit"].indexOf(mode) < 0) return err(state0, "unknown-comet-connection");
+    var s = ensureCometFields(clone(state0));
+    var ok = mode === "same-orbit";
+    var attempt = {
+      id: s.cometLab.attempts.length + 1,
+      mode: mode,
+      ok: ok,
+      note: ok
+        ? "十一月入向與十二月出向按日期、星位接成同一條高傾角軌道"
+        : "只把兩張紙的最近端點硬接，接縫留下觀測不支持的折角"
+    };
+    s.cometLab.attempts.push(attempt);
+    s.cometLab.selectedConnection = mode;
+    if (ok) s.cometLab.joined = true;
+    return {
+      state: s,
+      ok: ok,
+      attempt: clone(attempt),
+      consequence: ok ? null : "comet-kink"
+    };
+  }
+
   function modelOutcome(model, caseId) {
     var table = {
       inverseSquare: {
@@ -534,6 +581,31 @@
     return { state: s, ok: true, evidence: "K5", proof: clone(snapshot) };
   }
 
+  function ensureArchiveFields(s) {
+    s.archiveLab = s.archiveLab || {};
+    if (!Array.isArray(s.archiveLab.clipped)) s.archiveLab.clipped = [];
+    if (!("complete" in s.archiveLab)) s.archiveLab.complete = false;
+    return s;
+  }
+
+  function clipEvidence(state0, evidenceId) {
+    if (ARCHIVE_IDS.indexOf(evidenceId) < 0) return err(state0, "unknown-archive-evidence");
+    var key = evidenceId.toLowerCase();
+    if (!state0.evidence || !state0.evidence[key]) return err(state0, "archive-evidence-required");
+    var s = ensureArchiveFields(clone(state0));
+    if (s.archiveLab.clipped.indexOf(evidenceId) < 0) s.archiveLab.clipped.push(evidenceId);
+    s.archiveLab.complete = ARCHIVE_IDS.every(function (id) {
+      return s.archiveLab.clipped.indexOf(id) >= 0;
+    });
+    return {
+      state: s,
+      ok: true,
+      clipped: evidenceId,
+      count: s.archiveLab.clipped.length,
+      complete: s.archiveLab.complete
+    };
+  }
+
   var api = {
     initialState: initialState,
     advanceTransition: advanceTransition,
@@ -542,12 +614,15 @@
     setScale: setScale, tryDistanceLaw: tryDistanceLaw, lockDistanceLaw: lockDistanceLaw,
     unlockDistanceLaw: unlockDistanceLaw, resetPlanetReveals: resetPlanetReveals,
     predictPlanet: predictPlanet, assertK2: assertK2, assertK3: assertK3,
+    connectCometTracks: connectCometTracks,
     runModel: runModel, assertK4: assertK4,
     placeProofLink: placeProofLink, assignCredit: assignCredit, setHookeScope: setHookeScope,
     submitPartialProof: submitPartialProof, setBoundary: setBoundary,
     previewProof: previewProof, submitProof: submitProof, deferPress: deferPress,
+    clipEvidence: clipEvidence,
     _FIXTURE: { teaching: TEACHING, modernCheck: MODERN, planets: PLANETS },
     _CASES: CASES.slice(), _MODELS: MODELS.slice(),
+    _ARCHIVE_IDS: ARCHIVE_IDS.slice(),
     _PROOF_EXPECT: clone(PROOF_EXPECT), _CREDIT_EXPECT: clone(CREDIT_EXPECT),
     _HOOKE_SCOPE_EXPECT: HOOKE_SCOPE_EXPECT,
     _proofAudit: proofAudit

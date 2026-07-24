@@ -625,10 +625,14 @@
       if (until.orbit === "k1") return !!oe.k1;
       if (until.orbit === "k2") return !!oe.k2;
       if (until.orbit === "k3") return !!oe.k3;
+      if (until.orbit === "comet-joined")
+        return !!(ob.cometLab && ob.cometLab.joined);
       if (until.orbit === "press-opening")
         return !!(ob.proof && ob.proof.press && ob.proof.press.openingChoice);
       if (until.orbit === "k4") return !!oe.k4;
       if (until.orbit === "k5") return !!oe.k5;
+      if (until.orbit === "archive-complete")
+        return !!(ob.archiveLab && ob.archiveLab.complete);
     }
     return true;
   }
@@ -771,6 +775,7 @@
     else if (action === "predictPlanet" && Engine.predictPlanet) r = Engine.predictPlanet(state.lab, args.id);
     else if (action === "assertK2" && Engine.assertK2) r = Engine.assertK2(state.lab, args.records, args.concept);
     else if (action === "assertK3" && Engine.assertK3) r = Engine.assertK3(state.lab, args.records, args.concept);
+    else if (action === "connectCometTracks" && Engine.connectCometTracks) r = Engine.connectCometTracks(state.lab, args.mode);
     else if (action === "runModel" && Engine.runModel) r = Engine.runModel(state.lab, args.model, args.caseId);
     else if (action === "assertK4" && Engine.assertK4) r = Engine.assertK4(state.lab, args.records, args.claim);
     else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
@@ -781,6 +786,7 @@
     else if (action === "setProofBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
     else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
+    else if (action === "clipEvidence" && Engine.clipEvidence) r = Engine.clipEvidence(state.lab, args.evidenceId);
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
