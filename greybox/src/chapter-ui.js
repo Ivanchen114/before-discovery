@@ -1434,6 +1434,7 @@
   var ship3EmbedKey = "";
   var ship3VisualRun = null; /* 純表現層：最近一次實驗動畫，不入存檔、不改 fixture。 */
   var ship3ClaimDraft = {}; /* 純 UI 草稿：錯答重繪後保留勾選，不偷寫進實驗紀錄。 */
+  var ship3PerspectiveIntroSeen = {}; /* G4 純 UI 前導：照片退場後仍可重看，不改實驗存檔。 */
   function ship3El(tag, text, parent, cls) {
     var node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -1490,7 +1491,7 @@
           "wrong-transform": "縮放只會改變圖的大小，不能改變參考物。請逐拍算『石頭相對岸的位置－桅杆相對岸的位置』。",
           "evidence-mismatch": "這張證據沒有直接回答這道質詢。換一張真正做過相應對照的紀錄。",
           "claim-mismatch": "這組紀錄還不足以支持你選的說法。檢查是否混入受干擾的紀錄，或把現象解釋成了資料沒有測量的原因。",
-          "overclaim": "這場實驗排除一個反對，卻沒有直接量到地球正在運動。把結論收回證據邊界。"
+          "overclaim": "伽桑狄：（手掌壓上紙面，墨在掌下暈開）「……停。」這場實驗沒有直接量到地球正在運動。"
         };
         var tailored = typeof failText === "function" ? failText(rr) : failText;
         var feedback = tailored || why[rr.reason] || "這一步還不能成立。";
@@ -1615,6 +1616,64 @@
       return spec[k ? k[1] : "default"] || spec.default;
     }
     return null;
+  }
+  function ship3PerspectiveIntro(parent) {
+    var map = ASSETS && ASSETS.shipPerspectiveIntro || {};
+    var intro = ship3El("section", null, parent, "shipPerspectiveIntro");
+    ship3El("p", "先看同一顆石頭的兩個位置", intro, "shipPerspectiveEyebrow");
+    var grid = ship3El("div", null, intro, "shipPerspectiveGrid");
+    var specs = [
+      {
+        kind: "shore", id: map.shore,
+        badge: "鏡頭在碼頭", title: "岸上看｜碼頭不動",
+        note: "船向前，石頭也一面向前、一面落下。",
+        alt: "從馬賽港碼頭望向穩速前進的實驗船；船側與中央桅杆完整可見。"
+      },
+      {
+        kind: "ship", id: map.ship,
+        badge: "鏡頭在甲板", title: "船上看｜桅杆不動",
+        note: "跟著船一起看，石頭相對桅杆近乎直落。",
+        alt: "站在實驗船甲板望向中央桅杆；桅頂釋放架與桅腳位於同一直線。"
+      }
+    ];
+    specs.forEach(function (spec) {
+      var card = ship3El("figure", null, grid, "shipPerspectiveCard " + spec.kind);
+      var frame = ship3El("div", null, card, "shipPerspectiveFrame");
+      var entry = assetEntry(spec.id);
+      if (entry) {
+        var image = document.createElement("img");
+        image.src = assetUrl(entry); image.alt = spec.alt;
+        image.className = "shipPerspectiveImage";
+        frame.appendChild(image);
+      }
+      ship3El("span", spec.badge, frame, "shipPerspectiveBadge");
+      var ns = "http://www.w3.org/2000/svg";
+      var svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", "0 0 1000 563");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("class", "shipPerspectiveTrace " + spec.kind);
+      frame.appendChild(svg);
+      var path = document.createElementNS(ns, "path");
+      path.setAttribute("class", "shipPerspectivePath");
+      path.setAttribute("d", spec.kind === "shore"
+        ? "M510 86 C518 176 540 302 592 425"
+        : "M505 68 C503 180 506 332 505 466");
+      svg.appendChild(path);
+      var points = spec.kind === "shore"
+        ? [[510,86],[520,176],[545,302],[592,425]]
+        : [[505,68],[504,194],[506,329],[505,466]];
+      points.forEach(function (point, i) {
+        var dot = document.createElementNS(ns, "circle");
+        dot.setAttribute("class", "shipPerspectiveStone p" + i);
+        dot.setAttribute("cx", point[0]); dot.setAttribute("cy", point[1]); dot.setAttribute("r", i === 0 ? 13 : 10);
+        svg.appendChild(dot);
+      });
+      var cap = ship3El("figcaption", null, card);
+      ship3El("b", spec.title, cap);
+      ship3El("span", spec.note, cap);
+    });
+    ship3El("p", "不是兩顆石頭，也不是兩次實驗：只是觀察者站的位置不同。", intro, "shipPerspectiveKey");
+    return intro;
   }
   function ship3Diagram(parent, lab, phase) {
     var anim = ship3VisualRun && ship3VisualRun.kind || "idle";
@@ -1824,6 +1883,7 @@
     var ek = v.scene + "/" + v.nodeId;
     if (ek !== ship3EmbedKey) { ship3EmbedKey = ek; ship3Msg = ""; }
     var lab = state.lab, ev = lab.evidence || {}, mission = ship3Mission(v.phase);
+    var showPerspectiveIntro = v.phase === "overlay" && !ship3PerspectiveIntroSeen[ek];
     box.className = "shipLab";
     var head = ship3El("header", null, box, "shipHead");
     ship3El("small", "第三章・共同運動實驗", head);
@@ -1836,8 +1896,20 @@
     });
     var body = ship3El("div", null, box, "shipBody");
     var visual = ship3El("section", null, body, "shipVisual");
-    ship3Diagram(visual, lab, v.phase);
+    if (showPerspectiveIntro) ship3PerspectiveIntro(visual);
+    else ship3Diagram(visual, lab, v.phase);
     var work = ship3El("section", null, body, "shipWork");
+
+    if (showPerspectiveIntro) {
+      ship3El("h3", "六、同一顆石頭，先站到兩個位置", work);
+      ship3El("p", "先別急著看紙帶。比較左、右兩張圖：哪一樣東西在你的畫面裡被當成不動？", work, "shipNote shipStepPrompt");
+      ship3El("p", "岸上的人用碼頭量位置；船上的人用桅杆量位置。下一幕會把兩人的觀察各抄成一張紙。", work, "shipNote");
+      ship3Btn(work, "開始對照兩張紙", function () {
+        ship3PerspectiveIntroSeen[ek] = true;
+        ship3Msg = "";
+        renderAll();
+      }, "shipAction primary");
+    }
 
     if (v.phase === "baseline") {
       ship3El("h3", "一、先知道『正下方』在哪裡", work);
@@ -1845,11 +1917,11 @@
       var release = ship3Select(row, ["hand", "string", "latch"], {
         hand: "直接手放（容易多推一下）", string: "剪斷細繩", latch: "抽開門閂"
       }, lab.release || "hand");
-      ship3Btn(row, "採用這種釋放法", function () { doShip("setRelease", { mode: release.value }, "✓ 釋放方法已固定；接下來每次都照同一種做。"); });
+      ship3Btn(row, "交代馬蒂厄採用這種釋放法", function () { doShip("setRelease", { mode: release.value }, "✓ 馬蒂厄已固定釋放方法；接下來每次都照同一種做。"); });
       ship3Btn(work, lab.plumbCalibrated ? "✓ 鉛垂線已校準" : "校準鉛垂線・1 天", function () {
         doShip("calibratePlumb", {}, "✓ 桅腳正下方已在沙盤上標出。");
       }, "shipAction", lab.plumbCalibrated);
-      ship3Btn(work, "放手，記一次停船落點", function () {
+      ship3Btn(work, "請馬蒂厄放手，記一次停船落點", function () {
         doShip("runBaseline", {}, function (rr) {
           return rr.ready ? "✓ 三次乾淨基準已聚在桅腳附近。" : (rr.run && rr.run.clean ? "已留下乾淨落點；還需要三次成組。" : "這次手放帶入額外推力，保留紀錄，但不能當乾淨基準。");
         });
@@ -1861,16 +1933,16 @@
     if (v.phase === "first-failure") {
       ship3El("h3", "二、船剛離岸時", work);
       ship3El("p", "鼓點仍在加快；這次故意把條件不穩的結果留下。", work, "shipNote");
-      ship3Btn(work, "在離岸加速時放手", function () {
+      ship3Btn(work, "請馬蒂厄在離岸加速時抽閂", function () {
         doShip("runMast", { window: "depart" }, function (rr) { return "落點偏後 " + Math.abs(rr.run.offset).toFixed(2) + " 格。先別叫它失敗——記下船還在加速。"; });
       });
     }
     if (v.phase === "steady-mast") {
       ship3El("h3", "三、挑對放手窗口", work);
       var wr = ship3El("div", null, work, "shipChoiceGrid");
-      ship3Btn(wr, "離岸立刻放（仍加速）", function () { doShip("runMast", { window: "depart" }, "這一筆偏後；船速還沒穩定。"); });
-      ship3Btn(wr, "只聽一拍鼓（資訊不足）", function () { doShip("runMast", { window: "drumOnly" }, "只聽一拍抓不到速度是否穩定，落點仍偏後。"); });
-      ship3Btn(wr, "連續岸標等距後放手", function () { doShip("runMast", { window: "stable" }, "✓ 穩速窗口落點已記錄。"); });
+      ship3Btn(wr, "離岸立刻請馬蒂厄抽閂（仍加速）", function () { doShip("runMast", { window: "depart" }, "這一筆偏後；船速還沒穩定。"); });
+      ship3Btn(wr, "只聽一拍鼓就請他抽閂（資訊不足）", function () { doShip("runMast", { window: "drumOnly" }, "只聽一拍抓不到速度是否穩定，落點仍偏後。"); });
+      ship3Btn(wr, "連續岸標等距後請他抽閂", function () { doShip("runMast", { window: "stable" }, "✓ 穩速窗口落點已記錄。"); });
       ship3Table(work, ["#", "窗口", "船況", "相對桅腳"], (lab.mastRuns || []).map(function (r) {
         return [r.id, r.window === "stable" ? "岸標等距" : (r.window === "depart" ? "離岸" : "單拍鼓"), r.state === "steady" ? "近似穩速" : "加速", (r.offset > 0 ? "+" : "") + r.offset.toFixed(2)];
       }));
@@ -1926,7 +1998,7 @@
         var card = ship3El("div", null, work, "shipCabinCard"); ship3El("b", vs[1], card);
         [["drip", "滴水入碗"], ["toss", "向上拋接"]].forEach(function (t) {
           var count = cabinRuns(vs[0], t[0]).length;
-          var label = count ? "再做「" + t[1] + "」（已有 " + count + " 筆）" : t[1];
+          var label = count ? "請馬蒂厄再做「" + t[1] + "」（已有 " + count + " 筆）" : "請馬蒂厄做「" + t[1] + "」";
           ship3Btn(card, label, function () {
             var next = cabinRuns(vs[0], t[0]).length + 1;
             doShip("runCabin", { vesselState: vs[0], test: t[0] },
@@ -1970,12 +2042,12 @@
       } else {
         ship3El("p", "你的預測｜加速：" + ({ behind: "船尾", foot: "桅腳", ahead: "船頭" }[lab.predictions.accelerating]) + "；減速：" + ({ behind: "船尾", foot: "桅腳", ahead: "船頭" }[lab.predictions.decelerating]), work, "shipNote");
         var accelCount = speedRuns("accelerating").length, decelCount = speedRuns("decelerating").length;
-        ship3Btn(work, accelCount ? "再做「放手後加槳」（已有 " + accelCount + " 筆）" : "放手後加槳", function () {
+        ship3Btn(work, accelCount ? "再請馬蒂厄抽閂，接著加槳（已有 " + accelCount + " 筆）" : "請馬蒂厄抽閂，接著加槳", function () {
           doShip("runSpeedChange", { kind: "accelerating" }, function (rr) {
             return "第 " + rr.run.id + " 筆加速結果：石頭相對船偏後；紀錄已保留，仍可重做。";
           });
         });
-        ship3Btn(work, decelCount ? "再做「放手後收槳」（已有 " + decelCount + " 筆）" : "放手後收槳", function () {
+        ship3Btn(work, decelCount ? "再請馬蒂厄抽閂，接著收槳（已有 " + decelCount + " 筆）" : "請馬蒂厄抽閂，接著收槳", function () {
           doShip("runSpeedChange", { kind: "decelerating" }, function (rr) {
             return "第 " + rr.run.id + " 筆減速結果：石頭相對船偏前；紀錄已保留，仍可重做。";
           });
@@ -1994,7 +2066,7 @@
         action: "assertG3", args: function (picked, concept) { return { kinds: picked, concept: concept }; },
         success: "◆ 第三項主張成立：改變共同運動，才會留下有方向的相對偏移。" });
     }
-    if (v.phase === "overlay") {
+    if (v.phase === "overlay" && !showPerspectiveIntro) {
       ship3El("h3", "六、同一事件，兩張紙", work);
       if (!lab.overlay.inspected) {
         var nextBeat = lab.overlay.inspectionBeat >= 3 ? 0 : lab.overlay.inspectionBeat + 1;
@@ -2042,6 +2114,12 @@
           doShip("resetOverlay", {}, "↺ 兩張紙已上下分開；逐拍閱讀、配對與換算都可以重做。");
         }, "shipAction");
       }
+      var revisit = ship3El("div", null, work, "shipPerspectiveReplay");
+      ship3Btn(revisit, "重看岸上／船上視角", function () {
+        ship3PerspectiveIntroSeen[ek] = false;
+        ship3Msg = "";
+        renderAll();
+      }, "shipAction");
     }
     if (v.phase === "public-demo") {
       ship3El("h3", "七、公開驗證：先把條件鎖死", work);
@@ -2065,7 +2143,7 @@
       ship3El("p", "每一張紀錄只能回答它真正測過的問題。選錯不會抹掉紀錄，提問者會指出缺口。", work, "shipNote");
       var questions = [
         ["wind", "商人", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "艦長：封閉船艙裡也得到相同結果。這一問我接受，不能只拿甲板風解釋。", "商人：那一筆就在甲板上，風也在；不能替自己排除風。"],
-        ["acceleration", "槳手", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "艦長：我第一回看見的落後沒有錯；錯的是把加速結果說成所有船況。", "槳手：船艙只比停船和穩速，回答不了船速正在改變。"],
+        ["acceleration", "槳手", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "艦長：這一問，昨天是我問的。（把兩張方向相反的落點紙轉向他）答案也在這裡。", "槳手：船艙只比停船和穩速，回答不了船速正在改變。"],
         ["paths", "艾蒂安", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "艾蒂安：兩張紙記的是同一顆石頭；參考物不同，畫出的路徑就不同。", "艾蒂安：這份紀錄沒有把船上與岸上的位置放到同一組時刻裡。"]
       ];
       questions.forEach(function (q) {
@@ -2082,16 +2160,27 @@
       });
     }
     if (v.phase === "boundary") {
-      ship3El("h3", "九、最後一問：勝利能不能比證據走得更遠？", work);
+      ship3El("h3", "九、最後一行怎麼寫？", work);
+      var overclaimWritten = !!lab.audit.overclaimTried;
       var official = ship3El("section", null, work, "shipCrossExam active");
-      ship3El("span", "官員的提議", official, "shipCrossExamStep");
-      ship3El("b", "「就寫：今天在馬賽，我們證明了地球正在運動。」", official, "shipCrossExamQuote");
-      ship3El("p", "這句話最像勝利，也最容易越過證據。", official, "shipCrossExamReply");
-      ship3Btn(work, "順勢宣告：這證明地球正在運動", function () { doShip("setBoundary", { choice: "overclaim" }); }, "shipAction danger");
+      ship3El("span", overclaimWritten ? "墨已落下" : "明日告示的最後一行", official, "shipCrossExamStep");
+      ship3El("b", overclaimWritten
+        ? "「馬賽港，落石實驗，證——」"
+        : "「馬賽港，落石實驗，證明地球運動。」", official, "shipCrossExamQuote");
+      ship3El("p", overclaimWritten
+        ? "伽桑狄的手掌壓住紙面，墨已經在紙上暈開。"
+        : "官員等著把這句送去排字，只問眾人：這樣夠清楚了吧？", official, "shipCrossExamReply");
+      if (!overclaimWritten) ship3Btn(work, "照告示寫下：證明地球運動", function () {
+        doShip("setBoundary", { choice: "overclaim" }, null,
+          "伽桑狄：（手掌壓上紙面，墨在掌下暈開）「……停。」這場實驗沒有直接量到地球正在運動。");
+      }, "shipAction danger");
       ship3Btn(work, "收住結論：它只排除了『船動，石頭就一定落後』", function () { doShip("setBoundary", { choice: "honest" }, "✓ 艦長願意簽下這個有邊界的結論：船只替今天量到的事作證。"); }, "shipAction primary");
     }
 
-    var msg = ship3El("p", ship3Msg || "先完成本段目的；所有失敗紀錄都會保留，不必重開遊戲。", work, "shipMessage");
+    var defaultShipMsg = showPerspectiveIntro
+      ? "照片先幫你找出觀察位置；進入紙帶後，剛才的兩張圖會退場。"
+      : "先完成本段目的；所有失敗紀錄都會保留，不必重開遊戲。";
+    var msg = ship3El("p", ship3Msg || defaultShipMsg, work, "shipMessage");
     msg.setAttribute("role", "status");
     if (N.embedReady(state)) {
       ship3Btn(work, "▶ 收好紀錄，回到故事", function () {
@@ -2150,7 +2239,7 @@
       orbit4Msg = {
         tangent: "後果看完：沒有偏折，月亮沿切線越走越遠。下一次請找出指向地心的方向。",
         outward: "後果看完：箭頭朝外，月亮比切線幽靈路徑離得更快。比較箭頭與地心的位置。",
-        impact: "後果看完：方向向內，但改得太多，路徑穿進地球。把箭頭縮短。",
+        impact: "後果看完：方向對了，箭太長；照這個大小走下去會撞進地球。縮短，重跑。",
         unstable: "後果看完：方向或大小偏離容忍帶，軌道忽近忽遠。讓箭頭更接近地心方向，長度約一格。"
       }[kind] || "後果已完整保留；現在可以調整後重試。";
     } else if (rr.ok === false) {
