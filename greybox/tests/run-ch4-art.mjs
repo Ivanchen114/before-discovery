@@ -44,9 +44,9 @@ for (const [scene, id] of Object.entries(expectedBackgrounds)) {
 }
 
 const portraits = {
-  dialogue_newton22: "ch04/characters/ch04_char_newton22_v01.webp",
-  dialogue_newton41: "ch04/characters/ch04_char_newton41_v01.webp",
-  dialogue_halley28: "ch04/characters/ch04_char_halley28_v01.webp"
+  dialogue_newton22: "ch04/characters/ch04_char_newton22_v02.webp",
+  dialogue_newton41: "ch04/characters/ch04_char_newton41_v02.webp",
+  dialogue_halley28: "ch04/characters/ch04_char_halley28_v02.webp"
 };
 for (const [id, assetPath] of Object.entries(portraits)) {
   const entry = entries.get(id);
@@ -69,6 +69,37 @@ if (assets.speakerSide.Newton !== "right" || assets.speakerSide.Halley !== "left
   fail("Newton／Halley 雙槽站位未鎖定");
 if (assets.chapterThumbnail.ch04 !== "chapter_thumbnail_ch04")
   fail("第四章章節縮圖未接上");
+
+for (const code of ["K1", "K2", "K3", "K4", "K5"]) {
+  const id = "card_" + code;
+  const entry = entries.get(id);
+  const visual = assets.evidenceVisual?.[code];
+  if (!entry?.path || entry.w !== 1200 || entry.h !== 750)
+    fail("第四章證據圖宣告錯誤:" + id);
+  if (!assets.evidenceSummary?.[code])
+    fail("第四章證據摘要缺漏:" + code);
+  if (visual?.items?.[0]?.asset !== id || !visual.caption)
+    fail("第四章旅人筆記視覺未接上:" + code);
+  const file = path.join(here, "../../public/assets", entry.path);
+  if (!existsSync(file)) fail("第四章證據圖檔案不存在:" + entry.path);
+  const svg = readFileSync(file, "utf-8");
+  if (!svg.includes('role="img"') || !svg.includes("<title") || !svg.includes("<desc"))
+    fail("第四章證據圖缺可及性文字:" + id);
+}
+
+const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+if (!/body\[data-view="orbit"\] #panelWrap\s*\{\s*display:\s*block/.test(stageHtml))
+  fail("第四章工作台仍可能被全域 display:none 隱藏");
+if (!stageHtml.includes('body[data-view="orbit"] #dialogue'))
+  fail("第四章工作台未關閉殘留對話框");
+
+const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+for (const fragment of [
+  "先把預測封存，觀測才翻面",
+  "同一批天空，兩個模型都必須跑完",
+  '[["K1","改向"],["K2","跨尺度"],["K3","封存預測"],["K4","模型反驗"],["K5","署名邊界"]]'
+])
+  if (!chapterUi.includes(fragment)) fail("第四章動態證據視覺缺漏:" + fragment);
 
 const chapter4Transition = assets.sceneFx?.["D0-1"];
 if (!chapter4Transition || chapter4Transition.fx !== "montage" || chapter4Transition.steps?.length !== 3)
@@ -177,4 +208,4 @@ for (const fragment of [
 ])
   if (!stageUi.includes(fragment)) fail("第四章三段式音樂缺里程碑切換:" + fragment);
 
-console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、兩齡 Newton、Halley、11 首正式 BGM 與零斷鏈");
+console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、3 張去邊肖像、5 張證據圖、11 首 BGM、可見工作台與零斷鏈");

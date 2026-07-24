@@ -1477,10 +1477,55 @@
    "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_typecase_collision_epilogue_master_v01.png"
   },
   {
+   "id": "card_K1",
+   "kind": "card",
+   "label": "K1 一直改向的路",
+   "path": "ch04/evidence/ch04_card_K1_orbit_deflection_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750
+  },
+  {
+   "id": "card_K2",
+   "kind": "card",
+   "label": "K2 地上與天上的同一把尺",
+   "path": "ch04/evidence/ch04_card_K2_cross_scale_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750
+  },
+  {
+   "id": "card_K3",
+   "kind": "card",
+   "label": "K3 沒看答案前的兩個週期",
+   "path": "ch04/evidence/ch04_card_K3_sealed_predictions_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750
+  },
+  {
+   "id": "card_K4",
+   "kind": "card",
+   "label": "K4 一條規則穿過三種天空",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750
+  },
+  {
+   "id": "card_K5",
+   "kind": "card",
+   "label": "K5 能算到哪裡，也要停在哪裡",
+   "path": "ch04/evidence/ch04_card_K5_scoped_proof_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750
+  },
+  {
    "id": "dialogue_newton22",
    "kind": "portrait",
    "label": "Isaac Newton 22 歲（合理重建）",
-   "path": "ch04/characters/ch04_char_newton22_v01.webp",
+   "path": "ch04/characters/ch04_char_newton22_v02.webp",
    "firstScreen": true,
    "w": 900,
    "h": 1200,
@@ -1490,7 +1535,7 @@
    "id": "dialogue_newton41",
    "kind": "portrait",
    "label": "Isaac Newton 約 41 歲（合理重建）",
-   "path": "ch04/characters/ch04_char_newton41_v01.webp",
+   "path": "ch04/characters/ch04_char_newton41_v02.webp",
    "firstScreen": false,
    "w": 900,
    "h": 1200,
@@ -1500,7 +1545,7 @@
    "id": "dialogue_halley28",
    "kind": "portrait",
    "label": "Edmond Halley 28 歲（合理重建）",
-   "path": "ch04/characters/ch04_char_halley28_v01.webp",
+   "path": "ch04/characters/ch04_char_halley28_v02.webp",
    "firstScreen": false,
    "w": 900,
    "h": 1200,
@@ -2531,7 +2576,12 @@
   "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
   "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
   "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
-  "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。"
+  "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。",
+  "K1": "沒有向內偏折時月亮沿切線離開；每一拍向地心改向，才形成閉合軌道。",
+  "K2": "距離與時間同放大六十倍時，反平方律把地表一秒落下與月球六十秒偏折接到同一量級。",
+  "K3": "Mars 與 Jupiter 的週期都在觀測揭露前封存，舊預測即使改律也不會被刪除。",
+  "K4": "反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet；比較只涵蓋這兩個明列版本。",
+  "K5": "證據鏈、來源署名與作用機制邊界同時通過校樣；可計算規則成立，機制仍未決。"
  },
  "evidenceVisual": {
   "E1": {
@@ -2729,6 +2779,51 @@
     }
    ],
    "caption": "取得證據：反對失效，不等於所有主張都已得證。"
+  },
+  "K1": {
+   "items": [
+    {
+     "asset": "card_K1",
+     "alt": "切線逃逸與逐拍向內改向形成閉合軌道的比較圖"
+    }
+   ],
+   "caption": "取得證據：沒有偏折就沿切線離開；持續向內改向才形成軌道。"
+  },
+  "K2": {
+   "items": [
+    {
+     "asset": "card_K2",
+     "alt": "地表一秒落下與月球六十秒偏折的六十比六十跨尺度圖"
+    }
+   ],
+   "caption": "取得證據：反平方律把地表落體與月球偏折接到同一量級。"
+  },
+  "K3": {
+   "items": [
+    {
+     "asset": "card_K3",
+     "alt": "先封存 Mars 與 Jupiter 週期預測再揭露觀測的時間線"
+    }
+   ],
+   "caption": "取得證據：兩個週期都在看見答案前留下預測。"
+  },
+  "K4": {
+   "items": [
+    {
+     "asset": "card_K4",
+     "alt": "反平方與簡單共轉渦旋跨 Moon、Planets、Comet 的六格比較矩陣"
+    }
+   ],
+   "caption": "取得證據：同一批天空下的雙模型比較。"
+  },
+  "K5": {
+   "items": [
+    {
+     "asset": "card_K5",
+     "alt": "證據鏈、四條信用線與引力機制留白的完整校樣"
+    }
+   ],
+   "caption": "取得證據：證明、署名與未決機制都停在各自邊界。"
   }
  },
  "workshopApparatusAsset": "workshop2_projectile_apparatus_master",

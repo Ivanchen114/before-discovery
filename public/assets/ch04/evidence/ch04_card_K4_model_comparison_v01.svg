@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">K4 一條規則穿過三種天空</title>
+  <desc id="desc">反平方規則與簡單共轉渦旋都必須比較月球、行星與彗星，紀錄殘差與需要的補丁。</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151d2a"/><stop offset="1" stop-color="#070a10"/></linearGradient></defs>
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1132" height="682" rx="24" fill="none" stroke="#8ca3b3" stroke-width="2"/>
+  <text x="70" y="92" fill="#f3e8cc" font-size="38" font-weight="700" font-family="Noto Serif TC, PingFang TC, serif">K4｜一條規則穿過三種天空</text>
+  <text x="70" y="130" fill="#aebdca" font-size="20" font-family="Noto Sans TC, PingFang TC, sans-serif">不能只挑會贏的一格；兩個模型都跑 Moon、Planets、Comet。</text>
+
+  <text x="370" y="205" text-anchor="middle" fill="#b6c8d4" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">Moon</text>
+  <text x="650" y="205" text-anchor="middle" fill="#b6c8d4" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">Planets</text>
+  <text x="930" y="205" text-anchor="middle" fill="#b6c8d4" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">Comet</text>
+
+  <text x="170" y="300" text-anchor="middle" fill="#f0dfbc" font-size="24" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">反平方</text>
+  <text x="170" y="430" text-anchor="middle" fill="#f0dfbc" font-size="24" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">簡單渦旋</text>
+
+  <g font-family="Noto Sans TC, PingFang TC, sans-serif">
+    <rect x="250" y="235" width="240" height="105" rx="14" fill="#314d3b" stroke="#9fbd8e" stroke-width="3"/>
+    <text x="370" y="274" text-anchor="middle" fill="#e8f1df" font-size="23" font-weight="700">通過</text><text x="370" y="310" text-anchor="middle" fill="#c9dfbf" font-size="18">殘差 0.8%｜補丁 0</text>
+    <rect x="530" y="235" width="240" height="105" rx="14" fill="#314d3b" stroke="#9fbd8e" stroke-width="3"/>
+    <text x="650" y="274" text-anchor="middle" fill="#e8f1df" font-size="23" font-weight="700">通過</text><text x="650" y="310" text-anchor="middle" fill="#c9dfbf" font-size="18">殘差 1.6%｜補丁 0</text>
+    <rect x="810" y="235" width="240" height="105" rx="14" fill="#314d3b" stroke="#9fbd8e" stroke-width="3"/>
+    <text x="930" y="274" text-anchor="middle" fill="#e8f1df" font-size="23" font-weight="700">通過</text><text x="930" y="310" text-anchor="middle" fill="#c9dfbf" font-size="18">殘差 2.2%｜補丁 0</text>
+
+    <rect x="250" y="365" width="240" height="105" rx="14" fill="#314d3b" stroke="#9fbd8e" stroke-width="3"/>
+    <text x="370" y="404" text-anchor="middle" fill="#e8f1df" font-size="23" font-weight="700">通過</text><text x="370" y="440" text-anchor="middle" fill="#c9dfbf" font-size="18">殘差 3.8%｜補丁 0</text>
+    <rect x="530" y="365" width="240" height="105" rx="14" fill="#5b3a2a" stroke="#d1936d" stroke-width="3"/>
+    <text x="650" y="404" text-anchor="middle" fill="#f3ddd0" font-size="23" font-weight="700">需補丁</text><text x="650" y="440" text-anchor="middle" fill="#e5bba4" font-size="18">殘差 12.4%｜補丁 2</text>
+    <rect x="810" y="365" width="240" height="105" rx="14" fill="#5b3a2a" stroke="#d1936d" stroke-width="3"/>
+    <text x="930" y="404" text-anchor="middle" fill="#f3ddd0" font-size="23" font-weight="700">需補丁</text><text x="930" y="440" text-anchor="middle" fill="#e5bba4" font-size="18">殘差 28.0%｜補丁 2</text>
+  </g>
+
+  <rect x="125" y="525" width="950" height="86" rx="16" fill="#25364a" stroke="#7f9bb1"/>
+  <text x="600" y="562" text-anchor="middle" fill="#f5e6be" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">本章可說：反平方用同一條規則跨過三種天空；</text>
+  <text x="600" y="594" text-anchor="middle" fill="#f5e6be" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">這個簡單渦旋版本需要更多補丁。</text>
+  <rect x="160" y="635" width="880" height="58" rx="14" fill="#3a2926" stroke="#9f6a57"/>
+  <text x="600" y="673" text-anchor="middle" fill="#f1d5c6" font-size="21" font-family="Noto Sans TC, PingFang TC, sans-serif">不能說：因此所有渦旋或介質模型永遠不可能成立。</text>
+</svg>

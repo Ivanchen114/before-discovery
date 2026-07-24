@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">K1 一直改向的路</title>
+  <desc id="desc">比較沒有偏折時的切線逃逸，以及每一拍向地心改變速度後形成的閉合軌道。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111b2a"/><stop offset="1" stop-color="#05080e"/></linearGradient>
+    <marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#efcc78"/></marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#85bed8"/></marker>
+  </defs>
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1132" height="682" rx="24" fill="none" stroke="#8ca3b3" stroke-width="2"/>
+  <text x="70" y="92" fill="#f3e8cc" font-size="38" font-weight="700" font-family="Noto Serif TC, PingFang TC, serif">K1｜一直改向的路</text>
+  <text x="70" y="130" fill="#aebdca" font-size="20" font-family="Noto Sans TC, PingFang TC, sans-serif">同一個起點、同一個原有速度；只改「每一拍有沒有向內偏折」</text>
+
+  <rect x="70" y="170" width="490" height="420" rx="18" fill="#111a24" stroke="#64788a"/>
+  <text x="100" y="218" fill="#e9dcbf" font-size="27" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">沒有偏折</text>
+  <circle cx="275" cy="395" r="70" fill="#2e6280" stroke="#9fc6d6" stroke-width="5"/>
+  <circle cx="410" cy="395" r="15" fill="#ded4b7" stroke="#fff0bd" stroke-width="4"/>
+  <circle cx="410" cy="395" r="135" fill="none" stroke="#718092" stroke-width="3" stroke-dasharray="10 10"/>
+  <path d="M410 395 L410 230" fill="none" stroke="#efcc78" stroke-width="7" marker-end="url(#arrowGold)"/>
+  <circle cx="410" cy="340" r="7" fill="#efcc78"/><circle cx="410" cy="290" r="7" fill="#efcc78"/><circle cx="410" cy="245" r="7" fill="#efcc78"/>
+  <text x="100" y="535" fill="#efcc78" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">結果：沿切線離開</text>
+  <text x="100" y="568" fill="#b7c3ca" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">圓不是物體「本來就會走」的路。</text>
+
+  <rect x="640" y="170" width="490" height="420" rx="18" fill="#111a24" stroke="#64788a"/>
+  <text x="670" y="218" fill="#e9dcbf" font-size="27" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">每拍向地心改一點</text>
+  <circle cx="845" cy="370" r="65" fill="#2e6280" stroke="#9fc6d6" stroke-width="5"/>
+  <circle cx="955" cy="370" r="15" fill="#ded4b7" stroke="#fff0bd" stroke-width="4"/>
+  <circle cx="845" cy="260" r="15" fill="#ded4b7" stroke="#fff0bd" stroke-width="4"/>
+  <circle cx="735" cy="370" r="15" fill="#ded4b7" stroke="#fff0bd" stroke-width="4"/>
+  <circle cx="845" cy="480" r="15" fill="#ded4b7" stroke="#fff0bd" stroke-width="4"/>
+  <circle cx="845" cy="370" r="110" fill="none" stroke="#efcc78" stroke-width="6"/>
+  <path d="M955 370 L915 370" stroke="#85bed8" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <path d="M845 260 L845 300" stroke="#85bed8" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <path d="M735 370 L775 370" stroke="#85bed8" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <path d="M845 480 L845 440" stroke="#85bed8" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <text x="670" y="535" fill="#efcc78" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">結果：前進，同時持續改向</text>
+  <text x="670" y="568" fill="#b7c3ca" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">向內作用改變速度方向，不必沿圓周推著走。</text>
+
+  <rect x="120" y="625" width="960" height="58" rx="14" fill="#25364a" stroke="#7f9bb1"/>
+  <text x="600" y="663" text-anchor="middle" fill="#f5e6be" font-size="24" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">月亮一直「落」：保留原有前進，又每一刻偏離原來的切線。</text>
+</svg>

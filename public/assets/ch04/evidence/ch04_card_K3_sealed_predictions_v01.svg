@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">K3 沒看答案前的兩個週期</title>
+  <desc id="desc">先鎖定反平方律，再封存火星與木星的週期預測，最後才揭露觀測並比較殘差。</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151d2a"/><stop offset="1" stop-color="#070a10"/></linearGradient><marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8fb4ca"/></marker></defs>
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1132" height="682" rx="24" fill="none" stroke="#8ca3b3" stroke-width="2"/>
+  <text x="70" y="92" fill="#f3e8cc" font-size="38" font-weight="700" font-family="Noto Serif TC, PingFang TC, serif">K3｜沒看答案前的兩個週期</text>
+  <text x="70" y="130" fill="#aebdca" font-size="20" font-family="Noto Sans TC, PingFang TC, sans-serif">順序就是證據的一部分：鎖規則 → 寫預測 → 封存 → 才揭露觀測。</text>
+
+  <rect x="70" y="180" width="250" height="330" rx="18" fill="#172231" stroke="#72899d"/>
+  <text x="195" y="226" text-anchor="middle" fill="#e9dcbf" font-size="25" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">① 鎖定規則</text>
+  <text x="195" y="310" text-anchor="middle" fill="#f1cf8f" font-size="42" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">n＝2</text>
+  <text x="195" y="355" text-anchor="middle" fill="#b7c3ca" font-size="20" font-family="Noto Sans TC, PingFang TC, sans-serif">a(r) ∝ 1/r²</text>
+  <path d="M120 420 L270 420" stroke="#8da0af" stroke-width="3"/>
+  <circle cx="130" cy="420" r="14" fill="#2e6280"/><circle cx="265" cy="420" r="8" fill="#ded4b7"/>
+  <text x="195" y="474" text-anchor="middle" fill="#aebdca" font-size="17" font-family="Noto Sans TC, PingFang TC, sans-serif">此後不能看答案改律</text>
+  <path d="M330 345 L390 345" stroke="#8fb4ca" stroke-width="5" marker-end="url(#arr)"/>
+
+  <rect x="400" y="180" width="340" height="330" rx="18" fill="#1d2530" stroke="#8f7d64"/>
+  <text x="570" y="226" text-anchor="middle" fill="#e9dcbf" font-size="25" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">② 先封存預測</text>
+  <rect x="438" y="265" width="125" height="155" rx="10" fill="#d8c8a6" stroke="#f0d9aa"/>
+  <path d="M438 275 L500 335 L563 275" fill="none" stroke="#8c6a46" stroke-width="4"/>
+  <circle cx="500" cy="351" r="22" fill="#8f3f32" stroke="#d18b70" stroke-width="3"/>
+  <text x="500" y="458" text-anchor="middle" fill="#f1cf8f" font-size="20" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">Mars 1.874</text>
+  <rect x="578" y="265" width="125" height="155" rx="10" fill="#d8c8a6" stroke="#f0d9aa"/>
+  <path d="M578 275 L640 335 L703 275" fill="none" stroke="#8c6a46" stroke-width="4"/>
+  <circle cx="640" cy="351" r="22" fill="#8f3f32" stroke="#d18b70" stroke-width="3"/>
+  <text x="640" y="458" text-anchor="middle" fill="#f1cf8f" font-size="20" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">Jupiter 11.858</text>
+  <path d="M750 345 L810 345" stroke="#8fb4ca" stroke-width="5" marker-end="url(#arr)"/>
+
+  <rect x="820" y="180" width="310" height="330" rx="18" fill="#172b25" stroke="#91ae87"/>
+  <text x="975" y="226" text-anchor="middle" fill="#e9dcbf" font-size="25" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">③ 再翻觀測紙</text>
+  <text x="860" y="300" fill="#aebdca" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">Mars 觀測</text>
+  <text x="1090" y="300" text-anchor="end" fill="#f1cf8f" font-size="24" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">1.88</text>
+  <text x="860" y="337" fill="#c9dfbf" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">殘差 0.32% ✓</text>
+  <line x1="855" y1="362" x2="1095" y2="362" stroke="#61786c"/>
+  <text x="860" y="407" fill="#aebdca" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">Jupiter 觀測</text>
+  <text x="1090" y="407" text-anchor="end" fill="#f1cf8f" font-size="24" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">11.86</text>
+  <text x="860" y="444" fill="#c9dfbf" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">殘差 0.02% ✓</text>
+  <text x="975" y="485" text-anchor="middle" fill="#c9dfbf" font-size="18" font-family="Noto Sans TC, PingFang TC, sans-serif">兩張都在揭露前留下</text>
+
+  <rect x="100" y="555" width="1000" height="58" rx="14" fill="#3a2926" stroke="#9f6a57"/>
+  <text x="600" y="593" text-anchor="middle" fill="#f1d5c6" font-size="22" font-family="Noto Sans TC, PingFang TC, sans-serif">若看完答案才把 n 調成 2，即使相合，也不能叫「預測」。</text>
+  <rect x="120" y="635" width="960" height="58" rx="14" fill="#25364a" stroke="#7f9bb1"/>
+  <text x="600" y="673" text-anchor="middle" fill="#f5e6be" font-size="23" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">蠟封不是戲劇道具；它防止人看見結果後改口。</text>
+</svg>

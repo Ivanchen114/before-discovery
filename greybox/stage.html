@@ -180,6 +180,7 @@
               border: 1px solid rgba(230, 215, 189, 0.35); border-top: 2px solid var(--color-chapter-accent);
               border-radius: 6px; padding: 16px 20px 18px; box-sizing: border-box; }
   body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue, body[data-view="ship"] #dialogue,
+  body[data-view="orbit"] #dialogue,
   body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue,
   body[data-view="debate"] #dialogue { display: none; } /* 辯論:台詞演完即退場,讓出證據手牌(總監實玩:對話框壓住手牌) */
   body.queue-active #dialogue { display: block !important; }
@@ -1584,7 +1585,8 @@
   }
 
   /* 第四章：天文工作台與印刷校樣。答案幾何由 SVG／引擎生成，背景只負責氣氛。 */
-  body[data-view="orbit"] #panelWrap { padding: 10px; overflow: auto; color: #e9e4d8;
+  body[data-view="orbit"] #panelWrap { display: block; left: 4%; right: 4%; top: 9%; bottom: 6%;
+    padding: 10px; overflow: auto; color: #e9e4d8;
     border: 1px solid rgba(150,173,190,.62); border-radius: 12px;
     background: radial-gradient(circle at 14% -10%,rgba(80,112,142,.3),transparent 42%),
       linear-gradient(145deg,rgba(20,25,33,.99),rgba(10,12,18,.99)); }
@@ -1627,6 +1629,14 @@
   .orbitLabel,.orbitScaleText { fill:#ece4cf; font:700 16px var(--font-ui);
     paint-order:stroke; stroke:#080c13; stroke-width:5; stroke-linejoin:round; }
   .orbitScaleText { fill:#f0cf79; font-size:19px; }
+  .orbitCaseCard { fill:rgba(35,45,59,.9); stroke:#718ba3; stroke-width:2; }
+  .orbitCaseCard.pending { fill:rgba(50,45,48,.82); stroke:#837581; stroke-dasharray:7 6; }
+  .orbitCaseCard.pass { fill:rgba(55,78,64,.9); stroke:#98b78f; }
+  .orbitCaseCard.patched { fill:rgba(91,58,42,.92); stroke:#d1936d; }
+  .orbitCaseTitle { fill:#f3ead6; font:700 18px var(--font-ui); }
+  .orbitCaseMeta { fill:#cbd4d8; font:600 13px var(--font-ui); }
+  .orbitCaseValue { fill:#f1cf8f; font:700 15px var(--font-ui); }
+  .orbitMatrixHead { fill:#aec4d2; font:700 14px var(--font-ui); letter-spacing:.04em; }
   .orbitModelPath { fill:none; stroke-width:5; }.orbitModelPath.gravity { stroke:#e0c16a; }
   .orbitModelPath.vortex { stroke:#77a6be; stroke-dasharray:9 7; }
   .orbitProofNode { fill:#1b2834; stroke:#66798a; stroke-width:4; }.orbitProofNode.got { fill:#536843; stroke:#e4ce82; }
@@ -1978,7 +1988,7 @@
 <script src="data/histfacts2.js"></script>
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
-<script src="data/assets.js?v=20260724-ch04-audio"></script>
+<script src="data/assets.js?v=20260724-ch04-visual-complete"></script>
 <script src="src/sanitize.js"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js"></script>
@@ -2021,7 +2031,7 @@
 })();
 </script>
 <script src="src/narrative.js?v=20260724-ch04-cr004"></script>
-<script src="src/chapter-ui.js?v=20260724-ch04-cr004"></script>
+<script src="src/chapter-ui.js?v=20260724-ch04-visual-complete"></script>
 <script src="src/stage-ui.js?v=20260724-ch04-audio"></script>
 </body>
 </html>

@@ -2205,25 +2205,84 @@
       draw("circle", { cx:p[0], cy:p[1], r:2, class:"orbitStar" });
     });
     var o = lab.orbitLab || {}, scale = 128, cx = 310, cy = 205;
-    if (phase === "scale" || phase === "planets") {
-      draw("circle", { cx: 115, cy: 205, r: 58, class:"orbitEarth" });
-      draw("line", { x1:173, y1:205, x2:540, y2:205, class:"orbitScaleLine" });
-      draw("circle", { cx:540, cy:205, r:12, class:"orbitMoon" });
-      draw("text", { x:115, y:286, "text-anchor":"middle", class:"orbitLabel" }, "地表：1 秒落下 4.9 m");
-      draw("text", { x:540, y:286, "text-anchor":"middle", class:"orbitLabel" }, "月球：60 秒偏離切線");
-      draw("text", { x:356, y:183, "text-anchor":"middle", class:"orbitScaleText" },
-        (lab.scaleLab.earthRadiusRatio || 60) + " 個地球半徑");
+    if (phase === "scale") {
+      var ratio = lab.scaleLab.earthRadiusRatio || 60;
+      var moonX = 180 + 360 * Math.log(Math.max(1, ratio)) / Math.log(100);
+      draw("circle", { cx: 90, cy: 205, r: 58, class:"orbitEarth" });
+      draw("line", { x1:148, y1:205, x2:moonX, y2:205, class:"orbitScaleLine" });
+      draw("circle", { cx:moonX, cy:205, r:12, class:"orbitMoon" });
+      draw("text", { x:90, y:286, "text-anchor":"middle", class:"orbitLabel" }, "地表：1 秒落下 4.9 m");
+      draw("text", { x:moonX, y:286, "text-anchor":"middle", class:"orbitLabel" },
+        "月球：" + (lab.scaleLab.timeRatio || 60) + " 秒偏離切線");
+      draw("text", { x:(148+moonX)/2, y:183, "text-anchor":"middle", class:"orbitScaleText" },
+        ratio + " 個地球半徑");
+      draw("text", { x:320, y:345, "text-anchor":"middle", class:"orbitCaseMeta" },
+        "同一條距離律：距離放大 60 倍，時間也放大 60 倍");
+    } else if (phase === "planets") {
+      var predictions = lab.planetLab && lab.planetLab.predictions || [];
+      draw("text", { x:320, y:58, "text-anchor":"middle", class:"orbitMatrixHead" },
+        "先把預測封存，觀測才翻面");
+      [["mars","Mars",1.52,70],["jupiter","Jupiter",5.20,345]].forEach(function (p) {
+        var row = null;
+        for (var pi = predictions.length - 1; pi >= 0; pi--) {
+          if (predictions[pi].planet === p[0] && !predictions[pi].superseded) { row = predictions[pi]; break; }
+        }
+        var cls = "orbitCaseCard " + (!row ? "pending" : (row.pass ? "pass" : "patched"));
+        draw("rect", { x:p[3], y:92, width:225, height:218, rx:14, class:cls });
+        draw("text", { x:p[3]+18, y:127, class:"orbitCaseTitle" }, p[1]);
+        draw("text", { x:p[3]+18, y:154, class:"orbitCaseMeta" }, "距離比 " + p[2].toFixed(2));
+        if (!row) {
+          draw("text", { x:p[3]+18, y:202, class:"orbitCaseValue" }, "預測：尚未封存");
+          draw("text", { x:p[3]+18, y:236, class:"orbitCaseMeta" }, "觀測：仍在蠟封後");
+          draw("text", { x:p[3]+18, y:276, class:"orbitCaseMeta" }, "封存後才能翻面");
+        } else {
+          draw("text", { x:p[3]+18, y:194, class:"orbitCaseValue" },
+            "預測 " + row.prediction.toFixed(3));
+          draw("text", { x:p[3]+18, y:228, class:"orbitCaseMeta" },
+            "觀測 " + row.actual.toFixed(2));
+          draw("text", { x:p[3]+18, y:262, class:"orbitCaseMeta" },
+            "殘差 " + row.residualPct.toFixed(2) + "%");
+          draw("text", { x:p[3]+18, y:292, class:"orbitCaseValue" },
+            row.pass ? "✓ 封存預測通過" : "需重新檢查");
+        }
+      });
+      draw("text", { x:320, y:352, "text-anchor":"middle", class:"orbitCaseMeta" },
+        "舊律的預測會保留並劃線，不會在看到答案後消失");
     } else if (phase === "models") {
-      draw("path", { d:"M85 205 C160 90 255 90 320 205 S480 320 560 205", class:"orbitModelPath gravity" });
-      draw("path", { d:"M85 205 C180 130 245 285 320 205 S470 140 560 205", class:"orbitModelPath vortex" });
-      draw("text", { x:145,y:55,class:"orbitLabel" }, "同一距離律");
-      draw("text", { x:405,y:355,class:"orbitLabel" }, "簡單共轉渦旋");
+      var modelRuns = lab.modelLab && lab.modelLab.runs || [];
+      var cases = [["moon","Moon"],["planets","Planets"],["comet","Comet"]];
+      draw("text", { x:320, y:48, "text-anchor":"middle", class:"orbitMatrixHead" },
+        "同一批天空，兩個模型都必須跑完");
+      cases.forEach(function (c, ci) {
+        draw("text", { x:235+ci*135, y:82, "text-anchor":"middle", class:"orbitMatrixHead" }, c[1]);
+      });
+      [["inverseSquare","反平方規則",120],["simpleVortex","簡單共轉渦旋",245]].forEach(function (m) {
+        draw("text", { x:92, y:m[2]+52, "text-anchor":"middle", class:"orbitCaseTitle" }, m[1]);
+        cases.forEach(function (c, ci) {
+          var run = null;
+          for (var ri = modelRuns.length - 1; ri >= 0; ri--) {
+            if (modelRuns[ri].model === m[0] && modelRuns[ri].caseId === c[0]) { run = modelRuns[ri]; break; }
+          }
+          var x = 173 + ci * 135;
+          var runClass = !run ? "pending" : (run.fit === "pass" ? "pass" : "patched");
+          draw("rect", { x:x, y:m[2], width:124, height:98, rx:10, class:"orbitCaseCard " + runClass });
+          draw("text", { x:x+62, y:m[2]+34, "text-anchor":"middle", class:"orbitCaseValue" },
+            run ? (run.fit === "pass" ? "通過" : "需補丁") : "尚未跑");
+          draw("text", { x:x+62, y:m[2]+60, "text-anchor":"middle", class:"orbitCaseMeta" },
+            run ? "殘差 " + run.residual.toFixed(1) + "%" : "—");
+          draw("text", { x:x+62, y:m[2]+83, "text-anchor":"middle", class:"orbitCaseMeta" },
+            run ? "補丁 " + run.patches : "等待紀錄");
+        });
+      });
+      draw("text", { x:320, y:374, "text-anchor":"middle", class:"orbitCaseMeta" },
+        "裁決只涵蓋這兩個明列版本，不外推成所有模型的終局");
     } else if (phase === "proof" || phase === "press-opening") {
-      var labels = ["原有前進","向內改向","距離律","封存預測","模型比較"];
+      var labels = [["K1","改向"],["K2","跨尺度"],["K3","封存預測"],["K4","模型反驗"],["K5","署名邊界"]];
       labels.forEach(function (t, i) {
         var x = 72 + i * 120;
         draw("circle", { cx:x, cy:190, r:30, class:"orbitProofNode " + (lab.evidence["k" + (i + 1)] ? "got" : "") });
-        draw("text", { x:x, y:247, "text-anchor":"middle", class:"orbitLabel" }, t);
+        draw("text", { x:x, y:185, "text-anchor":"middle", class:"orbitCaseValue" }, t[0]);
+        draw("text", { x:x, y:247, "text-anchor":"middle", class:"orbitLabel" }, t[1]);
         if (i < labels.length - 1) draw("line", { x1:x+31,y1:190,x2:x+89,y2:190,class:"orbitProofLink" });
       });
       draw("text", { x:320,y:90,"text-anchor":"middle",class:"orbitPressStamp" },
@@ -2236,6 +2295,10 @@
           "precise-scope": "Hooke：範圍精確"
         }[lab.proof.hookeScope] || "Hooke：尚未簽句";
         draw("text", { x:320,y:325,"text-anchor":"middle",class:"orbitPressStamp" }, scopeLabel);
+        draw("text", { x:320,y:360,"text-anchor":"middle",class:"orbitCaseMeta" },
+          lab.proof.boundaryChoice === "ruleEstablished"
+            ? "規則已成立；作用機制仍留白"
+            : "末句尚未守住作用機制的空白");
       }
     } else {
       draw("circle", { cx:cx, cy:cy, r:58, class:"orbitEarth" });
