@@ -94,10 +94,10 @@
     {"id":"n5","type":"line","speaker":"旅人(你)","text":"繩子一鬆，它就回到紙上的直線。","next":"n6"},
     {"id":"n6","type":"line","speaker":"牛頓","text":"繩子不是月亮的答案。它只把問題指出來。","next":"n7"},
     {"id":"n7","type":"line","speaker":"旅人(你)","text":"月亮沒有繩子。可它若一直轉彎，就一定有東西持續改變它的速度。","next":"n8"},
-    {"id":"n8","type":"line","speaker":"牛頓","text":"別急著替那個東西命名。先看每一拍該往哪裡改。","next":"e1"},
-    {"id":"e1","type":"embed","system":"orbit","phase":"vectors","hint":"每一拍只選改向箭頭的方向；箭頭大小先固定。選錯時先看完整路徑，再依後果重試。","until":{"orbit":"closed"},"next":"n9"},
-    {"id":"n9","type":"line","speaker":"旅人(你)","text":"每一拍都得重新看地球在哪裡。","next":"n10"},
-    {"id":"n10","type":"line","speaker":"牛頓","text":"對。不是固定朝左，是指向當下的地球。","next":"g1"},
+    {"id":"n8","type":"line","speaker":"牛頓","text":"別急著替那個東西命名。把方向、箭長和初速一次寫死，然後放手。別等它走歪了才替它修路。","next":"e1"},
+    {"id":"e1","type":"embed","system":"orbit","phase":"vectors","hint":"設計同一套改向規則，先封存路徑預測，再讓它自行跑完。外張與內切都會留在紙上。","until":{"orbit":"closed"},"next":"n9"},
+    {"id":"n9","type":"line","speaker":"旅人(你)","text":"只找對方向還不夠。箭長也得配上它原來跑多快。","next":"n10"},
+    {"id":"n10","type":"line","speaker":"牛頓","text":"方向告訴你往哪裡改；數量決定那條路能不能留在地球周圍。","next":"g1"},
     {"id":"g1","type":"goto","scene":"D1-3"}
    ]
   },
@@ -107,7 +107,7 @@
    "historyTag":"modern-model",
    "nodes":[
     {"id":"e1","type":"embed","system":"orbit","phase":"claim","hint":"用切線逃逸與閉合軌道兩筆紀錄，說明前進與向內改向如何同時存在。","until":{"orbit":"k1"},"next":"n1"},
-    {"id":"n1","type":"line","speaker":"旅人(你)","text":"它保留原來的前進；新的作用只負責把速度往地球方向改。","next":"n2"},
+    {"id":"n1","type":"line","speaker":"旅人(你)","text":"它保留原來的前進；新的作用持續指向地心，改向的量還得和它跑多快相配。","next":"n2"},
     {"id":"n2","type":"line","speaker":"牛頓","text":"現在才可以說：它一直在掉。","next":"n3"},
     {"id":"n3","type":"line","speaker":"旅人(你)","text":"卻一直錯過地面。","next":"n4"},
     {"id":"n4","type":"line","speaker":"stage","text":"牛頓在金色箭頭旁寫下一個問號。","next":"n5"},
@@ -144,7 +144,7 @@
    "historyTag":"modern-model",
    "nodes":[
     {"id":"n1","type":"line","speaker":"牛頓","text":"別改觀測。只准改你拿來連接它們的規則。","next":"e1"},
-    {"id":"e1","type":"embed","system":"orbit","phase":"scale","hint":"把尺調到 60 個地球半徑與 60 秒，至少比較兩種距離律，再提出跨尺度斷言。","until":{"orbit":"k2"},"next":"n2"},
+    {"id":"e1","type":"embed","system":"orbit","phase":"scale","hint":"已知月球到地心約六十個地球半徑。先封存距離律，月球六十秒偏離切線的落點才會揭曉。","until":{"orbit":"k2"},"next":"n2"},
     {"id":"n2","type":"line","speaker":"旅人(你)","text":"六十秒後，月亮離開切線的距離，和地表一秒的落下碰上了。","next":"n3"},
     {"id":"n3","type":"line","speaker":"牛頓","text":"先記下。它只回答了月亮。","next":"n4"},
     {"id":"n4","type":"line","speaker":"旅人(你)","text":"你還不相信？","next":"n5"},
@@ -204,8 +204,8 @@
    "nodes":[
     {"id":"n1","type":"line","speaker":"stage","text":"格林威治的行星與彗星觀測紙送到。桌上並列反平方規則與本章明列的簡單共轉渦旋版本。","next":"n2"},
     {"id":"n2","type":"line","speaker":"佛蘭斯蒂德・書信","text":"日期、星位、儀器都寫在紙邊。若要用我的數字改變你的結論，也請留下是哪一夜改變了你。","next":"n3"},
-    {"id":"n3","type":"line","speaker":"牛頓","text":"月球一項，兩邊都能說。把行星和彗星也放進去。","next":"e1"},
-    {"id":"e1","type":"embed","system":"orbit","phase":"models","hint":"讓反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet，再替這份比較選一句不越界的紀錄標題。","until":{"orbit":"k4"},"next":"n4"},
+    {"id":"n3","type":"line","speaker":"牛頓","text":"先把比較規矩寫清楚。同一條定律不能為某顆星臨時改口；每顆星觀測到的起點與速度，也不能被你抹成一樣。","next":"e1"},
+    {"id":"e1","type":"embed","system":"orbit","phase":"models","hint":"先封存公平標準與模型預測，再讓反平方與簡單共轉渦旋各用三組觀測初值一次跑完。","until":{"orbit":"k4"},"next":"n4"},
     {"id":"n4","type":"line","speaker":"哈雷","text":"三組都跑過了。現在選一句，讓它只蓋住我們真的跑過的紙。","next":"n5"},
     {"id":"n5","type":"line","speaker":"stage","text":"精確封條剛好包住三疊資料與兩個明列模型，不蓋住未測空白。哈雷把記錄、補丁籤、虎克書信與封存預測一起鎖進木匣。","next":"n6"},
     {"id":"n6","type":"line","speaker":"哈雷","text":"現在去處理最難算的部分。","next":"n7"},

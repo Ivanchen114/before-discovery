@@ -490,7 +490,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260725-ch03-redesign-v2"))
+    if (!stageHtml.includes("stage-ui.js?v=20260725-ch04-redesign-v1"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))
@@ -2474,7 +2474,7 @@ tests.push({
       throw new Error("第三章末頁、玩家翻頁與伍爾索普落地仍未在視覺上分成三拍");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (!stage.includes("data/assets.js?v=20260724-ch04-cr009") ||
-        !stage.includes("data/scenes4.js?v=20260724-ch04-cr011"))
+        !stage.includes("data/scenes4.js?v=20260725-ch04-redesign-v1"))
       throw new Error("第四章接縫修正缺少快取更新，正式站可能仍載入舊背景");
 
     if (!principles.includes("筆記只折疊年月，不替旅人預知歷史") || !ch4.includes("CH4-CR-007"))
@@ -2771,71 +2771,60 @@ tests.push({
     if (d11.nodes.some((n) => n.type === "embed" && n.phase === "tangent"))
       throw new Error("D1-1 又把切線常識擴張成獨立工作台");
     const d12Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D1-2"));
-    for (const fragment of ["木球繫到細繩", "繩子不是月亮的答案", "每一拍只選改向箭頭的方向"])
-      if (!d12Text.includes(fragment)) throw new Error("D1-2 繩球橋接或方向單選缺漏:" + fragment);
+    for (const fragment of ["木球繫到細繩", "繩子不是月亮的答案", "方向、箭長和初速一次寫死", "先封存路徑預測"])
+      if (!d12Text.includes(fragment)) throw new Error("D1-2 繩球橋接或自走規則缺漏:" + fragment);
   }
 });
 
 tests.push({
-  name: "第四章軌道引擎|切線、朝外、過強與三拍閉合皆先演後果且不自動給證據",
+  name: "第四章軌道設計|封存方向×初速×箭長後自行運算，錯路可診斷且三組相配皆能近圓",
   fn: () => {
     let s = Engine4.initialState();
     const before = JSON.stringify(s);
-    let r = Engine4.commitDeflection(s, { dx:0, dy:0 });
-    if (r.error !== "orbit-attempt-required" || JSON.stringify(s) !== before) throw new Error("未開局守衛或純函式失效");
-    s = Engine4.startOrbitAttempt(s).state;
-    if (!s.orbitLab.tangentRecord || s.evidence.k1)
-      throw new Error("D1-1 封存的切線預測未進入工作台，或預測誤授 K1");
-    r = Engine4.commitDeflection(s, { dx:0, dy:0 });
-    if (r.ok !== false || r.consequence.kind !== "tangent" || r.consequence.played) throw new Error("無偏折未生成待播放切線後果");
-    if (r.consequence.path.length < 5 || Math.hypot(r.consequence.path.at(-1).x, r.consequence.path.at(-1).y) <= 1.3)
-      throw new Error("切線後果沒有明顯遠離");
-    s = r.state;
-    if (Engine4.commitDeflection(s, { dx:-.058,dy:0 }).error !== "consequence-required")
-      throw new Error("後果未看完仍可直接重畫");
-    s = Engine4.runConsequence(s).state;
-    if (!s.orbitLab.tangentRecord || s.evidence.k1) throw new Error("切線紀錄遺失或自動取得證據");
-    s = Engine4.startOrbitAttempt(s).state;
-    r = Engine4.commitDeflection(s, { dx:.058,dy:0 });
-    if (r.consequence.kind !== "outward") throw new Error("朝外箭頭未生成更快遠離後果");
-    const outwardEnd = r.consequence.path.at(-1);
-    if (Math.hypot(outwardEnd.x,outwardEnd.y) <= Math.hypot(1,1.2)) throw new Error("朝外路徑沒有比切線更遠");
-    s = Engine4.runConsequence(r.state).state;
-    s = Engine4.startOrbitAttempt(s).state;
-    r = Engine4.commitDeflection(s, { dx:-.18,dy:0 });
-    if (!["impact","unstable"].includes(r.consequence.kind)) throw new Error("過強向內未撞地／失穩");
-    s = Engine4.runConsequence(r.state).state;
-    s = Engine4.startOrbitAttempt(s).state;
-    for (let i=0;i<3;i++) {
-      const p=s.orbitLab.position, m=Math.hypot(p.x,p.y);
-      r=Engine4.commitDeflection(s,{dx:-p.x/m*.058,dy:-p.y/m*.058});
-      if (!r.ok) throw new Error("容忍帶內偏折遭拒，第 "+(i+1)+" 拍");
-      s=r.state;
+    let r = Engine4.runOrbitRule(s,{target:"same-vector",speed:"medium",strength:"medium"},"parabola");
+    if (JSON.stringify(s)!==before || r.run.outcome!=="parabola" || !r.run.predictionMatched)
+      throw new Error("固定方向未形成可重現拋物線，或純函式失效");
+    s=r.state;
+    r=Engine4.runOrbitRule(s,{target:"ink-mark",speed:"medium",strength:"medium"},"wrong-center");
+    if(r.run.outcome!=="wrong-center") throw new Error("紙上墨點未留下繞錯中心的指紋");
+    s=r.state;
+    r=Engine4.runOrbitRule(s,{target:"earth-center",speed:"fast",strength:"short"},"near-circle");
+    if(r.run.outcome!=="outer-band" || r.run.predictionMatched) throw new Error("快而短未留下向外張開與預測失配");
+    s=r.state;
+    r=Engine4.runOrbitRule(s,{target:"earth-center",speed:"slow",strength:"long"},"inner-band");
+    if(r.run.outcome!=="inner-band") throw new Error("慢而長未留下向內切入");
+    for (const [speed,strength] of [["slow","short"],["medium","medium"],["fast","long"]]) {
+      const fresh=Engine4.initialState();
+      const match=Engine4.runOrbitRule(fresh,{target:"earth-center",speed,strength},"near-circle");
+      if(match.run.outcome!=="near-circle" || !match.state.orbitLab.complete ||
+          match.state.orbitLab.path.length<40 || match.state.evidence.k1)
+        throw new Error("相配組合未自行形成近圓，或自動授證:"+speed+"/"+strength);
     }
-    if (!s.orbitLab.ruleRepeatReady || s.evidence.k1) throw new Error("三拍狀態或手動斷言邊界錯");
-    s=Engine4.repeatOrbitRule(s).state;
-    if (!s.orbitLab.complete || s.orbitLab.path.length<33 || s.evidence.k1) throw new Error("閉合續跑或證據邊界錯");
     r=Engine4.assertK1(s,["closed","tangent"],"forward-push");
     if (r.ok || r.state.evidence.k1) throw new Error("向前推力錯解仍取得證據");
+    s=Engine4.runOrbitRule(s,{target:"earth-center",speed:"medium",strength:"medium"},"near-circle").state;
     s=Engine4.assertK1(s,["tangent","closed"],"forward-plus-inward-turn").state;
     if (!s.evidence.k1) throw new Error("正確兩紀錄斷言未成立");
   }
 });
 
 tests.push({
-  name: "第四章跨尺度引擎|座標真的縮放、n=0/1/2 fixture、兩試算後才可鎖律",
+  name: "第四章倍率天平|60R 從地心量、先封存後揭曉、錯稿保留且反平方才可取得 K2",
   fn: () => {
     let s=Engine4.initialState(); s.evidence.k1=true;
-    let r=Engine4.setScale(s,30,45); s=r.state;
-    if (s.scaleLab.actualCoordinates.moonX!==30 || !s.scaleLab.scaleHistory.length) throw new Error("尺度只換文字、未改座標／歷史");
-    s=Engine4.setScale(s,60,60).state;
-    const vals={};
-    for (const n of [0,1,2]) { r=Engine4.tryDistanceLaw(s,n); s=r.state; vals[n]=r.trial.moonSagM; }
-    if (vals[0]!==17640 || vals[1]!==294 || vals[2]!==4.9) throw new Error("距離律教學 fixture 漂移:"+JSON.stringify(vals));
-    let one=Engine4.initialState(); one.evidence.k1=true; one=Engine4.tryDistanceLaw(one,2).state;
-    if (Engine4.lockDistanceLaw(one,2).error!=="two-trials-required") throw new Error("只試一條律仍可封存");
-    s=Engine4.lockDistanceLaw(s,2).state;
-    if (s.scaleLab.lawLocked!==2) throw new Error("試算後封存失敗");
+    if(s.scaleLab.moonObservationRevealed || s.scaleLab.actualCoordinates.moonX!==60)
+      throw new Error("月球觀測開局未遮住，或地心 60R 座標錯");
+    let r=Engine4.sealDistanceLaw(s,1); s=r.state;
+    if(!r.trial.sealed || !s.scaleLab.moonObservationRevealed || r.trial.moonSagM!==294)
+      throw new Error("按距離律未先封存後揭曉正確指紋");
+    r=Engine4.assertK2(s,["earth-fall","moon-sag","scale-60-60"],"inverse-square-cross-scale");
+    if(r.ok) throw new Error("錯的封存距離律仍取得 K2");
+    s=Engine4.reopenScalePrediction(s).state;
+    if(s.scaleLab.moonObservationRevealed || s.scaleLab.trials.length!==1)
+      throw new Error("重做沒有遮住新紙，或洗掉舊預測");
+    r=Engine4.sealDistanceLaw(s,2);s=r.state;
+    if(r.trial.moonSagM!==4.9 || !s.scaleLab.moonMatch || s.scaleLab.trials.length!==2)
+      throw new Error("反平方 3600 抵消未相合或舊稿未保留");
     r=Engine4.assertK2(s,["earth-fall","moon-sag"],"inverse-square-cross-scale");
     if (r.ok) throw new Error("缺 60／60 來源仍取得跨尺度證據");
     s=Engine4.assertK2(s,["earth-fall","moon-sag","scale-60-60"],"inverse-square-cross-scale").state;
@@ -2847,8 +2836,7 @@ tests.push({
   name: "第四章封存預測|觀測先藏、預測先存、殘差守衛、解鎖不刪舊稿",
   fn: () => {
     let s=Engine4.initialState(); s.evidence.k1=true;
-    s=Engine4.tryDistanceLaw(s,1).state; s=Engine4.tryDistanceLaw(s,2).state;
-    s=Engine4.lockDistanceLaw(s,2).state;
+    s=Engine4.sealDistanceLaw(s,2).state;
     if (s.planetLab.revealed.mars || s.planetLab.revealed.jupiter) throw new Error("行星觀測開局未隱藏");
     let r=Engine4.predictPlanet(s,"mars"); s=r.state;
     if (!r.prediction.sealed || !r.prediction.revealedAfterSeal || !s.planetLab.revealed.mars || !r.prediction.pass)
@@ -2867,13 +2855,21 @@ tests.push({
 });
 
 tests.push({
-  name: "第四章雙模型反驗|Moon 不單獨裁決，兩模型三案例齊後才可提出有限主張",
+  name: "第四章雙模型反驗|定律鎖定、初始資料正當、兩套預測先封存後整批跑三種天空",
   fn: () => {
     let s=Engine4.initialState(); s.evidence.k2=true; s.evidence.k3=true;
-    for (const m of Engine4._MODELS) s=Engine4.runModel(s,m,"moon").state;
-    let r=Engine4.assertK4(s,["inverseSquare:moon","simpleVortex:moon"],"same-rule-fewer-patches");
-    if (r.ok) throw new Error("只跑 Moon 就取得模型證據");
-    for (const m of Engine4._MODELS) for (const c of ["planets","comet"]) s=Engine4.runModel(s,m,c).state;
+    let r=Engine4.setModelProtocol(s,"same-start-all");s=r.state;
+    if(r.ok || s.modelLab.protocolLocked) throw new Error("抹掉各天體初始資料仍鎖定標準");
+    r=Engine4.setModelProtocol(s,"retune-law-per-body");s=r.state;
+    if(r.ok || r.state.modelLab.protocolAttempts.at(-1).patchTags!==3) throw new Error("逐案例改律未留下補丁籤");
+    s=Engine4.setModelProtocol(s,"shared-law-observed-initials").state;
+    if(!s.modelLab.protocolLocked) throw new Error("同律＋觀測初值未鎖定");
+    for(const m of Engine4._MODELS) {
+      s=Engine4.sealModelPrediction(s,m,m==="inverseSquare"?"one-law-three-skies":"patches-beyond-moon").state;
+      const suite=Engine4.runModelSuite(s,m);s=suite.state;
+      if(suite.runs.length!==3 || suite.runs.some((x)=>x.lawParametersChanged || x.initialConditions!=="observed-position-and-velocity"))
+        throw new Error("模型未以同律與各自觀測初值整批跑完:"+m);
+    }
     const records=[]; for (const m of Engine4._MODELS) for (const c of Engine4._CASES) records.push(m+":"+c);
     r=Engine4.assertK4(s,records,"all-vortices-refuted");
     if (r.ok || r.state.evidence.k4) throw new Error("永久否定所有渦旋的越界主張被受理");
@@ -3046,13 +3042,13 @@ tests.push({
       if(v.type==="review"){s=N4.setReview(s,"若地球不再吸引，月球沿當下切線前進。","建立跨尺度可反驗規則，機制仍未知。").state;continue;}
       if(v.type==="embed"&&v.system==="orbit"){
         if(v.phase==="tangent"){act("startOrbitAttempt");act("commitDeflection",{vector:{dx:0,dy:0}});act("runConsequence");}
-        else if(v.phase==="vectors"){act("startOrbitAttempt");for(let i=0;i<3;i++){const p=s.lab.orbitLab.position,m=Math.hypot(p.x,p.y);act("commitDeflection",{vector:{dx:-p.x/m*.058,dy:-p.y/m*.058}});}act("repeatOrbitRule");}
+        else if(v.phase==="vectors"){act("runOrbitRule",{config:{target:"earth-center",speed:"medium",strength:"medium"},prediction:"near-circle"});}
         else if(v.phase==="claim")act("assertK1",{records:["tangent","closed"],concept:"forward-plus-inward-turn"});
-        else if(v.phase==="scale"){act("setScale",{distanceRatio:60,timeRatio:60});act("tryDistanceLaw",{exponent:1});act("tryDistanceLaw",{exponent:2});act("lockDistanceLaw",{exponent:2});act("assertK2",{records:["earth-fall","moon-sag","scale-60-60"],concept:"inverse-square-cross-scale"});}
+        else if(v.phase==="scale"){act("sealDistanceLaw",{exponent:2});act("assertK2",{records:["earth-fall","moon-sag","scale-60-60"],concept:"inverse-square-cross-scale"});}
         else if(v.phase==="planets"){act("predictPlanet",{id:"mars"});act("predictPlanet",{id:"jupiter"});act("assertK3",{records:["mars-sealed","jupiter-sealed"],concept:"withheld-data-prediction"});}
         else if(v.phase==="comet")act("connectCometTracks",{mode:"same-orbit"});
         else if(v.phase==="press-opening")act("deferPress",{reason:"等待彗星與替代模型比較"});
-        else if(v.phase==="models"){for(const m of Engine4._MODELS)for(const c of Engine4._CASES)act("runModel",{model:m,caseId:c});const rec=[];for(const m of Engine4._MODELS)for(const c of Engine4._CASES)rec.push(m+":"+c);act("assertK4",{records:rec,claim:"same-rule-fewer-patches"});}
+        else if(v.phase==="models"){act("setModelProtocol",{protocol:"shared-law-observed-initials"});for(const m of Engine4._MODELS){act("sealModelPrediction",{model:m,prediction:m==="inverseSquare"?"one-law-three-skies":"patches-beyond-moon"});act("runModelSuite",{model:m});}const rec=[];for(const m of Engine4._MODELS)for(const c of Engine4._CASES)rec.push(m+":"+c);act("assertK4",{records:rec,claim:"same-rule-fewer-patches"});}
         else if(v.phase==="proof"){for(const [slot,id] of [["inertia","M2"],["inward","K1"],["distance","K2"],["withheld","K3"],["model","K4"]])act("placeProofLink",{slot,evidenceId:id});act("setHookeScope",{choice:"precise-scope"});for(const [c,p] of Object.entries(Engine4._CREDIT_EXPECT))act("assignCredit",{contribution:c,person:p});act("setProofBoundary",{choice:"ruleEstablished"});act("submitProof");}
         else if(v.phase==="archive"){for(const id of Engine4._ARCHIVE_IDS)act("clipEvidence",{evidenceId:id});}
         else throw new Error("未知 orbit phase:"+v.phase);

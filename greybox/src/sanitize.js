@@ -365,6 +365,21 @@
       var point = lab.orbitLab.path[pi];
       if (!point || !isFinite(point.x) || !isFinite(point.y)) return fail("軌道路徑含無法辨識的座標");
     }
+    if (lab.orbitLab.ruleRuns != null) {
+      if (!Array.isArray(lab.orbitLab.ruleRuns) || lab.orbitLab.ruleRuns.length > 100)
+        return fail("改向規則紀錄格式錯誤");
+      for (var ori = 0; ori < lab.orbitLab.ruleRuns.length; ori++) {
+        var orbitRun = lab.orbitLab.ruleRuns[ori];
+        if (!orbitRun ||
+            ["same-vector", "ink-mark", "earth-center"].indexOf(orbitRun.target) < 0 ||
+            ["slow", "medium", "fast"].indexOf(orbitRun.speed) < 0 ||
+            ["short", "medium", "long"].indexOf(orbitRun.strength) < 0 ||
+            ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"].indexOf(orbitRun.prediction) < 0 ||
+            ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"].indexOf(orbitRun.outcome) < 0 ||
+            !Array.isArray(orbitRun.path) || orbitRun.path.length > 200)
+          return fail("改向規則含無法辨識的設定");
+      }
+    }
     if (!isFinite(lab.scaleLab.earthRadiusRatio) || lab.scaleLab.earthRadiusRatio < 1 ||
         lab.scaleLab.earthRadiusRatio > 100 || !isFinite(lab.scaleLab.timeRatio) ||
         lab.scaleLab.timeRatio < 1 || lab.scaleLab.timeRatio > 120 ||
@@ -396,6 +411,20 @@
           !isFinite(run.residual) || !isInt(run.patches) || run.patches < 0)
         return fail("模型比較含無法辨識的資料");
     }
+    if (lab.modelLab.protocolAttempts != null) {
+      if (!Array.isArray(lab.modelLab.protocolAttempts) || lab.modelLab.protocolAttempts.length > 30)
+        return fail("模型比較標準紀錄格式錯誤");
+      for (var mpa = 0; mpa < lab.modelLab.protocolAttempts.length; mpa++) {
+        var protocolAttempt = lab.modelLab.protocolAttempts[mpa];
+        if (!protocolAttempt ||
+            ["shared-law-observed-initials", "same-start-all", "retune-law-per-body"].indexOf(protocolAttempt.protocol) < 0 ||
+            typeof protocolAttempt.ok !== "boolean")
+          return fail("模型比較標準含無法辨識的資料");
+      }
+    }
+    if (lab.modelLab.protocolLocked &&
+        lab.modelLab.protocol !== "shared-law-observed-initials")
+      return fail("模型比較完成狀態與公平標準不一致");
     if (lab.cometLab != null) {
       if (!Array.isArray(lab.cometLab.attempts) || lab.cometLab.attempts.length > 100 ||
           typeof lab.cometLab.joined !== "boolean" ||

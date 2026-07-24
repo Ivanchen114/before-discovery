@@ -784,6 +784,7 @@
     else if (action === "setBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     /* 第四章軌道、跨尺度反驗與行動制校樣。 */
     else if (action === "advanceTransition" && Engine.advanceTransition) r = Engine.advanceTransition(state.lab, args.cardId);
+    else if (action === "runOrbitRule" && Engine.runOrbitRule) r = Engine.runOrbitRule(state.lab, args.config, args.prediction);
     else if (action === "startOrbitAttempt" && Engine.startOrbitAttempt) r = Engine.startOrbitAttempt(state.lab);
     else if (action === "commitDeflection" && Engine.commitDeflection) r = Engine.commitDeflection(state.lab, args.vector);
     else if (action === "runConsequence" && Engine.runConsequence) r = Engine.runConsequence(state.lab);
@@ -791,6 +792,8 @@
     else if (action === "assertK1" && Engine.assertK1) r = Engine.assertK1(state.lab, args.records, args.concept);
     else if (action === "setScale" && Engine.setScale) r = Engine.setScale(state.lab, args.distanceRatio, args.timeRatio);
     else if (action === "tryDistanceLaw" && Engine.tryDistanceLaw) r = Engine.tryDistanceLaw(state.lab, args.exponent);
+    else if (action === "sealDistanceLaw" && Engine.sealDistanceLaw) r = Engine.sealDistanceLaw(state.lab, args.exponent);
+    else if (action === "reopenScalePrediction" && Engine.reopenScalePrediction) r = Engine.reopenScalePrediction(state.lab);
     else if (action === "lockDistanceLaw" && Engine.lockDistanceLaw) r = Engine.lockDistanceLaw(state.lab, args.exponent);
     else if (action === "unlockDistanceLaw" && Engine.unlockDistanceLaw) r = Engine.unlockDistanceLaw(state.lab);
     else if (action === "resetPlanetReveals" && Engine.resetPlanetReveals) r = Engine.resetPlanetReveals(state.lab);
@@ -798,6 +801,9 @@
     else if (action === "assertK2" && Engine.assertK2) r = Engine.assertK2(state.lab, args.records, args.concept);
     else if (action === "assertK3" && Engine.assertK3) r = Engine.assertK3(state.lab, args.records, args.concept);
     else if (action === "connectCometTracks" && Engine.connectCometTracks) r = Engine.connectCometTracks(state.lab, args.mode);
+    else if (action === "setModelProtocol" && Engine.setModelProtocol) r = Engine.setModelProtocol(state.lab, args.protocol);
+    else if (action === "sealModelPrediction" && Engine.sealModelPrediction) r = Engine.sealModelPrediction(state.lab, args.model, args.prediction);
+    else if (action === "runModelSuite" && Engine.runModelSuite) r = Engine.runModelSuite(state.lab, args.model);
     else if (action === "runModel" && Engine.runModel) r = Engine.runModel(state.lab, args.model, args.caseId);
     else if (action === "assertK4" && Engine.assertK4) r = Engine.assertK4(state.lab, args.records, args.claim);
     else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
