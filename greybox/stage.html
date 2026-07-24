@@ -1488,6 +1488,23 @@
   .shipScenePlate { z-index: 0; object-fit: cover; animation: ship-plate-in .32s ease-out both; }
   .shipSimLayer { z-index: 1; overflow: visible; filter: drop-shadow(0 2px 3px rgba(0,0,0,.75)); }
   .shipDiagram figcaption { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; padding: 7px 9px; color: #f2e2c2; background: linear-gradient(transparent,rgba(7,7,6,.92) 34%); font: 600 12px/1.45 var(--font-ui); }
+  .shipPerspectiveIntro { display: grid; gap: 9px; }
+  .shipPerspectiveEyebrow { margin: 0; color: #e8cea0; font: 800 12px var(--font-ui); letter-spacing: .08em; }
+  .shipPerspectiveGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .shipPerspectiveCard { min-width: 0; margin: 0; overflow: hidden; border: 1px solid rgba(222,188,131,.55); background: #111514; box-shadow: 0 8px 18px rgba(0,0,0,.28); }
+  .shipPerspectiveFrame { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #171713; }
+  .shipPerspectiveImage, .shipPerspectiveTrace { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+  .shipPerspectiveImage { z-index: 0; object-fit: cover; animation: ship-plate-in .32s ease-out both; }
+  .shipPerspectiveTrace { z-index: 1; overflow: visible; filter: drop-shadow(0 2px 3px rgba(0,0,0,.85)); }
+  .shipPerspectivePath { fill: none; stroke: #ffe2a1; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 9 10; }
+  .shipPerspectiveStone { fill: #f2d38d; stroke: #402a17; stroke-width: 4; }
+  .shipPerspectiveStone:not(.p0) { opacity: .84; }
+  .shipPerspectiveBadge { position: absolute; z-index: 2; top: 7px; left: 7px; padding: 4px 7px; color: #fff0ce; border: 1px solid rgba(255,226,161,.62); background: rgba(20,17,13,.82); font: 800 10px var(--font-ui); letter-spacing: .06em; }
+  .shipPerspectiveCard figcaption { display: grid; gap: 3px; min-height: 58px; padding: 7px 8px; color: #e7d9bd; font: 600 11px/1.42 var(--font-ui); }
+  .shipPerspectiveCard figcaption b { color: #fff0ce; font-size: 13px; }
+  .shipPerspectiveCard figcaption span { color: #cfc1a7; }
+  .shipPerspectiveKey { margin: 0; padding: 7px 9px; color: #f0dfbd; border-left: 4px solid #c18b4e; background: rgba(193,139,78,.14); font: 700 12px/1.45 var(--font-ui); }
+  .shipPerspectiveReplay { margin-top: 8px; padding-top: 7px; border-top: 1px dashed rgba(91,68,43,.25); }
   .shipSimPlumb, .shipSimGuide { stroke: rgba(242,222,178,.74); stroke-width: 3; stroke-dasharray: 8 7; }
   .shipSimTarget { fill: rgba(79,111,79,.45); stroke: #f0d28e; stroke-width: 4; }
   .shipSimStone, .shipSimDrop, .shipSimTossBall { fill: #dbc28c; stroke: #2b2017; stroke-width: 4; }
@@ -1545,7 +1562,7 @@
   @keyframes ship-transform-arrow { from { stroke-dashoffset: 70; opacity: .2; } to { stroke-dashoffset: 0; opacity: 1; } }
   @media (prefers-reduced-motion: reduce) {
     .shipScenePlate, .shipSimStone.running, .shipSimDrop.running, .shipSimTossBall.running, .shipSimLanding,
-    .shipPaperPath, .shipPaperBeat, .shipPaperSheetLayer, .shipPaperTransformArrow {
+    .shipPaperPath, .shipPaperBeat, .shipPaperSheetLayer, .shipPaperTransformArrow, .shipPerspectiveImage {
       animation-duration: .01ms !important; animation-delay: 0ms !important;
     }
   }
@@ -1593,6 +1610,10 @@
     .shipClaimConcept { grid-template-columns: minmax(0,1fr) max-content; gap: 4px; }.shipClaimConcept > label { grid-column: 1/-1; font-size: 9px; }
     .shipCabinCard, .shipAuditCard { margin: 3px 0; padding: 4px 6px; font-size: 10px; }
     .shipCrossExam { margin: 3px 0; padding: 5px 7px; }.shipCrossExamStep { margin-bottom: 2px; font-size: 8px; }.shipCrossExamQuote { font-size: 11px; line-height: 1.3; }.shipCrossExamReply { margin-top: 3px; padding-top: 3px; font-size: 9px; }
+    .shipPerspectiveIntro { gap: 4px; }.shipPerspectiveGrid { gap: 4px; }.shipPerspectiveEyebrow { font-size: 9px; }
+    .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 3px; font-size: 7px; }
+    .shipPerspectiveCard figcaption { min-height: 38px; padding: 3px 4px; font-size: 7px; line-height: 1.25; }
+    .shipPerspectiveCard figcaption b { font-size: 9px; }.shipPerspectiveKey { padding: 3px 5px; font-size: 8px; }
   }
 
   /* 第四章：天文工作台與印刷校樣。答案幾何由 SVG／引擎生成，背景只負責氣氛。 */

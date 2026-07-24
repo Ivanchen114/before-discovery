@@ -53,6 +53,7 @@
   "C1-4": "bg_ch03_steady_sailing_deck",
   "C2-1": "bg_ch03_enclosed_cabin",
   "C2-2": "bg_ch03_speed_change_deck",
+  "C2-2B": "bg_ch03_return_to_quay",
   "C2-3": "bg_ch03_reference_tapes_table",
   "C2-4": "bg_ch03_reference_tapes_table",
   "C3-1": "bg_ch03_public_demonstration",
@@ -249,6 +250,10 @@
   "public-demo": "ship3_g5_public_boundary",
   "audit": "ship3_g5_public_boundary",
   "boundary": "ship3_g5_public_boundary"
+ },
+ "shipPerspectiveIntro": {
+  "shore": "ship3_g4_shore_perspective",
+  "ship": "ship3_g1_mast_steady"
  },
  "speakerPortrait": {
   "伽利略": "portrait_galileo",
@@ -1253,6 +1258,16 @@
    "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_speed_change_deck_master_v01.png"
   },
   {
+   "id": "bg_ch03_return_to_quay",
+   "kind": "bg",
+   "label": "返港時的兩種傳言",
+   "path": "ch03/backgrounds/ch03_bg_return_to_quay_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_return_to_quay_master_v01.png"
+  },
+  {
    "id": "bg_ch03_reference_tapes_table",
    "kind": "bg",
    "label": "雙紙帶比較桌",
@@ -1301,6 +1316,16 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g1_mast_steady_master_v01.png"
+  },
+  {
+   "id": "ship3_g4_shore_perspective",
+   "kind": "cg",
+   "label": "G4 岸上視角：同一顆石頭",
+   "path": "ch03/perspectives/ch03_g4_shore_view_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch03/perspectives/ch03_g4_shore_view_master_v01.png"
   },
   {
    "id": "ship3_g2_cabin",
@@ -1391,6 +1416,16 @@
    "w": 900,
    "h": 1200,
    "sourceMaster": "art/source/production/ch03/characters/ch03_char_etienne17_alpha_v01.png"
+  },
+  {
+   "id": "dialogue_mathieu32",
+   "kind": "portrait",
+   "label": "馬蒂厄 32 歲",
+   "path": "ch03/characters/ch03_char_mathieu32_v02.webp",
+   "firstScreen": false,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch03/characters/ch03_char_mathieu32_alpha_v01.png"
   },
   {
    "id": "chapter_thumbnail_ch03",
@@ -1734,24 +1769,30 @@
   },
   "C0-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C0-3": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32",
+   "艾蒂安": "dialogue_etienne17"
   },
   "C1-1": {
    "伽桑狄": "dialogue_gassendi48",
-   "艾蒂安": "dialogue_etienne17"
+   "艾蒂安": "dialogue_etienne17",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C1-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C1-3": {
    "伽桑狄": "dialogue_gassendi48",
    "艾蒂安": "dialogue_etienne17",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C1-4": {
    "伽桑狄": "dialogue_gassendi48",
@@ -1759,32 +1800,45 @@
   },
   "C2-1": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C2-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
+  },
+  "C2-2B": {
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C2-3": {
    "伽桑狄": "dialogue_gassendi48",
    "艾蒂安": "dialogue_etienne17",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C2-4": {
-   "伽桑狄": "dialogue_gassendi48"
+   "伽桑狄": "dialogue_gassendi48",
+   "艦長": "dialogue_captain50"
   },
   "C3-1": {
-   "伽桑狄": "dialogue_gassendi48"
+   "伽桑狄": "dialogue_gassendi48",
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C3-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C3-3": {
    "伽桑狄": "dialogue_gassendi48"
   },
   "C3-4": {
-   "伽桑狄": "dialogue_gassendi48"
+   "伽桑狄": "dialogue_gassendi48",
+   "艦長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "CE-1": {
    "伽桑狄": "dialogue_gassendi48",
@@ -1844,6 +1898,7 @@
   "伽桑狄": "dialogue_gassendi48",
   "艦長": "dialogue_captain50",
   "艾蒂安": "dialogue_etienne17",
+  "馬蒂厄": "dialogue_mathieu32",
   "Newton": "dialogue_newton41",
   "Halley": "dialogue_halley28"
  },
@@ -1856,6 +1911,7 @@
   "伽桑狄": "right",
   "艦長": "left",
   "艾蒂安": "left",
+  "馬蒂厄": "left",
   "Newton": "right",
   "Halley": "left"
  },
@@ -2275,6 +2331,7 @@
   "C1-4": "ch3Experiment",
   "C2-1": "ch3Cabin",
   "C2-2": "ch3Experiment",
+  "C2-2B": "ch3Harbor",
   "C2-3": "ch3Overlay",
   "C2-4": "ch3Overlay",
   "C3-1": "ch3Public",

@@ -1792,7 +1792,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章資料鏡像與場景圖|17 場全可達、scenes/histfacts 雙載體一致",
+  name: "第三章資料鏡像與場景圖|18 場全可達、scenes/histfacts 雙載體一致",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts3.json"), "utf-8"));
@@ -1801,7 +1801,17 @@ tests.push({
     if (JSON.stringify(hs) !== JSON.stringify(hj)) throw new Error("histfacts3 鏡像漂移");
     if (scenes3.title !== "船艙裡的靜止") throw new Error("第三章正式章名漂移");
     if (!JSON.stringify(scenes3).includes("第三章《船艙裡的靜止》")) throw new Error("第三章章名揭曉未同步");
-    if (scenes3.scenes.length !== 17) throw new Error("第三章場景數不是 17");
+    if (scenes3.scenes.length !== 18) throw new Error("第三章場景數不是 18");
+    if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
+      throw new Error("第三章場景 id 重複");
+    for (const s of scenes3.scenes) {
+      const nodeIds = s.nodes.map((n) => n.id);
+      if (new Set(nodeIds).size !== nodeIds.length) throw new Error("第三章節點 id 重複:" + s.id);
+      for (const n of s.nodes) {
+        const optionIds = (n.options || []).map((o) => o.id);
+        if (new Set(optionIds).size !== optionIds.length) throw new Error("第三章選項 id 重複:" + s.id + "/" + n.id);
+      }
+    }
     const sm = new Map(scenes3.scenes.map((s) => [s.id, new Set(s.nodes.map((n) => n.id))]));
     for (const s of scenes3.scenes) for (const n of s.nodes) {
       if (n.next && !sm.get(s.id).has(n.next)) throw new Error("next 不存在:" + s.id + "/" + n.id + "→" + n.next);
@@ -1820,15 +1830,22 @@ tests.push({
     const shipUi = ui.slice(ui.indexOf("第三章航船實驗"));
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const script = readFileSync(path.join(here, "../../04_劇本/第三章完整劇本_不推也會走_v0.1.1.md"), "utf-8");
+    const chapter3Spec = readFileSync(path.join(here, "../../03_規格/發現之前_第三章功能規格書_v0.1.md"), "utf-8");
+    const dialogueReview = readFileSync(path.join(here, "../../05_審核/發現之前_第一至第四章_角色對話審稿本_20260723.md"), "utf-8");
     const voices = readFileSync(path.join(here, "../../02_設計/發現之前_角色聲線與對話規範_v0.1.md"), "utf-8");
     const principles = readFileSync(path.join(here, "../../02_設計/發現之前_設計原則手冊_v0.1.md"), "utf-8");
 
-    for (const frag of ["第 \" + (i + 1) + \" 問", "q[1] + \"的質詢\"", "公開驗證：先把條件鎖死", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "官員的提議", "出示這份紀錄"])
+    for (const frag of ["第 \" + (i + 1) + \" 問", "q[1] + \"的質詢\"", "公開驗證：先把條件鎖死", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "明日告示的最後一行", "墨已落下", "出示這份紀錄"])
       if (!ui.includes(frag)) throw new Error("第三章終局缺少可見攻防:" + frag);
     for (const frag of ["shipCrossExam", "shipCrossExamQuote", "shipCrossExamReply"])
       if (!html.includes(frag)) throw new Error("公開質詢視覺層級缺失:" + frag);
     if (!script.includes("CH3-CR-004") || !script.includes("CH3-CR-006") ||
         !script.includes("CH3-CR-007") || !script.includes("CH3-CR-009") ||
+        !script.includes("CH3-CR-010") || !script.includes("CH3-CR-011") ||
+        !script.includes("CH3-CR-012") || !script.includes("CH3-CR-013") ||
+        !script.includes("CH3-CR-014") ||
+        !chapter3Spec.includes("CH3-CR-012") || !chapter3Spec.includes("CH3-CR-013") ||
+        !chapter3Spec.includes("CH3-CR-014") ||
         !script.includes("【質詢一・基準】"))
       throw new Error("第三章劇本未同步公開質詢重做");
     const c21 = scenes3.scenes.find((s) => s.id === "C2-1");
@@ -1837,6 +1854,15 @@ tests.push({
     if (c21Reply !== steadyReply || !script.includes(steadyReply) ||
         JSON.stringify(scenes3).includes("岸上的旗號已經顯示船速在變"))
       throw new Error("CH3-CR-007 穩速段駁斥台詞未同步或物理語意回歸");
+    const conditionScene = scenes3.scenes.find((s) => s.id === "C0-3");
+    const conditionChoice = conditionScene?.nodes.find((n) => n.id === "q1");
+    const mixedOption = conditionChoice?.options?.find((o) => o.id === "mix");
+    const mixedReply = conditionScene?.nodes.find((n) => n.id === mixedOption?.next)?.text || "";
+    const practicalGap = "你還沒告訴我，船要不要走穩、放手的人能不能多推";
+    if (mixedOption?.text !== "船近似直線前進、海面完全無風、船一定向東" ||
+        mixedOption?.next !== "r2" || !mixedReply.includes(practicalGap) ||
+        !script.includes(practicalGap) || !dialogueReview.includes(practicalGap))
+      throw new Error("C0-3 混合錯誤選項仍接到不相干的航向駁斥，或三份文字未同步");
     const publicScene = scenes3.scenes.find((s) => s.id === "C3-1");
     const publicText = (publicScene?.nodes || []).map((n) => n.text || n.hint || "").join("\n");
     if (!scenes3.publicDemo || scenes3.publicDemo.steps.length !== 5 ||
@@ -1851,7 +1877,7 @@ tests.push({
       if (!script.includes(step.question) || !script.includes(reply))
         throw new Error("公開驗證劇本／runtime 台詞漂移:" + step.id);
     }
-    if (!scenes3.publicDemo.purpose.includes("兩邊都能挑一筆") ||
+    if (!scenes3.publicDemo.purpose.includes("岸上已有人只傳") ||
         new Set(scenes3.publicDemo.steps.map((s) => s.speaker)).size < 4)
       throw new Error("公開驗證缺少前段因果，或仍退化成艦長一人逐條報流程");
     const sceneText = (id) => {
@@ -1859,25 +1885,89 @@ tests.push({
       return (scene?.nodes || []).map((n) => n.text || "").join("\n");
     };
     for (const [id, phrase] of [
-      ["C0-2", "船借你們。結果沒查清楚以前"],
-      ["C1-2", "少一項，別再跟我談公開"],
-      ["C2-2", "我把加速那一回，當成了所有的船"],
-      ["C2-2", "誰想護短，我都叫停"],
-      ["C2-4", "人群要的是一個夠大的結論"],
-      ["C3-1", "兩邊都只會挑自己愛看的那一筆"],
+      ["C0-2", "做出什麼，就寫什麼"],
+      ["C1-2", "可我不知道船走穩了會怎樣"],
+      ["C2-1", "同一艘船，同一天"],
+      ["C2-2", "奔馬會忽快忽慢"],
+      ["C2-2", "我錯在把加速那一回"],
+      ["C2-2B", "回來已經被你們傳成兩艘了"],
+      ["C2-2B", "鼓點、岸標、門閂，全掛出來"],
+      ["C2-4", "這樣夠清楚了吧"],
+      ["C3-1", "馬蒂厄抽門閂"],
       ["C3-3", "我的船只替今天量到的事作證。這句，我簽"]
     ]) {
       if (!sceneText(id).includes(phrase) || !script.includes(phrase))
         throw new Error("CH3-CR-009 人物轉折未同步:" + id + "/" + phrase);
     }
-    for (const betting of ["先押", "押在", "下注", "改注", "押中", "未押中"])
+    for (const betting of ["下注", "押錢", "賭注", "改注", "彩金"])
       if (JSON.stringify(scenes3).includes(betting) || script.includes(betting) || shipUi.includes(betting))
         throw new Error("預測木籌仍被寫成賭博:" + betting);
-    for (const role of ["### 伽桑狄", "### 艦長", "### 艾蒂安", "### 非法庭型終局攻防"])
+    if (!sceneText("C0-2").includes("不賭錢") || !scenes3.publicDemo.tokenRule.includes("不是賭錢"))
+      throw new Error("木籌約定未清楚區分事前記錄與賭博");
+    for (const role of ["### 伽桑狄", "### 艦長", "### 馬蒂厄", "### 艾蒂安", "### 非法庭型終局攻防"])
       if (!voices.includes(role)) throw new Error("角色聲線規範缺失:" + role);
     if (voices.includes("### 加桑迪")) throw new Error("伽桑狄姓名仍有舊錯字");
 
     const visible = JSON.stringify(scenes3);
+    const dialogueLines = scenes3.scenes.flatMap((s) =>
+      s.nodes.filter((n) => n.type === "line" && n.speaker !== "stage" && n.speaker !== "system"));
+    const actedLines = dialogueLines.filter((n) => /[（(][^）)]{2,}[）)]/.test(n.text || ""));
+    if (actedLines.length / dialogueLines.length < 0.5)
+      throw new Error("CH3-CR-010 第三章角色動作密度回歸，台詞再次退化成純說明句");
+    for (const action of [
+      "把裝貨單捲起，仍擋在踏板前",
+      "用繩圈住三個落點",
+      "把同號鼓點一一連直",
+      "接過紙，逐字讀完，才落筆"
+    ]) {
+      if (!visible.includes(action) || !script.includes(action) || !dialogueReview.includes(action))
+        throw new Error("CH3-CR-010 劇本／runtime／對話審稿本動作漂移:" + action);
+    }
+    for (const bridge of [
+      "鼓點穩定還不夠。等連續三段岸標走得差不多",
+      "放手的人若暗中推一下，也能做出漂亮結果",
+      "三個問題都回答了。最後還有一個更難的問題"
+    ]) {
+      if (!visible.includes(bridge) || !script.includes(bridge) || !dialogueReview.includes(bridge))
+        throw new Error("CH3-CR-010 劇本／runtime／對話審稿本承接句漂移:" + bridge);
+    }
+    const c12 = scenes3.scenes.find((s) => s.id === "C1-2");
+    if (c12?.nodes.find((n) => n.id === "n3")?.speaker !== "旅人(你)" ||
+        c12?.nodes.find((n) => n.id === "n3")?.text !== "放手前後，船的速度一樣嗎？" ||
+        c12?.nodes.find((n) => n.id === "n3a")?.speaker !== "艦長" ||
+        !c12?.nodes.find((n) => n.id === "n3a")?.text.includes("一段比一段長"))
+      throw new Error("CH3-CR-011 旅人仍搶替艦長讀船速資料");
+    if (c12?.nodes.find((n) => n.id === "n4")?.speaker !== "stage" ||
+        c12?.nodes.find((n) => n.id === "n4")?.text !== "伽桑狄在落點紙上方補寫「加速中」。" ||
+        visible.includes("那就等船走穩，再做") || script.includes("那就等船走穩，再做") ||
+        dialogueReview.includes("那就等船走穩，再做"))
+      throw new Error("CH3-CR-013 伽桑狄仍替艦長下達下一輪指令");
+    const c22 = scenes3.scenes.find((s) => s.id === "C2-2");
+    if (c22?.nodes.some((n) => ["n3", "n3a", "n4"].includes(n.id) && n.speaker !== "艦長"))
+      throw new Error("CH3-CR-011 艦長的奔馬發現仍被其他角色代講");
+    const c02 = scenes3.scenes.find((s) => s.id === "C0-2");
+    if (c02?.nodes.find((n) => n.id === "n2a")?.speaker !== "伽桑狄" ||
+        c02?.nodes.find((n) => n.id === "n2b")?.speaker !== "艦長" ||
+        c02?.nodes.find((n) => n.id === "n2c")?.speaker !== "伽桑狄")
+      throw new Error("CH3-CR-012 落石反地動論證的知識與追問分配回歸");
+    for (const stakes of [
+      "地球若在轉，塔也跟著走",
+      "可塔頂放下的石頭，一向落在塔腳",
+      "若這句話不對，就不能再拿它反對地球運動",
+      "告示總得讓人一眼看懂，馬賽明天要做成什麼"
+    ])
+      if (!visible.includes(stakes) || !script.includes(stakes) || !dialogueReview.includes(stakes))
+        throw new Error("CH3-CR-012 地球運動前提或官員動機未同步:" + stakes);
+    for (const overheated of ["羅馬那邊", "伽利略受審", "教會會"])
+      if (visible.includes(overheated))
+        throw new Error("CH3-CR-012 低政治溫度裁決回歸:" + overheated);
+    for (const stale of ["待驗的條件單", "少一項，別再跟我談公開", "書只談穩速",
+      "人群要的是一個夠大的結論", "這句話最像勝利", "可它沒有忘記"])
+      if (visible.includes(stale) || script.includes(stale) || dialogueReview.includes(stale) || shipUi.includes(stale))
+        throw new Error("CH3-CR-011 角色仍替設計目標說話:" + stale);
+    for (const ink of ["「馬賽港，落石實驗，證——」", "墨已經在紙上暈開", "手掌壓上紙面，墨在掌下暈開"])
+      if (!shipUi.includes(ink) && !script.includes(ink) && !dialogueReview.includes(ink))
+        throw new Error("CH3-CR-011 過強主張未先留下可見墨跡:" + ink);
     for (const phrase of ["把甲板刪掉", "更凶的測試", "最危險的字", "一句話若", "船若正在前進", "若不先問"])
       if (visible.includes(phrase)) throw new Error("第三章仍有隱喻代替因果或突兀書面句:" + phrase);
     if (!principles.includes("終局對抗不能退化成流程清單"))
@@ -2042,11 +2132,11 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章全章走查|17 場黃金路徑、五證據、回顧與史實頁完整通關",
+  name: "第三章全章走查|18 場黃金路徑、五證據、回顧與史實頁完整通關",
   fn: () => {
     const N3 = Narrative._factory(scenes3, Engine3, {});
     let s = N3.initialState("explore"), guard = 0;
-    const pick = { "C0-2": "foot", "C0-3": "right", "C1-2": "speed", "C2-1": "shared", "C2-4": "bounded" };
+    const pick = { "C0-3": "right", "C1-2": "speed", "C2-1": "shared", "C2-4": "bounded" };
     const act = (name, args) => { const r = N3.labAction(s, name, args || {}); if (r.error) throw new Error(name + ":" + r.error); s = r.state; };
     while (!s.ended && guard++ < 600) {
       const v = N3.view(s);
@@ -2120,14 +2210,14 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章正式美術與音樂|17 場專屬背景、三角色肖像、10 首專屬配樂與里程碑換段",
+  name: "第三章正式美術與音樂|18 場專屬背景、四角色肖像、10 首專屬配樂與里程碑換段",
   fn: () => {
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const ids = new Map(assets.entries.map((e) => [e.id, e]));
     const expected = {
       "C0-1": "bg_ch03_marseille_harbor_dawn", "C0-2": "bg_ch03_marseille_harbor_dawn", "C0-3": "bg_ch03_marseille_harbor_dawn",
       "C1-1": "bg_ch03_moored_mast_deck", "C1-2": "bg_ch03_steady_sailing_deck", "C1-3": "bg_ch03_steady_sailing_deck", "C1-4": "bg_ch03_steady_sailing_deck",
-      "C2-1": "bg_ch03_enclosed_cabin", "C2-2": "bg_ch03_speed_change_deck", "C2-3": "bg_ch03_reference_tapes_table", "C2-4": "bg_ch03_reference_tapes_table",
+      "C2-1": "bg_ch03_enclosed_cabin", "C2-2": "bg_ch03_speed_change_deck", "C2-2B": "bg_ch03_return_to_quay", "C2-3": "bg_ch03_reference_tapes_table", "C2-4": "bg_ch03_reference_tapes_table",
       "C3-1": "bg_ch03_public_demonstration", "C3-2": "bg_ch03_public_demonstration", "C3-3": "bg_ch03_public_demonstration", "C3-4": "bg_ch03_public_demonstration",
       "CE-1": "bg_ch03_print_room_1642", "CE-2": "bg_ch03_print_room_1642"
     };
@@ -2137,7 +2227,7 @@ tests.push({
       if (!e || !e.path || !e.path.startsWith("ch03/backgrounds/") || e.w !== 1920 || e.h !== 1080)
         throw new Error("第三章背景資產宣告錯誤:" + id);
     }
-    for (const [speaker, id] of Object.entries({ "伽桑狄":"dialogue_gassendi48", "艦長":"dialogue_captain50", "艾蒂安":"dialogue_etienne17" })) {
+    for (const [speaker, id] of Object.entries({ "伽桑狄":"dialogue_gassendi48", "艦長":"dialogue_captain50", "馬蒂厄":"dialogue_mathieu32", "艾蒂安":"dialogue_etienne17" })) {
       if (assets.speakerDialoguePortrait[speaker] !== id) throw new Error("第三章角色預設映射缺失:" + speaker);
       const e = ids.get(id);
       if (!e || !e.path.startsWith("ch03/characters/") || e.w !== 900 || e.h !== 1200) throw new Error("第三章角色資產宣告錯誤:" + id);
@@ -2182,6 +2272,17 @@ tests.push({
         throw new Error("第三章實驗資產宣告錯誤:" + id);
       if (!existsSync(path.join(here, "../../public/assets/", e.path))) throw new Error("第三章實驗資產檔不存在:" + e.path);
     }
+    const perspectiveMap = assets.shipPerspectiveIntro;
+    if (!perspectiveMap || perspectiveMap.shore !== "ship3_g4_shore_perspective" || perspectiveMap.ship !== "ship3_g1_mast_steady")
+      throw new Error("G4 岸上／船上視角前導映射缺失");
+    const shorePerspective = ids.get(perspectiveMap.shore);
+    if (!shorePerspective || shorePerspective.kind !== "cg" || !shorePerspective.path?.startsWith("ch03/perspectives/")
+      || shorePerspective.w !== 1920 || shorePerspective.h !== 1080)
+      throw new Error("G4 岸上視角資產宣告錯誤");
+    if (!existsSync(path.join(here, "../../public/assets/", shorePerspective.path)))
+      throw new Error("G4 岸上視角資產檔不存在:" + shorePerspective.path);
+    if (!existsSync(path.join(here, "../../", shorePerspective.sourceMaster)))
+      throw new Error("G4 岸上視角來源母檔不存在:" + shorePerspective.sourceMaster);
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const frag of ["ship3VisualRun", "ship3VisualId", "shipScenePlate", '"cabin-"', '"drip"', '"toss"',
@@ -2193,12 +2294,18 @@ tests.push({
       "shipPaperTransformArrow", "shipPaperPath converted revealed", "兩張紙分開，從頭再讀",
       "想看數學寫法（選讀，不影響過關）", "window.setTimeout", "為什麼一張彎、一張直，卻都能成立"])
       if (!ui.includes(frag)) throw new Error("G4 程式紙帶／可重試契約缺失:" + frag);
+    for (const frag of ["ship3PerspectiveIntroSeen", "先看同一顆石頭的兩個位置",
+      "岸上看｜碼頭不動", "船上看｜桅杆不動", "開始對照兩張紙", "重看岸上／船上視角"])
+      if (!ui.includes(frag)) throw new Error("G4 雙視角照片前導接線缺失:" + frag);
     if (!ui.includes('if (phase === "overlay") return null;'))
       throw new Error("G4 仍會把靜態完成圖載入互動主畫面");
     for (const frag of [".shipPaperBeatLabel", ".shipPaperStepLabel", ".shipPaperSheetLayer.dim",
       ".shipPaperPairBadge.wrong", ".shipPaperConvertedPanel", "@keyframes ship-transform-arrow"])
       if (!html.includes(frag)) throw new Error("G4 鼓點／紙張動作樣式缺失:" + frag);
-    for (const frag of ["再做「放手後加槳」", "再做「放手後收槳」", "平均相對桅腳", "仍可重做"])
+    for (const frag of [".shipPerspectiveGrid", ".shipPerspectiveCard", ".shipPerspectiveTrace",
+      ".shipPerspectiveBadge", ".shipPerspectiveReplay"])
+      if (!html.includes(frag)) throw new Error("G4 雙視角照片前導樣式缺失:" + frag);
+    for (const frag of ["再請馬蒂厄抽閂，接著加槳", "再請馬蒂厄抽閂，接著收槳", "平均相對桅腳", "仍可重做"])
       if (!ui.includes(frag)) throw new Error("G3 自由重做／累積摘要契約缺失:" + frag);
     for (const frag of ["先用紀錄組成一個公平比較", "單看行船紀錄夠嗎", "還無法回答它『和什麼相同』",
       "一次接近可能只是巧合", "cfg.selectionReady", 'typeof cfg.incomplete === "function"'])
