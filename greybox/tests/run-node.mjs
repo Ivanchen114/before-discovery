@@ -452,14 +452,19 @@ tests.push({
       throw new Error("四頁 CSS 假翻頁應已退場");
     if (sui.includes("Math.round(from + span")) throw new Error("逐年計數應已移除");
     for (const frag of ['id="fxPlateA"', 'id="fxPlateB"', 'id="fxCaption"',
-      'id="fxProgress"', 'id="btnFxSkip"', 'id="btnFxNext"'])
+      'id="fxProgress"', 'id="fxAdvanceCue"', 'tabindex="0"'])
       if (!stageHtml.includes(frag)) throw new Error("逐幕轉場控制缺失:" + frag);
+    if (stageHtml.includes('id="btnFxSkip"') || stageHtml.includes('id="btnFxNext"') ||
+        stageHtml.includes("跳過轉場"))
+      throw new Error("全遊戲時代轉場不得再用跳過／下一幕／進入故事按鈕遮住場景");
     for (const frag of ["SFX.paper", "endSceneFx", "advanceSceneFx", "fx.steps", "activeSceneFx", "activeFxIndex"])
       if (!sui.includes(frag)) throw new Error("蒙太奇要素缺失:" + frag);
     if (sui.includes("(idx + 1) * 1500") || sui.includes("steps.length * 1500"))
       throw new Error("章首／時間跳躍仍以固定秒數自動換拍");
-    if (sui.includes('$("fxJump").addEventListener("click"'))
-      throw new Error("整張轉場畫面仍可誤觸換幕；只能由明確按鈕逐幕推進");
+    if (!sui.includes('$("fxJump").addEventListener("click", advanceSceneFx)'))
+      throw new Error("時代轉場應由整張場景承接手點，不再放置底部按鈕");
+    if (sui.includes('if (!$("fxJump").hidden) { ev.preventDefault(); endSceneFx(); return; }'))
+      throw new Error("Esc 仍可跳過整段時代轉場");
     if (sui.includes('$("prologueCard").addEventListener("click"'))
       throw new Error("序章整張畫面仍可誤觸換幕；只能由明確按鈕或鍵盤逐幕推進");
     if (sui.includes('needKickoff && view === "narration"') ||
@@ -470,7 +475,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260724-ch04-audio"))
+    if (!stageHtml.includes("stage-ui.js?v=20260724-cinematic-transitions"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))

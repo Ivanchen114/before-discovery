@@ -1013,7 +1013,7 @@
 
   /* ---------- 輸入:點擊與鍵盤 ---------- */
   $("stage").addEventListener("click", function (ev) {
-    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:交給 fxJump 自己逐幕推進 */
+    if (!$("fxJump").hidden) return; /* 幕間蒙太奇:整張畫面自己接手逐幕點擊 */
     if (!$("notebook").hidden) return;
     if (!$("prologueCard").hidden) return; /* 題詞卡:按「啟程」走,誤點舞台不推進 */
     if (!$("apparatusSurvey").hidden) return;
@@ -1025,8 +1025,7 @@
   });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== " " && ev.key !== "Enter") return;
-    if (!$("fxJump").hidden) { /* 蒙太奇:每次鍵盤操作只前進一幕；按鈕保留原生鍵盤行為 */
-      if (ev.target && ev.target.closest && ev.target.closest("button")) return;
+    if (!$("fxJump").hidden) { /* 蒙太奇:每次鍵盤操作只前進一幕；無跳過入口 */
       ev.preventDefault(); ev.stopPropagation(); advanceSceneFx(); return;
     }
     if (!$("notebook").hidden) return; /* 筆記開啟:不推進(Esc 另管) */
@@ -1215,7 +1214,7 @@
   $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== "Escape") return;
-    if (!$("fxJump").hidden) { ev.preventDefault(); endSceneFx(); return; }
+    if (!$("fxJump").hidden) { ev.preventDefault(); return; } /* 時代轉場必須逐幕看完，Esc 不得跳過 */
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("apparatusSurvey").hidden) {
@@ -1230,7 +1229,7 @@
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal(筆記+序幕皆圍欄) */
     var fx = $("fxJump");
-    if (!fx.hidden && !fx.contains(ev.target)) { $("btnFxNext").focus(); return; }
+    if (!fx.hidden && !fx.contains(ev.target)) { fx.focus(); return; }
     var nb = $("notebook");
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");
@@ -1698,10 +1697,11 @@
   function fxControlsUpdate() {
     var steps = (activeSceneFx && activeSceneFx.steps) || [];
     $("fxProgress").textContent = steps.length ? (activeFxIndex + 1) + " / " + steps.length : "";
-    $("btnFxNext").textContent = activeFxIndex >= steps.length - 1 ? "進入故事" : "下一幕";
-    $("btnFxSkip").hidden = steps.length <= 1;
+    $("fxJump").setAttribute("aria-label", activeFxIndex >= steps.length - 1
+      ? "時代轉場最後一幕。點擊、Enter 或空白鍵進入故事"
+      : "時代轉場第 " + (activeFxIndex + 1) + " 幕，共 " + steps.length + " 幕。點擊、Enter 或空白鍵繼續");
   }
-  function endSceneFx() { /* 明確跳過：關閉整段；自動計時永遠不得呼叫 */
+  function endSceneFx() { /* 只在最後一幕由玩家明確操作後關閉；不得跳過或自動計時 */
     if ($("fxJump").hidden || fxClosing) return;
     fxClosing = true;
     $("fxJump").hidden = true;
@@ -1734,11 +1734,10 @@
     pauseTyping(); /* 蒙太奇播放時,台詞停一拍——動畫管情緒,台詞管答案 */
     fxStepShow("A", steps[0]);
     fxControlsUpdate();
-    $("btnFxNext").focus();
+    box.focus();
     return true;
   }
-  $("btnFxNext").addEventListener("click", advanceSceneFx);
-  $("btnFxSkip").addEventListener("click", endSceneFx);
+  $("fxJump").addEventListener("click", advanceSceneFx);
   var lastFxScene = null; /* 蒙太奇只在「場景切換」那一刻放一次——bd:scene 每句都廣播,不去重會逐句重播 */
   document.addEventListener("bd:scene", function (ev) {
     var sid = ev.detail.sceneId;

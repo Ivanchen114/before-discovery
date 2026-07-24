@@ -131,7 +131,7 @@
   $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== "Escape") return;
-    if (!$("fxJump").hidden) { ev.preventDefault(); endSceneFx(); return; }
+    if (!$("fxJump").hidden) { ev.preventDefault(); return; } /* 時代轉場必須逐幕看完，Esc 不得跳過 */
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("apparatusSurvey").hidden) {
@@ -146,7 +146,7 @@
   });
   document.addEventListener("focusin", function (ev) { /* 焦點不得逃出 modal(筆記+序幕皆圍欄) */
     var fx = $("fxJump");
-    if (!fx.hidden && !fx.contains(ev.target)) { $("btnFxNext").focus(); return; }
+    if (!fx.hidden && !fx.contains(ev.target)) { fx.focus(); return; }
     var nb = $("notebook");
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");

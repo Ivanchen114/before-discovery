@@ -603,38 +603,49 @@
     border-radius: 4px; background: #efe4c9; cursor: pointer; display: none; }
   #labAnim.on { display: block; }
   #labAnim svg { display: block; width: 100%; height: auto; }
-  #fxJump { position: absolute; inset: 0; z-index: 46; background: rgba(8, 5, 3, 0.94);
-    display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center;
-    cursor: default; }
+  #fxJump { position: absolute; inset: 0; z-index: 46; overflow: hidden;
+    background: rgba(8, 5, 3, 0.94); cursor: pointer; }
   #fxJump[hidden] { display: none; }
-  #fxYear { position: relative; z-index: 2; font-family: var(--font-dialogue); color: #f0e2c4;
-    letter-spacing: 0.16em; font-size: clamp(32px, 5.3vw, 72px); font-variant-numeric: tabular-nums;
-    text-shadow: 0 2px 10px rgba(10, 7, 5, 0.85), 0 0 30px rgba(10, 7, 5, 0.5);
+  #fxJump::after { content: ""; position: absolute; z-index: 1; inset: 48% 0 0;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, rgba(5,4,3,.2) 28%, rgba(5,4,3,.78) 100%); }
+  #fxJump:focus-visible { outline: none; box-shadow: inset 0 0 0 3px rgba(240,226,196,.82); }
+  #fxYear { position: absolute; z-index: 2; top: clamp(18px, 4.5vh, 48px); left: clamp(20px, 4.5vw, 72px);
+    max-width: min(72vw, 900px); padding: .38em .68em .42em;
+    border-left: 3px solid rgba(224,184,116,.92); border-radius: 0 5px 5px 0;
+    background: rgba(7,6,5,.46); backdrop-filter: blur(4px);
+    font-family: var(--font-ui); color: #f0e2c4; letter-spacing: 0.11em;
+    font-size: clamp(16px, 1.75vw, 27px); font-weight: 700; font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 8px rgba(0,0,0,.92);
     animation: bdFade var(--motion-medium) ease; }
-  #fxCaption { position: relative; z-index: 2; max-width: min(82vw, 900px); padding: 0.55em 0.9em;
-    font-family: var(--font-ui); color: #f0e2c4; font-size: clamp(17px, 2vw, 27px); line-height: 1.55;
-    letter-spacing: 0.08em; text-align: center; background: rgba(12, 8, 5, 0.58);
-    border-top: 1px solid rgba(207, 169, 107, 0.55); border-bottom: 1px solid rgba(207, 169, 107, 0.55);
-    text-shadow: 0 2px 8px rgba(0,0,0,0.9); animation: bdFade var(--motion-medium) ease; }
-  #fxControls { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center;
-    gap: 12px; min-height: 44px; font-family: var(--font-ui); }
-  #fxProgress { min-width: 4.5em; color: rgba(240,226,196,0.78); text-align: center;
-    font-variant-numeric: tabular-nums; letter-spacing: 0.12em; }
-  #fxControls button { min-height: 44px; border-radius: 999px; padding: 7px 22px;
-    border: 1px solid rgba(207,169,107,0.58); font-family: var(--font-ui); font-size: clamp(15px,1.3vw,18px);
-    cursor: pointer; }
-  #btnFxNext { background: rgba(122,75,42,0.88); color: #f6ecd8; }
-  #btnFxNext:hover, #btnFxNext:focus-visible { background: #935c35; outline: 2px solid #f0e2c4; outline-offset: 3px; }
-  #btnFxSkip { background: rgba(8,5,3,0.45); color: rgba(240,226,196,0.82); }
-  #btnFxSkip:hover, #btnFxSkip:focus-visible { color: #fff5df; border-color: #f0e2c4; }
+  #fxCaption { position: absolute; z-index: 2; left: clamp(22px, 5vw, 80px);
+    bottom: clamp(54px, 9vh, 96px); max-width: min(68vw, 930px);
+    font-family: var(--font-ui); color: #f5ead3; font-size: clamp(17px, 1.75vw, 27px);
+    line-height: 1.52; letter-spacing: 0.065em; text-align: left;
+    text-shadow: 0 2px 6px #000, 0 3px 18px rgba(0,0,0,.96);
+    animation: bdFade var(--motion-medium) ease; }
+  #fxControls { position: absolute; z-index: 3; right: clamp(20px, 4vw, 64px);
+    bottom: clamp(18px, 3.5vh, 38px); display: flex; align-items: center; gap: 12px;
+    color: rgba(240,226,196,.76); font-family: var(--font-ui); font-size: clamp(12px, 1vw, 15px);
+    letter-spacing: .1em; pointer-events: none; text-shadow: 0 2px 8px #000; }
+  #fxProgress { font-variant-numeric: tabular-nums; }
+  #fxAdvanceCue::after { content: "›"; display: inline-block; margin-left: .52em;
+    color: #f0d49b; font-size: 1.45em; line-height: .7; transform: translateY(.08em);
+    animation: fxCue 1.8s ease-in-out infinite; }
+  @keyframes fxCue { 50% { transform: translate(.2em,.08em); opacity: .58; } }
   /* 逐板手動蒙太奇:每次操作只溶接一板；禁固定秒數自動換板與 rotateY 假翻頁 */
   .fxplate { position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center; opacity: 0;
     transition: opacity 550ms ease, transform 3.4s linear; transform: scale(1.01); }
   .fxplate.on { opacity: 1; transform: scale(1.035); }
+  @media (max-height: 560px) {
+    #fxYear { top: 16px; left: 24px; font-size: clamp(14px, 1.6vw, 20px); }
+    #fxCaption { left: 28px; bottom: 48px; max-width: 72vw; font-size: clamp(14px, 1.55vw, 20px); }
+    #fxControls { right: 24px; bottom: 14px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .fxplate { transition: none; transform: none; }
-    #fxYear, #fxCaption { animation: none; }
+    #fxYear, #fxCaption, #fxAdvanceCue::after { animation: none; }
   }
   @keyframes bdShake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 2px); }
     40% { transform: translate(5px, -3px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(3px, 2px); } }
@@ -1698,15 +1709,15 @@
   <div id="bgFallback"><span id="fbTitle">發現之前</span></div>
   <div id="vignette"></div>
   <div id="sceneChip"></div>
-  <div id="fxJump" role="dialog" aria-modal="true" aria-label="時代轉場" hidden>
+  <div id="fxJump" role="dialog" aria-modal="true" aria-label="時代轉場"
+    aria-describedby="fxCaption" aria-keyshortcuts="Enter Space" tabindex="0" hidden>
     <img id="fxPlateA" class="fxplate" alt="">
     <img id="fxPlateB" class="fxplate" alt="">
     <span id="fxYear"></span>
     <span id="fxCaption" aria-live="polite"></span>
     <div id="fxControls">
       <span id="fxProgress" aria-live="polite"></span>
-      <button id="btnFxSkip" type="button">跳過轉場</button>
-      <button id="btnFxNext" type="button">下一幕</button>
+      <span id="fxAdvanceCue">點畫面繼續</span>
     </div>
   </div>
 
@@ -2032,6 +2043,6 @@
 </script>
 <script src="src/narrative.js?v=20260724-ch04-cr004"></script>
 <script src="src/chapter-ui.js?v=20260724-ch04-visual-complete"></script>
-<script src="src/stage-ui.js?v=20260724-ch04-audio"></script>
+<script src="src/stage-ui.js?v=20260724-cinematic-transitions"></script>
 </body>
 </html>
