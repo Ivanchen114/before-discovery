@@ -348,12 +348,17 @@
       var audit = state.lab.audit || {};
       var sealed = ["wind", "acceleration", "paths"].filter(function (k) { return audit[k]; }).length;
       $("perVal").textContent = sealed ? ("公開質詢：" + sealed + "/3") : "";
+      $("perVal").title = "公開質詢只計算已共同檢查並封存的程序：風、船況與雙紙紀錄。";
     } else if (CHAPTER_ID === "ch4") {
       var press = state.lab.proof && state.lab.proof.press;
       $("perVal").textContent = press
         ? (press.scheduleLost ? "出版：重新排程" : "校樣窗口：" + press.window + "/" + press.reservedWindows)
         : "";
-    } else $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
+      $("perVal").title = "校樣窗口不按閱讀時間倒數；只有送出校樣或主動延後，才推進一個窗口。";
+    } else {
+      $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
+      $("perVal").title = "說服力是辯論中的氣勢量表；錯誤出示會扣，歸零時先複盤論證再返回辯論。";
+    }
     $("modeVal").textContent = "模式：" + (state.mode === "scholar" ? "學者" : "探索");
     $("sceneVal").textContent = "場景：" + playerSceneTitle(state.cursor.scene);
     var names = SCENES.evidenceNames || {};

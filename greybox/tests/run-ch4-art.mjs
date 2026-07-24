@@ -103,7 +103,7 @@ for (const fragment of [
 
 const chapter4Transition = assets.sceneFx?.["D0-1"];
 if (!chapter4Transition || chapter4Transition.fx !== "montage" || chapter4Transition.steps?.length !== 3)
-  fail("第四章章首缺 1642→1655→1665 三拍穿越");
+  fail("第四章章首缺 1642→1665 三拍穿越");
 for (const id of [
   "ch04_transition_1642_question_opens_v01",
   "ch04_transition_1655_paper_passage_v01",

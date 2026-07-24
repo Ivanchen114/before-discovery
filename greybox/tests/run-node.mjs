@@ -234,7 +234,7 @@ tests.push({
     for (const frag of ['id="notebook"', 'role="dialog"', 'aria-modal="true"',
       'id="nbTabEvidence"', 'id="nbTabLog"', 'id="nbLabSnap"',
       'id="labIntro"', 'id="btnLabHelp"', ">第1段<", "紀錄不可刪",
-      'id="prologueCard"', "推進物理史",
+      'id="prologueCard"', "讓證據成立的人",
       'id="debIntro"', 'id="repToast"', 'id="hudTip"']) {
       if (!stageHtml.includes(frag)) throw new Error("stage.html 缺筆記本/實驗台要素:" + frag);
     }
@@ -447,8 +447,8 @@ tests.push({
       throw new Error("C0-1 最後一拍應完成伽桑狄交棒");
     const d0 = assets.sceneFx["D0-1"];
     if (JSON.stringify(d0.steps.map((s) => s.label)) !==
-        JSON.stringify(["1642｜法國・馬賽", "1655｜英吉利海峽以北", "1665｜英格蘭・Woolsthorpe"]))
-      throw new Error("D0-1 應由玩家手點完成 1642→1655→1665 三拍穿越");
+        JSON.stringify(["1642｜法國・馬賽", "1642→1665｜紙頁之間", "1665｜英格蘭・伍爾索普"]))
+      throw new Error("D0-1 應由玩家手點完成 1642→1665 三拍穿越");
     if (d0.steps[d0.steps.length - 1].plate !== "ch04_transition_1665_woolsthorpe_arrival_v01")
       throw new Error("D0-1 最後一拍應真正落地 Woolsthorpe");
     /* 禁四頁 CSS 假翻頁與逐年計數回歸 */
@@ -488,10 +488,11 @@ tests.push({
     const intText = JSON.stringify(scenes.scenes.find((s) => s.id === "INT-1"));
     const b01 = JSON.stringify(scenes2.scenes.find((s) => s.id === "B0-1"));
     const c01 = JSON.stringify(scenes3.scenes.find((s) => s.id === "C0-1"));
-    for (const word of ["1590", "比薩", "我知道伽利略"]) if (!p01.includes(word)) throw new Error("第一章首次落地缺章首定位:" + word);
+    for (const word of ["1590", "比薩", "還不知道轉角的人是誰", "那個名字我知道"]) if (!p01.includes(word)) throw new Error("第一章首次落地缺章首定位:" + word);
+    if (p01.includes("我知道伽利略會在這裡")) throw new Error("第一章在人物自我介紹前仍讓旅人預知伽利略");
     for (const word of ["十一年", "1603"]) if (!intText.includes(word)) throw new Error("第一章十一年跳躍缺定位:" + word);
-    for (const word of ["1608", "證據得從頭做"]) if (!b01.includes(word)) throw new Error("第二章章首缺適應／任務定位:" + word);
-    for (const word of ["1632", "1640", "不是伽利略"]) if (!c01.includes(word)) throw new Error("第三章交棒缺時間／人物定位:" + word);
+    for (const word of ["1608", "對他們是四年", "上一頁的答案"]) if (!b01.includes(word)) throw new Error("第二章章首缺適應／任務定位:" + word);
+    for (const word of ["1632", "1640", "頁面沒有讓我道別"]) if (!c01.includes(word)) throw new Error("第三章交棒缺時間／人物定位:" + word);
     /* 音效=合成零資產;偏好走 sessionStorage(存檔純度不破);HUD 有開關 */
     if (!sui.includes("AudioContext")) throw new Error("音效合成器缺失");
     if (!sui.includes("sessionStorage")) throw new Error("音效偏好未持久化(sessionStorage)");
@@ -1036,7 +1037,7 @@ tests.push({
     /* 逐字抽查(凍結劇本 v0.1.3+總監核准 CH2-CR-002) */
     const flat = JSON.stringify(fromJson);
     for (const frag of ["老夫讀完了。(抬眼)有一個問題。", "這是四年前的舊案,老夫早已記在書裡", "你們答錯題了",
-      "那才是「推力(impetus)」理論押的注", "先不給它名字", "這一回,老夫也帶數字來"])
+      "那才是「推力(impetus)」理論押的注", "先不把推論當成紀錄", "這一回,老夫也帶數字來"])
       if (!flat.includes(frag)) throw new Error("劇本逐字缺失:" + frag);
     /* 效果抽查:B0-2 a=rep-1/b 線 S3+rep+1;B1-2 F1 */
     const b02 = fromJson.scenes.find((s) => s.id === "B0-2");
@@ -1143,7 +1144,8 @@ tests.push({
     const scenes = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
     const byId = (sid, nid) => scenes.scenes.find((s) => s.id === sid).nodes.find((n) => n.id === nid);
     const f2 = byId("B2-3", "n4").text;
-    if (!f2.includes("像是在說") || !f2.includes("一組射程還不夠") || f2.includes("兩種運動各走各的——合起來"))
+    if (!f2.includes("還沒告訴我們前進會不會拖慢下墜") || !f2.includes("門閂直接問") ||
+        f2.includes("各按自己的鐘走"))
       throw new Error("F2 未維持待驗假說語氣");
     const f3 = byId("B2-4", "n3").text;
     if (!f3.includes("現在才有資格說") || !f3.includes("沒有拖慢垂直下墜") || !f3.includes("聽得出的範圍內"))
@@ -1158,6 +1160,59 @@ tests.push({
       throw new Error("B2-5 證據邊界錯答未原地修正");
     if (!byId("B2-5", "n5").text.includes("射程才會符合下落高度的平方根關係"))
       throw new Error("B2-5 組模型未收束至 F2 定量預測");
+  }
+});
+
+tests.push({
+  name: "四章對讀精修|未做思想實驗不當證據；角色聲線與倍率措辭同步",
+  fn: () => {
+    const s1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const s2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const d2 = JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"));
+    const s4 = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+    const byId = (data, sid, nid) => data.scenes.find((s) => s.id === sid)?.nodes.find((n) => n.id === nid);
+    const ch1 = readFileSync(path.join(here, "../../04_劇本/第一章完整劇本_重物的渴望_v0.2.2.md"), "utf-8");
+    const ch2 = readFileSync(path.join(here, "../../04_劇本/第二章完整劇本_拋出去的東西_v0.1.3.md"), "utf-8");
+    const ch4 = readFileSync(path.join(here, "../../04_劇本/第四章完整劇本_月亮的無盡墜落_v0.2-review.md"), "utf-8");
+    const review = readFileSync(path.join(here, "../../05_審核/發現之前_第一至第四章_角色對話審稿本_20260723.md"), "utf-8");
+    const principles = readFileSync(path.join(here, "../../02_設計/發現之前_設計原則手冊_v0.1.md"), "utf-8");
+
+    const b02 = s2.scenes.find((s) => s.id === "B0-2");
+    for (const id of ["n1", "n1a", "n1b", "n1c", "n1d"])
+      if (!b02?.nodes.find((n) => n.id === id)) throw new Error("B0-2 未拆成三拍:" + id);
+    if (s2.evidenceNames.F1 !== "船桅待驗預測" ||
+        !byId(s2, "B1-2", "s1")?.text.includes("它還不是實驗紀錄") ||
+        !assets.evidenceSummary?.F1?.includes("尚未取得船上紀錄"))
+      throw new Error("F1 仍可能被玩家讀成已完成的船上證據");
+    const p3 = d2.chapter.pillars.P3;
+    if (p3.statements.find((s) => s.id === "p3s2")?.weakTo?.evidence !== "F3" ||
+        !p3.playerCorrect.includes("但這一筆,我們還沒做") ||
+        !p3.breakReply.includes("前半是紀錄,後半是欠下的驗證"))
+      throw new Error("P3 未由 F3 實測負責反駁，或未留下船桅證據債");
+
+    const a21 = byId(s1, "A2-1", "nb2")?.text || "";
+    if (!a21.includes("坡越緩,它變快得越慢") || !a21.includes("變快的規矩") ||
+        a21.includes("攤平") || a21.includes("加速度"))
+      throw new Error("A2-1 未把物理關係與待驗假說分開");
+    if (!byId(s2, "B2-1", "n2")?.text.includes("他的推薦幫了大忙"))
+      throw new Error("Guidobaldo 仍只剩資料載體，缺人物關係");
+
+    if (JSON.stringify(s4.scenes.find((s) => s.id === "D0-2")).includes("六十個地球半徑") ||
+        !byId(s4, "D3-4", "n2")?.text.includes("沒有一頁告訴你它如何穿過空間") ||
+        !byId(s4, "D2-2", "n2")?.text.includes("六十秒後") ||
+        !byId(s4, "D2-2", "n3")?.text.includes("它只回答了月亮"))
+      throw new Error("第四章數字揭露或牛頓技術聲線回歸");
+    const stale = ["漏水的舊房", "把『向下』攤平", "各按自己的鐘走",
+      "你們竟把邊界", "一筆相合，可能只是你替它挑了合身的衣服",
+      "印刷台只管期限，不管真假", "留下空白不是失敗",
+      "地表一秒落下的量，按距離平方縮弱"];
+    const allEditedText = [ch1, ch2, ch4, review, JSON.stringify(s1), JSON.stringify(s2), JSON.stringify(d2), JSON.stringify(s4)].join("\n");
+    for (const phrase of stale) if (allEditedText.includes(phrase)) throw new Error("舊句回歸:" + phrase);
+    for (const cr of ["CH1-CR-007", "CH1-CR-008", "CH2-CR-010", "CH4-CR-002", "CH4-CR-003"])
+      if (!allEditedText.includes(cr)) throw new Error("劇本缺正式變更紀錄:" + cr);
+    for (const principle of ["57. **思想實驗先取得預測", "58. **跨章重複母題必須改變人物關係"])
+      if (!principles.includes(principle)) throw new Error("設計原則未沉澱:" + principle);
   }
 });
 
@@ -1252,7 +1307,7 @@ tests.push({
         if (dv.phase === "pillars") {
           const pid = dv.pillar.id;
           ok(N2.debatePresent(st, { target: { P1: "p1s2", P2: "p2s2", P3: "p3s2" }[pid],
-            evidence: { P1: "F4", P2: "F3", P3: "F1" }[pid] }), "present " + pid);
+            evidence: { P1: "F4", P2: "F3", P3: "F3" }[pid] }), "present " + pid);
           return;
         }
         if (dv.phase === "enemy") {
@@ -1330,7 +1385,7 @@ tests.push({
     /* 學者線+ch1 certified 投影:inherited 鏈+r1 押中原子揭曉 */
     const s2 = walk("scholar", { hypothesis: false, xch: { ch1: { source: "ch1-schema3", certified: true, e3: { a: true, b: true, c: true } } } });
     if (s2.flags.revealSqrt !== "1") throw new Error("r1 押中路未原子寫入揭曉旗標");
-    if (!s2.transcript.some((t) => (t.text || "").includes("先不給它名字"))) throw new Error("學者分支未演出");
+    if (!s2.transcript.some((t) => (t.text || "").includes("先不把推論當成紀錄"))) throw new Error("學者分支未演出");
     if (!s2.transcript.some((t) => (t.text || "").includes("沒有直接量過垂直落下"))) throw new Error("certified 路未用 inherited 第二環");
     /* over 反將路:說服力 5→3、信譽 −1,強制轉 honest 後仍完賽 */
     const s3 = walk("explore", { over: true });
@@ -1975,6 +2030,12 @@ tests.push({
     if (!principles.includes("合理反對者必須被證據改變") ||
         !principles.includes("公開不是宣傳、投票或自動製造高潮"))
       throw new Error("第三章公開因果與人物轉向未沉澱為設計原則");
+    if (!principles.includes("角色不能替設計目標說話") ||
+        !principles.includes("知識與動機要各歸其位"))
+      throw new Error("CH3-CR-011 角色知識與動機分配未沉澱為設計原則");
+    if (!principles.includes("終局要拒絕的主張必須先進入玩家世界") ||
+        !principles.includes("最低充分脈絡"))
+      throw new Error("CH3-CR-012 終局主張前置與政治溫度未沉澱為設計原則");
     if (!principles.includes("玩家看見的操作動詞必須在模型裡真的發生") ||
         !principles.includes("錯誤選擇先完整呈現可觀察後果") ||
         !principles.includes("可逆的科學操作必須允許重試"))
@@ -2192,7 +2253,7 @@ tests.push({
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const x of ['src="data/series.js"', 'src="src/engine3.js"', 'src="data/scenes3.js"', 'bd_ch3_save', 'data-view="ship"'])
+    for (const x of ['src="data/series.js"', 'src="src/engine3.js"', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.route === "ch03"))
@@ -2204,8 +2265,56 @@ tests.push({
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.title === scenes3.title))
       throw new Error("玩家入口缺第三章正式章名");
     const openingText = (opening && opening.nodes || []).map((n) => n.text || "").join("\n");
-    for (const phrase of ["問題沒有跟著他離場", "1632 年", "這次接過問題的人，不是伽利略"])
+    for (const phrase of ["它為什麼還在走", "1632 年", "頁面沒有讓我道別"])
       if (!openingText.includes(phrase)) throw new Error("第二章→第三章同行者接棒缺句:" + phrase);
+  }
+});
+
+tests.push({
+  name: "一至四章接縫|旅人不預知、玩家翻頁、問題由前章親手交棒",
+  fn: () => {
+    const s1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const s2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const s3 = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
+    const s4 = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
+    const principles = readFileSync(path.join(here, "../../02_設計/發現之前_設計原則手冊_v0.1.md"), "utf-8");
+    const ch4 = readFileSync(path.join(here, "../../04_劇本/第四章完整劇本_月亮的無盡墜落_v0.2-review.md"), "utf-8");
+    const text = (data, sceneId) => JSON.stringify(data.scenes.find((scene) => scene.id === sceneId));
+
+    const p01 = text(s1, "P0-1");
+    if (p01.includes("我知道伽利略會在這裡") || !p01.includes("那個名字我知道"))
+      throw new Error("第一章仍在自我介紹前預知人物，或自我介紹後缺旅人定位");
+    if (!text(s1, "E-2").includes("這條弧還沒有"))
+      throw new Error("第一章最後記憶仍停在鎚羽，沒有把運河弧線交給第二章");
+
+    const b01 = text(s2, "B0-1");
+    if (!b01.includes("對他們是四年。對我,又只是一頁") || !b01.includes("他把那張紙留了四年"))
+      throw new Error("第二章沒有用一頁折疊四年，或辛普里奧沒有帶回舊證據");
+
+    const c01 = text(s3, "C0-1");
+    if (c01.includes("一生快走到盡頭") || c01.includes("不會永遠跟著同一位科學家") ||
+        !c01.includes("頁面沒有讓我道別"))
+      throw new Error("第三章仍用作者旁白解釋換科學家");
+    const ce2 = text(s3, "CE-2");
+    if (ce2.includes("自動畫出") || ce2.includes("浮出一道") ||
+        !ce2.includes("親手寫下") || !ce2.includes("月亮為什麼沒有沿直線離開"))
+      throw new Error("第三章章尾仍由筆記代替旅人畫圖或提問");
+
+    const d01 = text(s4, "D0-1");
+    if (d01.includes("伽利略不在了") || !d01.includes("我不知道下一頁會把我帶到誰面前") ||
+        !s4.scenes.find((scene) => scene.id === "D0-1")?.nodes.some((node) => node.type === "choice"))
+      throw new Error("第四章仍有全知視角，或跨年不是玩家手動翻頁");
+    if (!text(s4, "D0-2").includes("這個名字我知道。眼前這個人，我不知道"))
+      throw new Error("第四章沒有在牛頓自我介紹後重新定位旅人");
+
+    if (!principles.includes("筆記只折疊年月，不替旅人預知歷史") || !ch4.includes("CH4-CR-007"))
+      throw new Error("跨章主觀時間規則未同步設計原則與第四章法源");
+    for (const scene of s4.scenes)
+      if (!ch4.includes(`【${scene.id}】${scene.title}`))
+        throw new Error("第四章 runtime 場名未同步 v0.2 劇本:" + scene.id);
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (!ui.includes("校樣窗口不按閱讀時間倒數") || !ui.includes("公開質詢只計算已共同檢查"))
+      throw new Error("跨章 HUD 仍可能把伽利略辯論說明帶進第三、第四章");
   }
 });
 
@@ -2469,7 +2578,7 @@ tests.push({
     }
     const aj = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const all = JSON.stringify({ scenes: sj, openingTransition: aj.sceneFx?.["D0-1"] });
-    for (const year of ["1655","1665","1679","1684","1687"]) if (!all.includes(year)) throw new Error("缺年卡:" + year);
+    for (const year of ["1642","1665","1679","1684","1687"]) if (!all.includes(year)) throw new Error("缺年卡:" + year);
     const timed = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
     if (/setTimeout[\s\S]{0,180}(?:choose|advance|embedComplete)/.test(timed))
       throw new Error("舞台仍可能用計時器代按劇情轉場");
@@ -2590,25 +2699,25 @@ tests.push({
 tests.push({
   name: "CH4-CR-004|單一信用高潮、旅人長線、分支回報與舊存檔入口",
   fn: () => {
-    const script=readFileSync(path.join(here,"../../04_劇本/第四章完整劇本_月亮一直在掉_v0.1-draft.md"),"utf-8");
+    const script=readFileSync(path.join(here,"../../04_劇本/第四章完整劇本_月亮的無盡墜落_v0.2-review.md"),"utf-8");
     const spec=readFileSync(path.join(here,"../../03_規格/發現之前_第四章功能規格書_v0.1-draft.md"),"utf-8");
     const principles=readFileSync(path.join(here,"../../02_設計/發現之前_設計原則手冊_v0.1.md"),"utf-8");
     const byId=(sid,nid)=>scenes4.scenes.find((s)=>s.id===sid)?.nodes.find((n)=>n.id===nid);
-    for(const phrase of ["四章下來，我做過的每一件事，都留在別人的紙上","十九年前，你也在",
+    for(const phrase of ["我做過的事，也全留在別人的紙上","十九年前，你也在",
       "這封信不能替你證明三百頁；那三百頁也不能讓這封信不存在",
-      "所以寫清楚。不是寫大方","名字不進這本書。事情進你的筆記"])
+      "所以寫清楚。不是寫大方","名字不進這本書","事情進你的筆記"])
       if(!JSON.stringify(scenes4).includes(phrase)||!script.includes(phrase))throw new Error("劇本／runtime 缺結構節拍:"+phrase);
-    if(scenes4.scenes.length!==14 || scenes4.scenes.find((s)=>s.id==="D3-2")?.title!=="三組都跑過了" ||
+    if(scenes4.scenes.length!==14 || scenes4.scenes.find((s)=>s.id==="D3-2")?.title!=="結論只能蓋住跑過的紙" ||
         !scenes4.scenes.some((s)=>s.id==="D3-4"))
       throw new Error("縮短第三幕破壞場景數或舊存檔入口");
-    if(script.includes("## ◆ 場景【D2-4】") || !script.includes("D2-3 續場｜Halley 要的是證明"))
+    if(script.includes("## ◆ 場景【D2-4】") || !script.includes("## ◆ 場景【D2-3】不准先看火星"))
       throw new Error("不存在的 D2-4 仍被當成獨立 runtime 場景");
     if(!script.includes("CH4-CR-004")||!spec.includes("CH4-CR-004")||
         !principles.includes("證據精確也必須用在署名"))
       throw new Error("結構裁決未同步劇本、規格與設計原則");
-    if(byId("D3-2","n4")?.speaker!=="Halley" || !byId("D3-2","n4")?.text.includes("三組都跑過了"))
+    if(byId("D3-2","n4")?.speaker!=="哈雷" || !byId("D3-2","n4")?.text.includes("三組都跑過了"))
       throw new Error("D3-2 仍以第二個高潮收束");
-    if(!byId("D3-1","n4p")?.require || !byId("D3-1","n4d")?.text.includes("1679 年那封信仍在"))
+    if(!byId("D3-1","n4p")?.require || !byId("D3-1","n4d")?.text.includes("1679 年那封信"))
       throw new Error("短稿／延後沒有不同回報，或延後路抹掉書信");
 
     let old=Engine4.initialState();

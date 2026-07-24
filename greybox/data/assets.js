@@ -886,7 +886,7 @@
   {
    "id": "ch04_transition_1655_paper_passage_v01",
    "kind": "bg",
-   "label": "章首轉場・1655 紙頁時間通道",
+   "label": "章首轉場・1642 至 1665 紙頁時間通道",
    "path": "ch04/transitions/ch04_transition_1655_paper_passage_v01.webp",
    "firstScreen": true,
    "w": 1672,
@@ -934,7 +934,7 @@
   {
    "id": "bg_ch02_workshop_theory_rain_night",
    "kind": "bg",
-   "label": "1608 雨夜推演室・船桅思想實驗",
+   "label": "1608 雨夜推演室・船桅待驗預測",
    "path": "ch02/backgrounds/ch02_bg_workshop_theory_rain_night_v01.webp",
    "firstScreen": false,
    "w": 1920,
@@ -1853,45 +1853,63 @@
   },
   "D0-1": {},
   "D0-2": {
-   "Newton": "dialogue_newton22"
+   "Newton": "dialogue_newton22",
+   "牛頓": "dialogue_newton22"
   },
   "D1-1": {
-   "Newton": "dialogue_newton22"
+   "Newton": "dialogue_newton22",
+   "牛頓": "dialogue_newton22"
   },
   "D1-2": {
-   "Newton": "dialogue_newton22"
+   "Newton": "dialogue_newton22",
+   "牛頓": "dialogue_newton22"
   },
   "D1-3": {
-   "Newton": "dialogue_newton22"
+   "Newton": "dialogue_newton22",
+   "牛頓": "dialogue_newton22"
   },
   "D2-1": {
-   "Newton": "dialogue_newton41"
+   "Newton": "dialogue_newton41",
+   "牛頓": "dialogue_newton41"
   },
   "D2-2": {
-   "Newton": "dialogue_newton41"
+   "Newton": "dialogue_newton41",
+   "牛頓": "dialogue_newton41"
   },
   "D2-3": {
    "Newton": "dialogue_newton41",
-   "Halley": "dialogue_halley28"
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
   },
   "D3-1": {
    "Newton": "dialogue_newton41",
-   "Halley": "dialogue_halley28"
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
   },
   "D3-2": {
-   "Newton": "dialogue_newton41"
+   "Newton": "dialogue_newton41",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
   },
   "D3-3": {
    "Newton": "dialogue_newton41",
-   "Halley": "dialogue_halley28"
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
   },
   "D3-4": {
    "Newton": "dialogue_newton41",
-   "Halley": "dialogue_halley28"
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
   },
   "DE-1": {
    "Newton": "dialogue_newton41",
-   "Halley": "dialogue_halley28"
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
   },
   "DE-2": {}
  },
@@ -1904,7 +1922,9 @@
   "艾蒂安": "dialogue_etienne17",
   "馬蒂厄": "dialogue_mathieu32",
   "Newton": "dialogue_newton41",
-  "Halley": "dialogue_halley28"
+  "Halley": "dialogue_halley28",
+  "牛頓": "dialogue_newton41",
+  "哈雷": "dialogue_halley28"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -1917,7 +1937,9 @@
   "艾蒂安": "left",
   "馬蒂厄": "left",
   "Newton": "right",
-  "Halley": "left"
+  "Halley": "left",
+  "牛頓": "right",
+  "哈雷": "left"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -2070,7 +2092,7 @@
   },
   {
    "scene": "B0-2",
-   "match": "自袖中取出一張折紙",
+   "match": "他從袖中取出折紙",
    "items": [
     {
      "asset": "card_S3",
@@ -2273,12 +2295,12 @@
     },
     {
      "plate": "ch04_transition_1655_paper_passage_v01",
-     "label": "1655｜英吉利海峽以北",
-     "caption": "十三年落進紙縫；人已遠去，問題仍在往前。"
+     "label": "1642→1665｜紙頁之間",
+     "caption": "二十三年折進紙縫；旅人沒有變，問題仍在往前。"
     },
     {
      "plate": "ch04_transition_1665_woolsthorpe_arrival_v01",
-     "label": "1665｜英格蘭・Woolsthorpe",
+     "label": "1665｜英格蘭・伍爾索普",
      "caption": "白光退去。濕草、石牆，和白日天空裡沒有墜落的月亮。"
     }
    ]
@@ -2621,7 +2643,7 @@
   "E4": "重量沒變,只改形狀或介質,先後就變了。",
   "S1": "歷史背景——別人也做過,不是你的主證。",
   "S2": "他也曾卡住——是故事,不是反證。",
-  "F1": "船在等速前行時，桅頂落球仍落回桅腳——共同前行不會消失。",
+  "F1": "待驗預測：船若等速前行，桅頂落球應落回桅腳附近；第二章尚未取得船上紀錄。",
   "F2": "同一裝置下，射程隨下落高度的開方增長；換同徑木球仍保持。",
   "F3": "一顆水平拋出、一顆原地放下；兩顆近乎同時落地，向前運動沒有讓下墜延後。",
   "F4": "沾墨軌跡從離手第一寸就開始彎，找不到真正的直飛段。",
@@ -2708,10 +2730,10 @@
    "items": [
     {
      "asset": "bg_ch02_workshop_theory_rain_night",
-     "alt": "雨夜推演室中的船桅思想實驗"
+     "alt": "雨夜推演室中的船桅待驗預測"
     }
    ],
-   "caption": "取得證據：船桅思想實驗。"
+   "caption": "記下預測：船桅落球。"
   },
   "F2": {
    "items": [

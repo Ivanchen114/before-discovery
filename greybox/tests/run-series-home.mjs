@@ -12,7 +12,7 @@ const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf8");
 const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf8");
 const scenes4 = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf8"));
 const ch4Script = readFileSync(
-  path.join(here, "../../04_劇本/第四章完整劇本_月亮一直在掉_v0.1-draft.md"),
+  path.join(here, "../../04_劇本/第四章完整劇本_月亮的無盡墜落_v0.2-review.md"),
   "utf8"
 );
 
