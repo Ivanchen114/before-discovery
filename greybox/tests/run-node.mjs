@@ -3100,7 +3100,7 @@ tests.push({
       throw new Error("第四章主要操作未接近 44px 觸控目標");
     if(!html.includes(".orbitRuleDesigner .shipSelect { min-height:44px"))
       throw new Error("第四章手機橫屏的規則選單不足 44px 觸控高度");
-    if(!html.includes("#btnSfx, #btnFull, #btnDrawer, #btnBackTitle"))
+    if(!html.includes("#hud #btnSfx, #hud #btnFull, #hud #btnDrawer, #hud #btnBackTitle"))
       throw new Error("手機橫屏頂列操作未保留 44px 觸控高度");
     if(!html.includes("@media (prefers-reduced-motion:reduce)") || !html.includes(".orbitPath"))
       throw new Error("第四章減少動態未保留因果路徑");
