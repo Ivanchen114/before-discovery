@@ -1804,6 +1804,13 @@
       });
     } else if (phase === "protocol") {
       var aD = lab.design && lab.design.protocol && lab.design.protocol.assignments || {};
+      var protocolAttemptsD = lab.design && lab.design.protocol && lab.design.protocol.attempts || [];
+      var latestProtocolD = protocolAttemptsD.length ? protocolAttemptsD[protocolAttemptsD.length - 1] : null;
+      var wrongProtocolD = latestProtocolD && !latestProtocolD.ok ? latestProtocolD.wrong || [] : [];
+      var protocolNamesD = {
+        mathieu: "馬蒂厄", sailor: "水手", etienne: "艾蒂安",
+        gassendi: "伽桑狄", traveler: "旅人", captain: "艦長"
+      };
       var protocolNodesD = [
         ["release", "桅頂抽閂", 500, 92],
         ["clock", "甲板敲鼓", 300, 252],
@@ -1811,11 +1818,17 @@
         ["ship", "船上記錄", 690, 252],
         ["vessel", "艦長控船", 855, 438]
       ];
+      draw("line", "shipSimDeckAxis", { x1: 245, y1: 362, x2: 910, y2: 362 });
+      draw("line", "shipSimPlumb", { x1: 500, y1: 56, x2: 500, y2: 362 });
+      draw("text", "shipSimState", { x: 108, y: 510, "text-anchor": "middle" }, "碼頭／岸上");
+      draw("text", "shipSimState", { x: 755, y: 510, "text-anchor": "middle" }, "船上甲板");
       protocolNodesD.forEach(function (nD) {
+        var wrongD = wrongProtocolD.indexOf(nD[0]) >= 0;
         draw("line", "shipSimGuide", { x1: 500, y1: 294, x2: nD[2], y2: nD[3] });
-        draw("circle", "shipEvidenceSeal " + (aD[nD[0]] ? "got" : ""), { cx: nD[2], cy: nD[3], r: 48 });
+        draw("circle", "shipEvidenceSeal " + (wrongD ? "wrong" : (aD[nD[0]] ? "got" : "")), { cx: nD[2], cy: nD[3], r: 58 });
         draw("text", "shipEvidenceSealText", { x: nD[2], y: nD[3] - 4, "text-anchor": "middle" }, nD[1]);
-        draw("text", "shipSimAxisText", { x: nD[2], y: nD[3] + 20, "text-anchor": "middle" }, aD[nD[0]] ? "已安排" : "待安排");
+        draw("text", "shipSimAxisText", { x: nD[2], y: nD[3] + 22, "text-anchor": "middle" },
+          wrongD ? "位置不合" : (protocolNamesD[aD[nD[0]]] || "待安排"));
       });
       draw("circle", "shipSimTarget", { cx: 500, cy: 294, r: 38 });
       draw("text", "shipSimBadgeText", { x: 500, y: 300, "text-anchor": "middle" }, "同一趟");
@@ -1964,6 +1977,8 @@
       cap.textContent = "停船與近似穩速四種條件各至少一筆即可比較；任何一格都能自由重做。";
     } else if (phase === "speed-change") {
       cap.textContent = "每次落點都會保留；重做可看出方向是否穩定，不會覆蓋前一筆。";
+    } else if (phase === "protocol") {
+      cap.textContent = "左圖不是裝飾：桅頂、岸上與船上是不同位置；紅色站位表示分工演練無法執行。";
     } else if (phase === "overlay") {
       var overlayPreview = lab.overlay.preview || (lab.overlay.transformed ? "subtractMast" : (lab.overlay.aligned ? "sameBeats" : "initial"));
       cap.textContent = ({
@@ -2052,13 +2067,25 @@
 
     if (v.phase === "protocol") {
       ship3El("h3", "二、五件工作，五個位置", work);
-      ship3El("p", "這次不靠某個人『看得很準』。每件事由不同的人負責，之後才能追問哪一筆是怎麼留下的。", work, "shipNote shipStepPrompt");
+      ship3El("p", "先看每個人能站哪裡、能做什麼，再安排五件工作。重點不是猜名字，而是讓放手、計時、兩邊觀察與船況彼此獨立。", work, "shipNote shipStepPrompt");
       var protocol = lab.design.protocol;
       var persons = ["mathieu", "sailor", "etienne", "gassendi", "traveler", "captain"];
       var personLabels = {
         mathieu: "馬蒂厄", sailor: "水手", etienne: "艾蒂安",
         gassendi: "伽桑狄", traveler: "旅人（你）", captain: "艦長"
       };
+      var crewBrief = ship3El("div", null, work, "shipCrewBrief");
+      [
+        ["馬蒂厄", "留在桅頂，只操作門閂並報放手時刻。"],
+        ["水手", "守在甲板，能維持等節拍鼓。"],
+        ["艾蒂安", "帶岸標紙留在碼頭，記每拍船位。"],
+        ["伽桑狄／旅人", "其中一人留船上，記石頭相對桅杆的落點。"],
+        ["艦長", "掌舵並下加槳、收槳命令，控制船況。"]
+      ].forEach(function (crew) {
+        var card = ship3El("div", null, crewBrief, "shipCrewCard");
+        ship3El("b", crew[0], card);
+        ship3El("span", crew[1], card);
+      });
       var slots = [
         ["release", "桅頂抽閂"],
         ["clock", "甲板敲等節拍鼓"],
@@ -2066,23 +2093,59 @@
         ["ship", "船上記落點"],
         ["vessel", "控制船況"]
       ];
+      var slotLabels = {
+        release: "桅頂抽閂", clock: "甲板敲等節拍鼓", shore: "岸上記每拍船位",
+        ship: "船上記落點", vessel: "控制船況"
+      };
+      var roleFailures = {
+        release: "抽閂者必須留在桅頂；這件事已交給馬蒂厄。",
+        clock: "等節拍鼓要由能守在甲板的水手負責。",
+        shore: "岸標紙在碼頭，必須由留在岸上的艾蒂安記。",
+        ship: "船上落點要由伽桑狄或旅人記，不能讓桅頂或岸上的人兼任。",
+        vessel: "只有艦長能持續掌舵並控制加槳、收槳。"
+      };
+      var assignmentsBox = ship3El("div", null, work, "shipProtocolAssignments");
       slots.forEach(function (slot) {
-        var rowP = ship3El("div", null, work, "shipRow");
+        var rowP = ship3El("div", null, assignmentsBox, "shipRow shipProtocolRow");
         ship3El("label", slot[1], rowP);
-        var pickP = ship3Select(rowP, persons, personLabels, protocol.assignments[slot[0]] || persons[0]);
-        ship3Btn(rowP, "安排", function () {
+        var choicesP = [""].concat(persons);
+        var labelsP = Object.assign({ "": "選一位" }, personLabels);
+        var pickP = ship3Select(rowP, choicesP, labelsP, protocol.assignments[slot[0]] || "");
+        pickP.setAttribute("aria-label", slot[1] + "負責人");
+        var assignP = ship3Btn(rowP, protocol.assignments[slot[0]] ? "更換" : "安排", function () {
           doShip("setProtocolAssignment", { slot: slot[0], person: pickP.value },
             "已記下分工；封存前仍可調整。");
-        });
+        }, "shipAction", !pickP.value);
+        pickP.onchange = function () { assignP.disabled = !pickP.value; };
       });
-      if (!protocol.locked) ship3Btn(work, "檢查衝突並封存分工", function () {
+      if (!protocol.locked) ship3Btn(work, "集合點名：試走並封存分工", function () {
         doShip("lockProtocol", {}, "✓ 沒有人分身，每個觀察位置都有獨立紀錄者。");
       }, "shipAction primary");
       if (protocol.attempts.length) {
         var latestProtocol = protocol.attempts[protocol.attempts.length - 1];
-        ship3El("p", latestProtocol.ok ? "最近一次檢查：分工可執行。"
-          : (latestProtocol.duplicated ? "最近一次檢查：有人同時被派到兩個位置。"
-            : "最近一次檢查：有人的站位無法完成那件工作。"), work, "shipNote");
+        var attemptBox = ship3El("div", null, work, "shipNote shipProtocolAttempt " + (latestProtocol.ok ? "ok" : "error"));
+        ship3El("b", latestProtocol.ok ? "分工演練通過" : "分工演練發現問題", attemptBox);
+        if (!latestProtocol.ok) {
+          var issues = ship3El("ul", null, attemptBox);
+          if (latestProtocol.duplicated) {
+            var used = {};
+            Object.keys(latestProtocol.assignments || {}).forEach(function (slotId) {
+              var personId = latestProtocol.assignments[slotId];
+              if (!used[personId]) used[personId] = [];
+              used[personId].push(slotLabels[slotId]);
+            });
+            Object.keys(used).forEach(function (personId) {
+              if (used[personId].length > 1)
+                ship3El("li", personLabels[personId] + "同時被派去「" + used[personId].join("」和「") + "」，無法分身。", issues);
+            });
+          }
+          (latestProtocol.wrong || []).forEach(function (slotId) {
+            ship3El("li", slotLabels[slotId] + "： " + roleFailures[slotId], issues);
+          });
+          ship3El("p", "這次停在分工演練，沒有浪費一天，也沒有產生假紀錄。調整後再點名一次。", attemptBox);
+        } else {
+          ship3El("span", "每個人只站一處，五份紀錄可以互相追溯。", attemptBox);
+        }
       }
       if (protocol.locked && !protocol.ran) ship3Btn(work, "照封存分工完成三次穩速落石", function () {
         doShip("runDesignedProtocol", {}, "✓ 等節拍鼓沒有改變，岸上每拍船位也近乎等距；三筆穩速落點已留下。");

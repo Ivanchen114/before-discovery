@@ -176,7 +176,10 @@
 
   /* --- 對話框(v2:桌機約 28% 高;左側半身像) --- */
   #dialogue { position: absolute; z-index: 25; left: 3%; right: 3%; bottom: 3%;
-              min-height: 28%; background: rgba(16, 11, 8, 0.88);
+              min-height: 28%;
+              background: linear-gradient(180deg,rgba(28,19,13,.78),rgba(13,9,7,.92));
+              -webkit-backdrop-filter: blur(2px) saturate(.82);
+              backdrop-filter: blur(2px) saturate(.82);
               border: 1px solid rgba(230, 215, 189, 0.35); border-top: 2px solid var(--color-chapter-accent);
               border-radius: 6px; padding: 16px 20px 18px; box-sizing: border-box; }
   body[data-view="title"] #dialogue, body[data-view="lab"] #dialogue, body[data-view="ship"] #dialogue,
@@ -228,10 +231,11 @@
   }
 
   @media (max-height:520px), (orientation:portrait) and (pointer:coarse) and (max-width:520px) {
-    #sceneFocus { top: 13%; left: 2.5%; width: 45%; max-height: 50%; padding: 4px; }
-    #sceneFocusMedia img { max-height: 34vh; }
+    #sceneFocus { top: 13%; left: 2.5%; width: 42%; max-height: 43%; padding: 4px; }
+    #sceneFocusMedia img { max-height: 27vh; }
+    #sceneFocusMedia .scene-focus-evidence { height: 26vh; max-height: 138px; aspect-ratio: auto; padding: 8px; }
     #sceneFocus.multi { width: 51%; }
-    #sceneFocus.multi #sceneFocusMedia img { max-height: 25vh; }
+    #sceneFocus.multi #sceneFocusMedia img { max-height: 22vh; }
     #sceneFocus.quad { left: 2.5%; width: 57%; }
     #sceneFocus.quad #sceneFocusMedia img { max-height: 15vh; }
     #sceneFocusCaption { padding: 3px 4px 1px; font-size: 11px; line-height: 1.25; }
@@ -1219,10 +1223,11 @@
 
   /* --- 手機橫屏(低高度視窗) --- */
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
-    #dialogue { min-height: 38%; padding: 12px 14px 14px; }
+    #dialogue { min-height: 30%; padding: 12px 14px 14px; }
     #dlgText { font-size: clamp(20px, 4.4vh, 24px); }
     #dlgText.sys.gain { font-size: 1em; line-height: 1.5; }
-    .bslot { height: clamp(110px, 30vh, 150px); }
+    .bslot { height: clamp(118px, 32vh, 158px); }
+    .bslot img { transform: scale(1.12); transform-origin: 50% 100%; }
     #bustLeft { left: 10px; } #bustRight { right: 10px; }
     /* 手機橫屏:只留 active portrait,文字不被雙肖像夾窄 */
     #dialogue[data-active="right"] #bustLeft, #dialogue[data-active="left"] #bustRight,
@@ -1234,7 +1239,7 @@
     #dialogue[data-active="right"] #nameplate, #dialogue[data-active="none"] #nameplate { left: 16px; }
     #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/說服力 */
     #sceneChip { display: none; }
-    body[data-view="choice"] #panelWrap { bottom: 41%; }
+    body[data-view="choice"] #panelWrap { bottom: 34%; }
     /* 辯論 v2 的對話框已會退場；舊版預留的 42% 會把證據手牌整段裁掉。 */
     body[data-view="debate"] #panelWrap { bottom: 3%; }
     #nbSheet { width: 97%; height: 95%; }
@@ -1248,9 +1253,10 @@
   /* 窄視窗／瀏覽器縮放：viewport 可能很高，但 16:9 舞台實寬已不足以容納雙肖像。
      以寬度收斂對話，而非誤用手機高度條件；正常桌機寬度完全不變。 */
   @media (max-width: 900px) {
-    #dialogue { min-height: 38%; padding: 12px 14px 14px; }
+    #dialogue { min-height: 30%; padding: 12px 14px 14px; }
     #dlgText { font-size: clamp(19px, 3vw, 24px); }
-    .bslot { height: clamp(105px, 18vw, 145px); }
+    .bslot { height: clamp(112px, 19vw, 154px); }
+    .bslot img { transform: scale(1.1); transform-origin: 50% 100%; }
     #bustLeft { left: 10px; }
     #bustRight { right: 10px; }
     #dialogue[data-active="right"] #bustLeft,
@@ -1264,7 +1270,7 @@
     #dialogue[data-active="none"] #nameplate { left: 16px; }
     #hud #modeVal, #hud #e3Val { display: none; }
     #sceneChip { display: none; }
-    body[data-view="choice"] #panelWrap { bottom: 41%; }
+    body[data-view="choice"] #panelWrap { bottom: 34%; }
   }
 
   /* --- 手機橫屏真機修正包（844×390／932×430）---
@@ -1469,10 +1475,10 @@
   }
 
   /* 第三章航船實驗：航海圖與實驗紀錄簿，不沿用前兩章的裝置皮膚。 */
-  body[data-view="ship"] #panelWrap { padding: 10px; color: #ede0c6; overflow: auto;
+  body[data-view="ship"] #panelWrap { padding: 10px; color: #ede0c6; overflow: hidden;
     border: 1px solid rgba(202,164,104,.58); border-radius: 12px;
     background: radial-gradient(circle at 16% -18%,rgba(86,116,126,.23),transparent 43%),linear-gradient(145deg,rgba(29,25,20,.98),rgba(12,14,14,.98)); }
-  #controls.shipLab { display: grid; grid-template-rows: auto minmax(0,1fr); gap: 8px; min-height: 100%; font-family: var(--font-dialogue); }
+  #controls.shipLab { display: grid; grid-template-rows: auto minmax(0,1fr); gap: 8px; height: 100%; min-height: 0; font-family: var(--font-dialogue); }
   .shipHead { display: grid; grid-template-columns: minmax(190px,.65fr) minmax(260px,1.35fr) auto; align-items: center; gap: 9px;
     min-height: 58px; padding: 7px 13px; border: 1px solid rgba(202,164,104,.34); background: linear-gradient(100deg,#251b14,#3a2c20); }
   .shipHead small { grid-column: 1; color: #cfaa72; font: 700 10px var(--font-ui); letter-spacing: .13em; }
@@ -1557,6 +1563,7 @@
   .shipDiagram .shipPaperCallout.converted { fill: #bcebf0; }
   .shipDiagram .shipPaperStepLabel { fill: #f4dfb7; paint-order: stroke; stroke: rgba(18,12,8,.94); stroke-width: 7; font: 700 17px var(--font-ui); }
   .shipEvidenceSeal { fill: rgba(21,17,12,.72); stroke: #9b7a4c; stroke-width: 4; }.shipEvidenceSeal.got { fill: rgba(71,103,69,.92); stroke: #e6ca88; }
+  .shipEvidenceSeal.wrong { fill: rgba(120,48,39,.9); stroke: #ffd0b0; }
   .shipEvidenceSealText { fill: #f4dfb4; font: 800 22px var(--font-ui); }
   @keyframes ship-plate-in { from { opacity: .25; transform: scale(1.012); } to { opacity: 1; transform: none; } }
   @keyframes ship-drop { 0% { transform: translate(0,0); } 12% { transform: translate(0,-4px); } 88%,100% { transform: translate(var(--ship-dx),var(--ship-dy)); } }
@@ -1577,6 +1584,16 @@
   .shipDrop { fill: none; stroke: #e7d49f; stroke-width: 3; stroke-dasharray: 7 5; }.shipShorePath { fill: none; stroke: #86a8b0; stroke-width: 3; stroke-dasharray: 7 5; }
   .shipDiagram:not(.overlay) .shipShorePath { opacity: .28; }.shipDiagram text { fill: #e6d7b8; font: 700 15px var(--font-ui); }.shipRefLabel { font-size: 12px !important; }
   .shipRow, .shipPredict, .shipChoiceGrid, .shipRefToggle { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 7px 0; }
+  .shipCrewBrief { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin: 8px 0 10px; }
+  .shipCrewCard { min-width: 0; padding: 6px 8px; border: 1px solid rgba(109,77,44,.28); background: rgba(255,255,255,.24); }
+  .shipCrewCard b { display: block; color: #4d3520; font: 750 14px/1.3 var(--font-ui); }
+  .shipCrewCard span { display: block; margin-top: 2px; color: #5e4c39; font: 13px/1.4 var(--font-ui); }
+  .shipProtocolAssignments { display: grid; gap: 6px; margin: 8px 0; }
+  .shipProtocolRow { display: grid; grid-template-columns: minmax(125px,.7fr) minmax(190px,1.3fr) auto; align-items: center; gap: 7px; margin: 0; }
+  .shipProtocolRow > label { color: #4c3926; font: 700 14px var(--font-ui); }
+  .shipProtocolAttempt { border-left-color: #9b4437; background: rgba(155,68,55,.1); }
+  .shipProtocolAttempt.ok { border-left-color: #52734e; background: rgba(82,115,78,.1); }
+  .shipProtocolAttempt ul { margin: 4px 0 0; padding-left: 1.35em; }
   .shipProtocolForm { display: grid; grid-template-columns: minmax(155px,.72fr) minmax(210px,1.28fr); align-items: center; gap: 7px 10px; margin: 8px 0; padding: 9px; border: 1px solid rgba(109,77,44,.32); background: rgba(255,255,255,.2); }
   .shipProtocolForm label { color: #4c3926; font: 700 13px var(--font-ui); }
   .shipSelect { min-height: 40px; flex: 1 1 180px; padding: 5px 8px; color: #2f241b; border: 1px solid #7f5c38; background: rgba(255,251,239,.58); font: 15px var(--font-dialogue); }
@@ -1608,23 +1625,31 @@
   .shipCrossExamQuote { display: block; color: #2c2118; font-size: 17px; line-height: 1.5; }
   .shipCrossExamReply { margin: 7px 0 0; padding-top: 7px; border-top: 1px dashed rgba(91,68,43,.28); color: #45513d; line-height: 1.45; }
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
-    body[data-view="ship"] #panelWrap { top: 12%; bottom: 3%; left: 3%; right: 3%; padding: 6px; }
-    #controls.shipLab { gap: 5px; }.shipHead { min-height: 38px; padding: 3px 8px; grid-template-columns: minmax(155px,.6fr) minmax(220px,1.4fr) auto; }
-    .shipHead h2 { font-size: 17px; }.shipHead p { font-size: 10px; }.shipEvidenceChips span { min-width: 25px; padding: 2px 3px; font-size: 8px; }
-    .shipBody { grid-template-columns: minmax(250px,.8fr) minmax(390px,1.2fr); gap: 5px; }.shipVisual, .shipWork { padding: 6px 8px; }
-    .shipSceneVisual { max-height: 58vh; }.shipDiagram figcaption { font-size: 9px; padding: 3px 5px; }.shipWork h3 { font-size: 14px !important; margin-bottom: 4px !important; padding-bottom: 3px; }
-    .shipLab .shipAction { min-height: 31px; padding: 3px 7px; font-size: 11px; }.shipSelect { min-height: 31px; padding: 2px 5px; font-size: 11px; }
-    .shipTable { font-size: 10px !important; }.shipTable th, .shipTable td { padding: 2px 4px !important; }.shipNote, .shipMessage { margin: 3px 0; padding: 3px 5px; font-size: 10px; }
-    .shipClaimPanel { margin: 5px 0 2px; padding: 5px; }.shipClaimPanel h4 { font-size: 12px; }.shipClaimSources { gap: 3px; margin: 3px 0; }
-    .shipClaimSource { padding: 3px 4px; font-size: 9px; }.shipClaimSource input { width: 14px; height: 14px; }
-    .shipClaimConcept { grid-template-columns: minmax(0,1fr) max-content; gap: 4px; }.shipClaimConcept > label { grid-column: 1/-1; font-size: 9px; }
-    .shipCabinCard, .shipAuditCard { margin: 3px 0; padding: 4px 6px; font-size: 10px; }
-    .shipCrossExam { margin: 3px 0; padding: 5px 7px; }.shipCrossExamStep { margin-bottom: 2px; font-size: 8px; }.shipCrossExamQuote { font-size: 11px; line-height: 1.3; }.shipCrossExamReply { margin-top: 3px; padding-top: 3px; font-size: 9px; }
-    .shipPerspectiveIntro { gap: 4px; }.shipPerspectiveGrid { gap: 4px; }.shipPerspectiveEyebrow { font-size: 9px; }
+    body[data-view="ship"] #panelWrap { top: 12%; bottom: 3%; left: 3%; right: 3%; padding: 6px; overflow: hidden; }
+    #controls.shipLab { height: 100%; min-height: 0; gap: 5px; }
+    .shipHead { min-height: 46px; padding: 4px 8px; grid-template-columns: minmax(175px,.72fr) minmax(250px,1.28fr) auto; }
+    .shipHead h2 { font-size: 19px; }.shipHead p { font-size: 12px; line-height: 1.35; }.shipEvidenceChips span { min-width: 30px; padding: 3px 4px; font-size: 10px; }
+    .shipBody { min-height: 0; overflow: hidden; grid-template-columns: minmax(300px,.95fr) minmax(355px,1.05fr); gap: 5px; }
+    .shipVisual, .shipWork { min-height: 0; padding: 7px 9px; }.shipVisual { overflow: hidden; }.shipWork { overflow-y: auto; overscroll-behavior: contain; }
+    .shipSceneVisual { max-height: none; }.shipDiagram figcaption { font-size: 12px; line-height: 1.35; padding: 5px 7px; }
+    .shipWork h3 { font-size: 18px !important; margin-bottom: 6px !important; padding-bottom: 4px; }
+    .shipLab .shipAction { min-height: 44px; padding: 6px 9px; font-size: 14px; }.shipSelect { min-height: 44px; padding: 5px 8px; font-size: 14px; }
+    .shipTable { font-size: 12px !important; }.shipTable th, .shipTable td { padding: 4px 5px !important; }.shipNote, .shipMessage { margin: 5px 0; padding: 6px 7px; font-size: 13px; line-height: 1.45; }
+    .shipCrewBrief { gap: 5px; }.shipCrewCard { padding: 5px 7px; }.shipCrewCard b { font-size: 14px; }.shipCrewCard span { font-size: 13px; }
+    .shipProtocolRow { grid-template-columns: minmax(116px,.68fr) minmax(175px,1.32fr) auto; gap: 5px; }
+    .shipProtocolRow > label { font-size: 14px; }
+    .shipClaimPanel { margin: 6px 0 3px; padding: 7px; }.shipClaimPanel h4 { font-size: 15px; }.shipClaimSources { gap: 4px; margin: 4px 0; }
+    .shipClaimSource { padding: 5px 6px; font-size: 13px; }.shipClaimSource input { width: 18px; height: 18px; }
+    .shipClaimConcept { grid-template-columns: minmax(0,1fr) max-content; gap: 5px; }.shipClaimConcept > label { grid-column: 1/-1; font-size: 13px; }
+    .shipCabinCard, .shipAuditCard { margin: 5px 0; padding: 6px 8px; font-size: 13px; }
+    .shipCrossExam { margin: 5px 0; padding: 7px 9px; }.shipCrossExamStep { margin-bottom: 3px; font-size: 12px; }.shipCrossExamQuote { font-size: 15px; line-height: 1.4; }.shipCrossExamReply { margin-top: 5px; padding-top: 5px; font-size: 13px; }
+    .shipPerspectiveIntro { gap: 5px; }.shipPerspectiveGrid { gap: 5px; }.shipPerspectiveEyebrow { font-size: 12px; }
     .shipPerspectiveCard { grid-template-columns: minmax(0,1fr) minmax(78px,.55fr); }
-    .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 3px; font-size: 7px; }
-    .shipPerspectiveCard figcaption { min-height: 38px; padding: 3px 4px; font-size: 7px; line-height: 1.25; }
-    .shipPerspectiveCard figcaption b { font-size: 9px; }.shipPerspectiveKey { padding: 3px 5px; font-size: 8px; }
+    .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 4px; font-size: 10px; }
+    .shipPerspectiveCard figcaption { min-height: 42px; padding: 4px 5px; font-size: 12px; line-height: 1.3; }
+    .shipPerspectiveCard figcaption b { font-size: 13px; }.shipPerspectiveKey { padding: 4px 6px; font-size: 12px; }
+    .shipSimLabel, .shipSimState, .shipSimAxisText, .shipPaperLabel { font-size: 30px; }
+    .shipSimBadgeText { font-size: 30px; }.shipEvidenceSealText { font-size: 34px; }
   }
 
   /* 第四章：天文工作台與印刷校樣。答案幾何由 SVG／引擎生成，背景只負責氣氛。 */

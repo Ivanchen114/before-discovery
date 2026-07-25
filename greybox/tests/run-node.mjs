@@ -986,7 +986,12 @@ tests.push({
       "#dlgText.sys.gain { font-size: 1.1em",
       "grid-template-columns: max-content minmax(0, 1fr)",
       "grid-template-columns: repeat(3, minmax(260px, 78vw))",
-      "#rotateHint { position: absolute; inset: 0; z-index: 60"
+      "#rotateHint { position: absolute; inset: 0; z-index: 60",
+      "#dialogue { min-height: 30%; padding: 12px 14px 14px;",
+      "body[data-view=\"ship\"] #panelWrap { padding: 10px; color: #ede0c6; overflow: hidden;",
+      "body[data-view=\"ship\"] #panelWrap { top: 12%; bottom: 3%; left: 3%; right: 3%; padding: 6px; overflow: hidden;",
+      ".shipLab .shipAction { min-height: 44px;",
+      ".shipWork { overflow-y: auto; overscroll-behavior: contain; }"
     ]) if (!stageHtml.includes(frag)) throw new Error("手機橫屏修正缺失:" + frag);
     for (const frag of ["COMPACT_LAB_QUERY", "timerOptionLabel", "syncLabTimerLabels", 'timer + "・" + PATTERNS.dayCost[timer] + "天"'])
       if (!cui.includes(frag)) throw new Error("手機計時器短名契約缺失:" + frag);
@@ -1931,6 +1936,14 @@ tests.push({
     if (!ui2.includes("本次精度內，風不是穩速落點的系統性主因") ||
         ui2.includes("風對落石完全沒有任何影響\", function"))
       throw new Error("第三章風的證據邊界被誇大");
+    for (const phrase of [
+      "先看每個人能站哪裡、能做什麼",
+      "集合點名：試走並封存分工",
+      "這次停在分工演練，沒有浪費一天",
+      "留在桅頂，只操作門閂",
+      "帶岸標紙留在碼頭"
+    ]) if (!ui2.includes(phrase))
+      throw new Error("第三章分工互動缺少可見線索或可診斷後果:" + phrase);
     if (!script2.includes("v0.3.1-redesign-draft") ||
         !script2.includes("採信標準") || !script2.includes("先遮落點"))
       throw new Error("第三章可操作小說重構稿版本或核心互動缺失");
