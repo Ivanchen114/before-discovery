@@ -3109,6 +3109,10 @@ tests.push({
       if(!ui.includes(frag))throw new Error("第四章 UI 接線缺失:"+frag);
     for(const frag of ['d.system === "orbit" ? "orbit"',"走進軌道工作台",'stage.html?chapter=ch04',"軌道與出版備忘"])
       if(!sui.includes(frag))throw new Error("舞台軌道視圖／接力缺失:"+frag);
+    if(!sui.includes('d.scene === "D1-2" && d.nodeId === "e1"'))
+      throw new Error("第四章軌道工作台未等 D1-2 繩球對話結束才交棒");
+    if(sui.includes('d.scene === "D1-1" && d.nodeId === "e1"'))
+      throw new Error("第四章仍在只有切線預測的 D1-1 提早彈出工作台備忘");
     if(!html.includes(".orbitLab .orbitAction { min-height:42px") && !html.includes(".orbitLab .orbitAction { min-height: 42px"))
       throw new Error("第四章主要操作未接近 44px 觸控目標");
     if(!html.includes(".orbitRuleDesigner .shipSelect { min-height:44px"))

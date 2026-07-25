@@ -88,7 +88,10 @@
       ((d.scene === "A2-2" && d.nodeId === "e1") ||
        (d.scene === "B2-3" && d.nodeId === "e1") ||
        (d.scene === "C1-1" && d.nodeId === "e1") ||
-       (d.scene === "D1-1" && d.nodeId === "e1") || d.scene === "SC-R1");
+       /* 第四章真正交棒給軌道工作台的是 D1-2/e1。
+          D1-1 只有切線預測選擇；若仍綁在 D1-1，進 D1-2 時會繞過轉場閘，
+          讓整章備忘在牛頓最後一句尚未收掉前直接蓋上對話。 */
+       (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
