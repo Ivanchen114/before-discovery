@@ -99,13 +99,14 @@
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
         : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
-        : (CHAPTER_ID === "ch4" ? "▸ 走進軌道工作台"
+        : (CHAPTER_ID === "ch4" ? "▸ 和牛頓把規則寫死"
         : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {
-      labIntroSeen = true; /* 非閘道路徑(讀檔直落實驗台):照舊直接給備忘卡 */
-      setTimeout(showLabIntro, 0);
+      labIntroSeen = true;
+      /* 第四章的長備忘改為 ? 查閱；讀檔回到眼前這張紙，不再先被整章規則蓋住。 */
+      if (CHAPTER_ID !== "ch4") setTimeout(showLabIntro, 0);
     }
     if (view !== "lab" && view !== "ship" && view !== "orbit" && view !== "debate") {
       pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
@@ -133,6 +134,11 @@
       labIntroSeen = true;
       var ch3First = $("controls").querySelector("button");
       if (ch3First) ch3First.focus();
+    } else if (CHAPTER_ID === "ch4" && targetScene === "D1-2") {
+      /* 第四章先讓玩家接住牛頓眼前的問題；六條整章備忘留在 ?，不再充當開場。 */
+      labIntroSeen = true;
+      var ch4First = $("controls").querySelector("button, select");
+      if (ch4First) ch4First.focus();
     } else if (
       targetScene &&
       apparatusBriefing(targetScene) &&

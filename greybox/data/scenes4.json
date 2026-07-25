@@ -111,7 +111,22 @@
     {"id":"n2","type":"line","speaker":"牛頓","text":"現在才可以說：它一直在掉。","next":"n3"},
     {"id":"n3","type":"line","speaker":"旅人(你)","text":"卻一直錯過地面。","next":"n4"},
     {"id":"n4","type":"line","speaker":"stage","text":"牛頓在金色箭頭旁寫下一個問號。","next":"n5"},
-    {"id":"n5","type":"line","speaker":"牛頓","text":"方向有了。多少，還沒有。","next":"g1"},
+    {"id":"n5","type":"line","speaker":"牛頓","text":"方向有了。多少，還沒有。","next":"n5a"},
+    {"id":"n5a","type":"line","speaker":"stage","text":"他用手邊的地球尺度，把地表的落下換算到月球距離。算到最後，兩個數字沒有碰上。","next":"n5b"},
+    {"id":"n5b","type":"line","speaker":"牛頓","text":"對不上。","next":"n5c"},
+    {"id":"n5c","type":"line","speaker":"旅人(你)","text":"是規則錯了，還是我們手裡的地球尺度不準？","next":"n5d"},
+    {"id":"n5d","type":"line","speaker":"牛頓","text":"現在分不出來。你說，這一頁該怎麼處理？","next":"c1"},
+    {"id":"c1","type":"choice","speaker":"system","text":"第一次月球比較沒有吻合。決定怎麼處理這張紙。","options":[
+     {"id":"fit","text":"換一個能讓結果剛好對上的地球大小","next":"r1"},
+     {"id":"announce","text":"先宣布方向是對的，數量以後再補","next":"r2"},
+     {"id":"shelve","text":"寫下差距與借來的數，標成「未決」收進抽屜","next":"n5e"}
+    ]},
+    {"id":"r1","type":"line","speaker":"牛頓","text":"那不是算出來的，是挑出來的。先有結論，再回頭買一個數。重選。","next":"c1"},
+    {"id":"r2","type":"line","speaker":"牛頓","text":"方向不會替我算出多少。半個答案送出去，就收不回來。重選。","next":"c1"},
+    {"id":"n5e","type":"line","speaker":"stage","text":"牛頓在頁邊寫下差距，圈起「地球的大小」，註明是借來的數，再標上「未決」，把整疊紙放進抽屜。","next":"n5f"},
+    {"id":"n5f","type":"line","speaker":"牛頓","text":"等有人量出一個我信得過的地球，我再回來。","next":"n5g"},
+    {"id":"n5g","type":"line","speaker":"旅人・心聲","text":"我知道他最後會對，也知道我不能替他把那個數補上。抽屜關得很輕；他沒有丟掉失敗，也沒有把它改成成功。","next":"n5h"},
+    {"id":"n5h","type":"system","speaker":"system","text":"史實註：牛頓晚年的相關備忘錄記載，他早期曾比較月球所需的作用與地表重力；採用的地球尺度不夠可靠，結果不足以支撐公開宣布。本場把這次失配具象化，不把 1665 年演成理論完成的一刻。","next":"g1"},
     {"id":"n6","type":"goto","scene":"D2-1"},
     {"id":"g1","type":"goto","scene":"D2-1"}
    ]
@@ -121,7 +136,7 @@
    "title":"虎克把問題寫進來",
    "historyTag":"documented+reconstruction",
    "nodes":[
-    {"id":"c1","type":"choice","speaker":"system","text":"1665 的工作台仍攤著。下一封信在十四年後。","options":[{"id":"turn","text":"親手翻到 1679","next":"n1"}]},
+    {"id":"c1","type":"choice","speaker":"system","text":"1665 留下的是一張寫著「未決」的紙。下一封信在十四年後。","options":[{"id":"turn","text":"親手翻到 1679","next":"n1"}]},
     {"id":"n1","type":"line","speaker":"stage","text":"1679｜劍橋。當年的兩張拓印已泛黃。一封拆開的信壓在上面，信中畫著兩支熟悉的箭：沿切線前進、朝中心偏去。","next":"n2"},
     {"id":"n2","type":"line","speaker":"虎克・書信","text":"若天體一面保留直行，一面持續受中央吸引，兩種傾向合起來便會改變它的路。吸引若隨距離改變，路徑也會跟著改變。","next":"n2a"},
     {"id":"n2a","type":"system","speaker":"system","text":"原信摘句（1679，保留原拼字）：compounding the celestiall motions of the planetts of a direct motion by the tangent & an attractive motion towards the centrall body.","next":"n3"},
@@ -129,11 +144,11 @@
     {"id":"n4","type":"line","speaker":"旅人(你)","text":"他把兩支箭放到同一張紙上了。","next":"n5"},
     {"id":"n5","type":"line","speaker":"牛頓","text":"他把問題放到同一張紙上。","next":"n6"},
     {"id":"n6","type":"line","speaker":"旅人(你)","text":"這兩句差在哪裡？","next":"n7"},
-    {"id":"n7","type":"line","speaker":"牛頓","text":"差在「多少」。方向說得再好，也不能替數量作證。","next":"n8"},
-    {"id":"n8","type":"line","speaker":"stage","text":"牛頓把信推到桌角，卻沒有丟掉。他取出地表落體記錄，壓在虎克的問句旁。","next":"n8a"},
+    {"id":"n7","type":"line","speaker":"牛頓","text":"差在「多少」。方向對了，數量還沒算出來。","next":"n8"},
+    {"id":"n8","type":"line","speaker":"stage","text":"牛頓把信推到桌角，卻沒有丟掉。他取出地表落體記錄，也把那張寫著「未決」的舊紙拿回來，壓在虎克的問句旁。","next":"n8a"},
     {"id":"n8a","type":"line","speaker":"stage","text":"旅人的目光越過信紙，落到書架上一冊翻舊的《物理學》；另一冊滿是兩種筆跡的評注本，在記憶裡一閃而過。","next":"n8b"},
     {"id":"n8b","type":"line","speaker":"旅人・心聲","text":"我第一次想念一個會先重述、再挑邊界的老人。眼前的人不和我爭；他只是不接受。","next":"n9"},
-    {"id":"n9","type":"line","speaker":"旅人・心聲","text":"他怕兩件事：證明還沒閉合，名字卻先被寫死。我認得那種怕；我做過的事，也全留在別人的紙上。","next":"n10"},
+    {"id":"n9","type":"line","speaker":"旅人・心聲","text":"他怕兩件事：還沒算完，名字就被刻死。我認得那種怕；我做過的事，也全留在別人的紙上。","next":"n10"},
     {"id":"n10","type":"line","speaker":"牛頓","text":"若地上的落下和天上的偏折是同一件事，兩張記錄就該能用同一把尺相認。","next":"g1"},
     {"id":"g1","type":"goto","scene":"D2-2"}
    ]
@@ -143,7 +158,7 @@
    "title":"讓兩張記錄相認",
    "historyTag":"modern-model",
    "nodes":[
-    {"id":"n1","type":"line","speaker":"牛頓","text":"別改觀測。只准改你拿來連接它們的規則。","next":"e1"},
+    {"id":"n1","type":"line","speaker":"牛頓","text":"把現在採用的地球尺度寫在紙邊。別改觀測，只准改你拿來連接它們的規則。","next":"e1"},
     {"id":"e1","type":"embed","system":"orbit","phase":"scale","hint":"已知月球到地心約六十個地球半徑。先封存距離律，月球六十秒偏離切線的落點才會揭曉。","until":{"orbit":"k2"},"next":"n2"},
     {"id":"n2","type":"line","speaker":"旅人(你)","text":"六十秒後，月亮離開切線的距離，和地表一秒的落下碰上了。","next":"n3"},
     {"id":"n3","type":"line","speaker":"牛頓","text":"先記下。它只回答了月亮。","next":"n4"},

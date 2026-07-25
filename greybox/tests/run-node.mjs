@@ -490,7 +490,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260725-ch04-redesign-v1"))
+    if (!stageHtml.includes("stage-ui.js?v=20260725-ch04-companion-v1"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))
@@ -1785,7 +1785,7 @@ tests.push({
     if (!f3 || f3.kind !== "card" || f3.path !== "ch02/cards/card_F3.webp" || f3.w !== 1200 || f3.h !== 750)
       throw new Error("F3 一拋一放證據圖資產宣告缺失");
     if (!existsSync(path.join(here, "../../public/assets/", f3.path))) throw new Error("F3 證據圖檔不存在");
-    for (const match of ["三輪紀錄在案", "若它要等推力用完才下墜"])
+    for (const match of ["三輪紀錄在案", "如果它要等推力用完才下墜"])
       if (!rules.some((r) => r.scene === "B2-4" && r.match === match && r.items.some((x) => x.asset === "card_F3")))
         throw new Error("F3 判讀／回述缺專用圖:" + match);
     const viewRules = assets.viewFocusVisual || [];
@@ -2486,8 +2486,8 @@ tests.push({
         seamAssets.sceneFx["D0-1"] || !seamAssets.sceneFx["D0-2"])
       throw new Error("第三章末頁、玩家翻頁與伍爾索普落地仍未在視覺上分成三拍");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    if (!stage.includes("data/assets.js?v=20260724-ch04-cr009") ||
-        !stage.includes("data/scenes4.js?v=20260725-ch04-redesign-v1"))
+    if (!stage.includes("data/assets.js?v=20260725-ch04-companion-v1") ||
+        !stage.includes("data/scenes4.js?v=20260725-ch04-companion-v1"))
       throw new Error("第四章接縫修正缺少快取更新，正式站可能仍載入舊背景");
 
     if (!principles.includes("筆記只折疊年月，不替旅人預知歷史") || !ch4.includes("CH4-CR-007"))
@@ -2786,6 +2786,12 @@ tests.push({
     const d12Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D1-2"));
     for (const fragment of ["木球繫到細繩", "繩子不是月亮的答案", "方向、箭長和初速一次寫死", "先封存路徑預測"])
       if (!d12Text.includes(fragment)) throw new Error("D1-2 繩球橋接或自走規則缺漏:" + fragment);
+    const d13Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D1-3"));
+    for (const fragment of ["兩個數字沒有碰上", "對不上", "現在分不出來", "未決", "不把 1665 年演成理論完成"])
+      if (!d13Text.includes(fragment)) throw new Error("D1-3 缺少 1665 誠實失敗或史實邊界:" + fragment);
+    const d21Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D2-1"));
+    if (!d21Text.includes("寫著「未決」的舊紙拿回來"))
+      throw new Error("1679 年沒有把 1665 的未決紙重新帶回推理");
   }
 });
 
@@ -3051,7 +3057,10 @@ tests.push({
     while(!s.ended&&guard++<500){
       const v=N4.view(s);
       if(v.type==="line"||v.type==="system"||v.type==="histfacts"){const r=N4.advance(s);if(r.error)throw new Error(r.error);s=r.state;continue;}
-      if(v.type==="choice"){const r=N4.choose(s,v.options[0].id);if(r.error)throw new Error(r.error);s=r.state;continue;}
+      if(v.type==="choice"){
+        const optionId=v.scene==="D1-3"&&v.nodeId==="c1"?"shelve":v.options[0].id;
+        const r=N4.choose(s,optionId);if(r.error)throw new Error(r.error);s=r.state;continue;
+      }
       if(v.type==="review"){s=N4.setReview(s,"若地球不再吸引，月球沿當下切線前進。","建立跨尺度可反驗規則，機制仍未知。").state;continue;}
       if(v.type==="embed"&&v.system==="orbit"){
         if(v.phase==="tangent"){act("startOrbitAttempt");act("commitDeflection",{vector:{dx:0,dy:0}});act("runConsequence");}
@@ -3105,14 +3114,18 @@ tests.push({
     const series=JSON.parse(readFileSync(path.join(here,"../data/series.json"),"utf-8"));
     if(!series.chapters.some((chapter)=>chapter.id==="ch4"&&chapter.route==="ch04"))
       throw new Error("第四章未登錄於資料驅動首頁");
-    for(const frag of ["renderOrbit","orbit4Svg",'v.system === "orbit"',"connectCometTracks","clipEvidence","submitPartialProof","setHookeScope","setProofBoundary","submitProof","月地模型：改向"])
+    for(const frag of ["renderOrbit","orbit4Svg",'v.system === "orbit"',"connectCometTracks","clipEvidence","submitPartialProof","setHookeScope","setProofBoundary","submitProof","旅人筆記："])
       if(!ui.includes(frag))throw new Error("第四章 UI 接線缺失:"+frag);
-    for(const frag of ['d.system === "orbit" ? "orbit"',"走進軌道工作台",'stage.html?chapter=ch04',"軌道與出版備忘"])
+    for(const frag of ['d.system === "orbit" ? "orbit"',"和牛頓把規則寫死",'stage.html?chapter=ch04',"軌道與出版備忘"])
       if(!sui.includes(frag))throw new Error("舞台軌道視圖／接力缺失:"+frag);
     if(!sui.includes('d.scene === "D1-2" && d.nodeId === "e1"'))
       throw new Error("第四章軌道工作台未等 D1-2 繩球對話結束才交棒");
     if(sui.includes('d.scene === "D1-1" && d.nodeId === "e1"'))
       throw new Error("第四章仍在只有切線預測的 D1-1 提早彈出工作台備忘");
+    if(!sui.includes('CHAPTER_ID === "ch4" && targetScene === "D1-2"'))
+      throw new Error("第四章首次操作仍會被整章備忘卡擋住");
+    if(!ui.includes("還沒有能夾回去的紙") || ui.includes('"○ " + p[1]'))
+      throw new Error("第四章 HUD 仍把未來證據演成打勾清單");
     if(!html.includes(".orbitLab .orbitAction { min-height:42px") && !html.includes(".orbitLab .orbitAction { min-height: 42px"))
       throw new Error("第四章主要操作未接近 44px 觸控目標");
     if(!html.includes(".orbitRuleDesigner .shipSelect { min-height:44px"))
