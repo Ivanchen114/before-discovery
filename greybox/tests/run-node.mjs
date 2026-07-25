@@ -2476,8 +2476,10 @@ tests.push({
     for (const x of ['src="data/series.js"', 'src="src/engine3.js', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
     if (!html.includes("src/engine3.js?v=20260726-ch03-dossier-v2") ||
-        !html.includes("src/chapter-ui.js?v=20260726-ch03-dossier-v2"))
+        !html.includes("src/chapter-ui.js?v=20260726-ch03-dossier-v3"))
       throw new Error("第三章舊存檔遷移修正缺少快取更新");
+    if (!ui.includes('"卷宗：紀錄"') || ui.includes('"共同運動：桅落"'))
+      throw new Error("第三章 HUD 仍顯示已退役的五步證據清單");
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.route === "ch03"))
       throw new Error("第三章未登錄於資料驅動首頁");

@@ -322,11 +322,13 @@
       $("e3Val").title = "第二章的兩項核心主張：射程隨下落高度開方、同裝置下與球重無關。";
       $("dayVal").parentElement.title = "天數=工坊與實驗成本：組裝不花天；校準與每次連結測量會推進日程。天數記錄你為可靠證據付出的時間。";
     } else if (CHAPTER_ID === "ch3") {
-      var g = state.lab.evidence || {};
-      $("e3Val").textContent = "共同運動：桅落" + (g.g1 ? "●" : "○") +
-        " 船艙" + (g.g2 ? "●" : "○") + " 變速" + (g.g3 ? "●" : "○") +
-        " 對照" + (g.g4 ? "●" : "○") + " 邊界" + (g.g5 ? "●" : "○");
-      $("e3Val").title = "第三章的五步證據鏈：穩速桅落、封閉船艙、加減速對照、雙參考物對照、證據邊界。";
+      var dossier = state.lab.caseFile && state.lab.caseFile.dossier;
+      var assertionIds = ["A1", "A2", "A3", "S4", "A4", "A5"];
+      var assertionCount = dossier ? assertionIds.filter(function (id) { return dossier.assertions[id]; }).length : 0;
+      var pillarCount = dossier ? ["p1", "p2", "p3"].filter(function (id) { return dossier.debate.pillars[id]; }).length : 0;
+      $("e3Val").textContent = "卷宗：紀錄" + (dossier ? dossier.records.length : 0) +
+        " 斷言" + assertionCount + " 支柱" + pillarCount + "/3 邊界" + (dossier && dossier.complete ? "●" : "○");
+      $("e3Val").title = "第三章的玩家迴路：先設計實驗取得原始紀錄，資料達到門檻才提出斷言；可以去碼頭測試三根支柱，失敗後回船補證據。";
       $("dayVal").parentElement.title = "天數記錄校準、重複測量與公開驗證所花的時間。";
     } else if (CHAPTER_ID === "ch4") {
       var k4 = state.lab.evidence || {};
