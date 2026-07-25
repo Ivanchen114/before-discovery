@@ -55,10 +55,11 @@
   "C1-2": "bg_ch03_steady_sailing_deck",
   "C1-3": "bg_ch03_steady_sailing_deck",
   "C1-4": "bg_ch03_steady_sailing_deck",
+  "C1-5": "bg_ch03_steady_sailing_deck",
   "C2-1": "bg_ch03_enclosed_cabin",
   "C2-2": "bg_ch03_speed_change_deck",
   "C2-2B": "bg_ch03_return_to_quay",
-  "C2-3": "bg_ch03_reference_tapes_table",
+  "C2-3": "bg_ch03_return_to_quay",
   "C2-4": "bg_ch03_reference_tapes_table",
   "C3-1": "bg_ch03_public_demonstration",
   "C3-2": "bg_ch03_public_demonstration",
@@ -172,70 +173,6 @@
      "y": 82,
      "function": "兩球外形相同、重量不同；裝置固定後只換球，才有資格追問重量是否改變規律。",
      "line": "先把裝置固定。最後只換這兩顆球——那時，我們才是在問重量。"
-    }
-   ]
-  },
-  "ch3:C1-1": {
-   "title": "先把一場航船實驗準備好",
-   "subtitle": "這不是找藏物。逐一確認每件器材控制哪個條件，之後的數據才知道該怎麼讀。",
-   "plateAsset": "ship3_apparatus_survey",
-   "platePosition": "center center",
-   "speaker": "伽桑狄",
-   "enterLabel": "檢查完成，開始停船基準",
-   "items": [
-    {
-     "id": "release",
-     "label": "桅頂釋放機構",
-     "asset": "ship3_g1_mast_dock",
-     "x": 54,
-     "y": 16,
-     "function": "讓石球在桅頂放手時不被額外推動；手放、剪繩與抽扣會留下不同的落點散布。",
-     "line": "先管住放手。若離手那一刻多了一推，後面量得再精也只是在精確記錯。"
-    },
-    {
-     "id": "plumb",
-     "label": "鉛垂線與桅腳標記",
-     "asset": "ship3_g1_mast_dock",
-     "x": 55,
-     "y": 45,
-     "function": "把桅頂正下方標到甲板，提供每次比較落點前後偏移的共同零點。",
-     "line": "先決定零點，才談得上偏前或偏後。沒有基準，方向只是故事。"
-    },
-    {
-     "id": "sandTray",
-     "label": "落點沙盤",
-     "asset": "ship3_g1_mast_steady",
-     "x": 55,
-     "y": 78,
-     "function": "保留石球落點與散布；它記的是一群結果，不假裝每次都會落在完全相同的一點。",
-     "line": "沙盤不替我們挑漂亮的一次。每個落點都留下，散布本身也是結果。"
-    },
-    {
-     "id": "timing",
-     "label": "鼓點與岸標",
-     "asset": "ship3_g1_mast_steady",
-     "x": 18,
-     "y": 72,
-     "function": "鼓點提供共同時刻，岸上等距標記用來判斷船是否已進入近似穩速，而不是仍在加速。",
-     "line": "聽鼓只是計時，還要看每一拍走過多少岸標。等距，才有資格說近似穩速。"
-    },
-    {
-     "id": "cabin",
-     "label": "封閉船艙",
-     "asset": "ship3_g2_cabin",
-     "x": 85,
-     "y": 57,
-     "function": "隔開甲板上的風，讓停船與穩速時的滴水、拋接能在較相近的環境中比較。",
-     "line": "甲板上的風太愛插嘴。把問題帶進艙裡，先看沒有明顯外擾時還剩下什麼差別。"
-    },
-    {
-     "id": "paperTapes",
-     "label": "同步紙帶與直尺",
-     "asset": "ship3_g4_reference_tapes",
-     "x": 76,
-     "y": 88,
-     "function": "用同一串鼓點對齊船上與岸上的紀錄，再逐拍比較石頭相對桅杆與岸邊的位置。",
-     "line": "兩張紙先讓同一聲鼓相認。對齊時刻之後，才能問它們為何畫出不同的路。"
     }
    ]
   }
@@ -1897,59 +1834,12 @@
    "艾蒂安": "dialogue_etienne17",
    "馬蒂厄": "dialogue_mathieu32"
   },
-  "C1-2": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C1-3": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艾蒂安": "dialogue_etienne17",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C1-4": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
-  },
-  "C2-1": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C2-2": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C2-2B": {
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C2-3": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艾蒂安": "dialogue_etienne17",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C2-4": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
-  },
   "C3-1": {
    "伽桑狄": "dialogue_gassendi48",
    "艦長": "dialogue_captain50",
    "馬蒂厄": "dialogue_mathieu32"
   },
   "C3-2": {
-   "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
-  },
-  "C3-3": {
-   "伽桑狄": "dialogue_gassendi48"
-  },
-  "C3-4": {
    "伽桑狄": "dialogue_gassendi48",
    "艦長": "dialogue_captain50",
    "馬蒂厄": "dialogue_mathieu32"
@@ -2405,7 +2295,7 @@
   },
   {
    "scene": "CE-2",
-   "match": "把岸上那條路再往前延長",
+   "match": "旅人把岸上那道彎線往前延長",
    "items": [
     {
      "asset": "ch03_focus_unfinished_arc_to_moon_v01",
@@ -2574,10 +2464,11 @@
   "C1-2": "ch3Experiment",
   "C1-3": "ch3Experiment",
   "C1-4": "ch3Experiment",
+  "C1-5": "ch3Experiment",
   "C2-1": "ch3Cabin",
   "C2-2": "ch3Experiment",
   "C2-2B": "ch3Harbor",
-  "C2-3": "ch3Overlay",
+  "C2-3": "ch3Harbor",
   "C2-4": "ch3Overlay",
   "C3-1": "ch3Public",
   "C3-2": "ch3Public",
@@ -2870,7 +2761,7 @@
   "S3": "砲手的三段圖是真實問題來源，不是證明三段論正確的主證。",
   "S4": "前人的實驗筆記提供線索，但主張仍須由你自己的裝置與數據成立。",
   "S5": "書中提出船直線穩速、無額外推石頭時的待驗預測；它不是實驗結果。",
-  "G1": "停船基準與三次穩速落石：石頭相對船落在桅腳附近。",
+  "G1": "岸紙確認走穩的三次落石：石頭相對船集中在桅腳附近。",
   "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
   "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
   "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
@@ -3028,15 +2919,11 @@
   "G1": {
    "items": [
     {
-     "asset": "ship3_g1_mast_dock",
-     "alt": "停船桅頂落石"
-    },
-    {
      "asset": "ship3_g1_mast_steady",
-     "alt": "穩速航行桅頂落石"
+     "alt": "岸紙確認走穩的三次桅頂落石"
     }
    ],
-   "caption": "取得證據：停船與穩速時的桅頂落石紀錄。"
+   "caption": "取得證據：岸紙確認走穩的三回，落點集中在桅腳附近。"
   },
   "G2": {
    "items": [

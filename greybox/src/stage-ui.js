@@ -626,7 +626,11 @@
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {
       labIntroSeen = true;
       /* 第四章的長備忘改為 ? 查閱；讀檔回到眼前這張紙，不再先被整章規則蓋住。 */
-      if (CHAPTER_ID !== "ch4") setTimeout(showLabIntro, 0);
+      /* 第三章續讀時直接回到卷宗，不重播教學備忘；只有從劇情第一次
+         交棒進實驗台時才顯示。 */
+      if (CHAPTER_ID !== "ch4" && !(CHAPTER_ID === "ch3" && !fromStory)) {
+        setTimeout(showLabIntro, 0);
+      }
     }
     if (view !== "lab" && view !== "ship" && view !== "orbit" && view !== "debate") {
       pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
@@ -963,16 +967,13 @@
       ];
       $("btnLabIntroGo").textContent = "開始組裝";
     } else if (CHAPTER_ID === "ch3") {
-      title.textContent = "旅人筆記・共同運動實驗備忘";
+      title.textContent = "旅人筆記・自由實驗卷宗";
       lines = [
-        "先分船況——停船、近似穩速、加速與減速不是同一個條件；每次放手前，先確認船正在怎麼走。",
-        "桅頂落石——標定桅腳正下方，用不額外推石頭的方式釋放；落點看散布，不宣稱每次絕對同點。",
-        "封閉船艙——停船與穩速各做滴水、拋接；比較的是相對船內器材的結果有沒有改變。",
-        "變速邊界——放手後再加槳或收槳；落點偏移是在告訴你，共同運動的哪個條件破掉了。",
-        "雙紙帶——先讓同一聲鼓相認，再切換參考物；船上直落與岸上向前彎下可以同時正確。",
-        "最後只說證據夠重的話——淘汰『必落船尾』的反對，不等於直接證成地球正在運動。"
+        "設計——選操作階段、放手方法、要留下的紀錄與重複回數；一次可以只改一項，也可以故意留下有缺口的資料。",
+        "斷言——資料達到門檻後，候選說法才會浮出；你還要決定它能說到哪裡，不能把局部結果講成所有情況。",
+        "辯論——有一條能站住的斷言就能回碼頭；答不完就把問題帶回船上，原始紀錄與已回答的質詢都會保留。"
       ];
-      $("btnLabIntroGo").textContent = "登上實驗船";
+      $("btnLabIntroGo").textContent = "開始設計";
     } else if (CHAPTER_ID === "ch4") {
       title.textContent = "旅人筆記・軌道與出版備忘";
       lines = [

@@ -113,6 +113,13 @@
       sceneIds[s.id] = 1; nodeIds[s.id] = {};
       (s.nodes || []).forEach(function (n) { nodeIds[s.id][n.id] = 1; });
     });
+    /* CH3-CR-018 只刪除了三個舊場景殼；舊游標安全送到意義最接近的新場，
+       不嘗試替玩家偽造已完成的實驗狀態。 */
+    var legacySceneRedirect = { "C2-2B": "C2-3", "C3-3": "C3-1", "C3-4": "C3-2" };
+    if (state.cursor && legacySceneRedirect[state.cursor.scene]) {
+      state.cursor.scene = legacySceneRedirect[state.cursor.scene];
+      state.cursor.node = (scenes.scenes.find(function (s) { return s.id === state.cursor.scene; }).nodes[0] || {}).id;
+    }
     if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
       return fail("存檔中的故事位置無法辨識");
 
@@ -327,10 +334,76 @@
         }
       }
     }
+    if (lab.caseFile != null) {
+      var cf = lab.caseFile;
+      var validCaseStage = ["v1", "v2", "v3", "wind", "cabin", "v4", "dual", "public"];
+      if (!cf || [null, "release", "speed", "wind"].indexOf(cf.firstControl) < 0 ||
+          typeof cf.crewConfirmed !== "boolean" || !cf.voyages || !Array.isArray(cf.attempts) ||
+          !Array.isArray(cf.fingerprintAttempts) || !Array.isArray(cf.dualAttempts) ||
+          !Array.isArray(cf.boundaryAttempts) || cf.attempts.length > 100 ||
+          cf.fingerprintAttempts.length > 30 || cf.dualAttempts.length > 30 ||
+          cf.boundaryAttempts.length > 30 ||
+          [null, "wind-not-systematic"].indexOf(cf.windJudgment) < 0 ||
+          [null, "indistinguishable"].indexOf(cf.cabinJudgment) < 0 ||
+          [null, "fore", "aft", "foot"].indexOf(cf.decelPrediction) < 0 ||
+          typeof cf.fingerprintComplete !== "boolean" ||
+          typeof cf.transformProgress !== "number" || !isFinite(cf.transformProgress) ||
+          cf.transformProgress < 0 || cf.transformProgress > 1 ||
+          typeof cf.dualNamed !== "boolean" ||
+          typeof cf.publicCriteriaConfirmed !== "boolean" ||
+          typeof cf.publicComplete !== "boolean" ||
+          [null, "honest"].indexOf(cf.boundary) < 0)
+        return fail("第三章航次卷宗格式錯誤");
+      for (var caseStage of validCaseStage) {
+        var caseRun = cf.voyages[caseStage];
+        if (caseRun != null && (!caseRun || caseRun.stage !== caseStage))
+          return fail("第三章航次卷宗含無法辨識的航次");
+      }
+      for (var caseAttempt of cf.attempts) {
+        if (!caseAttempt || typeof caseAttempt.stage !== "string" || caseAttempt.stage.length > 40)
+          return fail("第三章航次卷宗含無法辨識的操作紀錄");
+      }
+      if (cf.dossier != null) {
+        var dossier = cf.dossier;
+        if (!dossier || ["lab", "debate"].indexOf(dossier.page) < 0 || !dossier.draft ||
+            ["dock", "steady", "depart", "brake"].indexOf(dossier.draft.stage) < 0 ||
+            ["hand", "latch"].indexOf(dossier.draft.release) < 0 ||
+            ["none", "beats"].indexOf(dossier.draft.speedRecord) < 0 ||
+            ["mast", "dual"].indexOf(dossier.draft.positionRecord) < 0 ||
+            [1, 3].indexOf(Number(dossier.draft.repeats)) < 0 ||
+            typeof dossier.draft.sameStone !== "boolean" ||
+            typeof dossier.draft.sameHeight !== "boolean" ||
+            !Array.isArray(dossier.records) || dossier.records.length > 100 ||
+            !dossier.assertions || !dossier.candidates ||
+            !Array.isArray(dossier.scopeAttempts) || dossier.scopeAttempts.length > 100 ||
+            !dossier.blind || !Array.isArray(dossier.blind.attempts) ||
+            dossier.blind.attempts.length > 50 || !dossier.debate ||
+            !Array.isArray(dossier.debate.pins) || dossier.debate.pins.length > 50 ||
+            !Array.isArray(dossier.debate.attempts) || dossier.debate.attempts.length > 200 ||
+            !dossier.debate.pillars || !dossier.debate.p1 || !dossier.debate.p2 || !dossier.debate.p3 ||
+            !Array.isArray(dossier.debate.p3.alignAttempts) ||
+            !Array.isArray(dossier.debate.p3.transformAttempts) ||
+            typeof dossier.complete !== "boolean")
+          return fail("第三章自由實驗卷宗格式錯誤");
+        for (var dr of dossier.records) {
+          if (!dr || !isInt(dr.id) || dr.id < 1 ||
+              ["dock", "steady", "depart", "brake"].indexOf(dr.stage) < 0 ||
+              ["hand", "latch"].indexOf(dr.release) < 0 ||
+              ["none", "beats"].indexOf(dr.speedRecord) < 0 ||
+              ["mast", "dual"].indexOf(dr.positionRecord) < 0 ||
+              [1, 3].indexOf(Number(dr.repeats)) < 0 ||
+              !Array.isArray(dr.offsets) || dr.offsets.length < 1 || dr.offsets.length > 3 ||
+              dr.offsets.some(function (n) { return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 10; }))
+            return fail("第三章自由實驗卷宗含無法辨識的原始紀錄");
+        }
+      }
+    }
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
+    var legacyTranscriptScenes = { "C2-2B": 1, "C3-3": 1, "C3-4": 1 };
     for (var t = 0; t < state.transcript.length; t++) {
       var line = state.transcript[t];
-      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2000)
+      if (!line || (!sceneIds[line.scene] && !legacyTranscriptScenes[line.scene]) ||
+          typeof line.text !== "string" || line.text.length > 2000)
         return fail("對話紀錄中有一筆格式錯誤");
     }
     return { ok: true, state: state };

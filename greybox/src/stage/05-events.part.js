@@ -106,7 +106,11 @@
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {
       labIntroSeen = true;
       /* 第四章的長備忘改為 ? 查閱；讀檔回到眼前這張紙，不再先被整章規則蓋住。 */
-      if (CHAPTER_ID !== "ch4") setTimeout(showLabIntro, 0);
+      /* 第三章續讀時直接回到卷宗，不重播教學備忘；只有從劇情第一次
+         交棒進實驗台時才顯示。 */
+      if (CHAPTER_ID !== "ch4" && !(CHAPTER_ID === "ch3" && !fromStory)) {
+        setTimeout(showLabIntro, 0);
+      }
     }
     if (view !== "lab" && view !== "ship" && view !== "orbit" && view !== "debate") {
       pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;

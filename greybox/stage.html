@@ -1597,9 +1597,12 @@
   .shipProtocolForm { display: grid; grid-template-columns: minmax(155px,.72fr) minmax(210px,1.28fr); align-items: center; gap: 7px 10px; margin: 8px 0; padding: 9px; border: 1px solid rgba(109,77,44,.32); background: rgba(255,255,255,.2); }
   .shipProtocolForm label { color: #4c3926; font: 700 13px var(--font-ui); }
   .shipSelect { min-height: 40px; flex: 1 1 180px; padding: 5px 8px; color: #2f241b; border: 1px solid #7f5c38; background: rgba(255,251,239,.58); font: 15px var(--font-dialogue); }
-  .shipLab .shipAction { min-height: 40px; padding: 6px 11px; color: #2e2118; border: 1px solid #91653a; background: linear-gradient(#ead4aa,#cda36f); font: 600 14px var(--font-dialogue); }
-  .shipLab .shipAction:hover { filter: brightness(1.06); }.shipLab .shipAction.active, .shipLab .shipAction.primary { color: #fff0d1; background: linear-gradient(#8c5e32,#65401f); }
-  .shipLab .shipAction.danger { color: #6d3027; background: #ead5c5; border-color: #a06354; }
+  /* #controls 的通用按鈕規則使用章色變數；航船介面須以更高 specificity 覆寫，
+     否則第三章未宣告該變數時，瀏覽器會把背景與邊框整項作廢。 */
+  #controls.shipLab .shipAction { min-height: 40px; padding: 6px 11px; color: #2e2118; border: 1px solid #91653a; background: linear-gradient(#ead4aa,#cda36f); font: 600 14px var(--font-dialogue); }
+  #controls.shipLab .shipAction:hover { filter: brightness(1.06); }
+  #controls.shipLab .shipAction.active, #controls.shipLab .shipAction.primary { color: #fff0d1; background: linear-gradient(#8c5e32,#65401f); }
+  #controls.shipLab .shipAction.danger { color: #6d3027; background: #ead5c5; border-color: #a06354; }
   .shipNote, .shipMessage { margin: 7px 0; padding: 7px 9px; border-left: 4px solid #8d653d; background: rgba(132,91,47,.09); }
   .shipStepPrompt { color: #493522; font-weight: 650; line-height: 1.55; }
   .shipMathOptional { margin: 9px 0; padding: 8px 10px; border: 1px solid rgba(105,77,46,.35); background: rgba(255,250,234,.38); }
@@ -1624,6 +1627,91 @@
   .shipCrossExamStep { display: block; margin-bottom: 4px; color: #80552d; font: 700 12px var(--font-ui); letter-spacing: .04em; }
   .shipCrossExamQuote { display: block; color: #2c2118; font-size: 17px; line-height: 1.5; }
   .shipCrossExamReply { margin: 7px 0 0; padding-top: 7px; border-top: 1px dashed rgba(91,68,43,.28); color: #45513d; line-height: 1.45; }
+  /* CH3-CR-018：第三章只保留一張航次卷宗。左右同權、正文不低於 16px，
+     手機橫屏不再以塞入舊八相位表單為目標。 */
+  .shipCaseLab .shipBody { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .shipCaseLab .shipWork { font-size: 16px; line-height: 1.55; }
+  #controls.shipCaseLab .shipAction { min-height: 46px; font-size: 16px; line-height: 1.35; }
+  .shipCaseDiagram { position: relative; margin: 0; }
+  .shipCaseDiagram svg { display: block; width: 100%; aspect-ratio: 16/9.75; background: #111716; }
+  .shipCaseBg { fill: #111716; }
+  .shipCaseTitle { fill: #f4dfb7; font: 800 22px var(--font-ui); }
+  .shipCasePaper { fill: rgba(239,222,181,.12); stroke: rgba(222,188,131,.58); stroke-width: 2; }
+  .shipCasePaper.shore { fill: rgba(86,132,151,.2); stroke: #75a8bb; }
+  .shipCasePaper.ship { fill: rgba(170,108,66,.2); stroke: #c88b62; }
+  .shipCasePaperTitle { fill: #f2dfba; font: 800 18px var(--font-ui); }
+  .shipCaseNote { fill: #d7c7a8; font: 700 15px var(--font-ui); }
+  .shipCaseFormula { fill: #b9e3ed; font: 800 15px var(--font-ui); }
+  .shipCaseLink { stroke: rgba(213,183,130,.46); stroke-width: 3; stroke-dasharray: 6 5; }
+  .shipCaseRole { fill: #293632; stroke: #c49a60; stroke-width: 3; }
+  .shipCaseRole.center { fill: #3d4a3c; stroke: #e2c580; }
+  .shipCaseRolePlace { fill: #f7e7c6; font: 800 15px var(--font-ui); }
+  .shipCaseRoleName { fill: #cdbd9f; font: 700 11px var(--font-ui); }
+  .shipCaseWater { fill: none; stroke: #8ed2dd; stroke-width: 5; }
+  .shipCaseStone { fill: #e1bd79; stroke: #382719; stroke-width: 4; }
+  .shipCaseLanding { fill: #d97945; stroke: #ffe0a0; stroke-width: 3; }
+  .shipCaseDrop { fill: none; stroke: #f0d59c; stroke-width: 4; stroke-dasharray: 7 6; }
+  .shipCaseDeck { stroke: #d2b078; stroke-width: 5; }
+  .shipCaseHull { fill: #4d3423; stroke: #ca9b61; stroke-width: 4; }
+  .shipCaseMast { stroke: #dfbd85; stroke-width: 7; }
+  .shipCaseGap { fill: rgba(127,170,184,.72); }.shipCaseGap.accelerating { fill: #c98255; }.shipCaseGap.decelerating { fill: #6ca3b6; }
+  .shipCaseCover { fill: #19130f; stroke: #b28d59; stroke-width: 2; }
+  .shipCaseQuestion { fill: #f5d581; font: 900 58px var(--font-ui); }
+  .shipCaseBeatLine { stroke: rgba(211,183,134,.23); stroke-width: 2; stroke-dasharray: 4 5; }
+  .shipCaseBeatText { fill: #d3c19e; font: 800 13px var(--font-ui); }
+  .shipCasePoint { stroke-width: 3; }.shipCasePoint.shore { fill: #d5eff5; stroke: #4c8ca5; }.shipCasePoint.ship { fill: #f3d2b8; stroke: #a6613e; }
+  .shipCasePath { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .shipCasePath.shore { stroke: #67a9c0; }.shipCasePath.ship { stroke: #d98255; }
+  .shipCaseResult { margin: 8px 0; padding: 9px 11px; border-left: 4px solid #6f7651; background: rgba(104,111,75,.11); }
+  .shipCaseResult b { display: block; color: #604121; font: 800 14px var(--font-ui); }
+  .shipCaseResult p { margin: 3px 0 0; color: #2f281f; font-size: 16px; line-height: 1.55; }
+  .shipDossierWork { overflow-y: auto; overscroll-behavior: contain; }
+  .shipDossierTabs { position: sticky; top: -8px; z-index: 4; display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 9px; padding: 7px 0;
+    background: linear-gradient(rgba(244,233,205,.98) 75%,rgba(244,233,205,0)); }
+  .shipDossierTabs .debate { margin-left: auto; }
+  .shipDossierSettings { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px 10px; margin: 8px 0; }
+  .shipDossierSetting { display: grid; grid-template-columns: minmax(90px,.62fr) minmax(150px,1.38fr); align-items: center; gap: 7px;
+    color: #463421; font: 750 15px var(--font-ui); }
+  .shipDossierSetting .shipSelect { width: 100%; min-width: 0; }
+  .shipDossierLocks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .shipDossierWork > .shipAction.primary { display: block; width: 100%; margin: 8px 0; }
+  .shipCandidateCard, .shipPillarCard { margin: 10px 0; padding: 10px 12px; border: 1px solid rgba(115,78,41,.48);
+    background: rgba(255,252,240,.45); box-shadow: inset 4px 0 rgba(122,82,43,.62); }
+  .shipCandidateCard small { color: #7e532c; font: 800 12px var(--font-ui); letter-spacing: .04em; }
+  .shipCandidateCard h4 { margin: 3px 0 8px; color: #3c2d20; font-size: 17px; line-height: 1.4; }
+  .shipCandidateCard .shipAction { display: block; width: 100%; margin: 5px 0; text-align: left; }
+  .shipDossierVisual { position: relative; display: grid; align-content: start; min-height: 100%; margin: 0; padding: 14px;
+    color: #f0dfbd; background: radial-gradient(circle at 50% 35%,rgba(91,113,102,.35),transparent 48%),#111716; }
+  .shipDossierVisualTitle { margin-bottom: 10px; color: #f5dfb6; font: 850 21px var(--font-ui); }
+  .shipDossierSketch { position: relative; min-height: 270px; overflow: hidden; border: 1px solid rgba(221,187,130,.35); background: rgba(5,11,12,.52); }
+  .shipDossierMast { position: absolute; left: 50%; bottom: 54px; width: 7px; height: 175px; background: #d9b77e; transform: translateX(-50%); }
+  .shipDossierStone { position: absolute; z-index: 2; left: 50%; top: 35px; color: #f2d38b; font-size: 30px; transform: translateX(-50%); }
+  .shipDossierHull { position: absolute; left: 20%; right: 20%; bottom: 28px; height: 54px; padding-top: 14px; text-align: center;
+    color: #f4dfb7; background: #4b3424; border: 2px solid #bd8c53; border-radius: 5px 5px 48% 48%; }
+  .shipDossierShore { position: absolute; left: 18px; bottom: 105px; max-width: 135px; color: #bfe0e8; font: 750 14px/1.35 var(--font-ui); }
+  .shipDossierLatest { margin-top: 10px; padding: 8px 10px; color: #f5e4c2; border-left: 4px solid #cf9a5b; background: rgba(218,176,108,.1); }
+  .shipDossierVisual figcaption { margin-top: auto; padding-top: 10px; color: #d1c0a0; font: 700 14px/1.45 var(--font-ui); }
+  .shipBlindPair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin: 18px 0; }
+  .shipBlindPaper { min-height: 145px; padding: 12px; border: 1px solid #aa8050; background: rgba(236,215,174,.1); }
+  .shipBlindPaper b, .shipBlindPaper span, .shipBlindPaper small { display: block; }
+  .shipBlindPaper span { margin: 15px 0; line-height: 1.45; }.shipBlindPaper small { color: #cab996; }
+  .shipBlindPaper.sealed small::before { content: "◆ "; color: #dfb65f; }.shipBlindPaper.open { border-color: #6b9b88; background: rgba(89,136,116,.13); }
+  .shipDossierPillars { display: grid; gap: 9px; margin: 18px 0; }
+  .shipDossierPillar { display: grid; grid-template-columns: 34px 1fr; align-items: center; min-height: 64px; padding: 10px 12px;
+    color: #dcc9a7; border: 1px solid rgba(200,164,105,.42); background: rgba(255,255,255,.04); }
+  .shipDossierPillar span { color: #d2a456; font-size: 24px; }.shipDossierPillar.active { border-color: #e3bf78; background: rgba(209,164,87,.12); }
+  .shipDossierPillar.done { border-color: #6c9a78; background: rgba(78,127,91,.16); }
+  .shipDossierOpponent { margin: 8px 0; padding: 12px; color: #f1dfbd; border-left: 4px solid #bd7e43; background: rgba(0,0,0,.26); font: 750 17px/1.55 var(--font-dialogue); }
+  .shipDossierReply { margin: 6px 0 10px; padding: 10px 12px; color: #4c3521; border-left: 4px solid #885a31; background: rgba(134,89,44,.1); font: 750 16px/1.5 var(--font-dialogue); }
+  .shipDebateBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .shipPillarCard.done { border-color: rgba(75,117,78,.55); box-shadow: inset 4px 0 rgba(75,117,78,.7); }
+  .shipPillarCard b { color: #4a3420; font-size: 17px; }.shipPillarCard p { margin: 5px 0; color: #5a4836; }
+  .shipCaseCriteria, .shipCaseOfficial { margin: 8px 0; padding: 10px 12px; border: 1px solid rgba(111,76,42,.42); background: rgba(255,255,255,.24); color: #38291d; font-size: 16px; line-height: 1.55; }
+  .shipCaseOfficial.ink { box-shadow: inset 5px 0 #7f352b; background: rgba(127,53,43,.1); }
+  .shipCaseOfficial b { display: block; color: #6b4827; }.shipCaseOfficial p { margin: 4px 0; font-size: 18px; font-weight: 750; }
+  .shipCaseOfficial small { color: #74372e; font-size: 14px; }
+  .shipCaseSliderLabel { display: block; margin-top: 9px; color: #4c3926; font: 800 16px var(--font-ui); }
+  .shipCaseSlider { width: 100%; min-height: 44px; accent-color: #7a502d; touch-action: pan-x; }
   @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
     body[data-view="ship"] #panelWrap { top: 12%; bottom: 3%; left: 3%; right: 3%; padding: 6px; overflow: hidden; }
     #controls.shipLab { height: 100%; min-height: 0; gap: 5px; }
@@ -1633,7 +1721,7 @@
     .shipVisual, .shipWork { min-height: 0; padding: 7px 9px; }.shipVisual { overflow: hidden; }.shipWork { overflow-y: auto; overscroll-behavior: contain; }
     .shipSceneVisual { max-height: none; }.shipDiagram figcaption { font-size: 12px; line-height: 1.35; padding: 5px 7px; }
     .shipWork h3 { font-size: 18px !important; margin-bottom: 6px !important; padding-bottom: 4px; }
-    .shipLab .shipAction { min-height: 44px; padding: 6px 9px; font-size: 14px; }.shipSelect { min-height: 44px; padding: 5px 8px; font-size: 14px; }
+    #controls.shipLab .shipAction { min-height: 44px; padding: 6px 9px; font-size: 14px; }.shipSelect { min-height: 44px; padding: 5px 8px; font-size: 14px; }
     .shipTable { font-size: 12px !important; }.shipTable th, .shipTable td { padding: 4px 5px !important; }.shipNote, .shipMessage { margin: 5px 0; padding: 6px 7px; font-size: 13px; line-height: 1.45; }
     .shipCrewBrief { gap: 5px; }.shipCrewCard { padding: 5px 7px; }.shipCrewCard b { font-size: 14px; }.shipCrewCard span { font-size: 13px; }
     .shipProtocolRow { grid-template-columns: minmax(116px,.68fr) minmax(175px,1.32fr) auto; gap: 5px; }
@@ -1643,6 +1731,24 @@
     .shipClaimConcept { grid-template-columns: minmax(0,1fr) max-content; gap: 5px; }.shipClaimConcept > label { grid-column: 1/-1; font-size: 13px; }
     .shipCabinCard, .shipAuditCard { margin: 5px 0; padding: 6px 8px; font-size: 13px; }
     .shipCrossExam { margin: 5px 0; padding: 7px 9px; }.shipCrossExamStep { margin-bottom: 3px; font-size: 12px; }.shipCrossExamQuote { font-size: 15px; line-height: 1.4; }.shipCrossExamReply { margin-top: 5px; padding-top: 5px; font-size: 13px; }
+    .shipCaseLab .shipBody { grid-template-columns: minmax(250px,.78fr) minmax(0,1.22fr); }
+    .shipCaseLab .shipWork { font-size: 15px; }
+    #controls.shipCaseLab .shipAction { min-height: 46px; font-size: 15px; }
+    .shipCaseResult { margin: 5px 0; padding: 6px 8px; }.shipCaseResult p { font-size: 15px; line-height: 1.42; }
+    .shipCaseCriteria, .shipCaseOfficial { margin: 5px 0; padding: 7px 9px; font-size: 15px; line-height: 1.42; }
+    .shipCaseOfficial p { font-size: 16px; }
+    .shipDossierSettings { grid-template-columns: 1fr; gap: 5px; }
+    .shipDossierSetting { grid-template-columns: minmax(92px,.58fr) minmax(165px,1.42fr); font-size: 14px; }
+    .shipDossierTabs { top: -7px; padding: 5px 0; }.shipDossierTabs .debate { margin-left: 0; }
+    .shipDossierVisual { padding: 8px; }.shipDossierVisualTitle { font-size: 17px; margin-bottom: 5px; }
+    .shipDossierSketch { min-height: 190px; }.shipDossierMast { height: 120px; bottom: 40px; }
+    .shipDossierHull { bottom: 17px; height: 44px; padding-top: 9px; }.shipDossierStone { top: 22px; }
+    .shipDossierShore { bottom: 80px; font-size: 12px; }.shipDossierLatest { margin-top: 6px; padding: 6px 7px; font-size: 13px; }
+    .shipDossierVisual figcaption { padding-top: 6px; font-size: 12px; }
+    .shipBlindPair { gap: 5px; margin: 8px 0; }.shipBlindPaper { min-height: 100px; padding: 7px; font-size: 13px; }
+    .shipBlindPaper span { margin: 7px 0; }.shipDossierPillars { gap: 5px; margin: 8px 0; }
+    .shipDossierPillar { min-height: 45px; padding: 6px 8px; }.shipDossierOpponent { padding: 8px; font-size: 14px; }
+    .shipCandidateCard, .shipPillarCard { margin: 6px 0; padding: 7px 8px; }.shipCandidateCard h4 { font-size: 15px; }
     .shipPerspectiveIntro { gap: 5px; }.shipPerspectiveGrid { gap: 5px; }.shipPerspectiveEyebrow { font-size: 12px; }
     .shipPerspectiveCard { grid-template-columns: minmax(0,1fr) minmax(78px,.55fr); }
     .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 4px; font-size: 10px; }
@@ -2198,17 +2304,17 @@
 <script src="data/histfacts2.js"></script>
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
-<script src="data/assets.js?v=20260725-ch04-companion-v1"></script>
-<script src="src/sanitize.js?v=20260725-ch04-redesign-v1"></script>
+<script src="data/assets.js?v=20260726-ch03-dossier-v1"></script>
+<script src="src/sanitize.js?v=20260726-ch03-dossier-v1"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js?v=20260724-ch03-redesign-v1"></script>
+<script src="src/engine3.js?v=20260726-ch03-dossier-v1"></script>
 <script src="src/engine4.js?v=20260725-ch04-redesign-v1"></script>
 <script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
-<script src="data/scenes3.js?v=20260725-ch04-companion-v1"></script>
+<script src="data/scenes3.js?v=20260726-ch03-dossier-v1"></script>
 <script src="data/scenes4.js?v=20260725-ch04-companion-v2"></script>
 <script>
 (function () {
@@ -2240,8 +2346,8 @@
   }
 })();
 </script>
-<script src="src/narrative.js?v=20260725-ch04-redesign-v1"></script>
-<script src="src/chapter-ui.js?v=20260725-ch04-companion-v2"></script>
-<script src="src/stage-ui.js?v=20260725-ch04-companion-v2"></script>
+<script src="src/narrative.js?v=20260726-ch03-dossier-v1"></script>
+<script src="src/chapter-ui.js?v=20260726-ch03-dossier-v1"></script>
+<script src="src/stage-ui.js?v=20260726-ch03-dossier-v1"></script>
 </body>
 </html>

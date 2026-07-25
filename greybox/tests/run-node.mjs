@@ -146,7 +146,7 @@ tests.push({
   fn: () => {
     const assets = require("../data/assets.js");
     const ids = new Set(assets.entries.map((e) => e.id));
-    for (const key of ["ch1:A2-2", "ch2:B2-3", "ch3:C1-1"]) {
+    for (const key of ["ch1:A2-2", "ch2:B2-3"]) {
       const cfg = (assets.apparatusBriefings || {})[key];
       if (!cfg || !cfg.title || !cfg.enterLabel || !ids.has(cfg.plateAsset) || !Array.isArray(cfg.items) || cfg.items.length < 3)
         throw new Error("器材踏查配置不完整:" + key);
@@ -187,13 +187,12 @@ tests.push({
       throw new Error("第一章器材踏查未保住左側水鐘取景");
     if (!sui.includes("platePosition") || !sui.includes("style.objectPosition"))
       throw new Error("器材踏查未套用場景個別取景位置");
-    const c3 = assets.apparatusBriefings["ch3:C1-1"];
-    for (const id of ["release", "plumb", "sandTray", "timing", "cabin", "paperTapes"])
-      if (!c3.items.find((item) => item.id === id)) throw new Error("第三章航船踏查缺器材:" + id);
+    if (assets.apparatusBriefings["ch3:C1-1"])
+      throw new Error("第三章新版仍在自由實驗前強制六件器材逐項點擊");
     const stageEvents = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
     if (!stageEvents.includes('CHAPTER_ID === "ch3" && targetScene === "C1-1"') ||
-        !stageEvents.includes("第一個真正選擇就是「先排除哪個解釋」"))
-      throw new Error("第三章重構仍會在玩家選擇首趟查驗前強制舊版器材清單或答案式備忘");
+        !stageEvents.includes("不再擋在玩家的設計決定前"))
+      throw new Error("第三章新版仍會在玩家設計首趟實驗前強制舊器材清單");
   }
 });
 
@@ -490,7 +489,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260725-ch04-companion-v2"))
+    if (!stageHtml.includes("stage-ui.js?v=20260726-ch03-dossier-v1"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))
@@ -1874,7 +1873,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章資料鏡像與場景圖|18 場全可達、scenes/histfacts 雙載體一致",
+  name: "第三章資料鏡像與場景圖|8 場主線、scenes/histfacts 雙載體一致",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts3.json"), "utf-8"));
@@ -1882,8 +1881,8 @@ tests.push({
     if (JSON.stringify(scenes3) !== JSON.stringify(sj)) throw new Error("scenes3 鏡像漂移");
     if (JSON.stringify(hs) !== JSON.stringify(hj)) throw new Error("histfacts3 鏡像漂移");
     if (scenes3.title !== "船艙裡的靜止") throw new Error("第三章正式章名漂移");
-    if (!JSON.stringify(scenes3).includes("第三章《船艙裡的靜止》")) throw new Error("第三章章名揭曉未同步");
-    if (scenes3.scenes.length !== 18) throw new Error("第三章場景數不是 18");
+    if (!JSON.stringify(scenes3).includes("船艙裡的靜止")) throw new Error("第三章題名選項未同步");
+    if (scenes3.scenes.length !== 8) throw new Error("第三章主線場景數不是 8");
     if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
       throw new Error("第三章場景 id 重複");
     for (const s of scenes3.scenes) {
@@ -1906,47 +1905,41 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章重構契約|玩家設計實驗、資料指紋、雙盲公開複驗與角色不可分身",
+  name: "第三章重構契約|自由實驗、斷言門檻、封存盲測與三柱辯論",
   fn: () => {
     const ui2 = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const engine2 = readFileSync(path.join(here, "../src/engine3.js"), "utf-8");
-    const script2 = readFileSync(path.join(here, "../../04_劇本/第三章可操作小說重構稿_船艙裡的靜止_v0.3-redesign-draft.md"), "utf-8");
+    const script2 = readFileSync(path.join(here, "../../04_劇本/第三章劇本_v0.7_自由實驗與碼頭辯論_Sol_20260726.md"), "utf-8");
     const visible2 = JSON.stringify(scenes3);
     const phases2 = scenes3.scenes.flatMap((s) => s.nodes.filter((n) => n.type === "embed").map((n) => n.phase));
-    for (const phase of ["pilot-design", "protocol", "investigations", "dual-design", "overlay", "public-criteria", "public-screen", "boundary"])
-      if (!phases2.includes(phase)) throw new Error("第三章重構缺互動階段:" + phase);
-    for (const action of ["choosePilotFocus", "diagnosePilot", "setProtocolAssignment", "chooseInvestigationOrder",
-      "runCabinBlindPair", "runWindAudit", "setDualDesign", "sealPublicCriteria", "screenPublicRecord",
-      "finalizePublicScreen", "revealPublicResults"])
+    if (JSON.stringify(phases2) !== JSON.stringify(["dossier"]))
+      throw new Error("第三章應只用一個可往返的卷宗工作面，實得:" + phases2.join(","));
+    for (const action of ["setDossierDraft", "runDossierExperiment", "setDossierScope",
+      "runDossierBlind", "judgeDossierBlind", "enterDossierDebate", "leaveDossierDebate",
+      "selectDossierPillar", "answerDossierDebate", "setDossierP3Premise",
+      "alignDossierPapers", "transformDossierPapers", "setDossierFinalBoundary"])
       if (!ui2.includes(action) || !engine2.includes("function " + action))
         throw new Error("第三章重構動作未接通 UI／引擎:" + action);
     for (const phrase of [
-      "人手只夠先顧一件",
-      "誰都不許一個人同時站兩處",
-      "尚無指紋可分類",
-      "光憑這兩條痕跡",
-      "落點全用黑布遮住",
-      "標準先於結果"
+      "原始數據不會自動變成證據",
+      "候選斷言浮出",
+      "封存盲測",
+      "資料、斷言與已破支柱全數保留",
+      "三柱不共用操作",
+      "逐拍扣掉桅杆當拍位置"
     ]) if (!visible2.includes(phrase) && !ui2.includes(phrase))
       throw new Error("第三章重構缺少可見因果:" + phrase);
-    if (!visible2.includes("馬蒂厄留在桅頂只抽門閂") ||
-        !visible2.includes("伽桑狄在船上記石頭離桅杆的位置") ||
-        visible2.includes("馬蒂厄守船上"))
-      throw new Error("第三章雙視角仍讓馬蒂厄分身");
-    if (!ui2.includes("本次精度內，風不是穩速落點的系統性主因") ||
-        ui2.includes("風對落石完全沒有任何影響\", function"))
-      throw new Error("第三章風的證據邊界被誇大");
-    for (const phrase of [
-      "先看每個人能站哪裡、能做什麼",
-      "集合點名：試走並封存分工",
-      "這次停在分工演練，沒有浪費一天",
-      "留在桅頂，只操作門閂",
-      "帶岸標紙留在碼頭"
-    ]) if (!ui2.includes(phrase))
-      throw new Error("第三章分工互動缺少可見線索或可診斷後果:" + phrase);
-    if (!script2.includes("v0.3.1-redesign-draft") ||
-        !script2.includes("採信標準") || !script2.includes("先遮落點"))
-      throw new Error("第三章可操作小說重構稿版本或核心互動缺失");
+    if (!visible2.includes("艦長留在踏板外") || !visible2.includes("我不上船，也不先看"))
+      throw new Error("艦長留岸、避免替自己作證的動機未進 runtime");
+    if (!visible2.includes("不設木籌") || ui2.includes("先擺木籌"))
+      throw new Error("已刪除的木籌承諾仍殘留在玩家流程");
+    const dossierUi = ui2.slice(ui2.indexOf("function renderShipDossier"));
+    if (dossierUi.includes("解纜後變快") || dossierUi.includes("收槳後變慢"))
+      throw new Error("純操作名又在看結果前洩漏船速分類");
+    for (const phrase of ["解纜起步", "收槳", "所以就算沒有風，它也不會被留在後面",
+      "肯把『分不出來』寫下去"])
+      if (!script2.includes(phrase) && !ui2.includes(phrase))
+        throw new Error("v0.7.1 對抗審修正未落地:" + phrase);
     return;
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const shipUi = ui.slice(ui.indexOf("第三章航船實驗"));
@@ -2332,66 +2325,113 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章全章走查|18 場黃金路徑、五證據、回顧與史實頁完整通關",
+  name: "第三章全章走查|自由實驗、三柱辯論、回顧與史實頁完整通關",
   fn: () => {
     const N3 = Narrative._factory(scenes3, Engine3, {});
+    const San = require("../src/sanitize.js");
     let s = N3.initialState("explore"), guard = 0;
-    const pick = { "C2-4": "bounded" };
-    const act = (name, args) => { const r = N3.labAction(s, name, args || {}); if (r.error) throw new Error(name + ":" + r.error); s = r.state; };
-    while (!s.ended && guard++ < 600) {
+    const pick = { "C0-3": "bounded", "C3-2": "cabin" };
+    const act = (name, args) => {
+      const r = N3.labAction(s, name, args || {});
+      if (r.error || r.ok === false) throw new Error(name + ":" + (r.error || r.reason));
+      s = r.state;
+    };
+    const draft = (field, value) => act("setDossierDraft", { field, value });
+    const run = (stage, positionRecord) => {
+      draft("stage", stage); draft("release", "latch"); draft("speedRecord", "beats");
+      draft("positionRecord", positionRecord || "mast"); draft("repeats", 3);
+      act("runDossierExperiment");
+    };
+    while (!s.ended && guard++ < 300) {
       const v = N3.view(s);
-      if (v.type === "line" || v.type === "system" || v.type === "histfacts") { const r = N3.advance(s); if (r.error) throw new Error(r.error); s = r.state; continue; }
-      if (v.type === "choice") { const id = pick[v.scene]; if (!id) throw new Error("未定義黃金選項:" + v.scene); const r = N3.choose(s, id); if (r.error) throw new Error(r.error); s = r.state; continue; }
-      if (v.type === "review") { s = N3.setReview(s, "兩張圖選了不同參考物。", "排除必落後，未直接證明地球動。").state; continue; }
-      if (v.type === "embed" && v.system === "ship") {
-        if (v.phase === "pilot-design") {
-          act("choosePilotFocus", { focus:"release" }); act("runPilot"); act("diagnosePilot", { gap:"speed" });
-        }
-        else if (v.phase === "protocol") {
-          for (const [slot,person] of Object.entries({
-            release:"mathieu", clock:"sailor", shore:"etienne", ship:"gassendi", vessel:"captain"
-          })) act("setProtocolAssignment", { slot, person });
-          act("lockProtocol"); act("runDesignedProtocol");
-          act("assertG1Designed", { concept:"steady-shares-motion" });
-        }
-        else if (v.phase === "investigations") {
-          act("chooseInvestigationOrder", { order:"speed" });
-          act("setSpeedPrediction", { accelerating:"behind", decelerating:"ahead" });
-          act("runSpeedChange", { kind:"accelerating" }); act("runSpeedChange", { kind:"decelerating" });
-          act("assertG3", { kinds:["accelerating","decelerating"], concept:"speed-change-breaks-shared-motion" });
-          act("runCabinBlindPair", { test:"drip" }); act("judgeCabinBlind", { choice:"indistinguishable" });
-          act("runWindAudit", { plan:"relative-roundtrip" });
-          act("assertG2Designed", { concept:"local-common-motion-wind-below-spread" });
-        }
-        else if (v.phase === "dual-design") act("setDualDesign", { setup:{
-          shoreOrigin:"quay", shipOrigin:"mast", clock:"shared-drum", shipObserver:"gassendi"
-        } });
-        else if (v.phase === "public-criteria") act("sealPublicCriteria", { criteria:{
-          equalSegments:3, repeats:3, release:"latch", requireDual:true
-        } });
-        else if (v.phase === "public-screen") {
-          for (const id of ["A","D","F"]) act("screenPublicRecord", { recordId:id, accept:true });
-          for (const id of ["B","C","E"]) act("screenPublicRecord", { recordId:id, accept:false });
-          act("finalizePublicScreen"); act("revealPublicResults");
-        }
-        else if (v.phase === "baseline") { act("setRelease", { mode: "latch" }); act("calibratePlumb"); for (let i=0;i<3;i++) act("runBaseline"); }
-        else if (v.phase === "first-failure") act("runMast", { window: "depart" });
-        else if (v.phase === "steady-mast") { for (let i=0;i<3;i++) act("runMast", { window: "stable" }); act("assertG1", { baselineIds:[1,2,3], mastIds:[2,3,4], concept:"steady-shares-motion" }); }
-        else if (v.phase === "cabin") { for (const vs of ["dock","steady"]) for (const t of ["drip","toss"]) act("runCabin", { vesselState: vs, test: t }); act("assertG2", { cells:["dock:drip","dock:toss","steady:drip","steady:toss"], concept:"steady-matches-dock" }); }
-        else if (v.phase === "speed-change") { act("setSpeedPrediction", { accelerating: "behind", decelerating: "ahead" }); act("runSpeedChange", { kind: "accelerating" }); act("runSpeedChange", { kind: "decelerating" }); act("assertG3", { kinds:["accelerating","decelerating"], concept:"speed-change-breaks-shared-motion" }); }
-        else if (v.phase === "overlay") { for (let i=0;i<4;i++) act("inspectRecordBeat"); act("alignRecords", { pair: "sameBeats" }); act("transformRecords", { kind: "subtractMast" }); act("assertG4", { records:["shore","ship"], concept:"same-event-different-reference" }); }
-        else if (v.phase === "public-demo") for (const step of Engine3._PUBLIC_STEPS) act("runPublicStep", { step });
-        else if (v.phase === "audit") for (const [q,e] of [["wind","G2"],["acceleration","G3"],["paths","G4"]]) act("answerAudit", { questionId:q, evidenceId:e });
-        else if (v.phase === "boundary") act("setBoundary", { choice: "honest" });
-        else throw new Error("未知 ship phase:" + v.phase);
-        const done = N3.embedComplete(s); if (done.error) throw new Error(v.phase + " 閘未過:" + done.error); s = done.state; continue;
+      if (v.type === "line" || v.type === "system" || v.type === "histfacts") {
+        const r = N3.advance(s); if (r.error) throw new Error(r.error); s = r.state; continue;
+      }
+      if (v.type === "choice") {
+        const id = pick[v.scene]; if (!id) throw new Error("未定義黃金選項:" + v.scene);
+        const r = N3.choose(s, id); if (r.error) throw new Error(r.error); s = r.state; continue;
+      }
+      if (v.type === "review") {
+        s = N3.setReview(s, "同一事件從碼頭與桅杆量，使用的零點不同。",
+          "排除前進必落後，沒有直接量到地球運動。").state;
+        continue;
+      }
+      if (v.type === "embed" && v.system === "ship" && v.phase === "dossier") {
+        run("steady", "dual");
+        act("setDossierScope", { assertionId:"A1", choice:"controlled-three" });
+        act("runDossierBlind");
+        act("judgeDossierBlind", { choice:"indistinguishable" });
+        act("setDossierScope", { assertionId:"A2", choice:"local-only" });
+        run("depart");
+        act("setDossierScope", { assertionId:"A3", choice:"today-comparison" });
+        run("brake");
+        act("setDossierScope", { assertionId:"S4", choice:"today-three-states" });
+        act("enterDossierDebate");
+
+        act("selectDossierPillar", { pillar:"p1" });
+        act("answerDossierDebate", { pillar:"p1", step:"concept", choice:"shared-motion" });
+        act("answerDossierDebate", { pillar:"p1", step:"steady", choice:"A1" });
+        act("answerDossierDebate", { pillar:"p1", step:"cabin", choice:"A2" });
+        act("answerDossierDebate", { pillar:"p1", step:"wind", choice:"limited-wind" });
+
+        act("selectDossierPillar", { pillar:"p2" });
+        act("answerDossierDebate", { pillar:"p2", step:"concept", choice:"motion-vs-change" });
+        act("answerDossierDebate", { pillar:"p2", step:"steady", choice:"steady" });
+        act("answerDossierDebate", { pillar:"p2", step:"depart", choice:"accelerating" });
+        act("answerDossierDebate", { pillar:"p2", step:"old", choice:"unclassified" });
+        act("answerDossierDebate", { pillar:"p2", step:"boundary", choice:"same-pattern-not-proof" });
+
+        act("selectDossierPillar", { pillar:"p3" });
+        act("setDossierP3Premise", { step:"question", choice:"same-time-transform" });
+        act("setDossierP3Premise", { step:"concept", choice:"reference" });
+        act("alignDossierPapers", { choice:"same-beats" });
+        act("transformDossierPapers", { choice:"subtract-each-beat" });
+        act("setDossierFinalBoundary", { choice:"honest" });
+
+        const done = N3.embedComplete(s);
+        if (done.error) throw new Error("dossier 閘未過:" + done.error);
+        s = done.state;
+        continue;
       }
       if (v.type === "end") { s = N3.advance(s).state; continue; }
       throw new Error("黃金路徑卡住:" + JSON.stringify(v));
     }
-    if (!s.ended || guard >= 600) throw new Error("第三章未完章");
+    if (!s.ended || guard >= 300) throw new Error("第三章未完章");
     for (const id of ["S5","G1","G2","G3","G4","G5"]) if (!s.evidence[id]) throw new Error("缺證據:" + id);
+    if (!s.lab.caseFile.dossier.complete || !Object.values(s.lab.caseFile.dossier.debate.pillars).every(Boolean))
+      throw new Error("卷宗或三柱未完成");
     if (!s.review.q1 || !s.review.q2) throw new Error("章末回顧未保存");
+    const saved = JSON.parse(N3.serialize(s));
+    const clean = San.sanitizeImport3(saved, scenes3);
+    if (!clean.ok) throw new Error("完整通關存檔遭拒:" + clean.reason);
+  }
+});
+
+tests.push({
+  name: "第三章生產性失敗|提早辯論會退回實驗，資料與已完成幾何不清空",
+  fn: () => {
+    let s = Engine3.initialState();
+    const set = (field, value) => { const r = Engine3.setDossierDraft(s, field, value); if (r.error) throw new Error(r.error); s = r.state; };
+    set("stage", "steady"); set("release", "latch"); set("speedRecord", "beats");
+    set("positionRecord", "dual"); set("repeats", 3);
+    s = Engine3.runDossierExperiment(s).state;
+    s = Engine3.setDossierScope(s, "A1", "controlled-three").state;
+    s = Engine3.enterDossierDebate(s).state;
+    s = Engine3.selectDossierPillar(s, "p3").state;
+    s = Engine3.setDossierP3Premise(s, "question", "same-time-transform").state;
+    s = Engine3.setDossierP3Premise(s, "concept", "reference").state;
+    s = Engine3.alignDossierPapers(s, "same-beats").state;
+    s = Engine3.leaveDossierDebate(s, "還缺逐拍換尺").state;
+    if (!s.caseFile.dossier.assertions.A4 || !s.caseFile.dossier.debate.p3.aligned)
+      throw new Error("中途離場清掉了已完成的同拍對齊");
+    s = Engine3.enterDossierDebate(s).state;
+    s = Engine3.selectDossierPillar(s, "p1").state;
+    for (let i = 0; i < 5; i++) s = Engine3.answerDossierDebate(s, "p1", "concept", "extra-push").state;
+    if (s.caseFile.dossier.page !== "lab" || s.caseFile.dossier.debate.active)
+      throw new Error("聲譽歸零後沒有回到實驗面");
+    if (s.caseFile.dossier.records.length !== 1 || !s.caseFile.dossier.assertions.A1 ||
+        !s.caseFile.dossier.assertions.A4 || !s.caseFile.dossier.debate.p3.aligned)
+      throw new Error("辯論失敗清掉了資料、斷言或已完成幾何");
   }
 });
 
@@ -2419,6 +2459,9 @@ tests.push({
     if (!San.sanitizeImport3(legacyPublic, scenes3).ok) throw new Error("舊版四步公開演示存檔失去相容性");
     const legacy = JSON.parse(N3.serialize(good)); delete legacy.lab.claims; delete legacy.lab.cabinResults;
     if (!San.sanitizeImport3(legacy, scenes3).ok) throw new Error("追加斷言欄位後舊存檔失去相容性");
+    const badDossier = JSON.parse(N3.serialize(good));
+    badDossier.lab.caseFile.dossier.draft.stage = "teleport";
+    if (San.sanitizeImport3(badDossier, scenes3).ok) throw new Error("非法卷宗船況未被拒");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
@@ -2427,7 +2470,7 @@ tests.push({
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.route === "ch03"))
       throw new Error("第三章未登錄於資料驅動首頁");
-    for (const x of ["renderShip", "ship3Mission", 'v.system === "ship"']) if (!ui.includes(x)) throw new Error("chapter-ui 缺船實驗:" + x);
+    for (const x of ["renderShip", "renderShipDossier", "ship3Mission", 'v.system === "ship"']) if (!ui.includes(x)) throw new Error("chapter-ui 缺船實驗:" + x);
     if (!stage.includes('d.system === "ship" ? "ship"')) throw new Error("stage-ui 未辨識 ship 視圖");
     if (!stage.includes("ship: 1")) throw new Error("ship 視圖未納入逐字台詞收隊確認；會在玩家讀完前自動讓位");
     const opening = scenes3.scenes.find((s) => s.id === "C0-1");
@@ -2486,7 +2529,7 @@ tests.push({
         seamAssets.sceneFx["D0-1"] || !seamAssets.sceneFx["D0-2"])
       throw new Error("第三章末頁、玩家翻頁與伍爾索普落地仍未在視覺上分成三拍");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    if (!stage.includes("data/assets.js?v=20260725-ch04-companion-v1") ||
+    if (!stage.includes("data/assets.js?v=20260726-ch03-dossier-v1") ||
         !stage.includes("data/scenes4.js?v=20260725-ch04-companion-v2"))
       throw new Error("第四章接縫修正缺少快取更新，正式站可能仍載入舊背景");
 
@@ -2502,15 +2545,14 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章正式美術與音樂|18 場專屬背景、四角色肖像、10 首專屬配樂與里程碑換段",
+  name: "第三章正式美術與音樂|8 場專屬背景、四角色肖像與里程碑配樂",
   fn: () => {
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const ids = new Map(assets.entries.map((e) => [e.id, e]));
     const expected = {
       "C0-1": "bg_ch03_marseille_harbor_dawn", "C0-2": "bg_ch03_marseille_harbor_dawn", "C0-3": "bg_ch03_marseille_harbor_dawn",
-      "C1-1": "bg_ch03_moored_mast_deck", "C1-2": "bg_ch03_steady_sailing_deck", "C1-3": "bg_ch03_steady_sailing_deck", "C1-4": "bg_ch03_steady_sailing_deck",
-      "C2-1": "bg_ch03_enclosed_cabin", "C2-2": "bg_ch03_speed_change_deck", "C2-2B": "bg_ch03_return_to_quay", "C2-3": "bg_ch03_reference_tapes_table", "C2-4": "bg_ch03_reference_tapes_table",
-      "C3-1": "bg_ch03_public_demonstration", "C3-2": "bg_ch03_public_demonstration", "C3-3": "bg_ch03_public_demonstration", "C3-4": "bg_ch03_public_demonstration",
+      "C1-1": "bg_ch03_moored_mast_deck",
+      "C3-1": "bg_ch03_public_demonstration", "C3-2": "bg_ch03_public_demonstration",
       "CE-1": "bg_ch03_print_room_1642", "CE-2": "bg_ch03_print_room_1642"
     };
     for (const [scene, id] of Object.entries(expected)) {
@@ -2615,8 +2657,8 @@ tests.push({
     for (const frag of ["@keyframes ship-drop", "@keyframes ship-drip", "@keyframes ship-toss", "@keyframes ship-draw-path", "prefers-reduced-motion"])
       if (!html.includes(frag)) throw new Error("第三章互動模擬動畫／無障礙樣式缺失:" + frag);
     const intro = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");
-    for (const frag of ["共同運動實驗備忘", "停船、近似穩速、加速與減速", "ship3_g1_mast_dock", "ship3_g2_cabin", "登上實驗船"])
-      if (!intro.includes(frag)) throw new Error("第三章仍沿用第一章實驗備忘:" + frag);
+    for (const frag of ["自由實驗卷宗", "資料達到門檻", "ship3_g1_mast_dock", "ship3_g2_cabin", "開始設計"])
+      if (!intro.includes(frag)) throw new Error("第三章自由實驗備忘缺掛點:" + frag);
   }
 });
 

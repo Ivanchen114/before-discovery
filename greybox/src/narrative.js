@@ -622,6 +622,18 @@
       if (until.ship === "public") return !!(sh.publicDemo && sh.publicDemo.complete);
       if (until.ship === "audit") return !!(sh.audit && sh.audit.wind && sh.audit.acceleration && sh.audit.paths);
       if (until.ship === "g5") return !!se.g5;
+      if (until.ship === "dossier-complete")
+        return !!(sh.caseFile && sh.caseFile.dossier && sh.caseFile.dossier.complete);
+      if (until.ship.indexOf("case-") === 0) {
+        var cf = sh.caseFile || {}, cv = cf.voyages || {}, key = until.ship.slice(5);
+        if (key === "crew") return !!cf.crewConfirmed;
+        if (key === "wind") return !!(cv.wind && cf.windJudgment);
+        if (key === "cabin") return !!(cv.cabin && cf.cabinJudgment);
+        if (key === "v4") return !!(cv.v4 && cf.fingerprintComplete);
+        if (key === "dual") return !!(cv.dual && cf.dualNamed);
+        if (key === "public") return !!(cf.publicComplete && cf.boundary === "honest");
+        return !!cv[key];
+      }
     }
     if (until.orbit) {
       var ob = state.lab || {}, oe = ob.evidence || {};
@@ -780,6 +792,33 @@
     else if (action === "screenPublicRecord" && Engine.screenPublicRecord) r = Engine.screenPublicRecord(state.lab, args.recordId, args.accept);
     else if (action === "finalizePublicScreen" && Engine.finalizePublicScreen) r = Engine.finalizePublicScreen(state.lab);
     else if (action === "revealPublicResults" && Engine.revealPublicResults) r = Engine.revealPublicResults(state.lab);
+    else if (action === "runCaseVoyage" && Engine.runCaseVoyage) r = Engine.runCaseVoyage(state.lab, args.stage, args);
+    else if (action === "confirmCaseCrew" && Engine.confirmCaseCrew) r = Engine.confirmCaseCrew(state.lab);
+    else if (action === "interpretCaseWind" && Engine.interpretCaseWind) r = Engine.interpretCaseWind(state.lab, args.choice);
+    else if (action === "judgeCaseCabin" && Engine.judgeCaseCabin) r = Engine.judgeCaseCabin(state.lab, args.choice);
+    else if (action === "setCasePrediction" && Engine.setCasePrediction) r = Engine.setCasePrediction(state.lab, args.choice);
+    else if (action === "assertCaseFingerprint" && Engine.assertCaseFingerprint) r = Engine.assertCaseFingerprint(state.lab, args.choice);
+    else if (action === "setCaseTransform" && Engine.setCaseTransform) r = Engine.setCaseTransform(state.lab, args.progress);
+    else if (action === "assertCaseDual" && Engine.assertCaseDual) r = Engine.assertCaseDual(state.lab, args.choice);
+    else if (action === "confirmCaseCriteria" && Engine.confirmCaseCriteria) r = Engine.confirmCaseCriteria(state.lab);
+    else if (action === "setCaseBoundary" && Engine.setCaseBoundary) r = Engine.setCaseBoundary(state.lab, args.choice);
+    else if (action === "setDossierDraft" && Engine.setDossierDraft) r = Engine.setDossierDraft(state.lab, args.field, args.value);
+    else if (action === "copyDossierRecord" && Engine.copyDossierRecord) r = Engine.copyDossierRecord(state.lab, args.recordId);
+    else if (action === "runDossierExperiment" && Engine.runDossierExperiment) r = Engine.runDossierExperiment(state.lab);
+    else if (action === "setDossierScope" && Engine.setDossierScope) r = Engine.setDossierScope(state.lab, args.assertionId, args.choice);
+    else if (action === "runDossierBlind" && Engine.runDossierBlind) r = Engine.runDossierBlind(state.lab);
+    else if (action === "judgeDossierBlind" && Engine.judgeDossierBlind) r = Engine.judgeDossierBlind(state.lab, args.choice);
+    else if (action === "enterDossierDebate" && Engine.enterDossierDebate) r = Engine.enterDossierDebate(state.lab);
+    else if (action === "leaveDossierDebate" && Engine.leaveDossierDebate) r = Engine.leaveDossierDebate(state.lab, args.pin);
+    else if (action === "selectDossierPillar" && Engine.selectDossierPillar) r = Engine.selectDossierPillar(state.lab, args.pillar);
+    else if (action === "answerDossierDebate" && Engine.answerDossierDebate)
+      r = Engine.answerDossierDebate(state.lab, args.pillar, args.step, args.choice);
+    else if (action === "setDossierP3Premise" && Engine.setDossierP3Premise)
+      r = Engine.setDossierP3Premise(state.lab, args.step, args.choice);
+    else if (action === "alignDossierPapers" && Engine.alignDossierPapers) r = Engine.alignDossierPapers(state.lab, args.choice);
+    else if (action === "transformDossierPapers" && Engine.transformDossierPapers) r = Engine.transformDossierPapers(state.lab, args.choice);
+    else if (action === "setDossierFinalBoundary" && Engine.setDossierFinalBoundary)
+      r = Engine.setDossierFinalBoundary(state.lab, args.choice);
     else if (action === "answerAudit" && Engine.answerAudit) r = Engine.answerAudit(state.lab, args.questionId, args.evidenceId);
     else if (action === "setBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     /* 第四章軌道、跨尺度反驗與行動制校樣。 */
