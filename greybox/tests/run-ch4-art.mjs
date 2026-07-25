@@ -101,6 +101,43 @@ if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v01"
     !tangentFocus.caption.includes("不是觀測證據"))
   fail("D1-1 選對後未接上切線預測紙或證據邊界");
 
+const focusProps = {
+  ch04_prop_rope_ball_setup_v01: {
+    scene: "D1-2",
+    match: "木球繫到細繩末端",
+    guard: "不替月亮提供答案"
+  },
+  ch04_prop_hooke_letter_reconstruction_v01: {
+    scene: "D2-1",
+    match: "拆開的信壓在上面",
+    guard: "非真跡影像"
+  },
+  ch04_prop_halley_sealed_observation_box_v01: {
+    scene: "D2-3",
+    match: "兩包封住的觀測",
+    guard: "先留下預測"
+  },
+  ch04_prop_print_credit_sources_v01: {
+    scene: "D3-3",
+    match: "親手把空白名條移出作者欄",
+    guard: "署名決定之後"
+  }
+};
+for (const [id, expected] of Object.entries(focusProps)) {
+  const entry = entries.get(id);
+  if (!entry?.path || entry.w !== 1200 || entry.h !== 800)
+    fail("第四章台詞特寫宣告錯誤:" + id);
+  const runtime = path.join(here, "../../public/assets", entry.path);
+  const source = path.join(here, "../../", entry.sourceMaster || "");
+  if (!existsSync(runtime)) fail("第四章台詞特寫 runtime 檔案不存在:" + id);
+  if (!existsSync(source)) fail("第四章台詞特寫母版不存在:" + id);
+  if (statSync(runtime).size > 512 * 1024) fail("第四章台詞特寫超過單檔 512 KB 預算:" + id);
+  const focus = (assets.lineFocusVisual || []).find((rule) =>
+    rule.scene === expected.scene && rule.match.includes(expected.match));
+  if (focus?.items?.[0]?.asset !== id || !focus.caption.includes(expected.guard))
+    fail("第四章台詞特寫觸發或洩答護欄錯誤:" + id);
+}
+
 const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
 if (!/body\[data-view="orbit"\] #panelWrap\s*\{\s*display:\s*block/.test(stageHtml))
   fail("第四章工作台仍可能被全域 display:none 隱藏");
@@ -230,4 +267,4 @@ for (const fragment of [
 ])
   if (!stageUi.includes(fragment)) fail("第四章三段式音樂缺里程碑切換:" + fragment);
 
-console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、3 張去邊肖像、5 張證據圖、11 首 BGM、可見工作台與零斷鏈");
+console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、3 張去邊肖像、5 張台詞特寫、5 張證據圖、11 首 BGM、可見工作台與零斷鏈");

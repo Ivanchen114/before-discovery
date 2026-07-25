@@ -1578,6 +1578,46 @@
    "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v01.png"
   },
   {
+   "id": "ch04_prop_rope_ball_setup_v01",
+   "kind": "prop",
+   "label": "1665 繩球演示裝置（演示前）",
+   "path": "ch04/props/ch04_prop_rope_ball_setup_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 800,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_rope_ball_setup_master_v01.png"
+  },
+  {
+   "id": "ch04_prop_hooke_letter_reconstruction_v01",
+   "kind": "prop",
+   "label": "1679 虎克書信道具重建",
+   "path": "ch04/props/ch04_prop_hooke_letter_reconstruction_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 800,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_hooke_letter_reconstruction_master_v01.png"
+  },
+  {
+   "id": "ch04_prop_halley_sealed_observation_box_v01",
+   "kind": "prop",
+   "label": "1684 哈雷未開封觀測資料匣",
+   "path": "ch04/props/ch04_prop_halley_sealed_observation_box_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 800,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_halley_sealed_observation_box_master_v01.png"
+  },
+  {
+   "id": "ch04_prop_print_credit_sources_v01",
+   "kind": "prop",
+   "label": "1687 印刷台上的分立來源",
+   "path": "ch04/props/ch04_prop_print_credit_sources_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 800,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_print_credit_sources_master_v01.png"
+  },
+  {
    "id": "card_K1",
    "kind": "card",
    "label": "K1 一直改向的路",
@@ -2074,6 +2114,50 @@
     }
    ],
    "caption": "無作用預測紙：若沒有作用改變運動，月亮下一步沿當下切線直走。這是操作前的預測，不是觀測證據。"
+  },
+  {
+   "scene": "D1-2",
+   "match": "牛頓把一顆木球繫到細繩末端",
+   "items": [
+    {
+     "asset": "ch04_prop_rope_ball_setup_v01",
+     "alt": "演示前放在工作桌上的木球與細繩，尚未甩動或鬆手"
+    }
+   ],
+   "caption": "繩球演示的裝置：它只把「持續轉彎需要持續改變運動」的問題指出來，不替月亮提供答案。"
+  },
+  {
+   "scene": "D2-1",
+   "match": "一封拆開的信壓在上面",
+   "items": [
+    {
+     "asset": "ch04_prop_hooke_letter_reconstruction_v01",
+     "alt": "1679 年書信的戲劇化道具重建，紙上只有未完成的方向草記"
+    }
+   ],
+   "caption": "1679 年書信道具重建（非真跡影像）：信把切線前進與向中心吸引放進同一個問題，沒有替後面的證明作答。"
+  },
+  {
+   "scene": "D2-3",
+   "match": "匣內兩包封住的觀測",
+   "items": [
+    {
+     "asset": "ch04_prop_halley_sealed_observation_box_v01",
+     "alt": "哈雷木匣裡兩包仍以蠟封住的觀測紙，資料內容尚未揭露"
+    }
+   ],
+   "caption": "觀測仍在封口裡：先留下預測，才有資格拆開火星與木星的資料。"
+  },
+  {
+   "scene": "D3-3",
+   "match": "旅人親手把空白名條移出作者欄",
+   "items": [
+    {
+     "asset": "ch04_prop_print_credit_sources_v01",
+     "alt": "印刷版框旁分開擺放書信、計算紙與觀測紀錄，沒有任何一份覆蓋其他來源"
+    }
+   ],
+   "caption": "署名決定之後，來源仍各自留在紙上：問題、證明、觀測與編務不能互相抹除。"
   },
   {
    "scene": "P0-2",
