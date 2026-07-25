@@ -104,7 +104,7 @@
   {
    "id":"D1-3",
    "title":"弧線裡多了什麼",
-   "historyTag":"modern-model",
+   "historyTag":"later-recollection+reconstruction",
    "nodes":[
     {"id":"e1","type":"embed","system":"orbit","phase":"claim","hint":"用切線逃逸與閉合軌道兩筆紀錄，說明前進與向內改向如何同時存在。","until":{"orbit":"k1"},"next":"n1"},
     {"id":"n1","type":"line","speaker":"旅人(你)","text":"它保留原來的前進；新的作用持續指向地心，改向的量還得和它跑多快相配。","next":"n2"},
@@ -126,7 +126,7 @@
     {"id":"n5e","type":"line","speaker":"stage","text":"牛頓在頁邊寫下差距，圈起「地球的大小」，註明是借來的數，再標上「未決」，把整疊紙放進抽屜。","next":"n5f"},
     {"id":"n5f","type":"line","speaker":"牛頓","text":"等有人量出一個我信得過的地球，我再回來。","next":"n5g"},
     {"id":"n5g","type":"line","speaker":"旅人・心聲","text":"我知道他最後會對，也知道我不能替他把那個數補上。抽屜關得很輕；他沒有丟掉失敗，也沒有把它改成成功。","next":"n5h"},
-    {"id":"n5h","type":"system","speaker":"system","text":"史實註：牛頓晚年的相關備忘錄記載，他早期曾比較月球所需的作用與地表重力；採用的地球尺度不夠可靠，結果不足以支撐公開宣布。本場把這次失配具象化，不把 1665 年演成理論完成的一刻。","next":"g1"},
+    {"id":"n5h","type":"system","speaker":"system","text":"史實註：牛頓晚年的自述把早期月球比較說成「相當接近」；十八世紀留下的回憶則說，他曾因採用不佳的地球尺度而失望，後來又用 Picard 的測量重算。本場採後一種傳述，把「對不上」具象化；這是合理重建，不把 1665 年演成理論完成的一刻。","next":"g1"},
     {"id":"n6","type":"goto","scene":"D2-1"},
     {"id":"g1","type":"goto","scene":"D2-1"}
    ]
@@ -156,8 +156,11 @@
   {
    "id":"D2-2",
    "title":"讓兩張記錄相認",
-   "historyTag":"modern-model",
+   "historyTag":"documented+reconstruction",
    "nodes":[
+    {"id":"n0","type":"line","speaker":"stage","text":"牛頓在舊紙旁放下一份新出版的地球量度。頁上記著法國人 Picard 在 1669 至 1670 年重新測過的子午線弧。","next":"n0a"},
+    {"id":"n0a","type":"line","speaker":"牛頓","text":"這把尺比當年那個數可靠。新舊兩個都寫下；換了數，就要留下痕跡。","next":"n0h"},
+    {"id":"n0h","type":"system","speaker":"system","text":"史實註：Picard 的地球測量在 1671 年出版；後世回憶常把這份新尺度與牛頓的重算相連，但確切時間與單一因果仍有爭議。本場將兩者並置，屬合理重建。","next":"n1"},
     {"id":"n1","type":"line","speaker":"牛頓","text":"把現在採用的地球尺度寫在紙邊。別改觀測，只准改你拿來連接它們的規則。","next":"e1"},
     {"id":"e1","type":"embed","system":"orbit","phase":"scale","hint":"已知月球到地心約六十個地球半徑。先封存距離律，月球六十秒偏離切線的落點才會揭曉。","until":{"orbit":"k2"},"next":"n2"},
     {"id":"n2","type":"line","speaker":"旅人(你)","text":"六十秒後，月亮離開切線的距離，和地表一秒的落下碰上了。","next":"n3"},

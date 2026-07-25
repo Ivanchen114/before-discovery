@@ -480,7 +480,7 @@
   {
    "id": "D1-3",
    "title": "弧線裡多了什麼",
-   "historyTag": "modern-model",
+   "historyTag": "later-recollection+reconstruction",
    "nodes": [
     {
      "id": "e1",
@@ -618,7 +618,7 @@
      "id": "n5h",
      "type": "system",
      "speaker": "system",
-     "text": "史實註：牛頓晚年的相關備忘錄記載，他早期曾比較月球所需的作用與地表重力；採用的地球尺度不夠可靠，結果不足以支撐公開宣布。本場把這次失配具象化，不把 1665 年演成理論完成的一刻。",
+     "text": "史實註：牛頓晚年的自述把早期月球比較說成「相當接近」；十八世紀留下的回憶則說，他曾因採用不佳的地球尺度而失望，後來又用 Picard 的測量重算。本場採後一種傳述，把「對不上」具象化；這是合理重建，不把 1665 年演成理論完成的一刻。",
      "next": "g1"
     },
     {
@@ -752,8 +752,29 @@
   {
    "id": "D2-2",
    "title": "讓兩張記錄相認",
-   "historyTag": "modern-model",
+   "historyTag": "documented+reconstruction",
    "nodes": [
+    {
+     "id": "n0",
+     "type": "line",
+     "speaker": "stage",
+     "text": "牛頓在舊紙旁放下一份新出版的地球量度。頁上記著法國人 Picard 在 1669 至 1670 年重新測過的子午線弧。",
+     "next": "n0a"
+    },
+    {
+     "id": "n0a",
+     "type": "line",
+     "speaker": "牛頓",
+     "text": "這把尺比當年那個數可靠。新舊兩個都寫下；換了數，就要留下痕跡。",
+     "next": "n0h"
+    },
+    {
+     "id": "n0h",
+     "type": "system",
+     "speaker": "system",
+     "text": "史實註：Picard 的地球測量在 1671 年出版；後世回憶常把這份新尺度與牛頓的重算相連，但確切時間與單一因果仍有爭議。本場將兩者並置，屬合理重建。",
+     "next": "n1"
+    },
     {
      "id": "n1",
      "type": "line",

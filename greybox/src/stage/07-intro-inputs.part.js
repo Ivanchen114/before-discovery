@@ -204,9 +204,14 @@
     $("labIntro").hidden = false;
     $("btnLabIntroGo").focus();
   }
+  /* 第四章的備忘入口由軌道抬頭動態建立；共用同一張卡，不複製規則文字。 */
+  window.BD_showLabIntro = showLabIntro;
   $("btnLabIntroGo").addEventListener("click", function () {
     $("labIntro").hidden = true;
-    $("btnLabHelp").focus();
+    var returnTarget = CHAPTER_ID === "ch4"
+      ? document.querySelector(".orbitHelp")
+      : $("btnLabHelp");
+    if (returnTarget) returnTarget.focus();
   });
   $("btnLabHelp").addEventListener("click", function () { showLabIntro(); });
   /* 勾選後視圖聚焦同配置(判定選集本就要求同配置);資料一筆不刪——筆記簿倫理 */

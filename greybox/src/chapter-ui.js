@@ -2730,29 +2730,35 @@
     if (action === "commitDeflection" && rr.ok === false && rr.consequence) {
       orbit4Msg = "牛頓沒有攔住這條路。先看它完整走完，再判斷你剛才加了什麼。";
     } else if (action === "runConsequence") {
-      var kind = rr.consequence && rr.consequence.kind;
+      var consequence = rr.consequence || {};
+      var kind = consequence.kind;
+      var unstableReply = consequence.angleDeg > 15
+        ? "牛頓：「這一拍沒有朝向地心。它歪出去了。」"
+        : (consequence.magnitudeRatio < 0.75
+          ? "牛頓：「這一拍太輕。它幾乎沒有被拉住。」"
+          : "牛頓：「這一拍太重。它一下切得太深。」");
       orbit4Msg = {
         tangent: "牛頓：「這是沒有作用的那張紙。你又把它畫了一次。」",
         outward: "牛頓：「往外推。那不是拉，是丟。」",
         impact: "牛頓：「太多。它沒有繞，它撞上來了。」",
-        unstable: "牛頓：「不夠準。它每一圈都在換半徑。」"
+        unstable: unstableReply
       }[kind] || "後果已完整保留；現在可以調整後重試。";
     } else if (action === "runOrbitRule" && rr.run) {
       var orbitOutcome = {
-        parabola: "牛頓：「固定一個方向，就只折彎一次。它離開了，不是繞著走。」",
-        "wrong-center": "牛頓：「它繞了。繞的是紙上那個點，不是地球。」",
-        "outer-band": "牛頓：「拉得太少，或它跑太快。它一圈比一圈遠。」",
-        "inner-band": "牛頓：「拉得太多，或它跑太慢。它正在往裡栽。」",
-        "near-circle": "牛頓：「留下來了。方向對，量也配上了速度。」"
+        parabola: "固定一個方向，就只折彎一次。它離開了，不是繞著走。",
+        "wrong-center": "它繞了。繞的是紙上那個點，不是地球。",
+        "outer-band": "拉得太少，或它跑太快。它一圈比一圈遠。",
+        "inner-band": "拉得太多，或它跑太慢。它正在往裡栽。",
+        "near-circle": "留下來了。方向對，量也配上了速度。"
       }[rr.run.outcome];
       var predictedResult = rr.run.predictionMatched
         ? (rr.run.outcome === "near-circle"
-          ? "牛頓：「你先寫下它會留下來，它就留下來了。這一張可以拿去比。」"
-          : "牛頓：「你料中了它會失敗。那你已經知道下一個該改哪一項。」")
+          ? "你先寫下它會留下來，它就留下來了。這一張可以拿去比。"
+          : "你料中了它會失敗。那你已經知道下一個該改哪一項。")
         : (rr.run.outcome === "near-circle"
-          ? "牛頓：「成了，但不是你預期的那樣。記下來——這次是運氣還是規則，下一輪會告訴你。」"
-          : "牛頓：「你連自己寫的規則會做什麼都沒料到。先別動箭長——先想清楚你剛才在期待什麼。」");
-      orbit4Msg = orbitOutcome + "\n" + predictedResult;
+          ? "成了，但不是你預期的那樣。記下來——這次是運氣還是規則，下一輪會告訴你。"
+          : "你連自己寫的規則會做什麼都沒料到。先別動箭長——先想清楚你剛才在期待什麼。");
+      orbit4Msg = "牛頓：「" + orbitOutcome + "\n" + predictedResult + "」";
     } else if (rr.ok === false) {
       orbit4Msg = "✕ " + ({
         "claim-mismatch": "資料與結論沒有接上。先看哪兩筆紀錄真的比較了同一件事。",
@@ -3083,7 +3089,13 @@
     ship3El("small", orbit4ContextLabel(v.phase), head);
     ship3El("h2", mission[0], head);
     ship3El("p", mission[1], head);
-    var chips = ship3El("div", null, head, "orbitEvidenceChips");
+    var headTools = ship3El("div", null, head, "orbitHeadTools");
+    var help = ship3Btn(headTools, "?", function () {
+      if (typeof window.BD_showLabIntro === "function") window.BD_showLabIntro();
+    }, "orbitHelp");
+    help.setAttribute("aria-label", "重看軌道與出版備忘");
+    help.title = "重看軌道與出版備忘";
+    var chips = ship3El("div", null, headTools, "orbitEvidenceChips");
     var acquiredPapers = [["K1","改向紙"],["K2","地月紙"],["K3","封口預測"],["K4","模型比較"],["K5","出版校樣"]]
       .filter(function (p) { return ev[p[0].toLowerCase()]; });
     ship3El("b", "旅人筆記", chips, "orbitNotebookLabel");

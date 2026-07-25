@@ -490,7 +490,7 @@ tests.push({
     const montageRuntime = montageStart >= 0 && montageEnd > montageStart ? sui.slice(montageStart, montageEnd) : "";
     if (!montageRuntime || montageRuntime.includes("CHAPTER_ID"))
       throw new Error("章首手動轉場不得另寫單章分支；所有 sceneFx 必須共用同一套控制");
-    if (!stageHtml.includes("stage-ui.js?v=20260725-ch04-companion-v1"))
+    if (!stageHtml.includes("stage-ui.js?v=20260725-ch04-companion-v2"))
       throw new Error("舞台程式缺版本標記，重新整理可能繼續使用舊轉場程式");
     if (!sui.includes('btnPrologueGo").addEventListener("click", function ()') ||
         sui.includes('btnPrologueGo").addEventListener("click", dismissPrologue)'))
@@ -2487,7 +2487,7 @@ tests.push({
       throw new Error("第三章末頁、玩家翻頁與伍爾索普落地仍未在視覺上分成三拍");
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     if (!stage.includes("data/assets.js?v=20260725-ch04-companion-v1") ||
-        !stage.includes("data/scenes4.js?v=20260725-ch04-companion-v1"))
+        !stage.includes("data/scenes4.js?v=20260725-ch04-companion-v2"))
       throw new Error("第四章接縫修正缺少快取更新，正式站可能仍載入舊背景");
 
     if (!principles.includes("筆記只折疊年月，不替旅人預知歷史") || !ch4.includes("CH4-CR-007"))
@@ -2787,11 +2787,65 @@ tests.push({
     for (const fragment of ["木球繫到細繩", "繩子不是月亮的答案", "方向、箭長和初速一次寫死", "先封存路徑預測"])
       if (!d12Text.includes(fragment)) throw new Error("D1-2 繩球橋接或自走規則缺漏:" + fragment);
     const d13Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D1-3"));
-    for (const fragment of ["兩個數字沒有碰上", "對不上", "現在分不出來", "未決", "不把 1665 年演成理論完成"])
+    for (const fragment of ["兩個數字沒有碰上", "對不上", "現在分不出來", "未決",
+      "相當接近", "十八世紀留下的回憶", "合理重建", "不把 1665 年演成理論完成"])
       if (!d13Text.includes(fragment)) throw new Error("D1-3 缺少 1665 誠實失敗或史實邊界:" + fragment);
+    if (scenes4.scenes.find((s) => s.id === "D1-3")?.historyTag !== "later-recollection+reconstruction")
+      throw new Error("D1-3 未把後世回憶與戲劇重建明確標出");
     const d21Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D2-1"));
     if (!d21Text.includes("寫著「未決」的舊紙拿回來"))
       throw new Error("1679 年沒有把 1665 的未決紙重新帶回推理");
+    const d22Text = JSON.stringify(scenes4.scenes.find((s) => s.id === "D2-2"));
+    for (const fragment of ["Picard", "1669 至 1670", "換了數，就要留下痕跡", "單一因果仍有爭議"])
+      if (!d22Text.includes(fragment)) throw new Error("1679 年缺新舊地球尺度的誠實回收:" + fragment);
+  }
+});
+
+tests.push({
+  name: "第四章1665錯路|兩種不誠實選項可回選、存檔可續且不偷發證據",
+  fn: () => {
+    const N4 = Narrative._factory(scenes4, Engine4, {});
+    for (const optionId of ["fit", "announce"]) {
+      let s = N4.initialState("explore");
+      s.cursor = { scene:"D1-3", node:"c1" };
+      const evidenceBefore = JSON.stringify(s.lab.evidence);
+      const picked = N4.choose(s, optionId);
+      if (picked.error) throw new Error(optionId + " 錯路不能選:" + picked.error);
+      s = N4.deserialize(N4.serialize(picked.state));
+      let v = N4.view(s);
+      if (v.type !== "line" || v.scene !== "D1-3" || !/^r[12]$/.test(v.nodeId))
+        throw new Error(optionId + " 錯路存檔未停在牛頓反駁");
+      const returned = N4.advance(s);
+      if (returned.error) throw new Error(optionId + " 錯路不能回選:" + returned.error);
+      s = returned.state; v = N4.view(s);
+      if (v.type !== "choice" || v.nodeId !== "c1" || v.options.length !== 3)
+        throw new Error(optionId + " 錯路沒有完整返回三選一");
+      if (JSON.stringify(s.lab.evidence) !== evidenceBefore)
+        throw new Error(optionId + " 錯路偷偷寫入證據");
+    }
+  }
+});
+
+tests.push({
+  name: "第四章同行介面|備忘可重看、逐拍診斷用真資料、低高度仍可觸及",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const intro = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");
+    const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const fragment of ["orbitHeadTools", "orbitHelp", "重看軌道與出版備忘", "BD_showLabIntro"])
+      if (!ui.includes(fragment) && !stage.includes(fragment))
+        throw new Error("第四章缺可觸及備忘入口:" + fragment);
+    if (!intro.includes("window.BD_showLabIntro = showLabIntro") ||
+        !intro.includes('document.querySelector(".orbitHelp")'))
+      throw new Error("第四章備忘未接既有內容，或關閉後焦點掉回隱藏按鈕");
+    if (!stage.includes(".orbitHeadTools") || !stage.includes(".orbitHelp") ||
+        !stage.includes(".orbitEvidenceChips span.empty { min-width:96px"))
+      throw new Error("第四章低高度抬頭未替備忘、筆記標籤與空狀態收斂");
+    if (!ui.includes("consequence.angleDeg > 15") || !ui.includes("consequence.magnitudeRatio < 0.75") ||
+        ui.includes("它每一圈都在換半徑"))
+      throw new Error("逐拍失敗仍用整圈症狀，或沒有讀引擎診斷值");
+    if (!ui.includes('orbit4Msg = "牛頓：「" + orbitOutcome + "\\n" + predictedResult + "」"'))
+      throw new Error("同一輪結果仍把牛頓署名重複兩次");
   }
 });
 
