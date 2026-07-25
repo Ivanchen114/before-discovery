@@ -2459,6 +2459,14 @@ tests.push({
     if (!San.sanitizeImport3(legacyPublic, scenes3).ok) throw new Error("舊版四步公開演示存檔失去相容性");
     const legacy = JSON.parse(N3.serialize(good)); delete legacy.lab.claims; delete legacy.lab.cabinResults;
     if (!San.sanitizeImport3(legacy, scenes3).ok) throw new Error("追加斷言欄位後舊存檔失去相容性");
+    const legacyDossier = JSON.parse(N3.serialize(good));
+    delete legacyDossier.lab.caseFile.dossier;
+    if (!San.sanitizeImport3(legacyDossier, scenes3).ok) throw new Error("自由卷宗上線後舊存檔遭拒");
+    const migratedLegacyLab = Engine3.migrateLabState(legacyDossier.lab);
+    if (!migratedLegacyLab.caseFile.dossier || migratedLegacyLab.caseFile.dossier.page !== "lab")
+      throw new Error("第三章舊存檔顯示前沒有補建自由實驗卷宗");
+    if (legacyDossier.lab.caseFile.dossier)
+      throw new Error("第三章舊存檔遷移原地改寫了輸入");
     const badDossier = JSON.parse(N3.serialize(good));
     badDossier.lab.caseFile.dossier.draft.stage = "teleport";
     if (San.sanitizeImport3(badDossier, scenes3).ok) throw new Error("非法卷宗船況未被拒");
@@ -2467,6 +2475,9 @@ tests.push({
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const x of ['src="data/series.js"', 'src="src/engine3.js', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
+    if (!html.includes("src/engine3.js?v=20260726-ch03-dossier-v2") ||
+        !html.includes("src/chapter-ui.js?v=20260726-ch03-dossier-v2"))
+      throw new Error("第三章舊存檔遷移修正缺少快取更新");
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.route === "ch03"))
       throw new Error("第三章未登錄於資料驅動首頁");

@@ -364,6 +364,12 @@
     };
   }
 
+  /* 舊版第三章本機存檔可能還沒有自由實驗卷宗。
+     UI 在第一次顯示前先走這個純函式，避免直接讀取缺欄位而中斷。 */
+  function migrateLabState(state0) {
+    return ensureNewFields(clone(state0));
+  }
+
   function choosePilotFocus(state0, focus) {
     if (PILOT_FOCI.indexOf(focus) < 0) return err(state0, "unknown-pilot-focus");
     var s = ensureNewFields(clone(state0));
@@ -1306,7 +1312,7 @@
   }
 
   var api = {
-    initialState: initialState,
+    initialState: initialState, migrateLabState: migrateLabState,
     choosePilotFocus: choosePilotFocus, runPilot: runPilot, diagnosePilot: diagnosePilot,
     setProtocolAssignment: setProtocolAssignment, lockProtocol: lockProtocol,
     runDesignedProtocol: runDesignedProtocol, assertG1Designed: assertG1Designed,

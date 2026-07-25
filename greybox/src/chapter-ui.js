@@ -4418,6 +4418,10 @@
   }
 
   function startGame(fromState) {
+    if (CHAPTER_ID === "ch3" && window.GB.Engine3 && window.GB.Engine3.migrateLabState) {
+      fromState = JSON.parse(JSON.stringify(fromState));
+      fromState.lab = window.GB.Engine3.migrateLabState(fromState.lab);
+    }
     state = fromState;
     $("title-screen").style.display = "none";
     $("game-screen").style.display = "";
@@ -4427,6 +4431,7 @@
     lastEmbedKey = null;
     var rd = N.redirectIfLocked(state);
     if (rd.redirected) { state = rd.state; save(); }
+    else if (CHAPTER_ID === "ch3") save();
     emit("bd:start", { mode: state.mode });
     renderAll();
   }
