@@ -376,8 +376,16 @@
             typeof dossier.draft.sameHeight !== "boolean" ||
             !Array.isArray(dossier.records) || dossier.records.length > 100 ||
             !dossier.assertions || !dossier.candidates ||
+            (dossier.claimSelections != null && (!dossier.claimSelections ||
+              typeof dossier.claimSelections !== "object")) ||
+            (dossier.assertionSources != null && (!dossier.assertionSources ||
+              typeof dossier.assertionSources !== "object")) ||
+            (dossier.sourceAttempts != null && (!Array.isArray(dossier.sourceAttempts) ||
+              dossier.sourceAttempts.length > 200)) ||
             !Array.isArray(dossier.scopeAttempts) || dossier.scopeAttempts.length > 100 ||
             !dossier.blind || !Array.isArray(dossier.blind.attempts) ||
+            (dossier.blind.records != null && (!Array.isArray(dossier.blind.records) ||
+              dossier.blind.records.length > 2)) ||
             dossier.blind.attempts.length > 50 || !dossier.debate ||
             !Array.isArray(dossier.debate.pins) || dossier.debate.pins.length > 50 ||
             !Array.isArray(dossier.debate.attempts) || dossier.debate.attempts.length > 200 ||
@@ -386,6 +394,18 @@
             !Array.isArray(dossier.debate.p3.transformAttempts) ||
             typeof dossier.complete !== "boolean")
           return fail("第三章自由實驗卷宗格式錯誤");
+        var sourcePattern = /^(OLD|R[1-9][0-9]*|C-(dock|steady))$/;
+        for (var selectionMap of [dossier.claimSelections, dossier.assertionSources]) {
+          if (selectionMap == null) continue;
+          for (var assertionId in selectionMap) {
+            var sourceIds = selectionMap[assertionId];
+            if (!Array.isArray(sourceIds) || sourceIds.length > 30 ||
+                sourceIds.some(function (sourceId) {
+                  return typeof sourceId !== "string" || !sourcePattern.test(sourceId);
+                }))
+              return fail("第三章斷言含無法辨識的原始資料");
+          }
+        }
         for (var dr of dossier.records) {
           if (!dr || !isInt(dr.id) || dr.id < 1 ||
               (dr.location != null && dr.location !== "deck") ||

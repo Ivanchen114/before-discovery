@@ -1690,6 +1690,13 @@
   .shipCandidateCard small { color: #7e532c; font: 800 12px var(--font-ui); letter-spacing: .04em; }
   .shipCandidateCard h4 { margin: 3px 0 8px; color: #3c2d20; font-size: 17px; line-height: 1.4; }
   .shipCandidateCard .shipAction { display: block; width: 100%; margin: 5px 0; text-align: left; }
+  .shipCandidateStep { display: block; margin: 10px 0 5px; color: #5d4024; font: 850 14px var(--font-ui); }
+  .shipCandidateSources { display: grid; grid-template-columns: repeat(auto-fit,minmax(245px,1fr)); gap: 6px; margin-bottom: 9px; }
+  .shipCandidateCard .shipCandidateSource { margin: 0; border-color: rgba(91,108,102,.42); background: rgba(236,244,238,.35); }
+  .shipCandidateCard .shipCandidateSource.active { border-color: #4f7f71; background: rgba(93,139,119,.18); box-shadow: inset 4px 0 #5d8a79; }
+  .shipCandidateCard .shipCandidateSource small { margin-top: 3px; color: #65513d; font: 650 12px/1.4 var(--font-ui); letter-spacing: 0; }
+  .shipDossierChips { flex-wrap: wrap; justify-content: flex-end; max-width: 320px; }
+  .shipDossierChips span { width: auto; min-width: max-content; padding: 4px 6px; white-space: nowrap; }
   .shipDossierVisual { position: relative; display: grid; align-content: start; min-height: 100%; margin: 0; padding: 14px;
     color: #f0dfbd; background: radial-gradient(circle at 50% 35%,rgba(91,113,102,.35),transparent 48%),#111716; }
   .shipDossierVisualTitle { margin-bottom: 10px; color: #f5dfb6; font: 850 21px var(--font-ui); }
@@ -1774,6 +1781,9 @@
     .shipDossierPlayerLine { margin: 5px 0 3px; padding: 7px 9px; }.shipDossierPlayerLine p { font-size: 15px; line-height: 1.4; }
     .shipDebateIntro { margin: 3px 0 6px; padding: 6px 8px; }.shipDebateIntro p { margin: 3px 0; font-size: 14px; line-height: 1.4; }
     .shipCandidateCard, .shipPillarCard { margin: 6px 0; padding: 7px 8px; }.shipCandidateCard h4 { font-size: 15px; }
+    .shipCandidateSources { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
+    .shipCandidateCard .shipCandidateSource small { font-size: 11px; }
+    .shipDossierChips { max-width: 260px; gap: 2px; }.shipDossierChips span { padding: 2px 4px; font-size: 9px; }
     .shipPerspectiveIntro { gap: 5px; }.shipPerspectiveGrid { gap: 5px; }.shipPerspectiveEyebrow { font-size: 12px; }
     .shipPerspectiveCard { grid-template-columns: minmax(0,1fr) minmax(78px,.55fr); }
     .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 4px; font-size: 10px; }
@@ -2330,16 +2340,16 @@
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
 <script src="data/assets.js?v=20260726-ch03-dossier-v1"></script>
-<script src="src/sanitize.js?v=20260726-ch03-lab-v2"></script>
+<script src="src/sanitize.js?v=20260726-ch03-cabin-v2"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js?v=20260726-ch03-lab-v4"></script>
+<script src="src/engine3.js?v=20260726-ch03-cabin-v2"></script>
 <script src="src/engine4.js?v=20260725-ch04-redesign-v1"></script>
 <script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
-<script src="data/scenes3.js?v=20260726-ch03-lab-v2"></script>
+<script src="data/scenes3.js?v=20260726-ch03-cabin-v2"></script>
 <script src="data/scenes4.js?v=20260725-ch04-companion-v2"></script>
 <script>
 (function () {
@@ -2371,8 +2381,8 @@
   }
 })();
 </script>
-<script src="src/narrative.js?v=20260726-ch03-dossier-v1"></script>
-<script src="src/chapter-ui.js?v=20260726-ch03-lab-v6"></script>
+<script src="src/narrative.js?v=20260726-ch03-cabin-v2"></script>
+<script src="src/chapter-ui.js?v=20260726-ch03-cabin-v2"></script>
 <script src="src/stage-ui.js?v=20260726-ch03-dossier-v1"></script>
 </body>
 </html>

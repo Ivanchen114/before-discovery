@@ -136,6 +136,20 @@
     depart: { vessel: "accelerating", classification: "正在變快", offsets: [-0.72, -0.66, -0.75], shoreGaps: [1.0, 1.6, 2.3], landing: "aft" },
     brake: { vessel: "decelerating", classification: "正在變慢", offsets: [0.69, 0.63, 0.71], shoreGaps: [2.3, 1.6, 1.0], landing: "fore" }
   };
+  var DOSSIER_CABIN_RECORDS = [
+    {
+      id: "C-dock", stage: "dock", label: "停泊對照",
+      speedPaper: "岸標位置：0、0、0 格（停泊）",
+      water: "水面偏斜：0、0、0 格",
+      local: "落球正下方 3／3；拋接回手邊 3／3"
+    },
+    {
+      id: "C-steady", stage: "steady", label: "出港平駛對照",
+      speedPaper: "每拍前進：1.5、1.5、1.5 格（近似走穩）",
+      water: "水面偏斜：0、0、0 格",
+      local: "落球正下方 3／3；拋接回手邊 3／3"
+    }
+  ];
 
   function makeDossier() {
     return {
@@ -148,8 +162,12 @@
       nextRecordId: 1,
       candidates: {},
       assertions: { A1: false, A2: false, A3: false, A6: true, S1: false, S4: false, A4: false, A5: false },
+      claimSelections: { A1: [], A2: [], A3: [], S1: [], S4: [] },
+      assertionSources: {},
+      sourceAttempts: [],
       scopeAttempts: [],
-      blind: { ran: false, judgment: null, unsealed: false, scope: false, attempts: [] },
+      /* blind 保留作舊存檔欄位名；玩家流程已改為公開船況的船艙對照。 */
+      blind: { ran: false, judgment: null, unsealed: false, scope: false, attempts: [], records: [] },
       debate: {
         active: false, rep: 5, current: null, lastReply: "",
         lastPlayerLine: "", entryBlocked: null, visits: 0,
@@ -292,12 +310,27 @@
     Object.keys(defaults.assertions).forEach(function (id) {
       if (typeof d.assertions[id] !== "boolean") d.assertions[id] = defaults.assertions[id];
     });
+    if (!d.claimSelections || typeof d.claimSelections !== "object") d.claimSelections = clone(defaults.claimSelections);
+    Object.keys(defaults.claimSelections).forEach(function (id) {
+      if (!Array.isArray(d.claimSelections[id])) d.claimSelections[id] = [];
+      d.claimSelections[id] = unique(d.claimSelections[id].filter(function (sourceId) {
+        return typeof sourceId === "string" && sourceId.length <= 40;
+      })).slice(0, 30);
+    });
+    if (!d.assertionSources || typeof d.assertionSources !== "object") d.assertionSources = {};
+    Object.keys(d.assertionSources).forEach(function (id) {
+      if (!Array.isArray(d.assertionSources[id])) delete d.assertionSources[id];
+    });
+    if (!Array.isArray(d.sourceAttempts)) d.sourceAttempts = [];
     if (!Array.isArray(d.scopeAttempts)) d.scopeAttempts = [];
     if (!d.blind || typeof d.blind !== "object") d.blind = clone(defaults.blind);
     if (!Array.isArray(d.blind.attempts)) d.blind.attempts = [];
+    if (!Array.isArray(d.blind.records)) d.blind.records = d.blind.ran ? clone(DOSSIER_CABIN_RECORDS) : [];
     if (typeof d.blind.ran !== "boolean") d.blind.ran = false;
     if (typeof d.blind.unsealed !== "boolean") d.blind.unsealed = false;
     if (typeof d.blind.scope !== "boolean") d.blind.scope = false;
+    if (d.blind.ran && d.blind.judgment === "indistinguishable")
+      d.blind.judgment = "comparison-recorded";
     if (!d.debate || typeof d.debate !== "object") d.debate = clone(defaults.debate);
     if (!Array.isArray(d.debate.pins)) d.debate.pins = [];
     if (!Array.isArray(d.debate.attempts)) d.debate.attempts = [];
@@ -976,11 +1009,66 @@
     });
     if (hand.length && !d.assertions.S1) d.candidates.S1 = { records: hand };
     if (steady.length && !d.assertions.A1) d.candidates.A1 = { records: steady };
-    if (depart.length && d.assertions.A1 && !d.assertions.A3) d.candidates.A3 = { records: depart };
+    if (depart.length && d.assertions.A1 && !d.assertions.A3)
+      d.candidates.A3 = { records: steady.concat(depart) };
     if (brake.length && d.assertions.A1 && d.assertions.A3 && !d.assertions.S4)
       d.candidates.S4 = { records: steady.concat(depart, brake) };
-    if (d.blind.ran && d.blind.judgment === "indistinguishable" && d.blind.unsealed && !d.assertions.A2)
-      d.candidates.A2 = { records: ["blind-A", "blind-B"] };
+    if (d.blind.ran &&
+        (d.blind.judgment === "comparison-recorded" || d.blind.judgment === "indistinguishable") &&
+        d.blind.unsealed && !d.assertions.A2)
+      d.candidates.A2 = { records: ["C-dock", "C-steady"] };
+  }
+  function dossierAvailableSourceIds(d) {
+    var ids = ["OLD"].concat(d.records.map(function (r) { return "R" + r.id; }));
+    if (d.blind.ran) ids = ids.concat(["C-dock", "C-steady"]);
+    return ids;
+  }
+  function dossierSelectedSourcesValid(d, assertionId) {
+    var picked = unique((d.claimSelections[assertionId] || []).slice());
+    if (!picked.length || picked.some(function (id) {
+      return dossierAvailableSourceIds(d).indexOf(id) < 0;
+    })) return false;
+    var rows = picked.map(function (id) {
+      if (id.charAt(0) !== "R") return null;
+      var n = Number(id.slice(1));
+      return d.records.find(function (r) { return r.id === n; }) || null;
+    }).filter(Boolean);
+    function clean(stage) {
+      return rows.some(function (r) {
+        return r.stage === stage && r.release === "latch" && r.speedRecord === "beats" &&
+          r.repeats >= 3 && r.sameStone && r.sameHeight;
+      });
+    }
+    if (assertionId === "A2")
+      return picked.length === 2 && picked.indexOf("C-dock") >= 0 && picked.indexOf("C-steady") >= 0;
+    if (picked.some(function (id) { return id === "OLD" || id.indexOf("C-") === 0; })) return false;
+    if (assertionId === "S1")
+      return rows.length > 0 && rows.every(function (r) { return r.release === "hand" && r.repeats >= 3; });
+    if (assertionId === "A1")
+      return rows.length > 0 && rows.every(function (r) {
+        return r.stage === "steady" && r.release === "latch" && r.speedRecord === "beats" &&
+          r.repeats >= 3 && r.sameStone && r.sameHeight;
+      });
+    if (assertionId === "A3")
+      return clean("steady") && clean("depart") && rows.every(function (r) {
+        return r.stage === "steady" || r.stage === "depart";
+      });
+    if (assertionId === "S4")
+      return clean("steady") && clean("depart") && clean("brake") && rows.every(function (r) {
+        return r.stage === "steady" || r.stage === "depart" || r.stage === "brake";
+      });
+    return false;
+  }
+  function selectDossierSource(state0, assertionId, sourceId) {
+    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
+    refreshDossierCandidates(d);
+    if (!d.candidates[assertionId]) return err(state0, "dossier-candidate-required");
+    if (dossierAvailableSourceIds(d).indexOf(sourceId) < 0) return err(state0, "unknown-dossier-source");
+    var xs = d.claimSelections[assertionId] || (d.claimSelections[assertionId] = []);
+    var at = xs.indexOf(sourceId);
+    if (at >= 0) xs.splice(at, 1);
+    else if (xs.length < 30) xs.push(sourceId);
+    return { state: s, ok: true, assertion: assertionId, selected: xs.slice() };
   }
   function setDossierDraft(state0, field, value) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
@@ -1055,10 +1143,18 @@
       A3: "today-comparison", S4: "today-three-states"
     }[assertionId];
     if (!correct) return err(state0, "unknown-dossier-assertion");
+    var sourceOk = dossierSelectedSourcesValid(d, assertionId);
+    d.sourceAttempts.push({
+      assertion: assertionId,
+      sources: (d.claimSelections[assertionId] || []).slice(),
+      ok: sourceOk
+    });
+    if (!sourceOk) return { state: s, ok: false, reason: "dossier-source-mismatch" };
     var ok = choice === correct;
     d.scopeAttempts.push({ assertion: assertionId, choice: choice, ok: ok });
     if (!ok) return { state: s, ok: false, reason: "dossier-scope-overread" };
     d.assertions[assertionId] = true;
+    d.assertionSources[assertionId] = (d.claimSelections[assertionId] || []).slice();
     delete d.candidates[assertionId];
     refreshDossierCandidates(d);
     if (assertionId === "A1") s.evidence.g1 = true;
@@ -1066,16 +1162,21 @@
     if (assertionId === "A3" || assertionId === "S4") s.evidence.g3 = true;
     return { state: s, ok: true, assertion: assertionId };
   }
-  function runDossierBlind(state0) {
+  function runDossierCabinComparison(state0) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
     d.blind.ran = true;
-    d.blind.judgment = null;
-    d.blind.unsealed = false;
+    d.blind.judgment = "comparison-recorded";
+    d.blind.unsealed = true;
     d.blind.scope = false;
+    d.blind.records = clone(DOSSIER_CABIN_RECORDS);
     s.caseFile.voyages.cabin = clone(CASE_RUNS.cabin);
     s.caseFile.voyages.cabin.stage = "cabin";
+    refreshDossierCandidates(d);
     s.days += 1;
-    return { state: s, ok: true, traces: clone(CASE_RUNS.cabin.traces) };
+    return { state: s, ok: true, records: clone(d.blind.records) };
+  }
+  function runDossierBlind(state0) {
+    return runDossierCabinComparison(state0);
   }
   function judgeDossierBlind(state0, choice) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
@@ -1085,6 +1186,7 @@
     if (!ok) return { state: s, ok: false, reason: "local-traces-overread" };
     d.blind.judgment = choice;
     d.blind.unsealed = true;
+    d.blind.records = clone(DOSSIER_CABIN_RECORDS);
     refreshDossierCandidates(d);
     return { state: s, ok: true, unsealed: true };
   }
@@ -1178,7 +1280,7 @@
           S1: "徒手放下的三回，落點散開了。"
         },
         cabin: {
-          A2: "艙門關上後，兩趟都落在手邊。只憑艙內結果，我分不出哪一趟在走。",
+          A2: "停泊與走穩兩趟都有岸上船速紙。艙內的水面、落球和拋接近乎相同；甲板風不是結果出現的必要條件。",
           A1: "甲板上的走穩三回都落在桅腳附近。",
           A3: "解纜起步那組落在桅後。"
         },
@@ -1230,19 +1332,19 @@
         db.p1.concept = true;
         db.lastReply = "艦長：「一句話不算數。把走穩那組拿來。」";
       } else if (step === "steady") {
-        if (!d.assertions.A1) return dossierMissing(s, "需要 A1：三回乾淨走穩紀錄",
+        if (!d.assertions.A1) return dossierMissing(s, "需要三回乾淨的走穩紀錄",
           "艦長：「一回、手放或沒記船速，都不能替『走穩』作證。」");
         if (choice !== "A1") return dossierFailDebate(s, pillar, step, choice, "evidence-mismatch",
           "商人：「那張紙回答的不是走穩時落在哪裡。」");
         db.p1.steady = true;
         db.lastReply = "槳手：「甲板上有風。你怎麼知道不是風把石頭推回桅腳？」";
       } else if (step === "cabin") {
-        if (!d.assertions.A2) return dossierMissing(s, "風把石頭推回桅腳了嗎？",
-          "槳手：「你還沒有一筆完全關掉甲板風的對照。」");
+        if (!d.assertions.A2) return dossierMissing(s, "甲板風是必要條件嗎？",
+          "槳手：「你還沒有把甲板風隔開，再比較停泊和走穩。」");
         if (choice !== "A2") return dossierFailDebate(s, pillar, step, choice, "evidence-mismatch",
           "槳手：「那張紙沒有關掉甲板風。」");
         db.p1.cabin = true;
-        db.lastReply = "艦長：「好。沒有甲板風，也會出現這個結果。」";
+        db.lastReply = "艦長：「好。把甲板風隔開，停泊與走穩仍留下近乎相同的艙內結果。」";
       } else if (step === "wind") {
         if (choice !== "limited-wind") return dossierFailDebate(s, pillar, step, choice, "overclaim",
           "槳手：「船艙只能證明沒有風也能發生，不能替甲板上的風判無罪。」");
@@ -1263,21 +1365,21 @@
         db.p2.concept = true;
         db.lastReply = "艦長：「把今天的三張紙放進各自的位置。」";
       } else if (step === "steady") {
-        if (!d.assertions.A1) return dossierMissing(s, "需要 A1：走穩對照",
+        if (!d.assertions.A1) return dossierMissing(s, "需要岸紙確認的走穩對照",
           "艦長：「你給了我一艘變快的船，還沒有一艘走穩的船。」");
         if (choice !== "steady") return dossierFailDebate(s, pillar, step, choice, "classification-mismatch",
           "艾蒂安：「岸標間距近乎一樣，這張才是走穩。」");
         db.p2.steady = true;
         db.lastReply = "艾蒂安：「這一欄，我能從岸紙上作證。」";
       } else if (step === "depart") {
-        if (!d.assertions.A3) return dossierMissing(s, "需要 A3：解纜起步完整紀錄",
+        if (!d.assertions.A3) return dossierMissing(s, "需要解纜起步的完整船速與落點紀錄",
           "艦長：「你還沒拿出一筆當趟證明『正在變快』的後偏。」");
         if (choice !== "accelerating") return dossierFailDebate(s, pillar, step, choice, "classification-mismatch",
           "艾蒂安：「岸標間距逐拍拉開。這張記的是正在變快。」");
         db.p2.depart = true;
         db.lastReply = "艾蒂安：「落點在桅後；岸標間距也確實一拍比一拍長。」";
       } else if (step === "old") {
-        if (!d.assertions.A6) return dossierMissing(s, "需要 A6：先說清舊紙射程",
+        if (!d.assertions.A6) return dossierMissing(s, "先說清舊紙能證明到哪裡",
           "艦長：「先別替舊紙補字。它只有落點。」");
         if (choice !== "unclassified") return dossierFailDebate(s, pillar, step, choice, "old-paper-overread",
           "馬蒂厄：（指空欄）「這裡沒有人記船速。今天不能替八年前補上。」");
@@ -1453,7 +1555,9 @@
     setCaseTransform: setCaseTransform, assertCaseDual: assertCaseDual,
     confirmCaseCriteria: confirmCaseCriteria, setCaseBoundary: setCaseBoundary,
     setDossierDraft: setDossierDraft, copyDossierRecord: copyDossierRecord,
-    runDossierExperiment: runDossierExperiment, setDossierScope: setDossierScope,
+    runDossierExperiment: runDossierExperiment, selectDossierSource: selectDossierSource,
+    setDossierScope: setDossierScope,
+    runDossierCabinComparison: runDossierCabinComparison,
     runDossierBlind: runDossierBlind, judgeDossierBlind: judgeDossierBlind,
     enterDossierDebate: enterDossierDebate, leaveDossierDebate: leaveDossierDebate,
     selectDossierPillar: selectDossierPillar, answerDossierDebate: answerDossierDebate,

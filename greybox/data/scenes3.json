@@ -5,7 +5,7 @@
   "evidenceNames": {
     "S5": "《對話》的船艙頁",
     "G1": "三回乾淨走穩紀錄",
-    "G2": "封閉船艙盲測",
+    "G2": "停泊與平駛的船艙對照",
     "G3": "前進與變速的分類",
     "G4": "同一事件的兩張紙",
     "G5": "有限的公開結論"
@@ -84,7 +84,7 @@
         {"id":"n1","type":"line","speaker":"stage","text":"第二天，船員把門閂、等拍鼓、岸標紙與空白卷宗搬上船。維達爾船長留在踏板外，沒有跨上甲板。","next":"n2"},
         {"id":"n2","type":"line","speaker":"馬蒂厄","text":"（把封蠟擱在卷宗旁）條件先寫，落點後看。原紙一下船，我就封。","next":"n3"},
         {"id":"n3","type":"line","speaker":"伽桑狄","text":"先做出一句你敢拿去給他問的話。答不完，就把他的問題帶回來。","next":"e1"},
-        {"id":"e1","type":"embed","system":"ship","phase":"dossier","hint":"自由設計桅杆落石與封存船艙盲測；資料達門檻後選定斷言範圍，自選時機上碼頭，三柱失敗可返回補實驗。","until":{"ship":"dossier-complete"},"next":"g1"},
+        {"id":"e1","type":"embed","system":"ship","phase":"dossier","hint":"自由設計桅杆落石與停泊／平駛船艙對照；資料達門檻後選定斷言範圍，自選時機上碼頭，三柱失敗可返回補實驗。","until":{"ship":"dossier-complete"},"next":"g1"},
         {"id":"g1","type":"goto","scene":"C3-1"}
       ]
     },
@@ -124,7 +124,7 @@
       "nodes": [
         {"id":"n1","type":"line","speaker":"stage","text":"1642 年。紙張、鉛字與油墨。伽桑狄把伽利略的《對話》放在左邊，自己的手稿放在右邊。","next":"n2"},
         {"id":"n2","type":"line","speaker":"伽桑狄","text":"（指腹停在《對話》的船艙頁）他把船寫進書裡。","next":"n3"},
-        {"id":"n3","type":"line","speaker":"stage","text":"馬賽的落點紙、船速紀錄、盲測蠟封與公開換過的兩張紙攤在兩本書之間。","next":"n4"},
+        {"id":"n3","type":"line","speaker":"stage","text":"馬賽的落點紙、船速紀錄、船艙對照紙與公開換過的兩張紙，攤在兩本書之間。","next":"n4"},
         {"id":"n4","type":"line","speaker":"伽桑狄","text":"（把卷宗夾進手稿）我們把書帶到海上。現在，把海帶回書裡。","next":"n5"},
         {"id":"n5","type":"line","speaker":"stage","text":"桌角有一封新到的信：伽利略已於阿爾切特里去世。伽桑狄沒有朗讀，只把《對話》的封面拂平。","next":"n6"},
         {"id":"n6","type":"line","speaker":"旅人・心聲","text":"五十年前，他把第一本空白筆記塞進我手裡。如今他走了，我仍是那天的樣子。","next":"g1"},
