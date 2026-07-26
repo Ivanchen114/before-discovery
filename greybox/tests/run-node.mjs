@@ -1921,24 +1921,24 @@ tests.push({
       if (!ui2.includes(action) || !engine2.includes("function " + action))
         throw new Error("第三章重構動作未接通 UI／引擎:" + action);
     for (const phrase of [
-      "原始數據不會自動變成證據",
-      "候選斷言浮出",
+      "先把紀錄留下",
+      "這組紙已經夠你寫下一句話",
       "封存盲測",
       "資料、斷言與已破支柱全數保留",
-      "三柱不共用操作",
-      "逐拍扣掉桅杆當拍位置"
+      "三句話，三種問法",
+      "每拍扣掉桅杆當拍的位置"
     ]) if (!visible2.includes(phrase) && !ui2.includes(phrase))
       throw new Error("第三章重構缺少可見因果:" + phrase);
-    if (!visible2.includes("艦長留在踏板外") || !visible2.includes("我不上船，也不先看"))
-      throw new Error("艦長留岸、避免替自己作證的動機未進 runtime");
+    if (!visible2.includes("維達爾船長留在踏板外") || !visible2.includes("我不上船，也不先看"))
+      throw new Error("維達爾船長留岸、避免替自己作證的動機未進 runtime");
     if (!visible2.includes("不設木籌") || ui2.includes("先擺木籌"))
       throw new Error("已刪除的木籌承諾仍殘留在玩家流程");
     const dossierUi = ui2.slice(ui2.indexOf("function renderShipDossier"));
     if (dossierUi.includes("解纜後變快") || dossierUi.includes("收槳後變慢"))
       throw new Error("純操作名又在看結果前洩漏船速分類");
-    for (const phrase of ["解纜起步", "收槳", "所以就算沒有風，它也不會被留在後面",
+    for (const phrase of ["解纜起步", "收槳", "沒有甲板風，也會出現這個結果",
       "肯把『分不出來』寫下去"])
-      if (!script2.includes(phrase) && !ui2.includes(phrase))
+      if (!script2.includes(phrase) && !ui2.includes(phrase) && !engine2.includes(phrase))
         throw new Error("v0.7.1 對抗審修正未落地:" + phrase);
     return;
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
@@ -2339,7 +2339,7 @@ tests.push({
     const draft = (field, value) => act("setDossierDraft", { field, value });
     const run = (stage, positionRecord) => {
       draft("stage", stage); draft("release", "latch"); draft("speedRecord", "beats");
-      draft("positionRecord", positionRecord || "mast"); draft("repeats", 3);
+      draft("positionRecord", positionRecord || "deck"); draft("repeats", 3);
       act("runDossierExperiment");
     };
     while (!s.ended && guard++ < 300) {
@@ -2436,6 +2436,71 @@ tests.push({
 });
 
 tests.push({
+  name: "第三章自由實驗室|地點相容、三種紀錄方案與一二回辯論退件",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const phrase of [
+      "船的狀態", "停泊（繫纜不動）", "出港平駛（先等船走穩）", "解纜起步（從靜止離岸）", "收槳（開始減槳）",
+      "徒手鬆開", "剪斷細繩", "抽開門閂", "不記船速", "只請舵手口頭說",
+      "水手等拍敲鼓＋岸上的艾蒂安逐拍記船位", "船上的伽桑狄以桅腳為零點",
+      "岸上的艾蒂安以碼頭繫船柱為零點", "岸、船各記一張紙", "一回", "二回", "三回"
+    ]) if (!ui.includes(phrase)) throw new Error("第三章實驗室缺白話設定:" + phrase);
+
+    const set = (state, field, value) => {
+      const result = Engine3.setDossierDraft(state, field, value);
+      if (result.error) throw new Error(field + ":" + result.error);
+      return result.state;
+    };
+    const prepare = (repeats) => {
+      let state = Engine3.initialState();
+      state = set(state, "location", "deck");
+      state = set(state, "stage", "steady");
+      state = set(state, "release", "latch");
+      state = set(state, "speedRecord", "beats");
+      state = set(state, "positionRecord", "dual");
+      state = set(state, "repeats", repeats);
+      const run = Engine3.runDossierExperiment(state);
+      if (run.error) throw new Error("乾淨試航失敗:" + run.error);
+      return run.state;
+    };
+
+    const oneDebate = Engine3.enterDossierDebate(prepare(1));
+    if (oneDebate.error || !oneDebate.blocked || oneDebate.reason !== "one-run")
+      throw new Error("一回紀錄沒有被辯論退件");
+    if (!oneDebate.state.caseFile.dossier.debate.lastReply.includes("一回只能告訴我那一回"))
+      throw new Error("一回退件沒有說清楚重複性缺口");
+
+    const twoDebate = Engine3.enterDossierDebate(prepare(2));
+    if (twoDebate.error || !twoDebate.blocked || twoDebate.reason !== "two-runs")
+      throw new Error("兩回紀錄沒有被辯論退件");
+    if (!twoDebate.state.caseFile.dossier.debate.lastReply.includes("再做一回"))
+      throw new Error("兩回退件沒有指明下一步");
+
+    let cabin = Engine3.initialState();
+    cabin = set(cabin, "positionRecord", "dual");
+    cabin = set(cabin, "location", "cabin");
+    if (cabin.caseFile.dossier.draft.positionRecord !== "deck")
+      throw new Error("改到船艙後仍保留看不見的岸上位置紀錄");
+    if (Engine3.runDossierExperiment(cabin).error !== "deck-experiment-required")
+      throw new Error("船艙配置仍能誤跑桅頂落石");
+    const blind = Engine3.runDossierBlind(cabin);
+    if (blind.error || !blind.state.caseFile.dossier.blind.ran)
+      throw new Error("船艙配置沒有接到封存盲測");
+
+    let stringRun = Engine3.initialState();
+    stringRun = set(stringRun, "location", "deck");
+    stringRun = set(stringRun, "release", "string");
+    stringRun = set(stringRun, "speedRecord", "verbal");
+    stringRun = set(stringRun, "positionRecord", "shore");
+    stringRun = set(stringRun, "repeats", 3);
+    const stringResult = Engine3.runDossierExperiment(stringRun);
+    if (stringResult.error || stringResult.record.release !== "string" ||
+        stringResult.record.speedRecord !== "verbal" || stringResult.record.positionRecord !== "shore")
+      throw new Error("三種新設定沒有完整寫進原始紀錄");
+  }
+});
+
+tests.push({
   name: "第三章存檔與舞台契約|章別隔離、淨化負向、首頁路由與 ship 視圖",
   fn: () => {
     const N3 = Narrative._factory(scenes3, Engine3, {});
@@ -2475,8 +2540,8 @@ tests.push({
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const x of ['src="data/series.js"', 'src="src/engine3.js', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
-    if (!html.includes("src/engine3.js?v=20260726-ch03-dossier-v2") ||
-        !html.includes("src/chapter-ui.js?v=20260726-ch03-dossier-v3"))
+    if (!html.includes("src/engine3.js?v=20260726-ch03-lab-v4") ||
+        !html.includes("src/chapter-ui.js?v=20260726-ch03-lab-v6"))
       throw new Error("第三章舊存檔遷移修正缺少快取更新");
     if (!ui.includes('"卷宗：紀錄"') || ui.includes('"共同運動：桅落"'))
       throw new Error("第三章 HUD 仍顯示已退役的五步證據清單");

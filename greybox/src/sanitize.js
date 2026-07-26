@@ -366,11 +366,12 @@
       if (cf.dossier != null) {
         var dossier = cf.dossier;
         if (!dossier || ["lab", "debate"].indexOf(dossier.page) < 0 || !dossier.draft ||
+            (dossier.draft.location != null && ["deck", "cabin"].indexOf(dossier.draft.location) < 0) ||
             ["dock", "steady", "depart", "brake"].indexOf(dossier.draft.stage) < 0 ||
-            ["hand", "latch"].indexOf(dossier.draft.release) < 0 ||
-            ["none", "beats"].indexOf(dossier.draft.speedRecord) < 0 ||
-            ["mast", "dual"].indexOf(dossier.draft.positionRecord) < 0 ||
-            [1, 3].indexOf(Number(dossier.draft.repeats)) < 0 ||
+            ["hand", "string", "latch"].indexOf(dossier.draft.release) < 0 ||
+            ["none", "verbal", "beats"].indexOf(dossier.draft.speedRecord) < 0 ||
+            ["mast", "deck", "shore", "dual"].indexOf(dossier.draft.positionRecord) < 0 ||
+            [1, 2, 3].indexOf(Number(dossier.draft.repeats)) < 0 ||
             typeof dossier.draft.sameStone !== "boolean" ||
             typeof dossier.draft.sameHeight !== "boolean" ||
             !Array.isArray(dossier.records) || dossier.records.length > 100 ||
@@ -387,11 +388,12 @@
           return fail("第三章自由實驗卷宗格式錯誤");
         for (var dr of dossier.records) {
           if (!dr || !isInt(dr.id) || dr.id < 1 ||
+              (dr.location != null && dr.location !== "deck") ||
               ["dock", "steady", "depart", "brake"].indexOf(dr.stage) < 0 ||
-              ["hand", "latch"].indexOf(dr.release) < 0 ||
-              ["none", "beats"].indexOf(dr.speedRecord) < 0 ||
-              ["mast", "dual"].indexOf(dr.positionRecord) < 0 ||
-              [1, 3].indexOf(Number(dr.repeats)) < 0 ||
+              ["hand", "string", "latch"].indexOf(dr.release) < 0 ||
+              ["none", "verbal", "beats"].indexOf(dr.speedRecord) < 0 ||
+              ["mast", "deck", "shore", "dual"].indexOf(dr.positionRecord) < 0 ||
+              [1, 2, 3].indexOf(Number(dr.repeats)) < 0 ||
               !Array.isArray(dr.offsets) || dr.offsets.length < 1 || dr.offsets.length > 3 ||
               dr.offsets.some(function (n) { return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 10; }))
             return fail("第三章自由實驗卷宗含無法辨識的原始紀錄");

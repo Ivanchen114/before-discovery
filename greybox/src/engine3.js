@@ -124,11 +124,12 @@
       shoreGaps: [1.5, 1.5, 1.5], landing: "foot"
     }
   };
+  var DOSSIER_LOCATIONS = ["deck", "cabin"];
   var DOSSIER_STAGES = ["dock", "steady", "depart", "brake"];
-  var DOSSIER_RELEASES = ["hand", "latch"];
-  var DOSSIER_SPEED_RECORDS = ["none", "beats"];
-  var DOSSIER_POSITION_RECORDS = ["mast", "dual"];
-  var DOSSIER_REPEATS = [1, 3];
+  var DOSSIER_RELEASES = ["hand", "string", "latch"];
+  var DOSSIER_SPEED_RECORDS = ["none", "verbal", "beats"];
+  var DOSSIER_POSITION_RECORDS = ["deck", "shore", "dual"];
+  var DOSSIER_REPEATS = [1, 2, 3];
   var DOSSIER_FIXTURES = {
     dock: { vessel: "dock", classification: "停泊", offsets: [-0.03, 0.02, 0.01], shoreGaps: [0, 0, 0], landing: "foot" },
     steady: { vessel: "steady", classification: "近似穩速", offsets: [-0.04, 0.05, 0.02], shoreGaps: [1.5, 1.5, 1.5], landing: "foot" },
@@ -140,8 +141,8 @@
     return {
       page: "lab",
       draft: {
-        stage: "steady", release: "hand", speedRecord: "none",
-        positionRecord: "mast", repeats: 1, sameStone: true, sameHeight: true
+        location: "deck", stage: "steady", release: "hand", speedRecord: "none",
+        positionRecord: "deck", repeats: 1, sameStone: true, sameHeight: true
       },
       records: [],
       nextRecordId: 1,
@@ -151,6 +152,7 @@
       blind: { ran: false, judgment: null, unsealed: false, scope: false, attempts: [] },
       debate: {
         active: false, rep: 5, current: null, lastReply: "",
+        lastPlayerLine: "", entryBlocked: null, visits: 0,
         pins: [], attempts: [],
         pillars: { p1: false, p2: false, p3: false },
         p1: { concept: false, steady: false, cabin: false, wind: false },
@@ -275,6 +277,7 @@
     var d = s.caseFile.dossier, defaults = makeDossier();
     if (["lab", "debate"].indexOf(d.page) < 0) d.page = "lab";
     if (!d.draft || typeof d.draft !== "object") d.draft = clone(defaults.draft);
+    if (DOSSIER_LOCATIONS.indexOf(d.draft.location) < 0) d.draft.location = defaults.draft.location;
     if (DOSSIER_STAGES.indexOf(d.draft.stage) < 0) d.draft.stage = defaults.draft.stage;
     if (DOSSIER_RELEASES.indexOf(d.draft.release) < 0) d.draft.release = defaults.draft.release;
     if (DOSSIER_SPEED_RECORDS.indexOf(d.draft.speedRecord) < 0) d.draft.speedRecord = defaults.draft.speedRecord;
@@ -302,6 +305,9 @@
     if (!d.debate.p1) d.debate.p1 = clone(defaults.debate.p1);
     if (!d.debate.p2) d.debate.p2 = clone(defaults.debate.p2);
     if (!d.debate.p3) d.debate.p3 = clone(defaults.debate.p3);
+    if (typeof d.debate.lastPlayerLine !== "string") d.debate.lastPlayerLine = "";
+    if (typeof d.debate.entryBlocked !== "string") d.debate.entryBlocked = null;
+    if (!Number.isInteger(d.debate.visits) || d.debate.visits < 0) d.debate.visits = 0;
     if (!Array.isArray(d.debate.p3.alignAttempts)) d.debate.p3.alignAttempts = [];
     if (!Array.isArray(d.debate.p3.transformAttempts)) d.debate.p3.transformAttempts = [];
     if (typeof d.complete !== "boolean") d.complete = false;
@@ -978,7 +984,11 @@
   }
   function setDossierDraft(state0, field, value) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
-    if (field === "stage" && DOSSIER_STAGES.indexOf(value) >= 0) d.draft.stage = value;
+    if (field === "location" && DOSSIER_LOCATIONS.indexOf(value) >= 0) {
+      d.draft.location = value;
+      if (value === "cabin") d.draft.positionRecord = "deck";
+    }
+    else if (field === "stage" && DOSSIER_STAGES.indexOf(value) >= 0) d.draft.stage = value;
     else if (field === "release" && DOSSIER_RELEASES.indexOf(value) >= 0) d.draft.release = value;
     else if (field === "speedRecord" && DOSSIER_SPEED_RECORDS.indexOf(value) >= 0) d.draft.speedRecord = value;
     else if (field === "positionRecord" && DOSSIER_POSITION_RECORDS.indexOf(value) >= 0) d.draft.positionRecord = value;
@@ -991,23 +1001,28 @@
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
     var row = d.records.find(function (r) { return r.id === Number(recordId); });
     if (!row) return err(state0, "unknown-dossier-record");
-    ["stage", "release", "speedRecord", "positionRecord", "repeats", "sameStone", "sameHeight"].forEach(function (key) {
+    ["location", "stage", "release", "speedRecord", "positionRecord", "repeats", "sameStone", "sameHeight"].forEach(function (key) {
       d.draft[key] = row[key];
     });
+    d.draft.location = "deck";
     d.page = "lab";
     return { state: s, ok: true, draft: clone(d.draft) };
   }
   function runDossierExperiment(state0) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier, draft = clone(d.draft);
+    if (draft.location !== "deck") return err(state0, "deck-experiment-required");
     var fixture = DOSSIER_FIXTURES[draft.stage];
     if (!fixture) return err(state0, "unknown-dossier-stage");
-    var offsets = draft.release === "hand" ? [-0.31, 0.27, -0.16] : fixture.offsets.slice();
+    var noise = draft.release === "hand" ? [-0.28, 0.24, -0.16] :
+      (draft.release === "string" ? [-0.08, 0.06, -0.04] : [0, 0, 0]);
+    var offsets = fixture.offsets.map(function (offset, i) { return offset + noise[i]; });
     offsets = offsets.slice(0, draft.repeats);
     var row = {
-      id: d.nextRecordId++, stage: draft.stage, release: draft.release,
+      id: d.nextRecordId++, location: "deck", stage: draft.stage, release: draft.release,
       speedRecord: draft.speedRecord, positionRecord: draft.positionRecord,
       repeats: draft.repeats, sameStone: draft.sameStone, sameHeight: draft.sameHeight,
-      classification: draft.speedRecord === "beats" ? fixture.classification : "未分類",
+      classification: draft.speedRecord === "beats" ? fixture.classification :
+        (draft.speedRecord === "verbal" ? "只有口頭判斷・未分類" : "未記船速・未分類"),
       vessel: draft.speedRecord === "beats" ? fixture.vessel : "unclassified",
       offsets: offsets, shoreGaps: draft.speedRecord === "beats" ? fixture.shoreGaps.slice() : null,
       landing: draft.release === "hand" ? "spread" : fixture.landing,
@@ -1078,12 +1093,27 @@
   }
   function enterDossierDebate(state0) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
-    if (!dossierExperimentalAssertion(d)) return err(state0, "dossier-assertion-required");
+    if (!dossierExperimentalAssertion(d) && !d.records.length && !d.blind.ran)
+      return err(state0, "dossier-record-required");
     d.page = "debate";
-    d.debate.active = true;
+    d.debate.visits += 1;
     d.debate.current = null;
+    d.debate.lastPlayerLine = "";
+    d.debate.entryBlocked = null;
     if (d.debate.rep <= 0) d.debate.rep = 5;
-    d.debate.lastReply = "艦長：「先挑一個說法。你帶來的紙，得回答我正在問的那一件事。」";
+    if (!dossierExperimentalAssertion(d)) {
+      var best = d.records.reduce(function (n, row) { return Math.max(n, Number(row.repeats) || 0); }, 0);
+      d.debate.active = false;
+      d.debate.entryBlocked = best === 1 ? "one-run" : (best === 2 ? "two-runs" : "no-assertion");
+      d.debate.lastReply = best === 1
+        ? "維達爾船長：「一回只能告訴我那一回發生了什麼。換一回還會不會一樣，你沒有紙可以回答。」"
+        : (best === 2
+          ? "維達爾船長：「兩回比一回好，但還看不出是規律，還是兩次剛好相同。再做一回。」"
+          : "維達爾船長：「你帶來了紀錄，卻還沒有一句話敢寫進卷宗。先回去把資料讀完。」");
+      return { state: s, ok: true, blocked: true, reason: d.debate.entryBlocked };
+    }
+    d.debate.active = true;
+    d.debate.lastReply = "維達爾船長：「先挑一個說法。你帶來的紙，得回答我正在問的那一件事。」";
     return { state: s, ok: true };
   }
   function leaveDossierDebate(state0, pin) {
@@ -1091,6 +1121,7 @@
     if (pin && d.debate.pins.indexOf(pin) < 0) d.debate.pins.push(pin);
     d.debate.active = false;
     d.debate.current = null;
+    d.debate.entryBlocked = null;
     d.page = "lab";
     d.debate.lastReply = "艦長：「知道缺哪張紙，比拿錯紙硬撐有用。去吧。」";
     return { state: s, ok: true };
@@ -1102,6 +1133,7 @@
     d.page = "debate";
     d.debate.active = true;
     d.debate.current = pillar;
+    d.debate.lastPlayerLine = "";
     if (pillar === "p2" && d.assertions.S4) d.debate.p2.question = true;
     d.debate.lastReply = {
       p1: "艦長：「船往前，石頭往下。沒有東西推它，它當然落在後面。」",
@@ -1133,6 +1165,64 @@
   function answerDossierDebate(state0, pillar, step, choice) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier, db = d.debate;
     if (!db.active || db.current !== pillar) return err(state0, "dossier-debate-not-active");
+    var playerLines = {
+      p1: {
+        concept: {
+          "shared-motion": "石頭鬆手以前，已經和船一起向前。鬆手不會把原來的前行擦掉。",
+          "stone-chases": "石頭離手後，會自己追著桅杆。",
+          "wind-pushes": "一定是風一直把石頭往前推。"
+        },
+        steady: {
+          A1: "走穩的三回都用同一顆石頭、同一高度和門閂放手；岸紙也確認船速近乎不變。落點都在桅腳附近。",
+          A3: "解纜起步那組落在桅後。",
+          S1: "徒手放下的三回，落點散開了。"
+        },
+        cabin: {
+          A2: "艙門關上後，兩趟都落在手邊。只憑艙內結果，我分不出哪一趟在走。",
+          A1: "甲板上的走穩三回都落在桅腳附近。",
+          A3: "解纜起步那組落在桅後。"
+        },
+        wind: {
+          "limited-wind": "甲板風今天添了多少偏差，我沒辦法說。可艙裡兩趟證明：沒有甲板風，石頭也不一定落後。",
+          "wind-never-matters": "所以甲板風在任何實驗裡都沒有影響。",
+          "wind-proved-false": "所以風不存在。"
+        }
+      },
+      p2: {
+        question: {
+          landing: "舊紙缺的是落點。",
+          "speed-change": "舊紙沒記放手時船速有沒有還在改變。",
+          authorship: "舊紙缺的是艦長親筆簽名。"
+        },
+        concept: {
+          "motion-vs-change": "船正在向前，和船速正在改變，是兩件不同的事。",
+          "old-is-fake": "少了船速欄，這張舊紙就是假的。",
+          "stone-heavier": "船加速時，石頭會突然變重。"
+        },
+        steady: {
+          steady: "岸標間距近乎一樣。這張放進「近似走穩」。",
+          accelerating: "這張放進「正在變快」。",
+          unclassified: "這張先不分類。"
+        },
+        depart: {
+          steady: "解纜起步這張放進「近似走穩」。",
+          accelerating: "岸標間距一拍比一拍長。這張是「正在變快」。",
+          unclassified: "解纜起步這張先不分類。"
+        },
+        old: {
+          steady: "舊紙記的是近似走穩。",
+          accelerating: "舊紙記的是正在變快。",
+          unclassified: "它只有落點，沒有岸標。船速這一欄只能空著。"
+        },
+        boundary: {
+          "prove-old-accelerating": "今天的三種指紋，已經能證明舊航次一定在加速。",
+          "discard-old": "舊紙不完整，應該丟掉。",
+          "same-pattern-not-proof": "它和今天變快那組很像；但沒有當趟船速，只能保留為未分類。"
+        }
+      }
+    };
+    db.lastPlayerLine = playerLines[pillar] && playerLines[pillar][step] &&
+      playerLines[pillar][step][choice] || "";
     if (pillar === "p1") {
       if (step === "concept") {
         if (choice !== "shared-motion") return dossierFailDebate(s, pillar, step, choice, "concept-mismatch",
@@ -1152,7 +1242,7 @@
         if (choice !== "A2") return dossierFailDebate(s, pillar, step, choice, "evidence-mismatch",
           "槳手：「那張紙沒有關掉甲板風。」");
         db.p1.cabin = true;
-        db.lastReply = "艦長：「所以就算沒有風，它也不會被留在後面。」";
+        db.lastReply = "艦長：「好。沒有甲板風，也會出現這個結果。」";
       } else if (step === "wind") {
         if (choice !== "limited-wind") return dossierFailDebate(s, pillar, step, choice, "overclaim",
           "槳手：「船艙只能證明沒有風也能發生，不能替甲板上的風判無罪。」");
@@ -1178,18 +1268,21 @@
         if (choice !== "steady") return dossierFailDebate(s, pillar, step, choice, "classification-mismatch",
           "艾蒂安：「岸標間距近乎一樣，這張才是走穩。」");
         db.p2.steady = true;
+        db.lastReply = "艾蒂安：「這一欄，我能從岸紙上作證。」";
       } else if (step === "depart") {
         if (!d.assertions.A3) return dossierMissing(s, "需要 A3：解纜起步完整紀錄",
           "艦長：「你還沒拿出一筆當趟證明『正在變快』的後偏。」");
         if (choice !== "accelerating") return dossierFailDebate(s, pillar, step, choice, "classification-mismatch",
           "艾蒂安：「岸標間距逐拍拉開。這張記的是正在變快。」");
         db.p2.depart = true;
+        db.lastReply = "艾蒂安：「落點在桅後；岸標間距也確實一拍比一拍長。」";
       } else if (step === "old") {
         if (!d.assertions.A6) return dossierMissing(s, "需要 A6：先說清舊紙射程",
           "艦長：「先別替舊紙補字。它只有落點。」");
         if (choice !== "unclassified") return dossierFailDebate(s, pillar, step, choice, "old-paper-overread",
           "馬蒂厄：（指空欄）「這裡沒有人記船速。今天不能替八年前補上。」");
         db.p2.old = true;
+        db.lastReply = "馬蒂厄：（指空欄）「今天不能替八年前填。」";
       } else if (step === "boundary") {
         if (choice !== "same-pattern-not-proof") return dossierFailDebate(s, pillar, step, choice, "old-paper-overread",
           "艦長：「相像不是證明。我的舊紙沒有當趟船速。」");
@@ -1209,6 +1302,11 @@
       "艾蒂安：「你還沒有一組同時從岸上與船上記下的原紙。」");
     if (!p3.question || !p3.concept) return err(state0, "dossier-p3-premise-required");
     var ok = choice === "same-beats";
+    d.debate.lastPlayerLine = {
+      endpoints: "先把兩張紙的最後一點疊在一起。",
+      "same-beats": "先對同一號鼓點。相同的鼓號，才是同一時刻。",
+      "same-height": "先找兩張紙上高度一樣的點。"
+    }[choice] || "";
     var repeatedWrong = !ok && p3.alignAttempts.some(function (a) { return a.choice === choice && !a.ok; });
     p3.alignAttempts.push({ choice: choice, ok: ok });
     if (!ok) {
@@ -1223,7 +1321,7 @@
     d.assertions.A4 = true;
     s.overlay.aligned = true;
     s.overlay.preview = "sameBeats";
-    d.debate.lastReply = "艦長：「鼓號已經對上了。剩下換尺。」";
+    d.debate.lastReply = "艦長：「同一號鼓點，就是同一時刻。現在換量位置的起點。」";
     return { state: s, ok: true, assertion: "A4" };
   }
   function transformDossierPapers(state0, choice) {
@@ -1231,6 +1329,11 @@
     if (!d.debate.active || d.debate.current !== "p3" || !p3.aligned)
       return err(state0, "dossier-alignment-required");
     var ok = choice === "subtract-each-beat";
+    d.debate.lastPlayerLine = {
+      "translate-once": "把整張岸紙平移一次，讓桅杆回到零點。",
+      "subtract-each-beat": "每一拍都扣掉桅杆當時的位置，讓桅杆在每一拍都是零點。",
+      "rotate-paper": "把岸紙旋轉，讓彎線看起來垂直。"
+    }[choice] || "";
     var repeatedWrong = !ok && p3.transformAttempts.some(function (a) { return a.choice === choice && !a.ok; });
     p3.transformAttempts.push({ choice: choice, ok: ok });
     if (!ok) {
@@ -1257,13 +1360,24 @@
     if (!d.debate.active || d.debate.current !== "p3") return err(state0, "dossier-debate-not-active");
     var correct = step === "question" ? "same-time-transform" : (step === "concept" ? "reference" : null);
     if (!correct) return err(state0, "unknown-dossier-p3-step");
+    d.debate.lastPlayerLine = step === "question"
+      ? ({
+        "same-time-transform": "先確定兩張紙記的是同一事件、同一時刻，再比較位置。",
+        "trust-recorder": "先決定岸上和船上哪一個人比較可靠。",
+        "pick-straight": "先選看起來比較平順的那條路。"
+      }[choice] || "")
+      : ({
+        reference: "兩張紙換的不是石頭，而是量位置的起點。",
+        "paper-angle": "兩張紙只是擺放角度不同。",
+        force: "兩張紙上的石頭受了不同的力。"
+      }[choice] || "");
     if (choice !== correct) return dossierFailDebate(s, "p3", step, choice, "p3-premise-mismatch",
       step === "question"
         ? "艦長：「別先挑誰可靠。先證明兩張紙記的是同一時刻。」"
         : "商人：「改紙的角度不會改變你站在哪裡量。」");
     p3[step] = true;
     d.debate.lastReply = step === "question"
-      ? "艦長：「那就說清楚：兩張紙改的是什麼？」"
+      ? "艦長：「同一時刻先對上。現在告訴我：岸上和船上的人，各從哪裡開始量？」"
       : "商人：「好。現在當著我們的面，把它們對上。」";
     return { state: s, ok: true };
   }
@@ -1272,6 +1386,11 @@
     if (!(db.pillars.p1 && db.pillars.p2 && db.pillars.p3)) return err(state0, "dossier-pillars-required");
     if (choice !== "honest" && choice !== "overclaim" && choice !== "all-motion-hidden")
       return err(state0, "unknown-boundary-choice");
+    db.lastPlayerLine = {
+      overclaim: "本實驗證明地球正在運動。",
+      honest: "本實驗排除了「承載物前進，落石就必定落後」；但沒有直接量到地球運動。",
+      "all-motion-hidden": "任何船艙實驗永遠不可能測出運動。"
+    }[choice] || "";
     if (choice !== "honest") {
       db.lastReply = choice === "overclaim"
         ? "伽桑狄：「停。我們沒有量地球。」"
@@ -1284,7 +1403,7 @@
     s.audit.boundary = true;
     s.evidence.g5 = true;
     s.publicDemo.complete = true;
-    db.lastReply = "艦長：「那就讓他們記得真的。」";
+    db.lastReply = "官員：「寫得這麼小，誰會記得？」\n艦長：「記得真的就夠。把這句掛上去，我簽。」";
     return { state: s, ok: true, evidence: "G5", complete: true };
   }
 
