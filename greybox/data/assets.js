@@ -83,6 +83,51 @@
   "DE-2": "bg_ch04_typecase_collision_epilogue"
  },
  "apparatusBriefings": {
+  "ch3:C1-1": {
+   "title": "先看懂誰會留下哪一張紙",
+   "subtitle": "沿著四個亮點檢查。器材不替你回答；它們只決定這趟能留下哪些紀錄。",
+   "plateAsset": "ship3_apparatus_survey",
+   "speaker": "伽桑狄",
+   "enterLabel": "器材與分工看清楚了，開始設計航次",
+   "items": [
+    {
+     "id": "releaseRig",
+     "label": "桅頂放手裝置",
+     "asset": "ship3_apparatus_survey",
+     "x": 47,
+     "y": 72,
+     "function": "石頭可以徒手鬆開、剪斷吊繩，或抽開門閂。不同做法會留下不同程度的手推與擺動干擾。",
+     "line": "別只問石頭落在哪裡。先問：它究竟是怎麼離手的。"
+    },
+    {
+     "id": "beatDrum",
+     "label": "等拍鼓",
+     "asset": "ship3_apparatus_survey",
+     "x": 17,
+     "y": 85,
+     "function": "水手維持固定節拍；岸上和船上的記錄員每聽見同一號鼓點，就各自在自己的紙上標一次位置。",
+     "line": "鼓聲不量位置。它只讓兩張紙說的是同一個時刻。"
+    },
+    {
+     "id": "landingTray",
+     "label": "沙盤與鉛垂線",
+     "asset": "ship3_apparatus_survey",
+     "x": 45,
+     "y": 82,
+     "function": "沙盤留下石頭的落點；桅腳鉛垂線提供船上量位置的起點。落點留下來後，不能為了辯論再補畫。",
+     "line": "先把桅腳定下來。沒有起點，『前』和『後』只是一句話。"
+    },
+    {
+     "id": "paperRulers",
+     "label": "格紙與量尺",
+     "asset": "ship3_apparatus_survey",
+     "x": 59,
+     "y": 91,
+     "function": "岸上以碼頭岸標為起點，船上以桅腳為起點。兩位觀察者各畫原紙，不能先把彼此的結果換算成想看的樣子。",
+     "line": "兩張紙可以都是真的。先讓它們各自把看見的東西留下來。"
+    }
+   ]
+  },
   "ch1:A2-2": {
    "title": "把量時間的東西找齊",
    "subtitle": "點開三個亮起的器材。先知道各自管什麼，再開始量。",

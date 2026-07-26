@@ -1500,6 +1500,8 @@
       ,"dual-design-required": "先安排岸上與船上各自量什麼、由誰記，再讀兩張紙。"
       ,"public-criteria-required": "先在看見落點前封存採信標準。"
       ,"public-screen-required": "先依封存標準把六筆紀錄逐一收下或退回。"
+      ,"dossier-paper-pending": "這一趟的原紙還沒簽名收卷，不能先改下一組方案。"
+      ,"dossier-paper-required": "先執行一組實驗，讓觀察者留下原紙。"
     };
     return map[code] || "這一步目前無法完成，請檢查眼前的實驗條件。";
   }
@@ -2430,12 +2432,17 @@
       detail: "解纜後第一段｜落在桅後｜船速欄空白"
     }];
     (d.records || []).forEach(function (r) {
+      var paperNames = [];
+      if (r.papers && r.papers.shore) paperNames.push("岸紙");
+      if (r.papers && r.papers.ship) paperNames.push("船紙");
+      if (!paperNames.length)
+        paperNames.push(r.positionRecord === "dual" ? "岸紙＋船紙" : (r.positionRecord === "shore" ? "岸紙" : "船紙"));
       rows.push({
         id: "R" + r.id,
         title: "原紙 R" + r.id + "｜" +
           ({ dock:"停泊", steady:"出港平駛", depart:"解纜起步", brake:"收槳" }[r.stage] || r.stage),
         detail: ({ hand:"徒手", string:"剪繩", latch:"門閂" }[r.release] || r.release) +
-          "｜" + r.classification + "｜" + r.repeats + " 回｜" +
+          "｜" + paperNames.join("＋") + "｜" + r.classification + "｜" + r.repeats + " 回｜" +
           (r.landing === "aft" ? "桅後" : r.landing === "fore" ? "桅前" :
             r.landing === "spread" ? "落點散開" : "桅腳附近")
       });
@@ -2479,16 +2486,196 @@
       });
     });
   }
-  function ship3DossierSelectRow(work, label, field, values, labels, value, helps) {
-    var row = ship3El("label", null, work, "shipDossierSetting");
-    ship3El("span", label, row);
-    var select = ship3Select(row, values, labels, value);
+  function ship3DossierChoiceRow(work, label, field, values, labels, value, helps) {
+    var row = ship3El("fieldset", null, work, "shipDossierSetting shipDossierChoiceSetting");
+    ship3El("legend", label, row);
+    var choices = ship3El("div", null, row, "shipDossierChoiceGroup");
+    values.forEach(function (rawValue) {
+      var optionValue = field === "repeats" ? Number(rawValue) : rawValue;
+      var active = String(value) === String(optionValue);
+      ship3Btn(choices, labels[rawValue] || labels[optionValue] || String(rawValue), function () {
+        doShip("setDossierDraft", { field: field, value: optionValue },
+          "✓ 方案已改。舊原紙不會跟著變。");
+      }, "shipDossierChoice" + (active ? " active" : ""));
+    });
     if (helps && helps[value]) ship3El("small", helps[value], row, "shipDossierSettingHelp");
-    select.onchange = function () {
-      var val = field === "repeats" ? Number(select.value) : select.value;
-      doShip("setDossierDraft", { field: field, value: val }, "✓ 方案已修改；舊紀錄不會被改寫。");
-    };
-    return select;
+    return row;
+  }
+  function ship3DossierSvg(parent, tag, attrs, text) {
+    var node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, attrs[key]); });
+    if (text != null) node.textContent = displayText(text);
+    parent.appendChild(node);
+    return node;
+  }
+  function ship3DossierVesselSpec(vesselId) {
+    return {
+      small: { name: "港內小艇", height: 7 },
+      captain: { name: "維達爾船長的船", height: 12 },
+      large: { name: "隔壁大貨船", height: 18 }
+    }[vesselId] || { name: "維達爾船長的船", height: 12 };
+  }
+  function ship3DossierPaperPlot(parent, paper, title, record) {
+    var card = ship3El("figure", null, parent, "shipRawPaper");
+    ship3El("b", title, card);
+    ship3El("small", paper.observer + "記錄｜從「" + paper.origin + "」起算", card);
+    if (record) {
+      var meta = ship3El("dl", null, card, "shipRawPaperMeta");
+      [
+        ["船", record.vesselName || ship3DossierVesselSpec(record.vesselId).name],
+        ["桅高", "約 " + (record.mastHeight || ship3DossierVesselSpec(record.vesselId).height) + " 公尺"],
+        ["放手", (record.releaseOperator || "馬蒂厄") + "｜" +
+          ({ hand:"徒手鬆開", string:"剪斷細繩", latch:"抽開門閂" }[record.release] || record.release)],
+        ["操船", (record.rowingCrew || "未記") + "｜" + (record.rowingMethod || "未記")]
+      ].forEach(function (row) {
+        ship3El("dt", row[0], meta);
+        ship3El("dd", row[1], meta);
+      });
+    }
+    var svg = ship3DossierSvg(card, "svg", {
+      viewBox: "0 0 540 220", role: "img",
+      "aria-label": title + "：觀察者在每一聲鼓響時畫下石頭的位置"
+    });
+    ship3DossierSvg(svg, "rect", { x: 1, y: 1, width: 538, height: 218, rx: 8, class: "shipPaperSheet" });
+    for (var gx = 50; gx < 540; gx += 50)
+      ship3DossierSvg(svg, "line", { x1: gx, y1: 12, x2: gx, y2: 208, class: "shipPaperGrid" });
+    for (var gy = 28; gy < 220; gy += 36)
+      ship3DossierSvg(svg, "line", { x1: 12, y1: gy, x2: 528, y2: gy, class: "shipPaperGrid" });
+    var beats = paper.beats || [];
+    if (beats.length) {
+      var xs = [];
+      beats.forEach(function (beat) { xs.push(beat.stoneX, beat.mastX); });
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      if (maxX - minX < 0.5) { minX -= 0.25; maxX += 0.25; }
+      var mapX = function (x) { return 52 + (x - minX) / (maxX - minX) * 436; };
+      var paperHeight = record && record.mastHeight || 12;
+      var mapY = function (y) { return 184 - y / paperHeight * 142; };
+      var stonePath = beats.map(function (beat, i) {
+        return (i ? "L" : "M") + mapX(beat.stoneX).toFixed(1) + " " + mapY(beat.y).toFixed(1);
+      }).join(" ");
+      var mastPath = beats.map(function (beat, i) {
+        return (i ? "L" : "M") + mapX(beat.mastX).toFixed(1) + " 184";
+      }).join(" ");
+      ship3DossierSvg(svg, "path", { d: stonePath, class: "shipPaperStonePath" });
+      ship3DossierSvg(svg, "path", { d: mastPath, class: "shipPaperMastPath" });
+      beats.forEach(function (beat, i) {
+        ship3DossierSvg(svg, "circle", {
+          cx: mapX(beat.stoneX), cy: mapY(beat.y), r: 6,
+          class: "shipPaperBeatDot", style: "animation-delay:" + (i * 0.17) + "s"
+        });
+        ship3DossierSvg(svg, "text", {
+          x: mapX(beat.stoneX) + 9, y: mapY(beat.y) - 7,
+          class: "shipPaperBeatLabel"
+        }, String(beat.beat));
+        ship3DossierSvg(svg, "circle", {
+          cx: mapX(beat.mastX), cy: 184, r: 4, class: "shipPaperMastDot"
+        });
+      });
+      ship3DossierSvg(svg, "text", { x: 18, y: 207, class: "shipPaperLegend" },
+        "● 石頭　◇ 桅杆｜數字是同一聲鼓的編號");
+    } else {
+      ship3DossierSvg(svg, "text", { x: 270, y: 92, "text-anchor": "middle", class: "shipPaperEmpty" },
+        "沒有共用鼓點，只能畫下落點");
+      ship3DossierSvg(svg, "text", { x: 270, y: 128, "text-anchor": "middle", class: "shipPaperEmptySmall" },
+        "這張紙不能用來逐拍比較兩個位置");
+    }
+    ship3El("figcaption",
+      paper.beats.length
+        ? "留下 " + paper.beatCount + " 個位置、" + paper.intervalCount + " 段間隔；" + paper.quality + "。"
+        : "只留下 " + paper.landings.length + " 回落點；沒有共同的時刻標記。",
+      card);
+    return card;
+  }
+  function ship3DossierRunAnimation(parent, record) {
+    var stage = ship3El("section", null, parent, "shipDossierRunStage");
+    ship3El("div", "這一趟正在變成紙上的紀錄", stage, "shipDossierRunTitle");
+    ship3El("p", record.speedRecord === "beats"
+      ? "水手維持等拍。每一聲鼓響，艾蒂安與伽桑狄各自在自己的紙上點一次。"
+      : "觀察者看著石頭落下，但沒有共用的時刻記號；紙上只能留下落點。",
+      stage, "shipNote");
+    var svg = ship3DossierSvg(stage, "svg", {
+      viewBox: "0 0 900 330", class: "shipRunSvg", role: "img",
+      "aria-label": "船前進時，桅頂石頭落下；鼓點同步在觀察紙留下記號"
+    });
+    ship3DossierSvg(svg, "rect", { x: 0, y: 0, width: 900, height: 330, class: "shipRunSky" });
+    ship3DossierSvg(svg, "line", { x1: 30, y1: 278, x2: 870, y2: 278, class: "shipRunWater" });
+    var points = record.animation && record.animation.path || [];
+    if (!points.length) return stage;
+    var xs = [];
+    points.forEach(function (point) { xs.push(point.mastX, point.stoneX); });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    if (maxX - minX < 1) { minX -= 0.5; maxX += 0.5; }
+    var mapX = function (x) { return 110 + (x - minX) / (maxX - minX) * 660; };
+    var runHeight = record.mastHeight || record.animation.height || 12;
+    var mapY = function (y) { return 270 - y / runHeight * 190; };
+    var stonePath = points.map(function (point, i) {
+      return (i ? "L" : "M") + mapX(point.stoneX).toFixed(1) + " " + mapY(point.y).toFixed(1);
+    }).join(" ");
+    var mastPath = points.map(function (point, i) {
+      return (i ? "L" : "M") + mapX(point.mastX).toFixed(1) + " 270";
+    }).join(" ");
+    ship3DossierSvg(svg, "path", { d: mastPath, class: "shipRunMastTrace" });
+    ship3DossierSvg(svg, "path", { d: stonePath, class: "shipRunStoneTrace", pathLength: 1 });
+    var end = points[points.length - 1];
+    var ship = ship3DossierSvg(svg, "g", { class: "shipRunShip" });
+    ship3DossierSvg(ship, "path", {
+      d: "M -72 0 Q 0 34 72 0 L 58 26 Q 0 54 -58 26 Z", class: "shipRunHull"
+    });
+    ship3DossierSvg(ship, "line", {
+      x1: 0, y1: 0, x2: 0, y2: -Math.min(210, 120 + runHeight * 5), class: "shipRunMast"
+    });
+    ship.setAttribute("transform", "translate(" + mapX(end.mastX) + " 270)");
+    var stone = ship3DossierSvg(svg, "circle", {
+      cx: mapX(points[0].stoneX), cy: mapY(points[0].y), r: 11, class: "shipRunStone"
+    });
+    ship3DossierSvg(stone, "animate", {
+      attributeName: "cx", dur: "2.2s", fill: "freeze", begin: "0.15s",
+      values: points.map(function (point) { return mapX(point.stoneX).toFixed(1); }).join(";")
+    });
+    ship3DossierSvg(stone, "animate", {
+      attributeName: "cy", dur: "2.2s", fill: "freeze", begin: "0.15s",
+      values: points.map(function (point) { return mapY(point.y).toFixed(1); }).join(";")
+    });
+    var firstPaper = record.papers.shore || record.papers.ship;
+    (firstPaper && firstPaper.beats || []).forEach(function (beat, i) {
+      var point = points.reduce(function (best, candidate) {
+        return Math.abs(candidate.t - beat.t) < Math.abs(best.t - beat.t) ? candidate : best;
+      }, points[0]);
+      ship3DossierSvg(svg, "circle", {
+        cx: mapX(point.stoneX), cy: mapY(point.y), r: 5,
+        class: "shipRunBeatFlash", style: "animation-delay:" + (0.35 + i * 0.36) + "s"
+      });
+      ship3DossierSvg(svg, "text", {
+        x: mapX(point.stoneX) + 9, y: mapY(point.y) - 7,
+        class: "shipRunBeatLabel", style: "animation-delay:" + (0.35 + i * 0.36) + "s"
+      }, String(beat.beat));
+    });
+    ship3El("small", "動畫使用這一趟的同一組數據；結束後，記號會原樣留在下方原紙。", stage);
+    return stage;
+  }
+  function renderShipDossierPending(work, d) {
+    var record = d.pendingRecord;
+    ship3DossierRunAnimation(work, record);
+    ship3El("h3", "觀察者各自畫出的原紙", work);
+    ship3El("p", "這裡沒有把兩張紙互相換算。每個人只畫自己所在位置真正看見、量到的東西。", work, "shipNote shipStepPrompt");
+    var papers = ship3El("div", null, work, "shipRawPaperGrid");
+    if (record.papers.shore)
+      ship3DossierPaperPlot(papers, record.papers.shore, "岸上原紙｜以碼頭為起點", record);
+    if (record.papers.ship)
+      ship3DossierPaperPlot(papers, record.papers.ship, "船上原紙｜以桅腳為起點", record);
+    if (!record.papers.shore && !record.papers.ship)
+      ship3El("p", "這一趟沒安排位置觀察者，因此沒有可收卷的落點紙。", papers, "shipNote warning");
+    var seal = ship3El("section", null, work, "shipDossierSeal");
+    ship3El("b", "原紙 R" + record.id + "｜尚未收入卷宗", seal);
+    ship3El("p", "簽名代表：這是當時留下的原紙。即使結果難看，也不能等辯論時再補畫。", seal);
+    ship3Btn(seal, "簽名，把原紙收進卷宗", function () {
+      doShip("fileDossierRecord", {}, function (rr) {
+        return "◆ 原紙 R" + rr.record.id + " 已簽名收卷。" +
+          (Object.keys(rr.candidates || {}).length
+            ? " 資料達到門檻，新的斷言已經浮出來。"
+            : " 它暫時還不能支持斷言，但會留在卷宗裡。");
+      });
+    }, "shipAction primary shipDossierSealButton");
   }
   function ship3DossierPlacePreview(work, d) {
     var area = ship3El("section", null, work, "shipDossierPlacePreview");
@@ -2528,6 +2715,23 @@
     });
     return area;
   }
+  function renderShipDossierNotebookIndex(book, d) {
+    ship3El("small", "II 旅人實驗簿", book, "shipNotebookEyebrow");
+    ship3El("h3", "原始紀錄 → 斷言", book);
+    ship3El("p",
+      "觀察者先把看到的東西畫成原紙。原紙不會自動變成證據；資料達到門檻後，請親手挑紙，再決定這句話能說到多廣。",
+      book, "shipNote shipStepPrompt");
+    var index = ship3El("section", null, book, "shipNotebookIndex");
+    ship3El("b", "卷宗裡的原紙", index);
+    ship3DossierSourceRows(d).forEach(function (source) {
+      var row = ship3El("article", null, index, "shipNotebookRow");
+      ship3El("strong", source.title, row);
+      ship3El("small", source.detail, row);
+    });
+    if (!d.records.length && !(d.blind && d.blind.ran))
+      ship3El("p", "目前只有艦長的舊紙。先在左頁設計一趟實驗；簽名收卷後，新原紙才會出現在這裡。",
+        index, "shipNotebookEmpty");
+  }
   function renderShipDossierLab(work, d) {
     var tabs = ship3El("div", null, work, "shipDossierTabs");
     ship3Btn(tabs, "設計實驗", function () { ship3Msg = ""; renderAll(); }, "shipAction active");
@@ -2535,10 +2739,42 @@
       ["A1", "A2", "A3", "S1", "S4"].some(function (id) { return d.assertions[id]; });
     ship3Btn(tabs, "去碼頭辯論", function () {
       doShip("enterDossierDebate", {}, "卷宗帶上碼頭。艦長會問：這些紙現在夠你說什麼？");
-    }, "shipAction debate", !canDebate);
+    }, "shipAction debate", !canDebate || !!d.pendingRecord);
+    if (d.debate && Array.isArray(d.debate.pins) && d.debate.pins.length) {
+      var pinLabels = {
+        p1: "共同前行：鬆手後，原先共有的前行去了哪裡？",
+        p2: "前進與變速：舊紙缺少哪一個關鍵條件？",
+        p3: "兩張原紙：怎麼確認它們畫的是同一事件、同一時刻？"
+      };
+      var pins = ship3El("section", null, work, "shipDossierPins");
+      ship3El("b", "碼頭留下的質疑", pins);
+      var pinList = ship3El("ul", null, pins);
+      d.debate.pins.slice(-5).forEach(function (pin) {
+        var label = String(pin || "");
+        label = label.replace(/^尚未回答：(p1|p2|p3)$/, function (_, id) {
+          return pinLabels[id];
+        });
+        label = label.replace(/「(concept|steady|cabin|wind|question|depart|old|boundary|scope|scope-diagnosis)」/g,
+          function (_, step) {
+            return "這一步";
+          });
+        ship3El("li", label, pinList);
+      });
+      ship3El("small", "資料、已通過的斷言與辯論進度都保留；補到能回答，再回碼頭。", pins);
+    }
+    if (d.pendingRecord) {
+      renderShipDossierPending(work, d);
+      return;
+    }
+    var spread = ship3El("div", null, work, "shipDossierNotebookSpread");
+    var apparatusPage = ship3El("section", null, spread, "shipDossierApparatusPage");
+    var notebookPage = ship3El("section", null, spread, "shipDossierNotebookPage");
+    ship3El("small", "I 航船實驗", apparatusPage, "shipNotebookEyebrow");
+    renderShipDossierNotebookIndex(notebookPage, d);
+    work = apparatusPage;
     ship3El("h3", "先決定在哪裡做", work);
     var locationSettings = ship3El("div", null, work, "shipDossierSettings shipDossierLocationSettings");
-    ship3DossierSelectRow(locationSettings, "實驗地點", "location", ["deck", "cabin"], {
+    ship3DossierChoiceRow(locationSettings, "實驗地點", "location", ["deck", "cabin"], {
       deck: "露天甲板｜從桅頂放石頭",
       cabin: "封閉船艙｜比較停泊與出港平駛"
     }, d.draft.location, {
@@ -2566,13 +2802,25 @@
         ship3El("b", "伽桑狄", compared);
         ship3El("p", "「船速不一樣，艙內留下的局部結果卻近乎相同。先別急著解釋——把真正支持這句話的兩張紙挑出來。」", compared);
       }
-      renderShipDossierCandidates(work, d);
+      renderShipDossierCandidates(notebookPage, d);
       return;
     }
     ship3El("h3", "設計一組桅杆落石", work);
     ship3El("p", "伽桑狄：「條件你先寫。落點出來以前，誰都不改字。」", work, "shipNote shipStepPrompt");
     var settings = ship3El("div", null, work, "shipDossierSettings");
-    ship3DossierSelectRow(settings, "船的狀態", "stage", ["dock", "steady", "depart", "brake"], {
+    ship3DossierChoiceRow(settings, "用哪一艘船", "vesselId", ["small", "captain", "large"], {
+      small: "港內小艇｜桅高約 7 公尺",
+      captain: "維達爾船長的船｜桅高約 12 公尺",
+      large: "隔壁大貨船｜桅高約 18 公尺"
+    }, d.draft.vesselId || "captain", {
+      small: "第一次借用多花一天。船較輕，改變船速時由兩名港內水手划短槳。",
+      captain: "現成可用；由四名維達爾號水手照原定操法划常槳。",
+      large: "第一次借用多花一天。船較重，改變船速時由六名貨船水手划長槳。"
+    });
+    ship3El("p",
+      "換船不只換了桅高，也會換掉船員與操船方式。它能檢查結果是否在別艘船重現，不能單獨證明是桅高造成差異。",
+      settings, "shipNote");
+    ship3DossierChoiceRow(settings, "船的狀態", "stage", ["dock", "steady", "depart", "brake"], {
       dock: "停泊（繫纜不動）",
       steady: "出港平駛（先等船走穩）",
       depart: "解纜起步（從靜止離岸）",
@@ -2583,7 +2831,28 @@
       depart: "這只是操作名稱；船是否正在變快，要等岸紙出來再分類。",
       brake: "放手後由舵手收槳；船是否正在變慢，要等岸紙出來再分類。"
     });
-    ship3DossierSelectRow(settings, "怎麼放手", "release", ["hand", "string", "latch"], {
+    if (d.draft.stage === "steady")
+      ship3DossierChoiceRow(settings, "船走多快", "speedBand", ["slow", "mid", "fast"], {
+        slow: "慢槳｜岸標間距較短",
+        mid: "半槳｜一般航速",
+        fast: "滿槳｜岸標間距較長"
+      }, d.draft.speedBand, {
+        slow: "改船速是為了檢查斷言的適用範圍；理想穩速落點不該因此換方向。",
+        mid: "先用一般航速取得一組乾淨紙；之後可複製方案，只改船速。",
+        fast: "若慢、半、滿槳都得到同型結果，斷言才能正當地說得更廣。"
+      });
+    if (d.draft.stage === "depart" || d.draft.stage === "brake") {
+      var forceLabels = d.draft.stage === "depart"
+        ? { soft: "輕加槳", hard: "全力加槳" }
+        : { soft: "輕收槳", hard: "全力收槳" };
+      ship3DossierChoiceRow(settings,
+        d.draft.stage === "depart" ? "怎麼加槳" : "怎麼收槳",
+        "forceBand", ["soft", "hard"], forceLabels, d.draft.forceBand, {
+          soft: "船速改變得較慢，落點偏移較小，但仍會留下方向。",
+          hard: "船速改變得較快，落點偏移較明顯。"
+        });
+    }
+    ship3DossierChoiceRow(settings, "怎麼放手", "release", ["hand", "string", "latch"], {
       hand: "徒手鬆開｜手可能多推一下",
       string: "剪斷細繩｜手不碰石頭，但石頭可能先晃",
       latch: "抽開門閂｜手不碰石頭，也不拉繩"
@@ -2592,16 +2861,26 @@
       string: "馬蒂厄剪斷吊住石頭的細繩；減少手推，仍要留意繩上的擺動。",
       latch: "馬蒂厄只抽開托板門閂；石頭由自身重量開始下落。"
     });
-    ship3DossierSelectRow(settings, "怎麼記船速", "speedRecord", ["none", "verbal", "beats"], {
+    ship3DossierChoiceRow(settings, "怎麼記船速", "speedRecord", ["none", "verbal", "beats"], {
       none: "不記船速",
-      verbal: "只請舵手口頭說「差不多／變快／變慢」",
-      beats: "水手等拍敲鼓＋岸上的艾蒂安逐拍記船位"
+      verbal: "舵手只用嘴說「差不多／有變」",
+      beats: "水手等拍敲鼓；艾蒂安每拍在岸紙點一次船位"
     }, d.draft.speedRecord, {
       none: "紙上只會留下落點，之後無法判斷放手時船怎麼走。",
       verbal: "留下船員的感覺，但沒有逐拍位置，辯論時只能當線索。",
       beats: "水手每隔相同時間敲一下鼓；艾蒂安以碼頭岸標為起點，每聲鼓在格紙上標一次船位。"
     });
-    ship3DossierSelectRow(settings, "怎麼記位置", "positionRecord", ["deck", "shore", "dual"], {
+    if (d.draft.speedRecord === "beats")
+      ship3DossierChoiceRow(settings, "鼓打多快", "beatBand", ["slow", "mid", "fast"], {
+        slow: "慢拍｜點得準，但留下的點少",
+        mid: "中拍｜點數與準確度較平衡",
+        fast: "快拍｜點較密，但岸上容易點歪"
+      }, d.draft.beatBand, {
+        slow: "同號鼓點仍能對時，但點太少，較難判讀路徑或逐拍換尺。",
+        mid: "水手維持固定節拍；岸上與船上都有時間把同號位置點清楚。",
+        fast: "不是時間不等，而是觀察者來不及每次都把位置點得準。"
+      });
+    ship3DossierChoiceRow(settings, "誰記位置、從哪裡量", "positionRecord", ["deck", "shore", "dual"], {
       deck: "船上記｜船上的伽桑狄以桅腳為零點",
       shore: "岸上記｜岸上的艾蒂安以碼頭繫船柱為零點",
       dual: "岸、船各記一張紙｜共用同一號鼓點"
@@ -2610,7 +2889,7 @@
       shore: "艾蒂安留在碼頭，以岸標為零點；每聲鼓把石頭與桅杆的位置畫在格紙上。",
       dual: "艾蒂安留岸上、伽桑狄留船上；兩張紙都寫同一號鼓點，之後才有資格互相比。"
     });
-    ship3DossierSelectRow(settings, "做幾回", "repeats", ["1", "2", "3"], {
+    ship3DossierChoiceRow(settings, "同一方案做幾回", "repeats", ["1", "2", "3"], {
       "1": "一回｜只能說這一回",
       "2": "二回｜還難排除巧合",
       "3": "三回｜檢查是否反覆出現"
@@ -2629,10 +2908,10 @@
     });
     if (!d.draft.sameStone || !d.draft.sameHeight)
       ship3El("p", "同時改了第二項條件；不能與上一組作單變因比較。", work, "shipNote warning");
-    ship3Btn(work, "讓船員照這張方案做", function () {
+    ship3Btn(work, "執行這組實驗，讓觀察者畫下原紙", function () {
       doShip("runDossierExperiment", {}, function (rr) {
-        return "✓ 原始紀錄 R" + rr.record.id + " 已封存。" +
-          (Object.keys(rr.candidates || {}).length ? " 這組紙已經夠你寫下一句話；先決定它能說多遠。" : " 目前只留下資料，還不能斷言。");
+        return (rr.borrowedNow ? "先談妥借船，多用一天。 " : "") +
+          "石頭已經落地。先看觀察者實際畫出的紙，再決定要不要把它收入卷宗。";
       });
     }, "shipAction primary");
     if (d.records.length) {
@@ -2640,20 +2919,92 @@
       ship3Btn(work, "複製 R" + latest.id + "，只改一項", function () {
         doShip("copyDossierRecord", { recordId: latest.id }, "✓ 方案已複製；現在只改你想檢驗的那一項。");
       }, "shipAction");
-      ship3Table(work, ["紙", "操作", "放手", "船速", "回數", "落點"], d.records.slice(-5).reverse().map(function (r) {
+      ship3Table(notebookPage, ["紙", "船", "操作", "放手", "船速", "回數", "落點"], d.records.slice(-5).reverse().map(function (r) {
         return ["R" + r.id,
+          r.vesselName || ship3DossierVesselSpec(r.vesselId).name,
           { dock: "停泊", steady: "平駛", depart: "解纜起步", brake: "收槳" }[r.stage],
           { hand: "徒手", string: "剪繩", latch: "門閂" }[r.release], r.classification,
           String(r.repeats), r.landing === "aft" ? "桅後" : r.landing === "fore" ? "桅前" :
             r.landing === "spread" ? "散開" : "桅腳附近"];
       }));
+      var testedSpeeds = ["slow", "mid", "fast"].filter(function (speedBand) {
+        return d.records.some(function (r) {
+          return r.stage === "steady" && r.speedBand === speedBand && r.release === "latch" &&
+            r.speedRecord === "beats" && r.repeats >= 3 && r.sameStone && r.sameHeight;
+        });
+      });
+      if (testedSpeeds.length) {
+        var scope = ship3El("section", null, notebookPage, "shipDossierScopeTracker");
+        ship3El("b", "走穩斷言已實際試過的船速", scope);
+        ["slow", "mid", "fast"].forEach(function (speedBand) {
+          ship3El("span", (testedSpeeds.indexOf(speedBand) >= 0 ? "✓ " : "○ ") +
+            ({ slow:"慢槳", mid:"半槳", fast:"滿槳" }[speedBand]), scope,
+            testedSpeeds.indexOf(speedBand) >= 0 ? "got" : "");
+        });
+        ship3El("small", "多試船速會擴張這句斷言的適用範圍，不會把落點方向改成另一種。", scope);
+      }
+      var testedVessels = ["small", "captain", "large"].filter(function (vesselId) {
+        return d.records.some(function (r) {
+          return (r.vesselId || "captain") === vesselId && r.stage === "depart" &&
+            r.release === "latch" && r.speedRecord === "beats" &&
+            r.repeats >= 3 && r.sameStone && r.sameHeight;
+        });
+      });
+      if (testedVessels.length) {
+        var vesselScope = ship3El("section", null, notebookPage, "shipDossierScopeTracker");
+        ship3El("b", "解纜起步已留下完整原紙的船", vesselScope);
+        ["small", "captain", "large"].forEach(function (vesselId) {
+          ship3El("span", (testedVessels.indexOf(vesselId) >= 0 ? "✓ " : "○ ") +
+            ship3DossierVesselSpec(vesselId).name, vesselScope,
+            testedVessels.indexOf(vesselId) >= 0 ? "got" : "");
+        });
+        ship3El("small",
+          "多一艘船能擴張「在哪些船上重現」的範圍；原紙同時會揭露桅高、船員與槳法都變了。",
+          vesselScope);
+      }
     }
-    renderShipDossierCandidates(work, d);
+    renderShipDossierCandidates(notebookPage, d);
+  }
+  function ship3DossierEvidenceOwned(d, id) {
+    if (id === "dual-papers") return d.records.some(function (r) { return r.dualPapers; });
+    if (id === "old-paper") return true;
+    if (id === "cabin-pair") return !!(d.blind && d.blind.ran);
+    return !!(d.assertions && d.assertions[id]);
+  }
+  function renderShipDossierEvidenceChoices(work, d, choices, onchoose) {
+    var hand = ship3El("div", null, work, "evidenceHand shipDossierEvidenceHand");
+    choices.forEach(function (choice) {
+      var button = ship3Btn(hand, "", function () { onchoose(choice[0]); }, "evidenceCard shipDossierEvidenceCard");
+      button.setAttribute("aria-label", choice[1] + "：" + choice[2]);
+      ship3El("small", ship3DossierEvidenceOwned(d, choice[0]) ? "已收進卷宗" : "卷宗尚缺", button);
+      ship3El("b", choice[1], button);
+      ship3El("span", choice[2], button);
+    });
+  }
+  function renderShipDossierDebateTrack(work, db) {
+    var track = ship3El("div", null, work, "debatePillars shipDossierDebateTrack");
+    [
+      ["p1", "第一柱", "共同前行"],
+      ["p2", "第二柱", "前進與變速"],
+      ["p3", "第三柱", "同石兩紙"]
+    ].forEach(function (row, index, rows) {
+      var unlocked = index === 0 || db.pillars[rows[index - 1][0]];
+      var pillar = ship3El("div", null, track,
+        "debatePillar " + (db.pillars[row[0]] ? "isBroken" :
+          (db.current === row[0] ? "isCurrent" : (!unlocked ? "isLocked" : ""))));
+      ship3El("span", row[1] + (!unlocked ? "・尚未解鎖" : ""), pillar);
+      ship3El("b", row[2], pillar);
+    });
+    var meter = ship3El("div", null, track, "debateMeter");
+    ship3El("b", "說服力", meter);
+    ship3El("span", "●".repeat(db.rep) + "○".repeat(Math.max(0, 5 - db.rep)), meter);
   }
   function renderShipDossierDebate(work, d) {
     var db = d.debate;
+    work.classList.add("debateBoard", "shipDossierDebateBoard");
+    renderShipDossierDebateTrack(work, db);
     var head = ship3El("div", null, work, "shipDebateBar");
-    ship3El("b", "說服力 " + db.rep + "／5", head);
+    ship3El("b", "依序回答。每柱先從三張材料選一張；答完後，下一柱才會解鎖。", head);
     ship3Btn(head, "先回船上補證據", function () {
       doShip("leaveDossierDebate", { pin: db.current ? "尚未回答：" + db.current : null },
         "✓ 已回到船上；資料、斷言與已破支柱全數保留。");
@@ -2703,26 +3054,27 @@
           }, "shipAction");
         });
       } else {
-        ship3El("h3", "三句話，先挑一句回答", work);
-        ship3El("p", "艦長：「三句話，三種問法。同一張紙答不完。」", work, "shipNote shipStepPrompt");
-        [
-          ["p1", "第一柱｜共同前行", "用不同功能的兩組資料回答「沒有力推，為何不落後」"],
-          ["p2", "第二柱｜前進與變速", "把真紀錄分類，守住舊紙不能被補寫的邊界"],
-          ["p3", "第三柱｜同一顆石頭，兩張紙", "在群眾面前對齊時刻、逐拍換尺"]
-        ].forEach(function (row) {
-          var c = ship3El("section", null, work, "shipPillarCard " + (db.pillars[row[0]] ? "done" : ""));
-          ship3El("b", (db.pillars[row[0]] ? "✓ " : "") + row[1], c);
-          ship3El("p", row[2], c);
-          if (!db.pillars[row[0]]) ship3Btn(c, "回答這一柱", function () {
-            doShip("selectDossierPillar", { pillar: row[0] }, "✓ 艦長把這一柱推到木板中央。");
-          }, "shipAction");
-        });
+        var next = !db.pillars.p1 ? "p1" : (!db.pillars.p2 ? "p2" : "p3");
+        ship3El("h3", "下一柱已排好", work);
+        ship3El("p", "三柱不能跳著答。前一柱的邊界，會成為下一柱能使用的前提。", work, "shipNote shipStepPrompt");
+        ship3Btn(work, "繼續第" + ({ p1:"一", p2:"二", p3:"三" }[next]) + "柱", function () {
+          doShip("selectDossierPillar", { pillar: next }, "✓ 下一柱已推到木板中央。");
+        }, "shipAction primary");
       }
       return;
     }
     if (db.current === "p1") {
       ship3El("h3", "第一柱｜共同前行", work);
-      if (!db.p1.concept) {
+      if (!db.p1.source) {
+        ship3El("p", "先從卷宗挑一張真正回答「走穩時落在哪裡」的材料。", work, "shipNote shipStepPrompt");
+        renderShipDossierEvidenceChoices(work, d, [
+          ["A1", "走穩三回", "岸紙確認船速近乎不變；落點集中在桅腳附近"],
+          ["A3", "解纜起步", "船速逐拍增加；落點偏到桅後"],
+          ["S1", "徒手散布", "手放混入方向不一的額外推動"]
+        ], function (id) {
+          doShip("answerDossierDebate", { pillar: "p1", step: "source", choice: id });
+        });
+      } else if (!db.p1.concept) {
         ship3El("p", "石頭鬆手後，原先與船共有的前行去了哪裡？", work, "shipNote shipStepPrompt");
         [
           ["shared-motion", "鬆手不會自動抹掉原先共有的前行"],
@@ -2730,11 +3082,6 @@
           ["wind-pushes", "風必須一直補一股向前的力"]
         ].forEach(function (o) { ship3Btn(work, o[1], function () {
           doShip("answerDossierDebate", { pillar: "p1", step: "concept", choice: o[0] });
-        }, "shipAction"); });
-      } else if (!db.p1.steady) {
-        ship3El("p", "先出示真正回答「走穩時落在哪裡」的材料。", work, "shipNote shipStepPrompt");
-        ["A1", "A3", "S1"].forEach(function (id) { ship3Btn(work, ship3DossierAssertionText(id), function () {
-          doShip("answerDossierDebate", { pillar: "p1", step: "steady", choice: id });
         }, "shipAction"); });
       } else if (!db.p1.cabin) {
         ship3El("p", "槳手問：風把石頭推回桅腳了嗎？", work, "shipNote shipStepPrompt");
@@ -2752,7 +3099,16 @@
       }
     } else if (db.current === "p2") {
       ship3El("h3", "第二柱｜前進與變速", work);
-      if (!db.p2.question) {
+      if (!db.p2.source) {
+        ship3El("p", "先挑一張同時寫了船速變化與落點的原紙。", work, "shipNote shipStepPrompt");
+        renderShipDossierEvidenceChoices(work, d, [
+          ["A3", "解纜起步原紙", "岸標間距逐拍拉開；落點偏到桅後"],
+          ["A2", "封閉船艙對照", "停泊與走穩留下近乎相同的艙內局部結果"],
+          ["A1", "走穩三回原紙", "岸標間距近乎相同；落點集中在桅腳附近"]
+        ], function (id) {
+          doShip("answerDossierDebate", { pillar: "p2", step: "source", choice: id });
+        });
+      } else if (!db.p2.question) {
         ship3El("p", "舊紙缺少哪一個關鍵條件？", work, "shipNote shipStepPrompt");
         [
           ["landing", "落點是不是在桅後"], ["speed-change", "放手時，船速有沒有仍在改變"],
@@ -2786,7 +3142,7 @@
           { steady: "近似穩速", accelerating: "正在變快", unclassified: "船速未記・未分類" }[c], function () {
             doShip("answerDossierDebate", { pillar: "p2", step: "old", choice: c });
           }, "shipAction"); });
-      } else {
+      } else if (!db.p2.boundary) {
         ship3El("p", "今天的資料能替舊紙補到哪裡？這一步永遠不能跳過。", work, "shipNote shipStepPrompt");
         [
           ["prove-old-accelerating", d.assertions.S4 ? "三種船況指紋足以反推舊航次一定是哪一種" : "舊航次已被證明一定在加速"],
@@ -2795,12 +3151,49 @@
         ].forEach(function (o) { ship3Btn(work, o[1], function () {
           doShip("answerDossierDebate", { pillar: "p2", step: "boundary", choice: o[0] });
         }, "shipAction"); });
+      } else {
+        if (db.p2.scopeDiagnosis === "required") {
+          ship3El("p", "從三張原紙的條件欄選出：除了桅高，還有哪些也跟著換了？",
+            work, "shipNote shipStepPrompt");
+          [
+            ["height-only", "只有桅高；其他條件都一樣"],
+            ["vessel-crew-method", "船本身、操船的人和槳法"],
+            ["release-stone-repeats", "放手的人、石頭和重複回數"]
+          ].forEach(function (o) { ship3Btn(work, o[1], function () {
+            doShip("answerDossierDebate", {
+              pillar: "p2", step: "scope-diagnosis", choice: o[0]
+            });
+          }, "shipAction"); });
+        } else {
+          ship3El("p", "槳手把原紙的「船、桅高、放手、操船」四欄攤開：這些資料容許你把話說到多廣？",
+            work, "shipNote shipStepPrompt");
+          var scopeChoices = window.GB.Engine3.getDossierScopeOptions(d);
+          scopeChoices.forEach(function (o) { ship3Btn(work, o.text, function () {
+            doShip("answerDossierDebate", { pillar: "p2", step: "scope", choice: o.choice }, null,
+              function (rr) {
+                if (rr.reason === "confounded")
+                  return "這句因果還不能成立。回到原紙條件欄，回答槳手指出的問題。";
+                if (rr.reason === "overclaim")
+                  return "這句話寫到了卷宗以外；先把範圍收回實際做過的船。";
+                return null;
+              });
+          }, "shipAction"); });
+        }
       }
     } else {
       ship3El("h3", "第三柱｜同一顆石頭，兩張紙", work);
       if (!d.records.some(function (r) { return r.dualPapers; }))
         ship3El("p", "你還沒有一組岸上與船上同步原紙。可以先讓質疑留下，再回船補做。", work, "shipNote warning");
-      if (!db.p3.question) {
+      if (!db.p3.source) {
+        ship3El("p", "先挑出要在群眾面前一起檢查的兩張原紙。", work, "shipNote shipStepPrompt");
+        renderShipDossierEvidenceChoices(work, d, [
+          ["dual-papers", "同一趟的岸紙＋船紙", "兩位觀察者共用同號鼓點，各從自己的位置起算"],
+          ["old-paper", "艦長的舊紙", "只有一個落點，船速與共用時刻都沒有記"],
+          ["cabin-pair", "船艙停泊＋走穩對照", "比較甲板風是否為必要條件，不是同石兩位置"]
+        ], function (id) {
+          doShip("setDossierP3Premise", { step: "source", choice: id });
+        });
+      } else if (!db.p3.question) {
         ship3El("p", "艦長：「兩張紙要比，第一步得先確定什麼？」", work, "shipNote shipStepPrompt");
         [
           ["same-time-transform", "用同一組時刻，試著把一張紙換成另一張"],
@@ -3675,7 +4068,7 @@
       comet: ["兩疊星圖，是不是同一位來客？", "跟著日期與參考星續算；紙邊碰上，不代表天空中的路真的接起來。"],
       "press-opening": ["書還沒算完，排程先到了", "送出誠實的局部結果，或留下理由延後；兩個選擇都會進出版帳。"],
       models: ["同一條定律，能不能跨過三種天空？", "規則全程鎖住；月亮、行星與彗星各用自己的觀測起點與速度。"],
-      proof: ["把每一段工作接回正確的人", "證明、書信、觀測與出版各有來源；最後一句也不能蓋過尚未解開的空白。"],
+      proof: ["把每一段工作接回正確的人", "證明、書信、觀測與出版各有來源；接好之後，再決定最後一句能寫到哪裡。"],
       archive: ["旅人把能帶走的紙夾回筆記", "逐張翻看：它支持什麼，又有哪一句仍不能替你說。"]
     }[phase] || ["牛頓桌上的下一個問題", "只處理眼前這張紙真正能回答的事。"];
   }
@@ -3811,11 +4204,11 @@
       draw("path", { d:"M56 68 Q180 42 310 82 L310 342 Q184 310 56 334 Z",class:"orbitNotebookPage" });
       draw("path", { d:"M330 82 Q460 42 584 68 L584 334 Q456 310 330 342 Z",class:"orbitNotebookPage" });
       draw("line", { x1:320,y1:76,x2:320,y2:344,class:"orbitNotebookFold" });
-      [["K1","改向",102,112],["K2","縮放",220,112],["K3","預測",370,112],["K4","反驗",488,112],["K5","邊界",252,238]].forEach(function (row) {
+      [["K1","改向紙",102,112],["K2","地月紙",220,112],["K3","封口預測",370,112],["K4","模型比較",488,112],["K5","出版校樣",252,238]].forEach(function (row) {
         var clipped = archive.clipped.indexOf(row[0]) >= 0;
         draw("rect", { x:row[2],y:row[3],width:104,height:76,rx:7,class:"orbitArchiveSlip "+(clipped?"clipped":"") });
-        draw("text", { x:row[2]+52,y:row[3]+30,"text-anchor":"middle",class:"orbitArchiveId" }, row[0]);
-        draw("text", { x:row[2]+52,y:row[3]+55,"text-anchor":"middle",class:"orbitArchiveLabel" }, row[1]);
+        draw("text", { x:row[2]+52,y:row[3]+30,"text-anchor":"middle",class:"orbitArchiveId" }, row[1]);
+        draw("text", { x:row[2]+52,y:row[3]+55,"text-anchor":"middle",class:"orbitArchiveLabel" }, clipped ? "已夾回" : "待收");
         if (clipped) draw("path", { d:"M"+(row[2]+79)+" "+(row[3]-4)+" q18 12 0 28",class:"orbitArchiveClip" });
       });
       draw("text", { x:320,y:374,"text-anchor":"middle",class:"orbitCaseMeta" },
@@ -3878,8 +4271,10 @@
         draw("text", { x:320,y:325,"text-anchor":"middle",class:"orbitPressStamp" }, scopeLabel);
         draw("text", { x:320,y:360,"text-anchor":"middle",class:"orbitCaseMeta" },
           lab.proof.boundaryChoice === "ruleEstablished"
-            ? "規則已成立；作用機制仍留白"
-            : "末句尚未守住作用機制的空白");
+            ? "末句已限定在這批證明能支持的範圍"
+            : (lab.proof.overclaimTried
+              ? "剛才的末句多出一格，桌上沒有來源能接"
+              : "最後一句尚未寫入校樣"));
       }
     } else {
       draw("circle", { cx:cx, cy:cy, r:58, class:"orbitEarth" });
@@ -4066,7 +4461,7 @@
         ship3Btn(work, c[1], function () {
           doOrbit("assertK1", { records:["tangent","closed"], concept:c[0] },
             "✓ 向前的部分原本就有；新的作用持續指向地心，改向量還必須和原有速度相配。");
-        }, "orbitAction " + (c[0] === "forward-plus-inward-turn" ? "primary" : ""));
+        }, "orbitAction");
       });
     }
     if (v.phase === "scale") {
@@ -4161,7 +4556,7 @@
       },"orbitAction",comet.joined);
       ship3Btn(cometChoices,"依日期與星位，讓方向在接縫前後連續",function(){
         doOrbit("connectCometTracks",{mode:"same-orbit"},"✓ 兩疊星點接成一條高傾角路徑；原先「兩顆」的判斷仍留在桌邊。");
-      },"orbitAction primary",comet.joined);
+      },"orbitAction",comet.joined);
       if ((comet.attempts || []).length) {
         var cometHistory=ship3El("section",null,work,"orbitCometHistory");
         ship3El("b","接軌紀錄",cometHistory);
@@ -4174,7 +4569,7 @@
       ship3El("h3","彗星還沒算完，第一輪位置先到了",work);
       var pressBox=ship3El("section",null,work,"orbitPressBox");
       ship3El("b","目前能支持：月球＋行星。尚缺：彗星＋替代模型比較。",pressBox);
-      ship3Btn(pressBox,"送出範圍較小的誠實短稿",function(){doOrbit("submitPartialProof",{scope:"moon-planets"},"✓ 短稿花掉一輪；回報是署名爭議提早浮上桌，1679 年書信與回應已收入來源袋。");},"orbitAction primary",!!proof.press.openingChoice);
+      ship3Btn(pressBox,"送出範圍較小的誠實短稿",function(){doOrbit("submitPartialProof",{scope:"moon-planets"},"✓ 短稿花掉一輪；回報是署名爭議提早浮上桌，1679 年書信與回應已收入來源袋。");},"orbitAction",!!proof.press.openingChoice);
       ship3Btn(pressBox,"放掉本輪，等待完整反驗",function(){doOrbit("deferPress",{reason:"等待彗星與替代模型比較"},"✓ 延後保住完整反驗時間；1679 年書信仍在，署名爭議留到印刷台處理。");},"orbitAction",!!proof.press.openingChoice);
       if (proof.press.priorityRecord) {
         var priority = ship3El("section",null,work,"orbitPressBox");
@@ -4185,11 +4580,11 @@
     if (v.phase === "models") {
       ship3El("h3","先訂公平標準，再讓兩種說法各跑一次",work);
       if (!ml.protocolLocked) {
-        ship3El("p","你可以讓每顆天體使用自己觀測到的起點與速度；不能為了救某一顆天體，臨時改掉同一條力學定律。",work,"orbitNote");
+        ship3El("p","先決定什麼可以隨觀測對象不同、什麼必須保持不變。標準一旦封存，兩種模型都照同一套規矩跑完。",work,"orbitNote");
         [
-          ["same-start-all","三種天體使用完全相同的起點與速度"],
-          ["retune-law-per-body","每換一種天體，就把定律參數重新調到合"],
-          ["shared-law-observed-initials","定律與參數全程鎖住；各天體使用自己的觀測初始位置與速度"]
+          ["same-start-all","定律與參數保持不變；三種天體也使用相同的起點與速度"],
+          ["retune-law-per-body","各天體使用自己的觀測起點與速度；定律參數也分別調整"],
+          ["shared-law-observed-initials","定律與參數保持不變；各天體使用自己的觀測起點與速度"]
         ].forEach(function(p){
           ship3Btn(work,p[1],function(){
             doOrbit("setModelProtocol",{protocol:p[0]},p[0]==="shared-law-observed-initials"
@@ -4252,14 +4647,14 @@
       if (!ev.k4 && ml.protocolLocked && ml.gravityComplete && ml.vortexComplete) {
         ship3El("h4","替這份比較寫一句工作紀錄",work);
         [
-          ["moon-only","月球一格相合，已足以裁決所有模型"],
-          ["same-rule-fewer-patches","反平方用同一條規則跨過三種天空；簡單渦旋需加入較多補丁"],
-          ["all-vortices-refuted","這證明所有渦旋與介質模型永遠不可能成立"]
+          ["moon-only","這次比較顯示：只憑月球那一格，就足以判定反平方規則勝過其他模型"],
+          ["same-rule-fewer-patches","這次比較顯示：反平方用同一條規則跨過三種天空；本章的簡單共轉渦旋需要額外補丁"],
+          ["all-vortices-refuted","這次比較顯示：簡單共轉渦旋需要補丁，因此介質模型這條路已可排除"]
         ].forEach(function(c){
           ship3Btn(work,c[1],function(){
             var records=[];["inverseSquare","simpleVortex"].forEach(function(m){["moon","planets","comet"].forEach(function(k){records.push(m+":"+k);});});
             doOrbit("assertK4",{records:records,claim:c[0]},"✓ 這個比較只涵蓋本章明列的兩個模型版本，結論沒有越界。");
-          },"orbitAction "+(c[0]==="same-rule-fewer-patches"?"primary":""));
+          },"orbitAction");
         });
       }
     }
@@ -4309,7 +4704,7 @@
               openSlot[3].indexOf(source)>=0
                 ?"✓ 這一段接上了。下一個缺口已移到版框中央。"
                 :null);
-          },"orbitAction "+(openSlot[3].indexOf(source)>=0?"primary":""));
+          },"orbitAction");
         });
       }
       var credits=[
@@ -4322,15 +4717,15 @@
       if (chainReady && proof.hookeScope!=="precise-scope") {
         ship3El("h4","證明接起來了。虎克應該被寫到哪裡？",work);
         [
-          ["hookeComplete","虎克提出完整定律，並完成本書的證明"],
-          ["newtonAlone","這套概念與證明全由牛頓獨立完成"],
+          ["hookeComplete","虎克把切線運動與向中心吸引放進同一個問題，也完成了這套定律的證明；牛頓將它整理成書"],
+          ["newtonAlone","牛頓獨立提出這套概念，完成數學證明與跨天體整合；虎克的信只是旁證"],
           ["precise-scope","虎克在 1679 年把切線運動與向中心吸引放進同一個問題；牛頓完成數學證明與跨天體整合"]
         ].forEach(function(c){
           ship3Btn(work,(proof.hookeScope===c[0]?"✓ ":"")+c[1],function(){
             doOrbit("setHookeScope",{choice:c[0]},c[0]==="precise-scope"
               ?"✓ 虎克的線停在問題方向；牛頓的線從數學證明延伸到跨天體整合。"
               :null);
-          },"orbitAction "+(c[0]==="precise-scope"?"primary":""));
+          },"orbitAction");
         });
         if (proof.hookeScope) {
           var scopeResult=ship3El("section",null,work,"orbitPressBox");
@@ -4356,7 +4751,7 @@
               person===openCredit[2]
                 ?"✓ 來源線接回 "+peopleLabels[person]+"；下一種工作翻到桌面。"
                 :"這個名字接上後，另一份實際做過的工作從頁面脫落了。");
-          },"orbitAction "+(person===openCredit[2]?"primary":""));
+          },"orbitAction");
         });
       }
       var creditReady=chainReady&&proof.hookeScope==="precise-scope"&&credits.every(function(d){
@@ -4366,12 +4761,12 @@
         var creditSummary=ship3El("div",null,work,"orbitCreditSummary");
         credits.forEach(function(d){ship3El("span","✓ "+peopleLabels[d[2]]+"｜"+d[1],creditSummary);});
         ship3El("h4","版面只剩最後一格：這本書究竟證明到哪裡？",work);
-        ship3El("p","四條來源線都接回去了。旁邊「引力如何穿過空間」的槽仍然沒有任何紙可以放入。",work,"orbitNote");
+        ship3El("p","四條來源線都接回去了。現在替整份證明寫最後一句；兩個版本都會先進免費預覽。",work,"orbitNote");
         [
-          ["mechanismSolved","我們已證明引力如何穿過空間作用"],
-          ["ruleEstablished","我們建立可跨地表與天空反驗的規則；引力如何作用，仍未決"]
+          ["mechanismSolved","這份證明建立了能跨地表與天空反驗的規則，也說明了引力如何穿過空間作用"],
+          ["ruleEstablished","這份證明建立了能跨地表與天空反驗的規則；它如何穿過空間作用，這批資料沒有回答"]
         ].forEach(function(c){
-          ship3Btn(work,(proof.boundaryChoice===c[0]?"✓ ":"")+c[1],function(){doOrbit("setProofBoundary",{choice:c[0]},"末句已放入預覽；尚未送印，也沒有消耗窗口。");},"orbitAction "+(c[0]==="ruleEstablished"?"primary":""));
+          ship3Btn(work,(proof.boundaryChoice===c[0]?"✓ ":"")+c[1],function(){doOrbit("setProofBoundary",{choice:c[0]},"末句已放入預覽；尚未送印，也沒有消耗窗口。");},"orbitAction");
         });
       }
       var proofReady=creditReady&&proof.boundaryChoice==="ruleEstablished";
@@ -4384,7 +4779,11 @@
         if(p.wrong.length)issues.push("錯槽 "+p.wrong.join("、"));
         if(!p.hookeScopeOk)issues.push("Hooke 貢獻句未收準");
         if(p.creditWrong.length)issues.push("署名待修 "+p.creditWrong.join("、"));
-        if(!p.boundaryOk)issues.push("機制末句尚未守住");
+        if(!p.boundaryOk)issues.push(
+          proof.boundaryChoice
+            ? "最後一句超出這批資料能支持的範圍"
+            : "最後一句尚未完成"
+        );
         return "預覽發現："+issues.join("；")+"。";
       });},"orbitAction");
       ship3Btn(actions,proofReady?"親手壓下完整校樣":"現在就壓下校樣（缺口也會印出）",function(){
@@ -4410,14 +4809,14 @@
         ["K1","一直改向的路","支持：原有前進與持續向內改向可以同時存在。","不能證明：讓月亮改向的作用究竟是什麼。"],
         ["K2","地上與天上的同一把尺","支持：反平方縮弱讓近地落下與月球偏折的量級相認。","不能證明：一次相合就完成整套理論。"],
         ["K3","沒看答案前的兩個週期","支持：同一條律通過事先封存的火星與木星預測。","不能證明：其他天體不必再驗。"],
-        ["K4","三種天空，兩個模型","支持：本章明列的反平方模型用較少補丁跨過三種天空。","不能證明：所有渦旋或介質模型永遠錯誤。"],
+        ["K4","三種天空，兩個模型","支持：本章明列的反平方模型用較少補丁跨過三種天空。","不能證明：其他尚未比較的模型也必然如此。"],
         ["K5","名字與空白都要留下","支持：證明、觀測、概念與出版來源可被精確接回。","不能證明：已經知道引力的作用機制。"]
       ];
       var archiveGrid=ship3El("div",null,work,"orbitArchiveGrid");
       archiveDefs.forEach(function(def){
         var isClipped=archive.clipped.indexOf(def[0])>=0;
         var card=ship3El("section",null,archiveGrid,"orbitArchiveCard "+(isClipped?"clipped":""));
-        ship3El("b",(isClipped?"✓ ":"")+def[0]+"｜"+def[1],card);
+        ship3El("b",(isClipped?"✓ ":"")+def[1],card);
         var details=ship3El("details",null,card,"orbitArchiveReview");
         ship3El("summary","翻看這張紙",details);
         ship3El("p",def[2],details,"supports");

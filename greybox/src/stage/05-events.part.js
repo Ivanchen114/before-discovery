@@ -132,12 +132,6 @@
     if (target === "debate") {
       if (!debIntroSeen) { debIntroSeen = true; $("debIntro").hidden = false; $("btnDebIntroGo").focus(); }
       else { var db = $("controls").querySelector("button"); if (db) db.focus(); }
-    } else if (CHAPTER_ID === "ch3" && targetScene === "C1-1") {
-      /* CH3-CR-016：第一個真正選擇就是「先排除哪個解釋」。
-         舊版六項器材踏查與整章答案式備忘都保留在 ? 說明，不再擋在玩家的設計決定前。 */
-      labIntroSeen = true;
-      var ch3First = $("controls").querySelector("button");
-      if (ch3First) ch3First.focus();
     } else if (CHAPTER_ID === "ch4" && targetScene === "D1-2") {
       /* 第四章先讓玩家接住牛頓眼前的問題；六條整章備忘留在 ?，不再充當開場。 */
       labIntroSeen = true;
@@ -152,7 +146,7 @@
       showApparatusSurvey(targetScene, function () {
         labIntroSeen = true;
         var b = CHAPTER_ID === "ch1" ? $("labRun") : $("controls").querySelector("button");
-        if (b) b.focus();
+        if (b) b.focus({ preventScroll: true });
       });
     } else if (!labIntroSeen) { labIntroSeen = true; showLabIntro(); }
     else {

@@ -367,14 +367,24 @@
         var dossier = cf.dossier;
         if (!dossier || ["lab", "debate"].indexOf(dossier.page) < 0 || !dossier.draft ||
             (dossier.draft.location != null && ["deck", "cabin"].indexOf(dossier.draft.location) < 0) ||
+            (dossier.draft.vesselId != null && ["small", "captain", "large"].indexOf(dossier.draft.vesselId) < 0) ||
             ["dock", "steady", "depart", "brake"].indexOf(dossier.draft.stage) < 0 ||
             ["hand", "string", "latch"].indexOf(dossier.draft.release) < 0 ||
             ["none", "verbal", "beats"].indexOf(dossier.draft.speedRecord) < 0 ||
             ["mast", "deck", "shore", "dual"].indexOf(dossier.draft.positionRecord) < 0 ||
             [1, 2, 3].indexOf(Number(dossier.draft.repeats)) < 0 ||
+            (dossier.draft.speedBand != null && ["slow", "mid", "fast"].indexOf(dossier.draft.speedBand) < 0) ||
+            (dossier.draft.forceBand != null && ["soft", "hard"].indexOf(dossier.draft.forceBand) < 0) ||
+            (dossier.draft.beatBand != null && ["slow", "mid", "fast"].indexOf(dossier.draft.beatBand) < 0) ||
             typeof dossier.draft.sameStone !== "boolean" ||
             typeof dossier.draft.sameHeight !== "boolean" ||
+            (dossier.borrowedVessels != null && (!Array.isArray(dossier.borrowedVessels) ||
+              dossier.borrowedVessels.length > 3 ||
+              dossier.borrowedVessels.some(function (id) {
+                return ["small", "captain", "large"].indexOf(id) < 0;
+              }))) ||
             !Array.isArray(dossier.records) || dossier.records.length > 100 ||
+            (dossier.pendingRecord != null && typeof dossier.pendingRecord !== "object") ||
             !dossier.assertions || !dossier.candidates ||
             (dossier.claimSelections != null && (!dossier.claimSelections ||
               typeof dossier.claimSelections !== "object")) ||
@@ -390,6 +400,12 @@
             !Array.isArray(dossier.debate.pins) || dossier.debate.pins.length > 50 ||
             !Array.isArray(dossier.debate.attempts) || dossier.debate.attempts.length > 200 ||
             !dossier.debate.pillars || !dossier.debate.p1 || !dossier.debate.p2 || !dossier.debate.p3 ||
+            (dossier.debate.p1.source != null && dossier.debate.p1.source !== "A1") ||
+            (dossier.debate.p2.source != null && dossier.debate.p2.source !== "A3") ||
+            (dossier.debate.p3.source != null && dossier.debate.p3.source !== "dual-papers") ||
+            (dossier.debate.p2.scope != null && typeof dossier.debate.p2.scope !== "boolean") ||
+            (dossier.debate.p2.scopeDiagnosis != null &&
+              ["not-required", "required", "complete"].indexOf(dossier.debate.p2.scopeDiagnosis) < 0) ||
             !Array.isArray(dossier.debate.p3.alignAttempts) ||
             !Array.isArray(dossier.debate.p3.transformAttempts) ||
             typeof dossier.complete !== "boolean")
@@ -406,17 +422,65 @@
               return fail("第三章斷言含無法辨識的原始資料");
           }
         }
-        for (var dr of dossier.records) {
+        var dossierRows = dossier.records.slice();
+        if (dossier.pendingRecord != null) dossierRows.push(dossier.pendingRecord);
+        for (var dr of dossierRows) {
           if (!dr || !isInt(dr.id) || dr.id < 1 ||
               (dr.location != null && dr.location !== "deck") ||
+              (dr.vesselId != null && ["small", "captain", "large"].indexOf(dr.vesselId) < 0) ||
+              (dr.vesselName != null && (typeof dr.vesselName !== "string" || dr.vesselName.length > 80)) ||
+              (dr.mastHeight != null && (typeof dr.mastHeight !== "number" || !isFinite(dr.mastHeight) ||
+                dr.mastHeight < 1 || dr.mastHeight > 50)) ||
+              (dr.releaseOperator != null && (typeof dr.releaseOperator !== "string" || dr.releaseOperator.length > 80)) ||
+              (dr.rowingCrew != null && (typeof dr.rowingCrew !== "string" || dr.rowingCrew.length > 120)) ||
+              (dr.rowingMethod != null && (typeof dr.rowingMethod !== "string" || dr.rowingMethod.length > 80)) ||
+              (dr.borrowDays != null && (!isInt(dr.borrowDays) || dr.borrowDays < 0 || dr.borrowDays > 2)) ||
               ["dock", "steady", "depart", "brake"].indexOf(dr.stage) < 0 ||
               ["hand", "string", "latch"].indexOf(dr.release) < 0 ||
               ["none", "verbal", "beats"].indexOf(dr.speedRecord) < 0 ||
               ["mast", "deck", "shore", "dual"].indexOf(dr.positionRecord) < 0 ||
               [1, 2, 3].indexOf(Number(dr.repeats)) < 0 ||
+              (dr.speedBand != null && ["slow", "mid", "fast"].indexOf(dr.speedBand) < 0) ||
+              (dr.forceBand != null && ["soft", "hard"].indexOf(dr.forceBand) < 0) ||
+              (dr.beatBand != null && ["slow", "mid", "fast"].indexOf(dr.beatBand) < 0) ||
               !Array.isArray(dr.offsets) || dr.offsets.length < 1 || dr.offsets.length > 3 ||
               dr.offsets.some(function (n) { return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 10; }))
             return fail("第三章自由實驗卷宗含無法辨識的原始紀錄");
+          if (dr.papers != null) {
+            if (!dr.papers || typeof dr.papers !== "object") return fail("第三章觀察原紙格式錯誤");
+            for (var paperKey of ["shore", "ship"]) {
+              var paper = dr.papers[paperKey];
+              if (paper == null) continue;
+              if (!paper || typeof paper.observer !== "string" || paper.observer.length > 40 ||
+                  typeof paper.origin !== "string" || paper.origin.length > 80 ||
+                  !Array.isArray(paper.beats) || paper.beats.length > 20 ||
+                  !Array.isArray(paper.landings) || paper.landings.length > 3 ||
+                  paper.landings.some(function (n) {
+                    return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 10;
+                  }))
+                return fail("第三章觀察原紙格式錯誤");
+              for (var beat of paper.beats) {
+                if (!beat || !isInt(beat.beat) || beat.beat < 0 || beat.beat > 20 ||
+                    typeof beat.t !== "number" || !isFinite(beat.t) || beat.t < 0 || beat.t > 10 ||
+                    typeof beat.mastX !== "number" || !isFinite(beat.mastX) || Math.abs(beat.mastX) > 100 ||
+                    typeof beat.stoneX !== "number" || !isFinite(beat.stoneX) || Math.abs(beat.stoneX) > 100 ||
+                    typeof beat.y !== "number" || !isFinite(beat.y) || beat.y < 0 || beat.y > 100)
+                  return fail("第三章觀察原紙含無法辨識的鼓點");
+              }
+            }
+          }
+          if (dr.animation != null) {
+            if (!dr.animation || !Array.isArray(dr.animation.path) || dr.animation.path.length > 40)
+              return fail("第三章落石動畫格式錯誤");
+            for (var point of dr.animation.path) {
+              if (!point || typeof point.t !== "number" || !isFinite(point.t) ||
+                  typeof point.mastX !== "number" || !isFinite(point.mastX) ||
+                  typeof point.stoneX !== "number" || !isFinite(point.stoneX) ||
+                  typeof point.relativeX !== "number" || !isFinite(point.relativeX) ||
+                  typeof point.y !== "number" || !isFinite(point.y))
+                return fail("第三章落石動畫含無法辨識的座標");
+            }
+          }
         }
       }
     }

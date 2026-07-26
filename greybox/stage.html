@@ -1665,6 +1665,11 @@
   .shipCaseResult { margin: 8px 0; padding: 9px 11px; border-left: 4px solid #6f7651; background: rgba(104,111,75,.11); }
   .shipCaseResult b { display: block; color: #604121; font: 800 14px var(--font-ui); }
   .shipCaseResult p { margin: 3px 0 0; color: #2f281f; font-size: 16px; line-height: 1.55; }
+  .shipDossierPins { margin: 9px 0 13px; padding: 10px 13px; border: 1px solid rgba(121,75,36,.38); border-left: 5px solid #8d5a2f; background: rgba(255,246,218,.7); }
+  .shipDossierPins > b { display: block; color: #604121; font: 800 15px var(--font-ui); }
+  .shipDossierPins ul { margin: 6px 0 5px; padding-left: 21px; }
+  .shipDossierPins li { margin: 3px 0; color: #34291f; font-size: 15px; line-height: 1.45; }
+  .shipDossierPins small { color: #665547; font-size: 13px; line-height: 1.4; }
   .shipDossierBodyWide { grid-template-columns: minmax(0,1fr) !important; }
   .shipDossierWork { overflow-y: auto; overscroll-behavior: contain; padding: 14px 18px; }
   .shipDossierTabs { position: sticky; top: -8px; z-index: 4; display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 9px; padding: 7px 0;
@@ -1674,8 +1679,18 @@
   .shipDossierLocationSettings { grid-template-columns: minmax(0,1fr); }
   .shipDossierSetting { display: grid; grid-template-columns: minmax(0,1fr); align-content: start; gap: 6px; min-width: 0; padding: 10px 12px;
     color: #463421; border: 1px solid rgba(116,80,43,.28); background: rgba(255,252,240,.38); font: 800 16px var(--font-ui); }
+  fieldset.shipDossierSetting { margin: 0; }
+  .shipDossierSetting legend { padding: 0 4px; color: #4e3822; font: 850 16px var(--font-ui); }
   .shipDossierSetting .shipSelect { width: 100%; min-width: 0; }
   .shipDossierSettingHelp { color: #65513d; font: 650 14px/1.45 var(--font-ui); }
+  .shipDossierChoiceGroup { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 7px; }
+  #controls.shipCaseLab .shipDossierChoice { min-height: 52px; padding: 8px 10px; color: #4a3826; text-align: left;
+    border: 1px solid rgba(116,80,43,.48); border-radius: 5px; background: rgba(250,242,220,.7);
+    font: 750 15px/1.35 var(--font-ui); cursor: pointer; }
+  #controls.shipCaseLab .shipDossierChoice:hover,
+  #controls.shipCaseLab .shipDossierChoice:focus-visible { border-color: #8d6238; background: #fff7e3; box-shadow: 0 0 0 2px rgba(141,98,56,.16); }
+  #controls.shipCaseLab .shipDossierChoice.active { color: #fff2d3; border-color: #744821; background: linear-gradient(#9a6334,#77451f);
+    box-shadow: inset 4px 0 #e4bd73,0 2px 6px rgba(68,43,22,.18); }
   .shipDossierPlacePreview { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 10px; margin: 8px 0 14px; }
   .shipDossierPlaceCard { position: relative; min-width: 0; margin: 0; overflow: hidden; border: 1px solid rgba(116,80,43,.46);
     background: #171a18; box-shadow: 0 5px 16px rgba(40,28,17,.16); }
@@ -1685,6 +1700,99 @@
     border: 1px solid rgba(236,202,139,.7); background: rgba(42,29,18,.88); font: 800 13px var(--font-ui); }
   .shipDossierLocks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
   .shipDossierWork > .shipAction.primary { display: block; width: 100%; margin: 8px 0; }
+  .shipDossierRunStage { margin: 8px 0 14px; padding: 12px; color: #f5e5c4; border: 1px solid rgba(179,137,79,.68);
+    background: linear-gradient(145deg,#182725,#101716); box-shadow: 0 8px 22px rgba(35,23,13,.2); }
+  .shipDossierRunTitle { color: #ffe1a3; font: 850 20px var(--font-ui); }
+  .shipDossierRunStage .shipNote { color: #eadbbd; border-color: #bf8b4c; background: rgba(255,255,255,.05); }
+  .shipDossierRunStage > small { display: block; margin-top: 7px; color: #c9baa0; font: 650 13px/1.4 var(--font-ui); }
+  .shipRunSvg { display: block; width: 100%; max-height: 330px; margin: 8px 0; border: 1px solid rgba(213,180,124,.35); background: #111b1d; }
+  .shipRunSky { fill: #132326; }.shipRunWater { stroke: #7aa5a8; stroke-width: 5; }
+  .shipRunHull { fill: #704827; stroke: #d4a361; stroke-width: 4; }.shipRunMast { stroke: #e0bd81; stroke-width: 8; }
+  .shipRunMastTrace { fill: none; stroke: rgba(141,201,211,.54); stroke-width: 4; stroke-dasharray: 8 7; }
+  .shipRunStoneTrace { fill: none; stroke: #f3cf79; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 1; stroke-dashoffset: 1; animation: ship-paper-draw 2.2s ease-out .15s forwards; }
+  .shipRunStone { fill: #f2d07d; stroke: #4a321f; stroke-width: 4; filter: drop-shadow(0 0 6px rgba(243,207,121,.6)); }
+  .shipRunBeatFlash { fill: #fff2ad; stroke: #4b7180; stroke-width: 3; opacity: 0; animation: ship-beat-appear .35s ease-out forwards; }
+  .shipRunBeatLabel { fill: #fff3c6; font: 850 16px var(--font-ui); opacity: 0; animation: ship-beat-appear .35s ease-out forwards;
+    paint-order: stroke; stroke: #132326; stroke-width: 4; }
+  .shipRawPaperGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(360px,1fr)); gap: 10px; margin: 9px 0; }
+  .shipRawPaper { min-width: 0; margin: 0; padding: 10px; color: #3d2d1e; border: 1px solid #9b7448;
+    background: linear-gradient(90deg,#d4c29b,#f2e4c3 6%,#eee0bd 94%,#c9b58e); box-shadow: 0 5px 14px rgba(58,39,20,.18); }
+  .shipRawPaper > b, .shipRawPaper > small { display: block; }.shipRawPaper > b { font-size: 17px; }
+  .shipRawPaper > small { margin: 2px 0 6px; color: #6b5137; font: 700 13px var(--font-ui); }
+  .shipRawPaperMeta { display: grid; grid-template-columns: max-content 1fr max-content 1fr; gap: 3px 7px;
+    margin: 5px 0 7px; padding: 6px 8px; border-block: 1px solid rgba(111,79,46,.24);
+    font: 700 12px/1.35 var(--font-ui); }
+  .shipRawPaperMeta dt { color: #7a5736; }.shipRawPaperMeta dd { min-width: 0; margin: 0; color: #3d2d1e; }
+  .shipRawPaper svg { display: block; width: 100%; aspect-ratio: 540/220; }
+  .shipPaperSheet { fill: rgba(247,235,203,.82); stroke: #9d7f54; stroke-width: 2; }
+  .shipPaperGrid { stroke: rgba(121,91,55,.13); stroke-width: 1; }
+  .shipPaperStonePath { fill: none; stroke: #346d86; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+  .shipPaperMastPath { fill: none; stroke: #9b603d; stroke-width: 3; stroke-dasharray: 7 5; }
+  .shipPaperBeatDot { fill: #e9f4ef; stroke: #346d86; stroke-width: 3; opacity: 0; animation: ship-beat-appear .35s ease-out forwards; }
+  .shipPaperMastDot { fill: #f4d3b6; stroke: #9b603d; stroke-width: 2; }
+  .shipPaperBeatLabel { fill: #315a6a; font: 850 13px var(--font-ui); }
+  .shipPaperLegend { fill: #604a32; font: 750 12px var(--font-ui); }
+  .shipPaperEmpty { fill: #6f5437; font: 800 18px var(--font-ui); }.shipPaperEmptySmall { fill: #7a654d; font: 700 13px var(--font-ui); }
+  .shipRawPaper figcaption { margin-top: 5px; color: #5c4832; font: 700 13px/1.4 var(--font-ui); }
+  .shipDossierSeal { margin: 12px 0; padding: 12px; border: 2px solid #876037; background: rgba(247,233,198,.52); box-shadow: inset 5px 0 #a87037; }
+  .shipDossierSeal b { color: #50341f; font-size: 18px; }.shipDossierSeal p { margin: 5px 0 9px; color: #5e4a36; }
+  .shipDossierSeal .shipDossierSealButton { width: 100%; }
+  .shipDossierScopeTracker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; padding: 9px 11px;
+    color: #4e3b28; border-left: 4px solid #5a8578; background: rgba(91,133,120,.1); }
+  .shipDossierScopeTracker b { flex-basis: 100%; }.shipDossierScopeTracker span { padding: 3px 7px; border: 1px solid rgba(85,91,75,.28); }
+  .shipDossierScopeTracker span.got { color: #284f45; border-color: #5a8578; background: rgba(91,133,120,.13); }
+  .shipDossierScopeTracker small { flex-basis: 100%; color: #655440; font: 650 13px/1.4 var(--font-ui); }
+  /* 第三章沿用第一、二章的共通語法：左頁動手、右頁留紙與斷言。
+     這是同一張卷宗的兩頁，不是兩個互不相干的工作台。 */
+  .shipDossierNotebookSpread { display: grid; grid-template-columns: minmax(390px,.92fr) minmax(470px,1.08fr);
+    min-height: 650px; margin: 6px 0 12px; overflow: hidden; border: 1px solid rgba(105,75,43,.55);
+    border-radius: 7px; box-shadow: 0 10px 24px rgba(45,29,17,.18); }
+  .shipDossierApparatusPage, .shipDossierNotebookPage { min-width: 0; padding: 16px 18px; }
+  .shipDossierApparatusPage { color: #f0dfbd;
+    background: radial-gradient(circle at 45% 12%,rgba(139,105,63,.18),transparent 36%),
+      linear-gradient(145deg,#2c241d,#181715); }
+  .shipDossierApparatusPage h3 { color: #f5dfb6; border-color: rgba(221,187,130,.45); }
+  .shipDossierApparatusPage > .shipNote { color: #eadbbd; border-left-color: #c89253;
+    background: rgba(255,255,255,.055); }
+  .shipDossierApparatusPage .shipDossierSetting { color: #44331f;
+    background: linear-gradient(100deg,rgba(245,233,205,.96),rgba(229,211,174,.94)); }
+  .shipDossierApparatusPage .shipDossierSetting .shipNote { color: #5d4934; }
+  .shipDossierApparatusPage .shipDossierLocks .shipAction,
+  .shipDossierApparatusPage > .shipAction:not(.primary) { color: #f2dfbb; border-color: rgba(218,180,116,.62);
+    background: rgba(255,255,255,.06); }
+  .shipDossierNotebookPage { color: #38291d; border-left: 2px solid rgba(93,65,39,.28);
+    background:
+      linear-gradient(rgba(102,74,43,.055) 1px,transparent 1px) 0 82px/100% 31px,
+      linear-gradient(100deg,#efe0bc,#faf0d5 7%,#f6e9c9 94%,#ddc79e); }
+  .shipDossierNotebookPage h3 { color: #493421; border-color: #805a35; }
+  .shipNotebookEyebrow { display: block; margin-bottom: 2px; color: #cfa85f;
+    font: 850 13px/1.3 var(--font-ui); letter-spacing: .12em; }
+  .shipDossierNotebookPage .shipNotebookEyebrow { color: #80552e; }
+  .shipNotebookIndex { margin: 10px 0 12px; padding: 10px 12px; border: 1px solid rgba(111,77,43,.36);
+    background: rgba(255,252,238,.46); }
+  .shipNotebookIndex > b { display: block; margin-bottom: 6px; color: #563b22; font: 850 15px var(--font-ui); }
+  .shipNotebookRow { display: grid; grid-template-columns: minmax(155px,.72fr) minmax(0,1.28fr); gap: 8px;
+    padding: 7px 0; border-top: 1px dashed rgba(92,65,39,.25); }
+  .shipNotebookRow:first-of-type { border-top: 0; }
+  .shipNotebookRow strong { color: #3d2c1d; font: 800 14px/1.35 var(--font-ui); }
+  .shipNotebookRow small { color: #69533d; font: 650 13px/1.4 var(--font-ui); }
+  .shipNotebookEmpty { margin: 8px 0 0; padding: 9px 10px; color: #70563b; border-left: 4px solid #a47b45;
+    background: rgba(143,104,55,.09); font-size: 14px; line-height: 1.45; }
+  .shipDossierNotebookPage .shipTable { background: rgba(255,252,238,.54); }
+  .shipDossierNotebookPage .shipCandidateCard { background: rgba(255,252,238,.7); }
+  .shipDossierDebateBoard { color: #38291d; }
+  .shipDossierDebateTrack .debatePillar.isLocked { opacity: .5; border-style: dashed; filter: grayscale(.25); }
+  .shipDossierDebateTrack .debatePillar.isLocked b { color: #746554; }
+  .shipDossierEvidenceHand { margin: 8px 0 12px; }
+  #controls.shipCaseLab .shipDossierEvidenceCard { flex-basis: 220px; min-height: 132px !important;
+    justify-content: flex-start; gap: 5px; color: #38291d; border-color: rgba(104,76,46,.48) !important;
+    background: linear-gradient(145deg,rgba(255,252,239,.98),rgba(225,207,170,.92)) !important; }
+  .shipDossierEvidenceCard small { color: #7b5b38; font: 800 11px/1.3 var(--font-ui); letter-spacing: .06em; }
+  .shipDossierEvidenceCard b { color: #3b2b1d; font-size: 16px; line-height: 1.35; }
+  .shipDossierEvidenceCard span { color: #65513d; font: 650 13px/1.45 var(--font-ui); }
+  @keyframes ship-paper-draw { to { stroke-dashoffset: 0; } }
+  @keyframes ship-beat-appear { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
   .shipCandidateCard, .shipPillarCard { margin: 10px 0; padding: 10px 12px; border: 1px solid rgba(115,78,41,.48);
     background: rgba(255,252,240,.45); box-shadow: inset 4px 0 rgba(122,82,43,.62); }
   .shipCandidateCard small { color: #7e532c; font: 800 12px var(--font-ui); letter-spacing: .04em; }
@@ -1761,10 +1869,22 @@
     .shipCaseCriteria, .shipCaseOfficial { margin: 5px 0; padding: 7px 9px; font-size: 15px; line-height: 1.42; }
     .shipCaseOfficial p { font-size: 16px; }
     .shipDossierWork { padding: 7px 9px; font-size: 15px; }
+    .shipDossierNotebookSpread { grid-template-columns: minmax(330px,.9fr) minmax(390px,1.1fr);
+      min-height: 0; margin: 4px 0 7px; }
+    .shipDossierApparatusPage, .shipDossierNotebookPage { padding: 9px 10px; }
+    .shipNotebookEyebrow { font-size: 12px; }
+    .shipNotebookIndex { margin: 6px 0 8px; padding: 7px 8px; }
+    .shipNotebookRow { grid-template-columns: minmax(130px,.72fr) minmax(0,1.28fr); gap: 5px; padding: 5px 0; }
+    .shipNotebookRow strong { font-size: 13px; }.shipNotebookRow small { font-size: 12px; }
+    #controls.shipCaseLab .shipDossierEvidenceCard { flex-basis: 185px; min-height: 108px !important; }
+    .shipDossierEvidenceCard b { font-size: 15px; }.shipDossierEvidenceCard span { font-size: 12px; }
     .shipDossierSettings { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
     .shipDossierLocationSettings { grid-template-columns: minmax(0,1fr); }
     .shipDossierSetting { grid-template-columns: minmax(0,1fr); padding: 7px 8px; font-size: 15px; }
     .shipDossierSettingHelp { font-size: 13px; line-height: 1.35; }
+    .shipDossierSetting legend { font-size: 15px; }
+    .shipDossierChoiceGroup { grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 5px; }
+    #controls.shipCaseLab .shipDossierChoice { min-height: 46px; padding: 6px 8px; font-size: 14px; }
     .shipDossierPlacePreview { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; margin: 5px 0 8px; }
     .shipDossierPlacePreview .shipDossierPlaceCard:only-child { grid-column: 1/-1; }
     .shipDossierPlaceCard img { height: 115px; }.shipDossierPlaceCard figcaption { padding: 5px 7px; font-size: 12px; }
@@ -1784,6 +1904,13 @@
     .shipCandidateSources { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
     .shipCandidateCard .shipCandidateSource small { font-size: 11px; }
     .shipDossierChips { max-width: 260px; gap: 2px; }.shipDossierChips span { padding: 2px 4px; font-size: 9px; }
+    .shipDossierRunStage { margin: 5px 0 8px; padding: 7px; }.shipDossierRunTitle { font-size: 17px; }
+    .shipRunSvg { max-height: 225px; margin: 5px 0; }
+    .shipRawPaperGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+    .shipRawPaperGrid .shipRawPaper:only-child { grid-column: 1/-1; }
+    .shipRawPaper { padding: 7px; }.shipRawPaper > b { font-size: 15px; }.shipRawPaper > small,.shipRawPaper figcaption { font-size: 12px; }
+    .shipRawPaperMeta { grid-template-columns: max-content 1fr max-content 1fr; gap: 3px 6px; padding: 5px 6px; font-size: 12px; }
+    .shipDossierSeal { margin: 7px 0; padding: 8px; }.shipDossierSeal b { font-size: 16px; }.shipDossierSeal p { font-size: 13px; }
     .shipPerspectiveIntro { gap: 5px; }.shipPerspectiveGrid { gap: 5px; }.shipPerspectiveEyebrow { font-size: 12px; }
     .shipPerspectiveCard { grid-template-columns: minmax(0,1fr) minmax(78px,.55fr); }
     .shipPerspectiveBadge { top: 3px; left: 3px; padding: 2px 4px; font-size: 10px; }
@@ -1791,6 +1918,11 @@
     .shipPerspectiveCard figcaption b { font-size: 13px; }.shipPerspectiveKey { padding: 4px 6px; font-size: 12px; }
     .shipSimLabel, .shipSimState, .shipSimAxisText, .shipPaperLabel { font-size: 30px; }
     .shipSimBadgeText { font-size: 30px; }.shipEvidenceSealText { font-size: 34px; }
+  }
+  @media (orientation: portrait), (max-width: 760px) {
+    .shipDossierNotebookSpread { grid-template-columns: minmax(0,1fr); }
+    .shipDossierNotebookPage { border-left: 0; border-top: 2px solid rgba(93,65,39,.28); }
+    .shipNotebookRow { grid-template-columns: minmax(0,1fr); }
   }
 
   /* 第四章：牛頓的紙桌、書信、觀測匣與印刷台。答案幾何由 SVG／引擎生成。 */
@@ -2004,28 +2136,28 @@
     .orbitPath { animation-duration:.01ms!important; animation-delay:0ms!important; }
   }
   @media (max-height:520px), (orientation:portrait) and (pointer:coarse) and (max-width:520px) {
-    body[data-view="orbit"] #panelWrap { top:12%; bottom:3%; left:3%; right:3%; padding:6px; }
-    #controls.orbitLab { gap:5px; }.orbitHead { min-height:38px; padding:3px 8px;
+    body[data-view="orbit"] #panelWrap { top:12%; bottom:3%; left:3%; right:3%; padding:6px; overflow:auto; }
+    #controls.orbitLab { gap:6px; min-height:max-content; }.orbitHead { min-height:48px; padding:5px 8px;
       grid-template-columns:minmax(220px,.8fr) minmax(220px,1.2fr) auto; }
-    .orbitHead h2 { font-size:15px; line-height:1.15; white-space:nowrap; }.orbitHead p { font-size:10px; }
-    .orbitHeadTools { gap:2px; }.orbitHelp { width:26px; min-width:26px; min-height:26px; font-size:12px; }
+    .orbitHead h2 { font-size:17px; line-height:1.2; white-space:nowrap; }.orbitHead p { font-size:12px; line-height:1.35; }
+    .orbitHeadTools { gap:3px; }.orbitHelp { width:44px; min-width:44px; min-height:44px; font-size:16px; }
     .orbitEvidenceChips { max-width:210px; gap:2px; }
-    .orbitEvidenceChips .orbitNotebookLabel { font-size:8px; letter-spacing:.06em; }
-    .orbitEvidenceChips span.empty { min-width:96px; font-size:8px; }
-    .orbitEvidenceChips span { min-width:27px; padding:2px 3px; font-size:8px; }
+    .orbitEvidenceChips .orbitNotebookLabel { font-size:11px; letter-spacing:.04em; }
+    .orbitEvidenceChips span.empty { min-width:112px; font-size:11px; }
+    .orbitEvidenceChips span { min-width:40px; padding:3px 5px; font-size:11px; }
     .orbitBody { grid-template-columns:minmax(265px,.8fr) minmax(430px,1.2fr); gap:5px; }
-    .orbitVisual,.orbitWork { padding:6px 8px; }.orbitDiagram { max-height:60vh; }
-    .orbitDiagram figcaption { font-size:9px; padding:3px 5px; }
-    .orbitWork h3 { font-size:14px!important; margin-bottom:4px!important; padding-bottom:3px; }
-    .orbitLab .orbitAction { min-height:32px; padding:3px 6px; font-size:10px; margin:2px; }
-    .orbitNote,.orbitMessage,.orbitPressStatus { margin:3px 0; padding:3px 5px; font-size:10px; }
-    .orbitModelGrid,.orbitCometChoices,.orbitArchiveGrid { gap:2px; }.orbitProofRow,.orbitCreditRow { grid-template-columns:minmax(130px,.9fr) minmax(95px,1fr) max-content; padding:2px 4px; margin:2px 0; font-size:9px; }
-    .orbitLawCards { gap:3px; }.orbitLawCard { padding:4px; gap:2px; }.orbitLawCard span { min-height:0; font-size:8px; }
-    .orbitRuleDesigner { gap:3px; padding:4px; }.orbitRuleDesigner .shipSelect { min-height:44px; font-size:9px; }
-    .orbitArchiveCard { padding:4px; gap:2px; }.orbitArchiveReview p,.orbitCometHistory p { padding:2px 4px; margin:2px 0; font-size:8px; }
-    .orbitProofTrack { gap:2px; margin:3px 0; }.orbitProofStep { min-height:48px; padding:3px; }
-    .orbitProofStep small,.orbitProofStep span { font-size:7px; }.orbitProofStep b { font-size:8px; }
-    .orbitSourceChoices .orbitAction { min-height:36px; }.orbitCreditStage { padding:5px; }
+    .orbitVisual,.orbitWork { padding:7px 9px; }.orbitWork { overflow:auto; }.orbitDiagram { max-height:60vh; }
+    .orbitDiagram figcaption { font-size:12px; padding:4px 6px; }
+    .orbitWork h3 { font-size:16px!important; margin-bottom:5px!important; padding-bottom:4px; }
+    .orbitLab .orbitAction { min-height:44px; padding:6px 8px; font-size:13px; margin:2px; }
+    .orbitNote,.orbitMessage,.orbitPressStatus { margin:4px 0; padding:5px 7px; font-size:12px; }
+    .orbitModelGrid,.orbitCometChoices,.orbitArchiveGrid { gap:4px; }.orbitProofRow,.orbitCreditRow { grid-template-columns:minmax(150px,.9fr) minmax(115px,1fr) max-content; padding:4px 6px; margin:3px 0; font-size:12px; }
+    .orbitLawCards { gap:4px; }.orbitLawCard { padding:6px; gap:3px; }.orbitLawCard span { min-height:0; font-size:12px; }
+    .orbitRuleDesigner { gap:4px; padding:6px; }.orbitRuleDesigner .shipSelect { min-height:44px; font-size:12px; }
+    .orbitArchiveCard { padding:6px; gap:3px; }.orbitArchiveReview p,.orbitCometHistory p { padding:4px 6px; margin:3px 0; font-size:12px; }
+    .orbitProofTrack { gap:3px; margin:4px 0; }.orbitProofStep { min-height:64px; padding:5px; }
+    .orbitProofStep small,.orbitProofStep span { font-size:11px; }.orbitProofStep b { font-size:12px; }
+    .orbitSourceChoices .orbitAction { min-height:44px; }.orbitCreditStage { padding:7px; }
   }
   @media (max-width:760px) and (orientation:landscape) {
     body[data-view="orbit"] #panelWrap { left:1%; right:1%; }
@@ -2036,9 +2168,9 @@
     .orbitVisual,.orbitWork { min-width:0; padding:5px; }
     .orbitDiagram { max-height:62vh; }
     .orbitRuleDesigner { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .orbitRuleDesigner .shipSelect { min-width:0; font-size:8px; }
+    .orbitRuleDesigner .shipSelect { min-width:0; font-size:12px; }
     .orbitLawCards.four { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .orbitWork table { font-size:8px; }
+    .orbitWork table { font-size:12px; }
   }
 </style>
 </head>
@@ -2340,12 +2472,12 @@
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
 <script src="data/assets.js?v=20260726-ch03-dossier-v1"></script>
-<script src="src/sanitize.js?v=20260726-ch03-cabin-v2"></script>
+<script src="src/sanitize.js?v=20260726-ch03-scope-v4"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js?v=20260726-ch03-cabin-v2"></script>
+<script src="src/engine3.js?v=20260726-ch03-scope-v4"></script>
 <script src="src/engine4.js?v=20260725-ch04-redesign-v1"></script>
 <script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
@@ -2381,8 +2513,8 @@
   }
 })();
 </script>
-<script src="src/narrative.js?v=20260726-ch03-cabin-v2"></script>
-<script src="src/chapter-ui.js?v=20260726-ch03-cabin-v2"></script>
+<script src="src/narrative.js?v=20260726-ch03-scope-v4"></script>
+<script src="src/chapter-ui.js?v=20260726-ch03-scope-v4"></script>
 <script src="src/stage-ui.js?v=20260726-ch03-dossier-v1"></script>
 </body>
 </html>
