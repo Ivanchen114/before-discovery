@@ -42,8 +42,9 @@ Reference: `ch03_card_S5_dialogue_ship_cabin_v01.webp`
 
 ## 2026-07-27 Codex 視覺驗收修正
 
-S6、S7、J3、J4 原樣採用。J1、J2 v01 的裝飾性點／骰格看似可數，
-實際沒有對平，會與 runtime fixture 衝突，故不得上線。
+S6、S7、J3 原樣採用。J1、J2 v01 的裝飾性點／骰格看似可數，
+實際沒有對平，會與 runtime fixture 衝突；J4 v01 另有大量偽手寫、
+點陣與可數表格。三者都不得上線。
 
 ### J1 v02
 
@@ -61,7 +62,21 @@ S6、S7、J3、J4 原樣採用。J1、J2 v01 的裝飾性點／骰格看似可�
 > Keep all physical objects and composition unchanged. Do not add heat arrows or any
 > solved destination claim.
 
+### J4 v02
+
+> Preserve the overall still-life composition, the two physically separate open
+> ledgers, their gap, blank slip, envelope, divider, steel ball, clay sample,
+> blank card tray, quill, camera angle and lighting. Change only the four open
+> pages. Remove all pseudo-handwriting, decorative headings, numerals, dot
+> columns, filled tables, grids and countable marks. On the left keep only a few
+> sparse unlabeled collision diagrams with plain arrows inside largely blank
+> ruled cells. On the right keep only one ball-above-clay schematic and one
+> indentation profile inside largely blank ruled cells. Runtime supplies all
+> numerical values. Do not add heat, a solved destination or a combined
+> conservation law.
+
 runtime 必須引用：
 
 - `ch05_card_J1_signed_momentum_ledger_v02.webp`
 - `ch05_card_J2_vis_viva_ledger_v02.webp`
+- `ch05_card_J4_two_ledgers_v02.webp`

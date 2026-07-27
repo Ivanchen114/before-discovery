@@ -1713,11 +1713,11 @@
    "id": "card_J4",
    "kind": "card",
    "label": "J4 兩本帳的重寫",
-   "path": "ch05/evidence/ch05_card_J4_two_ledgers_v01.webp",
+   "path": "ch05/evidence/ch05_card_J4_two_ledgers_v02.webp",
    "firstScreen": false,
    "w": 1200,
    "h": 750,
-   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J4_two_ledgers_master_v01.png"
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J4_two_ledgers_master_v02.png"
   },
   {
    "id": "dialogue_newton22",
@@ -1838,6 +1838,36 @@
    "w": 900,
    "h": 1200,
    "sourceMaster": "art/source/production/ch05/characters/ch05_char_dupre58_alpha_v01.png"
+  },
+  {
+   "id": "ch05_lab_collision_rig",
+   "kind": "prop",
+   "label": "第五章碰撞工作台（合理重建）",
+   "path": "ch05/experiments/ch05_lab_collision_rig_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/experiments/ch05_lab_collision_rig_master_v01.png"
+  },
+  {
+   "id": "ch05_lab_clay_depth_rig",
+   "kind": "prop",
+   "label": "第五章黏土深度工作台（合理重建）",
+   "path": "ch05/experiments/ch05_lab_clay_depth_rig_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/experiments/ch05_lab_clay_depth_rig_master_v01.png"
+  },
+  {
+   "id": "ch05_focus_unequal_putty_question",
+   "kind": "prop",
+   "label": "第五章 4／8 油灰追問",
+   "path": "ch05/experiments/ch05_focus_unequal_putty_question_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/experiments/ch05_focus_unequal_putty_question_master_v01.png"
   },
   {
    "id": "chapter_thumbnail_ch05",
@@ -3295,11 +3325,18 @@
    "items": [
     {
      "asset": "card_J4",
-     "alt": "方向碰撞帳與黏土深度帳並排而不合併，中間保留尚未填寫的空白收據"
+     "alt": "方向碰撞帳與黏土深度帳並排而不合併；帳格留白，數值由工作台紀錄給出，中間保留尚未填寫的空白收據"
     }
    ],
    "caption": "取得證據：兩本帳各答一種問題，短少的完整去向仍留白。"
   }
+ },
+ "collision5Visual": {
+  "momentum": "ch05_lab_collision_rig",
+  "vis-viva": "ch05_lab_collision_rig",
+  "followup": "ch05_focus_unequal_putty_question",
+  "clay": "ch05_lab_clay_depth_rig",
+  "complete": "ch05_lab_clay_depth_rig"
  },
  "workshopApparatusAsset": "workshop2_projectile_apparatus_master",
  "workshopPartAsset": {

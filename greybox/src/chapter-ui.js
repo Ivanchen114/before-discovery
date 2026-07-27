@@ -349,10 +349,16 @@
       $("dayVal").parentElement.title = "天數只記錄可重做的模型工作；出版壓力另由送樣／延後行動推進，不按閱讀時間倒數。";
     } else if (CHAPTER_ID === "ch5") {
       var j5 = state.lab.evidence || {};
-      $("e3Val").textContent = "兩本帳：J1" + (j5.j1 ? "●" : "○") +
-        " J2" + (j5.j2 ? "●" : "○") + " 追一筆" + (j5.followup ? "●" : "○") +
-        " J3" + (j5.j3 ? "●" : "○");
-      $("e3Val").title = "同一批碰撞先記動量帳、再重算活力帳；4／8 油灰追一筆後，才進黏土深度。";
+      var phase5 = state.lab.phase || "momentum";
+      var progress5 = {
+        momentum: ["帳冊：這一輪追動量帳○", "先比較鋼頭與油灰兩種碰法，看看帶方向的帳能不能對平。"],
+        "vis-viva": ["帳冊：動量✓｜這一輪重算活力○", "不做新實驗；只把剛才同一批紀錄換一本帳重算。"],
+        followup: ["帳冊：動量✓｜活力✓｜再追一筆○", "換成不等重的油灰碰撞，檢查「一半」能不能寫成規矩。"],
+        clay: ["帳冊：前兩帳✓｜這一輪量黏土○", "用三種速度留下壓痕，檢查坑深跟速度平方的尺度。"],
+        complete: ["帳冊：動量✓｜活力✓｜黏土✓", "三張斷言已齊，可以把兩本帳帶上辯論桌。"]
+      }[phase5] || ["帳冊：尚未開始", "先完成眼前這一輪。"];
+      $("e3Val").textContent = progress5[0];
+      $("e3Val").title = progress5[1];
       $("dayVal").parentElement.title = "每次放手只留一筆；輪二重算舊紀錄，不增加天數。";
     } else {
     var e3 = state.lab.evidence.e3;
@@ -2796,7 +2802,7 @@
         });
       });
       ship3DossierSvg(svg, "text", { x: 18, y: 207, class: "shipPaperLegend" },
-        "● 石頭　◇ 桅杆｜數字是同一聲鼓的編號");
+        "● 石頭　○ 桅杆｜數字是同一聲鼓的編號");
     } else {
       ship3DossierSvg(svg, "text", { x: 270, y: 92, "text-anchor": "middle", class: "shipPaperEmpty" },
         "沒有共用鼓點，只能畫下落點");
@@ -3042,9 +3048,9 @@
     var hasDual = d.records.some(function (r) { return r.dualPapers; });
     var reproduced = ship3DossierReproductionCount(d);
     if (!d.assertions.A3 && reproduced < 3) return {
-      id: "reproduce", number: "一", title: "先重做艦長那一趟：什麼船況會讓石頭落後？",
+      id: "reproduce", number: "一", title: "先重做艦長那一趟：舊紙漏了什麼？",
       dialogue: "舊紙只寫「解纜後第一段，石頭落在桅後」。今天先把那個結果做出來，並把舊紙漏掉的船速欄補進新原紙。",
-      goal: "選一種船況，留下可判讀船速的原紙；同一做法重現三回。目前合格重現 " +
+      goal: "船況照舊紙固定為解纜起步；你要決定的是怎麼放手、怎麼記船速。留下可判讀船速的原紙，同一做法重現三回。目前合格重現 " +
         reproduced + "／3 張。",
       hint: "舊紙記的是「解纜後第一段」。鼓點只提供共用時刻；還要有人從岸上記船位，才看得出那一趟是走穩還是正在改變速度。"
     };
@@ -5626,17 +5632,20 @@
   }
   function collision5Claims(parent) {
     var claims = [
-      ["j1", "斷言一", "帶方向的 mv，撞前撞後總和不變"],
-      ["j2", "斷言二", "mv² 在彈性閉合、非彈性短少"],
-      ["j3", "斷言三", "坑深跟著速度的平方走"]
+      ["j1", "斷言一", "帶方向的 mv，撞前撞後總和不變",
+        "取得條件：鋼頭、油灰頭各勾三筆同速紀錄。"],
+      ["j2", "斷言二", "mv² 在彈性閉合、非彈性短少",
+        "取得條件：勾回斷言一的同一批紀錄，重算 mv²。"],
+      ["j3", "斷言三", "坑深跟著速度的平方走",
+        "取得條件：同一顆球的三種速度各勾一筆黏土紀錄。"]
     ];
     var grid = ship3El("div", null, parent, "collision5Claims");
     claims.forEach(function (row) {
       var a = state.lab.assertions[row[0]];
       var card = ship3El("section", null, grid, "collision5Claim " + (a.done ? "done" : ""));
       ship3El("b", (a.done ? "✓ " : "○ ") + row[1], card);
-      ship3El("p", row[2], card);
-      if (a.done) ship3El("small", "引用 #" + a.sources.join("、#"), card);
+      ship3El("p", a.done ? row[2] : row[3], card);
+      if (a.done) ship3El("small", "引用紀錄 #" + a.sources.join("、#"), card);
     });
   }
   function collision5RecordTable(parent) {
@@ -5689,17 +5698,45 @@
   }
   function renderCollision5(v, box) {
     box.className = "collision5Workbench";
+    var phase = state.lab.phase;
     var spread = ship3El("div", null, box, "collision5Spread");
     var apparatus = ship3El("section", null, spread, "collision5Page collision5Apparatus");
-    ship3El("small", "I　碰撞台與校準", apparatus, "collision5Kicker");
+    ship3El("small", phase === "clay" || phase === "complete"
+      ? "I　黏土台與校準" : "I　碰撞台與校準", apparatus, "collision5Kicker");
     ship3El("h2", "同一張桌，兩本帳", apparatus);
     var sketch = ship3El("div", null, apparatus, "collision5Sketch");
-    ship3El("span", "A 車　→", sketch);
-    ship3El("strong", state.lab.draft.head === "steel" ? "鋼頭" : "油灰", sketch);
-    ship3El("span", "←　B 車", sketch);
-    ship3El("small", "軌道｜已固定｜無須更換", sketch);
-    var phase = state.lab.phase;
+    var visualId = ASSETS && ASSETS.collision5Visual && ASSETS.collision5Visual[phase];
+    var visual = assetEntry(visualId);
+    if (visual) {
+      var visualImage = document.createElement("img");
+      visualImage.src = assetUrl(visual);
+      visualImage.alt = phase === "followup"
+        ? "不等重的兩台滑車裝上油灰頭，空白帳頁等待再追一筆"
+        : (phase === "clay" || phase === "complete"
+          ? "三段釋放高度、金屬球與重新拍平的黏土盤"
+          : "兩台滑車、鋼頭、油灰頭、砝碼與鈴齒計時裝置");
+      visualImage.style.width = "100%";
+      visualImage.style.height = "auto";
+      visualImage.style.maxHeight = "240px";
+      visualImage.style.objectFit = "contain";
+      visualImage.style.borderRadius = "4px";
+      visualImage.style.flexBasis = "100%";
+      sketch.appendChild(visualImage);
+    }
     if (phase === "clay" || phase === "complete") {
+      ship3El("strong", "這一輪：落球 → 黏土", sketch);
+      ship3El("small", "確切高度、速度與坑深由下方設定與紀錄給出", sketch);
+    } else if (phase === "followup") {
+      ship3El("strong", "「總是少一半」？", sketch);
+      ship3El("small", "換一邊砝碼，再追一筆", sketch);
+    } else {
+      ship3El("span", "A 車　→", sketch);
+      ship3El("strong", state.lab.draft.head === "steel" ? "鋼頭" : "油灰", sketch);
+      ship3El("span", "←　B 車", sketch);
+      ship3El("small", "軌道｜已固定｜確切配置看下方設定", sketch);
+    }
+    if (phase === "clay" || phase === "complete") {
+      ship3El("p", "「這回換個問法。不問撞完剩下多少，問它花掉的力氣留下了什麼。」", apparatus, "collision5Coach");
       collision5Select(apparatus, "落下高度", "clayHeight",
         [["h1", "一格（v=2）"], ["h4", "四格（v=4）"], ["h9", "九格（v=6）"]]);
       collision5Select(apparatus, "球的質量", "ballMass",
@@ -5759,15 +5796,38 @@
 
     var notebook = ship3El("section", null, spread, "collision5Page collision5Notebook");
     ship3El("small", "II　旅人實驗簿", notebook, "collision5Kicker");
-    ship3El("h2", "動量帳 → 活力帳 → 黏土 → 對帳", notebook);
+    ship3El("h2", {
+      momentum: "第一輪：先查動量帳",
+      "vis-viva": "第二輪：同紙重算活力帳",
+      followup: "追一筆：檢查「一半」",
+      clay: "第三輪：用黏土留下尺度",
+      complete: "對帳：三張斷言已齊"
+    }[phase], notebook);
     var mission = {
-      momentum: "輪一｜鋼頭、油灰頭各三筆；勾同速紀錄，結算帶方向的 mv。",
-      "vis-viva": "輪二｜零次新實驗。勾回斷言一同一批紀錄，改算 mv²。",
-      followup: "追一筆｜4／8 油灰，檢查短少是不是固定一半。",
-      clay: "輪三｜三種速度各一筆，量坑深是否跟著 v²。",
-      complete: "三張斷言已齊。兩本帳與黏土盤可以帶上辯論桌。"
+      momentum: {
+        purpose: "這一輪要回答：院士的動量帳，鋼頭與油灰兩種碰法都能對平嗎？",
+        procedure: "做法：兩種碰撞頭各留三筆；勾同速紀錄，結算帶方向的 mv。"
+      },
+      "vis-viva": {
+        purpose: "這一輪要回答：同一批紀錄換算 mv²，兩種碰法還會一起對平嗎？",
+        procedure: "做法：零次新實驗；勾回斷言一的同一批紀錄，改算 mv²。"
+      },
+      followup: {
+        purpose: "這一輪要回答：油灰碰撞的短少，真的總是固定一半嗎？",
+        procedure: "做法：換成 4／8 不等重配置，只追一筆油灰碰撞。"
+      },
+      clay: {
+        purpose: "這一輪要回答：黏土坑深能不能替可見運動的短少提供一把可量的尺？",
+        procedure: "做法：同一顆球用三種速度各留一筆，勾選後比較坑深與 v²。"
+      },
+      complete: {
+        purpose: "這一輪已回答：兩本帳各自有用，黏土只提供可量的痕跡。",
+        procedure: "三張斷言已齊；完整去向仍未對平，可以回故事進入辯論。"
+      }
     }[phase];
-    ship3El("p", mission, notebook, "collision5Mission");
+    var missionCard = ship3El("section", null, notebook, "collision5Mission");
+    ship3El("b", mission.purpose, missionCard);
+    ship3El("p", mission.procedure, missionCard);
     collision5Claims(notebook);
     collision5RecordTable(notebook);
     var actions = ship3El("div", null, notebook, "collision5AssertionActions");

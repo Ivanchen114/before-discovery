@@ -83,7 +83,7 @@ const expectedEvidencePaths = {
   J1: "ch05/evidence/ch05_card_J1_signed_momentum_ledger_v02.webp",
   J2: "ch05/evidence/ch05_card_J2_vis_viva_ledger_v02.webp",
   J3: "ch05/evidence/ch05_card_J3_clay_depth_v01.webp",
-  J4: "ch05/evidence/ch05_card_J4_two_ledgers_v01.webp"
+  J4: "ch05/evidence/ch05_card_J4_two_ledgers_v02.webp"
 };
 for (const [code, assetPath] of Object.entries(expectedEvidencePaths)) {
   const { runtime } = requireAsset(entries, "card_" + code, {
@@ -98,12 +98,43 @@ for (const [code, assetPath] of Object.entries(expectedEvidencePaths)) {
   if (visual?.items?.[0]?.asset !== "card_" + code || !visual.caption || !visual.items[0].alt)
     fail("證據圖、說明或替代文字未接上:" + code);
 }
-if (entries.get("card_J1")?.path.includes("_v01.") || entries.get("card_J2")?.path.includes("_v01."))
-  fail("J1／J2 又接回含假數據的 v01");
+if (entries.get("card_J1")?.path.includes("_v01.") ||
+    entries.get("card_J2")?.path.includes("_v01.") ||
+    entries.get("card_J4")?.path.includes("_v01."))
+  fail("J1／J2／J4 又接回含假數據或偽手寫的 v01");
 if (!assets.evidenceVisual.J1.items[0].alt.includes("數值帳格留白"))
   fail("J1 替代文字沒有交代數字由工作台提供");
 if (!assets.evidenceVisual.J2.items[0].alt.includes("尚未對平"))
   fail("J2 替代文字沒有保留去向邊界");
+if (!assets.evidenceVisual.J4.items[0].alt.includes("帳格留白") ||
+    !assets.evidenceVisual.J4.items[0].alt.includes("工作台紀錄"))
+  fail("J4 替代文字沒有交代圖面留白與數字來源");
+
+const workbenchVisuals = {
+  momentum: "ch05_lab_collision_rig",
+  "vis-viva": "ch05_lab_collision_rig",
+  followup: "ch05_focus_unequal_putty_question",
+  clay: "ch05_lab_clay_depth_rig",
+  complete: "ch05_lab_clay_depth_rig"
+};
+if (JSON.stringify(assets.collision5Visual) !== JSON.stringify(workbenchVisuals))
+  fail("第五章工作台相位圖映射漂移");
+for (const id of new Set(Object.values(workbenchVisuals)))
+  requireAsset(entries, id, { kind: "prop", w: 1200, h: 750 });
+
+const ui = readFileSync(path.join(repoRoot, "greybox/src/chapter-ui.js"), "utf-8");
+for (const fragment of ["ASSETS.collision5Visual", "這一輪要回答",
+  "取得條件：鋼頭、油灰頭各勾三筆同速紀錄",
+  "這回換個問法。不問撞完剩下多少",
+  "院士的動量帳，鋼頭與油灰兩種碰法都能對平嗎",
+  "同一批紀錄換算 mv²，兩種碰法還會一起對平嗎",
+  "油灰碰撞的短少，真的總是固定一半嗎",
+  "黏土坑深能不能替可見運動的短少提供一把可量的尺"])
+  if (!ui.includes(fragment)) fail("第五章工作台 UI 契約缺失:" + fragment);
+if (ui.includes('"兩本帳：J1"') || ui.includes('" J2" + (j5.j2'))
+  fail("第五章 HUD 又露出內部斷言代碼");
+if (ui.includes('ship3El("h2", "動量帳 → 活力帳 → 黏土 → 對帳"'))
+  fail("第五章工作台標題又提前洩露後續路線");
 
 requireAsset(entries, "chapter_thumbnail_ch05", {
   kind: "cg",
@@ -117,7 +148,9 @@ if (assets.chapterThumbnail?.ch05 !== "chapter_thumbnail_ch05")
 const handoffPath = path.join(repoRoot, "art/source/production/ch05/PROMPTS_RUNTIME_ART_20260727.md");
 if (!existsSync(handoffPath)) fail("缺正式美術提示詞與採用紀錄");
 const handoff = readFileSync(handoffPath, "utf-8");
-for (const guard of ["合理重建", "J1、J2 v01 退役", "不宣稱精確復原", "不畫熱或完整去向"])
+for (const guard of ["合理重建", "J1、J2、J4 v01 退役", "不宣稱精確復原",
+  "不畫熱或完整去向", "ch05_lab_collision_rig", "ch05_lab_clay_depth_rig",
+  "ch05_focus_unequal_putty_question"])
   if (!handoff.includes(guard)) fail("美術交接缺邊界:" + guard);
 
 let totalBytes = 0;

@@ -14,7 +14,7 @@
 
 S6、S7、J1–J4 六張證據圖由平行工作流生成，提示詞與母版位於
 `art/source/production/ch05/evidence/`。本輪負責視覺與證據邊界驗收，
-並修正 J1、J2。
+並修正 J1、J2、J4；另補三張會隨工作台相位切換的功能圖。
 
 ## 二、史實與視覺邊界
 
@@ -134,6 +134,58 @@ runtime：`public/assets/ch05/characters/ch05_char_du_chatelet34_v01.webp`
 去背：`characters/ch05_char_dupre58_alpha_v01.png`  
 runtime：`public/assets/ch05/characters/ch05_char_dupre58_v01.webp`
 
+### 9. 碰撞工作台
+
+> Early-18th-century collision experiment table around 1740: two compact wooden
+> trolleys on one polished rail, removable steel impact heads, gray putty pads,
+> visibly different brass masses, release ramp and brass toothed-bell timer.
+> Three-quarter top-down, every functional part visible. No people, motion,
+> text, numerals, equations, arrows, tally marks, labels or preselected setup.
+
+資產代碼：`ch05_lab_collision_rig`
+母版：`experiments/ch05_lab_collision_rig_master_v01.png`
+runtime：`public/assets/ch05/experiments/ch05_lab_collision_rig_v01.webp`
+
+### 10. 黏土深度工作台
+
+> Early-18th-century clay indentation table around 1740: one vertical wooden
+> release rail with exactly three vertically separated unlabeled brass catches,
+> one metal ball held at the middle catch above a freshly smoothed clay tray,
+> plus brass depth probe, divider and straightedge. No impact result, text,
+> numerals, equations, arrows, tally marks or labels.
+
+第一版把三個掛點畫成同高，不能代表三種落下高度，已拒用。修正版把掛點改成
+低、中、高三個垂直位置；黏土保持平整，結果仍由玩家操作後才出現。
+
+資產代碼：`ch05_lab_clay_depth_rig`
+母版：`experiments/ch05_lab_clay_depth_rig_master_v01.png`
+runtime：`public/assets/ch05/experiments/ch05_lab_clay_depth_rig_v01.webp`
+
+### 11. 4／8 油灰追問
+
+> Two wooden trolleys on one rail with matte gray putty heads and visibly unequal
+> brass loads, prepared for a follow-up collision. Beside them is a completely
+> blank ruled ledger. The beat is disciplined doubt—do not turn the apparent
+> one-half pattern into a law. No fraction, question mark, result, countable
+> token group, heat or solved destination in the bitmap.
+
+圖面只畫不等重與空白帳；「總是少一半？」、4／8、144→48 與三分之二全由
+runtime 疊字，避免圖像先洩漏 fixture。
+
+資產代碼：`ch05_focus_unequal_putty_question`
+母版：`experiments/ch05_focus_unequal_putty_question_master_v01.png`
+runtime：`public/assets/ch05/experiments/ch05_focus_unequal_putty_question_v01.webp`
+
+### 12. J4 v02 兩本帳
+
+> Preserve the two separate ledgers and surrounding still life. Remove all
+> pseudo-handwriting, numerals, dot columns, filled tables and countable marks
+> from the four open pages. Keep only sparse unlabeled collision and clay
+> schematics inside generous blank ruled cells. Runtime supplies all values.
+
+母版：`evidence/ch05_card_J4_two_ledgers_master_v02.png`
+runtime：`public/assets/ch05/evidence/ch05_card_J4_two_ledgers_v02.webp`
+
 ## 五、證據圖採用裁決
 
 ### 原樣採用
@@ -141,21 +193,26 @@ runtime：`public/assets/ch05/characters/ch05_char_dupre58_v01.webp`
 - S6：清楚標為「史料意象圖」，不是原書頁掃描。
 - S7：只呈現可量的黏土壓痕，不替活力去向開收據。
 - J3：呈現三種落下條件與三種壓痕；同一顆球、速度與坑深的確切值由 runtime 說明。
-- J4：兩本帳物理上分開，中間保留空白收據，未合成單一守恆律。
+- J4 v02：兩本帳物理上分開，中間保留空白收據；頁面清除偽手寫、點陣與
+  可數假數據，未合成單一守恆律。
 
-### J1、J2 v01 退役，v02 採用
+### J1、J2、J4 v01 退役，v02 採用
 
 J1 v01 與 J2 v01 的點／骰格看似可數，實際數量未能對平，會製造假的
-fixture。v02 保留碰撞物件、方向與未決格，但清空所有裝飾性數量：
+fixture；J4 v01 另含大量偽手寫、點陣與似可計數的表格。v02 保留碰撞物件、
+方向、兩本帳與未決格，但清空所有裝飾性數量：
 
 - J1 v02：兩組數值帳格皆空白，閉合數字只由玩家工作台紀錄給出。
 - J2 v02：彈性列保留同尺寸空白帳格；油灰列另保留虛線未決格，
   不畫熱或完整去向。
+- J4 v02：兩本帳仍各自成立；四頁只留少量器材示意與大片空白帳格，
+  精確數字由工作台紀錄提供。
 
 runtime：
 
 - `public/assets/ch05/evidence/ch05_card_J1_signed_momentum_ledger_v02.webp`
 - `public/assets/ch05/evidence/ch05_card_J2_vis_viva_ledger_v02.webp`
+- `public/assets/ch05/evidence/ch05_card_J4_two_ledgers_v02.webp`
 
 v01 保留作生成失敗紀錄，但 `assets.json` 禁止引用。
 
@@ -164,5 +221,7 @@ v01 保留作生成失敗紀錄，但 `assets.json` 禁止引用。
 - 場景背景：1920×1080 WebP，quality 82。
 - 章首轉場：1672×941 WebP，quality 82。
 - 人物：900×1200 transparent WebP，quality 88；四角 alpha＝0。
-- 證據卡：1200×750 WebP；J1、J2 使用 v02。
+- 證據卡：1200×750 WebP；J1、J2、J4 使用 v02。
+- 工作台功能圖：1200×750 WebP；依 momentum／vis-viva／followup／clay
+  相位資料驅動切換。
 - 所有 runtime 圖單檔低於 512 KB，遠低於單檔 2 MB 預算。

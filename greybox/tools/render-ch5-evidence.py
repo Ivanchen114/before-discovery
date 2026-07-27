@@ -21,8 +21,8 @@ CARDS = {
         "ch05_card_J2_vis_viva_ledger_v02.webp",
     "ch05_card_J3_clay_depth_master_v01.png":
         "ch05_card_J3_clay_depth_v01.webp",
-    "ch05_card_J4_two_ledgers_master_v01.png":
-        "ch05_card_J4_two_ledgers_v01.webp",
+    "ch05_card_J4_two_ledgers_master_v02.png":
+        "ch05_card_J4_two_ledgers_v02.webp",
 }
 
 
