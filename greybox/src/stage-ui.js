@@ -15,7 +15,7 @@
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
   var TEXT = window.GB.TextFormat || null;
-  var CHAPTER_ID = /^ch[1234]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var CHAPTER_ID = /^ch[1-5]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var TYPE_MS = 40;                    /* 逐字基速 */
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
@@ -460,7 +460,11 @@
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
     $("dialogue").dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */
-    var gainHit = isSys && /^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/.test(item.text);
+    /* RUNTIME-CR-019 文案契約:凡「取得證據/斷言成立/筆記解鎖」的系統行,文案須命中下列 token 之一。
+       全章通用(原本只匹配第一章句式);新章的取得句照契約寫。 */
+    var gainHit = isSys && (/^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/.test(item.text) ||
+      /^(取得|◆ ?取得)/.test(item.text) ||
+      /收入卷宗|已簽名收卷|夾回.{0,2}筆記|證據已收|斷言.{0,4}成立/.test(item.text));
     $("dlgText").className = isNarr ? "narr"
       : (isSys ? ("sys" + (gainHit ? " gain" : ""))
       : (item.cls === "player" ? "pl" : ""));
@@ -548,7 +552,7 @@
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship"
       : (d.system === "orbit" ? "orbit"
-      : ((d.system === "incline" || d.system === "catapult") ? "lab" : "debate"));
+      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision") ? "lab" : "debate"));
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
@@ -589,7 +593,15 @@
           nc.querySelector(".ncNext").textContent = "下一個問題";
           nc.querySelector(".ncTitle").textContent = "碰撞之後，什麼應該守住?";
           nc.querySelector(".ncHook").textContent = "一本帳記方向與運動總量；另一本帳記能抬多高、壓多深。兩本帳都有人說是真的。";
-          nc.querySelector(".ncSys").textContent = "第五章仍在製作。第四章進度與筆記已封存於這台裝置。";
+          nc.querySelector(".ncSys").textContent = "第五章現已開放。第四章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第五章";
+          nextHref = "stage.html?chapter=ch05";
+        } else if (CHAPTER_ID === "ch5") {
+          nc.querySelector(".ncSealed").textContent = "第五章《兩本帳，哪一本是真的？》——已封存";
+          nc.querySelector(".ncNext").textContent = "下一個問題";
+          nc.querySelector(".ncTitle").textContent = "短少的那一截，去了哪裡？";
+          nc.querySelector(".ncHook").textContent = "黏土留下了可量的痕跡；要把去向全帳對平，還得學會怎麼量熱。";
+          nc.querySelector(".ncSys").textContent = "第五章進度與筆記已封存於這台裝置。";
         }
         nextBtn.hidden = !nextHref;
         nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
@@ -608,6 +620,7 @@
       ((d.scene === "A2-2" && d.nodeId === "e1") ||
        (d.scene === "B2-3" && d.nodeId === "e1") ||
        (d.scene === "C1-1" && d.nodeId === "e1") ||
+       (d.scene === "E1-2" && d.nodeId === "lab1") ||
        /* 第四章真正交棒給軌道工作台的是 D1-2/e1。
           D1-1 只有切線預測選擇；若仍綁在 D1-1，進 D1-2 時會繞過轉場閘，
           讓整章備忘在牛頓最後一句尚未收掉前直接蓋上對話。 */
@@ -619,8 +632,9 @@
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
         : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
+        : (CHAPTER_ID === "ch5" ? "▸ 攤開兩本帳"
         : (CHAPTER_ID === "ch4" ? "▸ 和牛頓把規則寫死"
-        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))));
+        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")))));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {
@@ -816,6 +830,22 @@
     b.addEventListener("click", function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); });
     $("panelWrap").appendChild(b);
   })();
+  if (CHAPTER_ID === "ch5") {
+    var ch5DebateList = $("debIntro").querySelector("ol");
+    var ch5DebateLines = [
+      "三問依序上桌——院士先亮他最強的帳，再追問短少，最後主張兩本其實相同。",
+      "先問清，再配對——點「問到底」只會把前提說滿；支柱仍要由你選證詞、選證據親手擊破。",
+      "第一個勝利是承認對手——J1 證明院士的帳沒有錯；你要說的是它沒有記到全部問題。",
+      "配錯不刪紙——第一次失準免扣；之後說服力下降，歸零就和杜夏特萊複盤，已破支柱照舊保留。",
+      "最後不是選贏家——重讀同一批帳，再決定題目究竟該怎麼問。"
+    ];
+    while (ch5DebateList.firstChild) ch5DebateList.removeChild(ch5DebateList.firstChild);
+    ch5DebateLines.forEach(function (text) {
+      var li = document.createElement("li");
+      li.textContent = text;
+      ch5DebateList.appendChild(li);
+    });
+  }
   /* 量表說明=點/觸碰即顯(hover title 僅桌機加菜;雙線索原則,手機平板不靠懸停) */
   var hudTipTimer = null;
   function showHudTip(text) {
@@ -961,13 +991,14 @@
       ];
       $("btnLabIntroGo").textContent = "開始組裝";
     } else if (CHAPTER_ID === "ch3") {
-      title.textContent = "旅人筆記・自由實驗卷宗";
+      title.textContent = "旅人筆記・航船實驗卷宗";
       lines = [
-        "設計——選操作階段、放手方法、要留下的紀錄與重複回數；一次可以只改一項，也可以故意留下有缺口的資料。",
-        "斷言——資料達到門檻後，候選說法才會浮出；你還要決定它能說到哪裡，不能把局部結果講成所有情況。",
-        "辯論——有一條能站住的斷言就能回碼頭；答不完就把問題帶回船上，原始紀錄與已回答的質詢都會保留。"
+        "一題一題做——先查走穩，再做船艙對照、變速比較與雙視角紀錄；每一輪只開放真正需要的條件。",
+        "先留原紙，再寫斷言——動畫、鼓點與原紙共用同一組數據；簽名收卷後，親手挑出能回答本題的紙。",
+        "核心問題做完才自由補強——想換船、改航速或留一組失敗資料，都要一次只改一項。",
+        "帶自己的證據去辯論——三柱依序回答；答不完就把質疑帶回船上，原紙與已完成進度都會保留。"
       ];
-      $("btnLabIntroGo").textContent = "開始設計";
+      $("btnLabIntroGo").textContent = "開始第一輪";
     } else if (CHAPTER_ID === "ch4") {
       title.textContent = "旅人筆記・軌道與出版備忘";
       lines = [
@@ -979,6 +1010,17 @@
         "出版沒有倒數——閱讀、重排與預覽不耗窗口；只有送樣或明列理由延後，才讓排程往前走。"
       ];
       $("btnLabIntroGo").textContent = "開始畫軌道";
+    } else if (CHAPTER_ID === "ch5") {
+      title.textContent = "旅人筆記・兩本帳工作台";
+      lines = [
+        "一次一筆——每按一次放手，只新增一筆紀錄；要重複幾回，由你決定。",
+        "輪一先記動量帳——鋼頭、油灰頭各三筆，砝碼與速度要能正面比較。",
+        "輪二不做新實驗——勾回輪一同一批紀錄，只把算法換成 mv²。",
+        "追一筆殺掉假規律——4／8 油灰短少三分之二，不是固定一半。",
+        "黏土只給一把尺——坑深隨 v² 可量；短少的完整去向仍沒有對平。",
+        "資料不因失手消失——勾選、已破支柱與所有原紀錄都會保留。"
+      ];
+      $("btnLabIntroGo").textContent = "開始記第一本帳";
     } else {
       return;
     }

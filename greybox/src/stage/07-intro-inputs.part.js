@@ -12,6 +12,22 @@
     b.addEventListener("click", function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); });
     $("panelWrap").appendChild(b);
   })();
+  if (CHAPTER_ID === "ch5") {
+    var ch5DebateList = $("debIntro").querySelector("ol");
+    var ch5DebateLines = [
+      "三問依序上桌——院士先亮他最強的帳，再追問短少，最後主張兩本其實相同。",
+      "先問清，再配對——點「問到底」只會把前提說滿；支柱仍要由你選證詞、選證據親手擊破。",
+      "第一個勝利是承認對手——J1 證明院士的帳沒有錯；你要說的是它沒有記到全部問題。",
+      "配錯不刪紙——第一次失準免扣；之後說服力下降，歸零就和杜夏特萊複盤，已破支柱照舊保留。",
+      "最後不是選贏家——重讀同一批帳，再決定題目究竟該怎麼問。"
+    ];
+    while (ch5DebateList.firstChild) ch5DebateList.removeChild(ch5DebateList.firstChild);
+    ch5DebateLines.forEach(function (text) {
+      var li = document.createElement("li");
+      li.textContent = text;
+      ch5DebateList.appendChild(li);
+    });
+  }
   /* 量表說明=點/觸碰即顯(hover title 僅桌機加菜;雙線索原則,手機平板不靠懸停) */
   var hudTipTimer = null;
   function showHudTip(text) {
@@ -157,13 +173,14 @@
       ];
       $("btnLabIntroGo").textContent = "開始組裝";
     } else if (CHAPTER_ID === "ch3") {
-      title.textContent = "旅人筆記・自由實驗卷宗";
+      title.textContent = "旅人筆記・航船實驗卷宗";
       lines = [
-        "設計——選操作階段、放手方法、要留下的紀錄與重複回數；一次可以只改一項，也可以故意留下有缺口的資料。",
-        "斷言——資料達到門檻後，候選說法才會浮出；你還要決定它能說到哪裡，不能把局部結果講成所有情況。",
-        "辯論——有一條能站住的斷言就能回碼頭；答不完就把問題帶回船上，原始紀錄與已回答的質詢都會保留。"
+        "一題一題做——先查走穩，再做船艙對照、變速比較與雙視角紀錄；每一輪只開放真正需要的條件。",
+        "先留原紙，再寫斷言——動畫、鼓點與原紙共用同一組數據；簽名收卷後，親手挑出能回答本題的紙。",
+        "核心問題做完才自由補強——想換船、改航速或留一組失敗資料，都要一次只改一項。",
+        "帶自己的證據去辯論——三柱依序回答；答不完就把質疑帶回船上，原紙與已完成進度都會保留。"
       ];
-      $("btnLabIntroGo").textContent = "開始設計";
+      $("btnLabIntroGo").textContent = "開始第一輪";
     } else if (CHAPTER_ID === "ch4") {
       title.textContent = "旅人筆記・軌道與出版備忘";
       lines = [
@@ -175,6 +192,17 @@
         "出版沒有倒數——閱讀、重排與預覽不耗窗口；只有送樣或明列理由延後，才讓排程往前走。"
       ];
       $("btnLabIntroGo").textContent = "開始畫軌道";
+    } else if (CHAPTER_ID === "ch5") {
+      title.textContent = "旅人筆記・兩本帳工作台";
+      lines = [
+        "一次一筆——每按一次放手，只新增一筆紀錄；要重複幾回，由你決定。",
+        "輪一先記動量帳——鋼頭、油灰頭各三筆，砝碼與速度要能正面比較。",
+        "輪二不做新實驗——勾回輪一同一批紀錄，只把算法換成 mv²。",
+        "追一筆殺掉假規律——4／8 油灰短少三分之二，不是固定一半。",
+        "黏土只給一把尺——坑深隨 v² 可量；短少的完整去向仍沒有對平。",
+        "資料不因失手消失——勾選、已破支柱與所有原紀錄都會保留。"
+      ];
+      $("btnLabIntroGo").textContent = "開始記第一本帳";
     } else {
       return;
     }

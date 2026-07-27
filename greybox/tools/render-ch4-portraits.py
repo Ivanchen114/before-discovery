@@ -3,18 +3,44 @@
 
 from pathlib import Path
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageChops, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DIR = ROOT / "art/source/production/ch04/characters"
 OUTPUT_DIR = ROOT / "public/assets/ch04/characters"
 PORTRAITS = {
-    "ch04_char_newton22_alpha_v02.png": "ch04_char_newton22_v02.webp",
-    "ch04_char_newton41_alpha_v02.png": "ch04_char_newton41_v02.webp",
+    "ch04_char_newton22_alpha_v02.png": "ch04_char_newton22_v03.webp",
+    "ch04_char_newton41_alpha_v02.png": "ch04_char_newton41_v03.webp",
     "ch04_char_halley28_alpha_v02.png": "ch04_char_halley28_v02.webp",
 }
+ALPHA_REPAIR_PORTRAITS = {
+    "ch04_char_newton22_alpha_v02.png",
+    "ch04_char_newton41_alpha_v02.png",
+}
 TARGET_SIZE = (900, 1200)
+OPAQUE_CORE_THRESHOLD = 24
+OPAQUE_CORE_INSET = 4
+
+
+def repair_subject_alpha(image):
+    """Make the subject interior opaque while preserving soft outer edges."""
+
+    alpha = image.getchannel("A")
+    support = alpha.point(
+        lambda value: 255 if value >= OPAQUE_CORE_THRESHOLD else 0
+    )
+    core = support.filter(
+        ImageFilter.MinFilter(OPAQUE_CORE_INSET * 2 + 1)
+    )
+    repaired_alpha = ImageChops.lighter(alpha, core)
+    repaired = image.copy()
+    repaired.putalpha(repaired_alpha)
+    boosted = sum(
+        after > before
+        for before, after in zip(alpha.getdata(), repaired_alpha.getdata())
+    )
+    return repaired, boosted
 
 
 def is_magenta_fringe(pixel, edge=False):
@@ -106,14 +132,22 @@ def main():
         source = SOURCE_DIR / source_name
         output = OUTPUT_DIR / output_name
         cleaned, replaced = despill(source)
-        contain(cleaned).save(
+        repaired, boosted = (
+            repair_subject_alpha(cleaned)
+            if source_name in ALPHA_REPAIR_PORTRAITS
+            else (cleaned, 0)
+        )
+        contain(repaired).save(
             output,
             "WEBP",
             quality=94,
             method=6,
             exact=True,
         )
-        print(f"{output.relative_to(ROOT)}: replaced {replaced} fringe pixels")
+        print(
+            f"{output.relative_to(ROOT)}: replaced {replaced} fringe pixels; "
+            f"made {boosted} interior pixels opaque"
+        )
 
 
 if __name__ == "__main__":

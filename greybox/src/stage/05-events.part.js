@@ -28,7 +28,7 @@
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship"
       : (d.system === "orbit" ? "orbit"
-      : ((d.system === "incline" || d.system === "catapult") ? "lab" : "debate"));
+      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision") ? "lab" : "debate"));
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
@@ -69,7 +69,15 @@
           nc.querySelector(".ncNext").textContent = "下一個問題";
           nc.querySelector(".ncTitle").textContent = "碰撞之後，什麼應該守住?";
           nc.querySelector(".ncHook").textContent = "一本帳記方向與運動總量；另一本帳記能抬多高、壓多深。兩本帳都有人說是真的。";
-          nc.querySelector(".ncSys").textContent = "第五章仍在製作。第四章進度與筆記已封存於這台裝置。";
+          nc.querySelector(".ncSys").textContent = "第五章現已開放。第四章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第五章";
+          nextHref = "stage.html?chapter=ch05";
+        } else if (CHAPTER_ID === "ch5") {
+          nc.querySelector(".ncSealed").textContent = "第五章《兩本帳，哪一本是真的？》——已封存";
+          nc.querySelector(".ncNext").textContent = "下一個問題";
+          nc.querySelector(".ncTitle").textContent = "短少的那一截，去了哪裡？";
+          nc.querySelector(".ncHook").textContent = "黏土留下了可量的痕跡；要把去向全帳對平，還得學會怎麼量熱。";
+          nc.querySelector(".ncSys").textContent = "第五章進度與筆記已封存於這台裝置。";
         }
         nextBtn.hidden = !nextHref;
         nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
@@ -88,6 +96,7 @@
       ((d.scene === "A2-2" && d.nodeId === "e1") ||
        (d.scene === "B2-3" && d.nodeId === "e1") ||
        (d.scene === "C1-1" && d.nodeId === "e1") ||
+       (d.scene === "E1-2" && d.nodeId === "lab1") ||
        /* 第四章真正交棒給軌道工作台的是 D1-2/e1。
           D1-1 只有切線預測選擇；若仍綁在 D1-1，進 D1-2 時會繞過轉場閘，
           讓整章備忘在牛頓最後一句尚未收掉前直接蓋上對話。 */
@@ -99,8 +108,9 @@
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
         : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
+        : (CHAPTER_ID === "ch5" ? "▸ 攤開兩本帳"
         : (CHAPTER_ID === "ch4" ? "▸ 和牛頓把規則寫死"
-        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))));
+        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")))));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {

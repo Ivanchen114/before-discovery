@@ -149,9 +149,13 @@
     eq(s.rep, 4, "P0-1.b 信譽+1");
     s = pick(s, "a"); r = run(s); s = r.state;      /* 脫口而出 −1 */
     eq(s.rep, 3, "P0-2.a 信譽−1");
-    /* A1-3 三選單:先踩鉛+木勸阻 */
+    /* A1-3 三選單:先踩鉛+木，再由玩家診斷混淆 */
     eq(r.view.scene, "A1-3");
-    s = pick(s, "b"); r = run(s); s = r.state;      /* 勸阻 → 回 q1,B 已隱藏 */
+    s = pick(s, "b"); r = run(s); s = r.state;      /* 鉛+木 → 判讀三選 */
+    eq(r.view.nodeId, "nB3");
+    s = pick(s, "weight"); r = run(s); s = r.state; /* 把結果全歸重量 → 被追問後重選 */
+    eq(r.view.nodeId, "nB3");
+    s = pick(s, "mixed"); r = run(s); s = r.state;  /* 玩家指出混淆 → 回 q1,B 已隱藏 */
     eq(r.view.nodeId, "q1");
     var optIds = r.view.options.map(function (o) { return o.id; });
     eq(optIds, ["a"], "R-TWR-02:勸阻後 B 隱藏");
@@ -449,7 +453,7 @@
     return r;
   }
 
-  t("M3|辯論黃金路徑(探索):E1 特殊回應→三支柱→反問選項→FR→trap 說謊代價→勝利→尾聲兩題→史實頁→終", function () {
+  t("M3|辯論黃金路徑(探索):E1 特殊回應→三支柱→反問選項→FR→trap 說謊後親自改口→勝利→尾聲兩題→史實頁→終", function () {
     var s = toDebate("explore");
     var r = deb(s, "debatePress", ["p1s2"]); s = r.state;
     eq(s.debate.persuasion, 5, "追問不扣量表");
@@ -476,9 +480,16 @@
     r = deb(s, "debateFr", ["a"]); s = r.state;
     ok(s.debate.fr.trapPending, "trap 抉擇");
     r = deb(s, "debateFr", ["lied"]); s = r.state;
-    eq(r.outcome, "resolvedAfterLie", "說謊被戳破後強制轉誠實");
+    eq(r.outcome, "retry", "說謊被戳破後仍停在原題，由玩家親自改口");
     eq(s.debate.persuasion, 1, "3−2=1");
     eq(s.rep, 0, "信譽 1−1=0(觸發修復鎖)");
+    ok(s.debate.fr.trapPending, "錯答後 trap 仍待玩家處理");
+    var trapView = Narrative.debateView(s);
+    eq(trapView.trap.options.map(function (o) { return o.id; }).sort(), ["honest", "lied"],
+      "錯項與正解都保留，不用刪選項洩答");
+    ok(!s.evidence.E5 && s.debate.status === "pending", "說謊不能自動取得 E5 或贏得辯論");
+    r = deb(s, "debateFr", ["honest"]); s = r.state;
+    eq(r.outcome, "resolved", "完整誠實句由玩家親自選下");
     ok(s.evidence.E5, "E5 入袋");
     eq(s.debate.status, "won", "辯論勝利");
     var rd = Narrative.redirectIfLocked(s);

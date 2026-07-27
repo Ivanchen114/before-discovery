@@ -1671,18 +1671,28 @@
   .shipDossierPins li { margin: 3px 0; color: #34291f; font-size: 15px; line-height: 1.45; }
   .shipDossierPins small { color: #665547; font-size: 13px; line-height: 1.4; }
   .shipDossierBodyWide { grid-template-columns: minmax(0,1fr) !important; }
-  .shipDossierWork { overflow-y: auto; overscroll-behavior: contain; padding: 14px 18px; }
-  .shipDossierTabs { position: sticky; top: -8px; z-index: 4; display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 9px; padding: 7px 0;
-    background: linear-gradient(rgba(244,233,205,.98) 75%,rgba(244,233,205,0)); }
+  .shipDossierWork { overflow-y: auto; overscroll-behavior: contain; padding: 14px 18px; scroll-padding-block: 12px; }
+  .shipDossierTabs { position: static; z-index: 4; display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 9px; padding: 7px 0;
+    background: rgba(244,233,205,.98); }
   .shipDossierTabs .debate { margin-left: auto; }
   .shipDossierSettings { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 12px; margin: 10px 0; }
   .shipDossierLocationSettings { grid-template-columns: minmax(0,1fr); }
   .shipDossierSetting { display: grid; grid-template-columns: minmax(0,1fr); align-content: start; gap: 6px; min-width: 0; padding: 10px 12px;
+    scroll-margin-block: 10px;
     color: #463421; border: 1px solid rgba(116,80,43,.28); background: rgba(255,252,240,.38); font: 800 16px var(--font-ui); }
-  fieldset.shipDossierSetting { margin: 0; }
-  .shipDossierSetting legend { padding: 0 4px; color: #4e3822; font: 850 16px var(--font-ui); }
+  .shipDossierSettingLabel { display: block; min-width: 0; color: #4e3822; font: 850 16px/1.35 var(--font-ui);
+    white-space: normal; overflow-wrap: anywhere; }
   .shipDossierSetting .shipSelect { width: 100%; min-width: 0; }
   .shipDossierSettingHelp { color: #65513d; font: 650 14px/1.45 var(--font-ui); }
+  .shipDossierMissionCard { margin: 4px 0 12px; padding: 12px 14px; color: #f1e0bf;
+    border: 1px solid rgba(217,180,112,.55); border-left: 6px solid #d0a05c;
+    background: linear-gradient(110deg,#5a3a20,#18211f); }
+  .shipDossierMissionCard > small { color: #e8bd70; font: 850 12px/1.3 var(--font-ui); letter-spacing: .08em; }
+  .shipDossierMissionCard h3 { margin: 3px 0 7px !important; padding: 0 !important; color: #ffe7b9 !important; border: 0 !important; }
+  .shipDossierMissionCard p { margin: 4px 0; font-size: 15px; line-height: 1.5; }
+  .shipDossierMissionCard > b { display: block; margin-top: 8px; color: #f3ca80; font: 850 13px var(--font-ui); }
+  .shipDossierMissionDialogue { color: #f1e2c8; }
+  .shipDossierFixedConditions { grid-column: 1/-1; margin: 0; }
   .shipDossierChoiceGroup { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 7px; }
   #controls.shipCaseLab .shipDossierChoice { min-height: 52px; padding: 8px 10px; color: #4a3826; text-align: left;
     border: 1px solid rgba(116,80,43,.48); border-radius: 5px; background: rgba(250,242,220,.7);
@@ -1705,12 +1715,21 @@
   .shipDossierRunTitle { color: #ffe1a3; font: 850 20px var(--font-ui); }
   .shipDossierRunStage .shipNote { color: #eadbbd; border-color: #bf8b4c; background: rgba(255,255,255,.05); }
   .shipDossierRunStage > small { display: block; margin-top: 7px; color: #c9baa0; font: 650 13px/1.4 var(--font-ui); }
+  .shipRunViews { display: grid; grid-template-columns: repeat(auto-fit,minmax(360px,1fr)); gap: 9px; margin: 8px 0; }
+  .shipDossierApparatusPage .shipRunViews { grid-template-columns: minmax(0,1fr); }
+  .shipRunView { min-width: 0; margin: 0; overflow: hidden; border: 1px solid rgba(213,180,124,.35);
+    background: #111b1d; }
+  .shipRunView > b, .shipRunView > small { display: block; padding-inline: 10px; }
+  .shipRunViewTitle { padding-top: 8px; color: #ffe1a3; font: 850 15px var(--font-ui); }
+  .shipRunView > small { padding-top: 2px; color: #c9baa0; font: 650 12px/1.4 var(--font-ui); }
+  .shipRunView figcaption { padding: 7px 10px 9px; color: #d8c9aa; font: 650 12px/1.4 var(--font-ui); }
   .shipRunSvg { display: block; width: 100%; max-height: 330px; margin: 8px 0; border: 1px solid rgba(213,180,124,.35); background: #111b1d; }
+  .shipRunView .shipRunSvg { margin: 6px 0 0; border-width: 1px 0; }
   .shipRunSky { fill: #132326; }.shipRunWater { stroke: #7aa5a8; stroke-width: 5; }
   .shipRunHull { fill: #704827; stroke: #d4a361; stroke-width: 4; }.shipRunMast { stroke: #e0bd81; stroke-width: 8; }
   .shipRunMastTrace { fill: none; stroke: rgba(141,201,211,.54); stroke-width: 4; stroke-dasharray: 8 7; }
   .shipRunStoneTrace { fill: none; stroke: #f3cf79; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
-    stroke-dasharray: 1; stroke-dashoffset: 1; animation: ship-paper-draw 2.2s ease-out .15s forwards; }
+    stroke-dasharray: 1; stroke-dashoffset: 1; animation: ship-paper-draw 2.2s linear .15s forwards; }
   .shipRunStone { fill: #f2d07d; stroke: #4a321f; stroke-width: 4; filter: drop-shadow(0 0 6px rgba(243,207,121,.6)); }
   .shipRunBeatFlash { fill: #fff2ad; stroke: #4b7180; stroke-width: 3; opacity: 0; animation: ship-beat-appear .35s ease-out forwards; }
   .shipRunBeatLabel { fill: #fff3c6; font: 850 16px var(--font-ui); opacity: 0; animation: ship-beat-appear .35s ease-out forwards;
@@ -1727,7 +1746,7 @@
   .shipRawPaper svg { display: block; width: 100%; aspect-ratio: 540/220; }
   .shipPaperSheet { fill: rgba(247,235,203,.82); stroke: #9d7f54; stroke-width: 2; }
   .shipPaperGrid { stroke: rgba(121,91,55,.13); stroke-width: 1; }
-  .shipPaperStonePath { fill: none; stroke: #346d86; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+  .shipPaperStonePath { fill: none; stroke: rgba(52,109,134,.62); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .shipPaperMastPath { fill: none; stroke: #9b603d; stroke-width: 3; stroke-dasharray: 7 5; }
   .shipPaperBeatDot { fill: #e9f4ef; stroke: #346d86; stroke-width: 3; opacity: 0; animation: ship-beat-appear .35s ease-out forwards; }
   .shipPaperMastDot { fill: #f4d3b6; stroke: #9b603d; stroke-width: 2; }
@@ -1780,6 +1799,18 @@
   .shipNotebookEmpty { margin: 8px 0 0; padding: 9px 10px; color: #70563b; border-left: 4px solid #a47b45;
     background: rgba(143,104,55,.09); font-size: 14px; line-height: 1.45; }
   .shipDossierNotebookPage .shipTable { background: rgba(255,252,238,.54); }
+  .shipDossierNotebookPage .shipRawPaperGrid { grid-template-columns: minmax(0,1fr); }
+  .shipDossierLedger { margin: 10px 0; padding: 10px 12px; border: 1px solid rgba(111,77,43,.38);
+    background: rgba(255,252,238,.62); }
+  .shipDossierLedger h4 { margin: 0 0 5px; color: #493421; font: 850 18px/1.35 var(--font-ui); }
+  .shipDossierLedgerTable { width: 100%; table-layout: fixed; }
+  .shipDossierLedgerTable th:first-child,
+  .shipDossierLedgerTable td:first-child { width: 54px; text-align: center; }
+  .shipDossierLedgerTable th:nth-child(2) { width: 38%; }
+  .shipDossierLedgerTable tbody tr.selected { background: rgba(83,128,109,.15); box-shadow: inset 4px 0 #53806d; }
+  .shipDossierLedgerPick input[type="checkbox"] { width: 22px; height: 22px; margin: 0; vertical-align: middle;
+    accent-color: #76502d; cursor: pointer; }
+  .shipDossierLedgerPick input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .48; }
   .shipDossierNotebookPage .shipCandidateCard { background: rgba(255,252,238,.7); }
   .shipDossierDebateBoard { color: #38291d; }
   .shipDossierDebateTrack .debatePillar.isLocked { opacity: .5; border-style: dashed; filter: grayscale(.25); }
@@ -1882,14 +1913,16 @@
     .shipDossierLocationSettings { grid-template-columns: minmax(0,1fr); }
     .shipDossierSetting { grid-template-columns: minmax(0,1fr); padding: 7px 8px; font-size: 15px; }
     .shipDossierSettingHelp { font-size: 13px; line-height: 1.35; }
-    .shipDossierSetting legend { font-size: 15px; }
+    .shipDossierSettingLabel { font-size: 15px; line-height: 1.35; }
+    .shipDossierMissionCard { margin: 3px 0 6px; padding: 7px 9px; }
+    .shipDossierMissionCard h3 { font-size: 16px !important; }.shipDossierMissionCard p { font-size: 13px; line-height: 1.38; }
     .shipDossierChoiceGroup { grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 5px; }
     #controls.shipCaseLab .shipDossierChoice { min-height: 46px; padding: 6px 8px; font-size: 14px; }
     .shipDossierPlacePreview { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; margin: 5px 0 8px; }
     .shipDossierPlacePreview .shipDossierPlaceCard:only-child { grid-column: 1/-1; }
     .shipDossierPlaceCard img { height: 115px; }.shipDossierPlaceCard figcaption { padding: 5px 7px; font-size: 12px; }
     .shipDossierPlaceBadge { top: 4px; left: 4px; padding: 2px 5px; font-size: 11px; }
-    .shipDossierTabs { top: -7px; padding: 5px 0; }.shipDossierTabs .debate { margin-left: 0; }
+    .shipDossierTabs { padding: 5px 0; }.shipDossierTabs .debate { margin-left: 0; }
     .shipDossierVisual { padding: 8px; }.shipDossierVisualTitle { font-size: 17px; margin-bottom: 5px; }
     .shipDossierSketch { min-height: 190px; }.shipDossierMast { height: 120px; bottom: 40px; }
     .shipDossierHull { bottom: 17px; height: 44px; padding-top: 9px; }.shipDossierStone { top: 22px; }
@@ -1905,6 +1938,9 @@
     .shipCandidateCard .shipCandidateSource small { font-size: 11px; }
     .shipDossierChips { max-width: 260px; gap: 2px; }.shipDossierChips span { padding: 2px 4px; font-size: 9px; }
     .shipDossierRunStage { margin: 5px 0 8px; padding: 7px; }.shipDossierRunTitle { font-size: 17px; }
+    .shipRunViews { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+    .shipRunViews .shipRunView:only-child { grid-column: 1/-1; }
+    .shipRunViewTitle { font-size: 13px; }.shipRunView > small,.shipRunView figcaption { font-size: 11px; }
     .shipRunSvg { max-height: 225px; margin: 5px 0; }
     .shipRawPaperGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
     .shipRawPaperGrid .shipRawPaper:only-child { grid-column: 1/-1; }
@@ -1920,6 +1956,10 @@
     .shipSimBadgeText { font-size: 30px; }.shipEvidenceSealText { font-size: 34px; }
   }
   @media (orientation: portrait), (max-width: 760px) {
+    .shipRunViews { grid-template-columns: minmax(0,1fr); }
+    .shipRunViews .shipRunView:only-child { grid-column: auto; }
+    .shipRunViewTitle { font-size: 15px; }
+    .shipRunView > small, .shipRunView figcaption { font-size: 13px; }
     .shipDossierNotebookSpread { grid-template-columns: minmax(0,1fr); }
     .shipDossierNotebookPage { border-left: 0; border-top: 2px solid rgba(93,65,39,.28); }
     .shipNotebookRow { grid-template-columns: minmax(0,1fr); }
@@ -1949,6 +1989,8 @@
     justify-content:flex-end; flex-wrap:wrap; gap:4px; max-width:360px; }
   .orbitEvidenceChips .orbitNotebookLabel { width:100%; color:#b9c7d1; text-align:right;
     font:700 9px var(--font-ui); letter-spacing:.12em; }
+  .orbitEvidenceChips .orbitNotebookCount { color:#f0d690; border-color:#c4a65f;
+    background:rgba(171,132,53,.18); }
   .orbitEvidenceChips span { min-width:37px; padding:4px 6px; text-align:center; color:#798896;
     border:1px solid rgba(166,187,201,.24); font:700 10px var(--font-ui); }
   .orbitEvidenceChips span.got { color:#e7d7a7; border-color:#c4a65f; background:rgba(171,132,53,.2); }
@@ -1975,6 +2017,21 @@
   .orbitWork h3 { margin:0 0 9px!important; padding-bottom:6px; color:#354559;
     border-bottom:2px solid #65788a!important; }
   .orbitWork h4 { margin:11px 0 5px; color:#54452f; }
+  .orbitClaimPanel { margin:10px 0; padding:9px 10px; border:1px solid rgba(77,92,107,.34);
+    background:rgba(255,255,255,.22); }
+  .orbitClaimSources { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+  .orbitClaimSource { display:flex; align-items:flex-start; gap:8px; min-width:0; padding:8px;
+    border:1px solid rgba(77,92,107,.28); background:rgba(255,255,255,.24); cursor:pointer; }
+  .orbitClaimSource input { flex:none; width:20px; height:20px; margin:1px 0 0; accent-color:#4f6980; }
+  .orbitClaimSource span { display:grid; min-width:0; gap:2px; }
+  .orbitClaimSource b { color:#35485c; font-size:14px; line-height:1.35; }
+  .orbitClaimSource small { color:#665b49; font-size:12px; line-height:1.4; }
+  .orbitClaimSource.unavailable { opacity:.55; cursor:not-allowed; }
+  .orbitClaimChoice { display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:6px;
+    align-items:center; margin-top:8px; }
+  .orbitClaimChoice > label { grid-column:1/-1; color:#43566a; font-weight:800; }
+  .orbitClaimChoice .shipSelect { min-width:0; min-height:44px; font-size:14px; }
+  .orbitClaimChoice .orbitAction { min-height:44px; margin:0; }
   .orbitDiagram { position:relative; margin:0; width:100%; aspect-ratio:16/10; overflow:hidden;
     background:#080c13; box-shadow:0 10px 28px rgba(0,0,0,.38); }
   .orbitDiagram svg { display:block; width:100%; height:100%; }
@@ -2139,39 +2196,94 @@
     body[data-view="orbit"] #panelWrap { top:12%; bottom:3%; left:3%; right:3%; padding:6px; overflow:auto; }
     #controls.orbitLab { gap:6px; min-height:max-content; }.orbitHead { min-height:48px; padding:5px 8px;
       grid-template-columns:minmax(220px,.8fr) minmax(220px,1.2fr) auto; }
-    .orbitHead h2 { font-size:17px; line-height:1.2; white-space:nowrap; }.orbitHead p { font-size:12px; line-height:1.35; }
+    .orbitHead h2 { font-size:17px; line-height:1.2; white-space:nowrap; }.orbitHead p { font-size:14px; line-height:1.4; }
     .orbitHeadTools { gap:3px; }.orbitHelp { width:44px; min-width:44px; min-height:44px; font-size:16px; }
     .orbitEvidenceChips { max-width:210px; gap:2px; }
     .orbitEvidenceChips .orbitNotebookLabel { font-size:11px; letter-spacing:.04em; }
     .orbitEvidenceChips span.empty { min-width:112px; font-size:11px; }
     .orbitEvidenceChips span { min-width:40px; padding:3px 5px; font-size:11px; }
+    #controls.orbitLab { grid-template-rows:auto auto; }
     .orbitBody { grid-template-columns:minmax(265px,.8fr) minmax(430px,1.2fr); gap:5px; }
-    .orbitVisual,.orbitWork { padding:7px 9px; }.orbitWork { overflow:auto; }.orbitDiagram { max-height:60vh; }
+    .orbitVisual,.orbitWork { padding:7px 9px; }.orbitWork { overflow:visible; }.orbitDiagram { max-height:60vh; }
     .orbitDiagram figcaption { font-size:12px; padding:4px 6px; }
     .orbitWork h3 { font-size:16px!important; margin-bottom:5px!important; padding-bottom:4px; }
-    .orbitLab .orbitAction { min-height:44px; padding:6px 8px; font-size:13px; margin:2px; }
-    .orbitNote,.orbitMessage,.orbitPressStatus { margin:4px 0; padding:5px 7px; font-size:12px; }
+    .orbitLab .orbitAction { min-height:44px; padding:6px 8px; font-size:14px; margin:2px; }
+    .orbitNote,.orbitMessage,.orbitPressStatus { margin:4px 0; padding:5px 7px; font-size:14px; }
     .orbitModelGrid,.orbitCometChoices,.orbitArchiveGrid { gap:4px; }.orbitProofRow,.orbitCreditRow { grid-template-columns:minmax(150px,.9fr) minmax(115px,1fr) max-content; padding:4px 6px; margin:3px 0; font-size:12px; }
     .orbitLawCards { gap:4px; }.orbitLawCard { padding:6px; gap:3px; }.orbitLawCard span { min-height:0; font-size:12px; }
     .orbitRuleDesigner { gap:4px; padding:6px; }.orbitRuleDesigner .shipSelect { min-height:44px; font-size:12px; }
-    .orbitArchiveCard { padding:6px; gap:3px; }.orbitArchiveReview p,.orbitCometHistory p { padding:4px 6px; margin:3px 0; font-size:12px; }
+    .orbitArchiveCard { padding:6px; gap:3px; }.orbitArchiveReview p,.orbitCometHistory p { padding:4px 6px; margin:3px 0; font-size:13px; }
     .orbitProofTrack { gap:3px; margin:4px 0; }.orbitProofStep { min-height:64px; padding:5px; }
-    .orbitProofStep small,.orbitProofStep span { font-size:11px; }.orbitProofStep b { font-size:12px; }
+    .orbitProofStep small,.orbitProofStep span { font-size:12px; }.orbitProofStep b { font-size:14px; }
     .orbitSourceChoices .orbitAction { min-height:44px; }.orbitCreditStage { padding:7px; }
+    .orbitClaimSource b { font-size:14px; }.orbitClaimSource small { font-size:13px; }
+    .orbitClaimChoice .shipSelect { font-size:14px; }
   }
-  @media (max-width:760px) and (orientation:landscape) {
+  @media (max-width:760px) and (orientation:portrait) {
+    body[data-view="orbit"] #panelWrap { top:10%; left:2%; right:2%; bottom:2%; overflow:auto; }
+    #controls.orbitLab { grid-template-rows:auto auto; }
+    .orbitHead { grid-template-columns:minmax(0,1fr) auto; }
+    .orbitHead small,.orbitHead h2 { grid-column:1; }
+    .orbitHead p { grid-column:1/-1; grid-row:auto; font-size:14px; }
+    .orbitHeadTools { grid-column:2; grid-row:1/3; }
+    .orbitBody { grid-template-columns:minmax(0,1fr); }
+    .orbitWork { overflow:visible; }
+    .orbitClaimSources,.orbitClaimChoice { grid-template-columns:minmax(0,1fr); }
+    .orbitClaimChoice > label { grid-column:1; }
+  }
+  @media (max-width:960px) and (orientation:landscape) {
     body[data-view="orbit"] #panelWrap { left:1%; right:1%; }
     .orbitHead { grid-template-columns:minmax(145px,.55fr) minmax(0,1.35fr) auto; }
     .orbitHeadTools { grid-column:3; }
-    .orbitEvidenceChips { display:none; }
+    .orbitEvidenceChips { display:flex; max-width:90px; }
+    .orbitEvidenceChips .got,.orbitEvidenceChips .empty { display:none; }
+    .orbitEvidenceChips .orbitNotebookLabel { width:auto; text-align:center; }
+    .orbitEvidenceChips .orbitNotebookCount { min-width:44px; font-size:13px; }
     .orbitBody { grid-template-columns:minmax(0,42fr) minmax(0,58fr); }
-    .orbitVisual,.orbitWork { min-width:0; padding:5px; }
+    #controls.orbitLab { grid-template-rows:auto auto; }
+    .orbitVisual,.orbitWork { min-width:0; padding:5px; }.orbitWork { overflow:visible; }
     .orbitDiagram { max-height:62vh; }
     .orbitRuleDesigner { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .orbitRuleDesigner .shipSelect { min-width:0; font-size:12px; }
     .orbitLawCards.four { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .orbitClaimSources { grid-template-columns:minmax(0,1fr); }
+    .orbitClaimChoice { grid-template-columns:minmax(0,1fr); }
+    .orbitClaimChoice > label { grid-column:1; }
     .orbitWork table { font-size:12px; }
   }
+/* 第五章：雙頁工作台。只在 collision embed 產生，既有章節零觸發。 */
+.collision5Workbench{width:min(1180px,96vw);margin:0 auto}
+.collision5Spread{display:grid;grid-template-columns:minmax(280px,.82fr) minmax(430px,1.28fr);gap:16px;align-items:start}
+.collision5Page{background:linear-gradient(135deg,#f8f0d9,#efe0bd);color:#2d2418;border:1px solid #8c7047;border-radius:8px;padding:18px;box-shadow:0 10px 28px rgba(22,15,7,.26)}
+.collision5Kicker{letter-spacing:.12em;color:#715735;font-weight:800}
+.collision5Page h2{margin:.25rem 0 1rem;font-family:serif}
+.collision5Sketch{min-height:120px;border:1px solid #9b7b4d;background:rgba(255,255,255,.3);display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px;margin-bottom:12px}
+.collision5Sketch strong{border:2px solid #805d32;border-radius:50%;padding:16px 10px;background:#d7c29b}
+.collision5Sketch small{flex-basis:100%;text-align:center}
+.collision5Setting{display:grid;grid-template-columns:7.5rem 1fr;gap:8px;align-items:center;margin:8px 0;font-weight:700}
+.collision5Setting select{min-width:0;padding:8px;border:1px solid #80663f;background:#fffaf0;color:#2d2418}
+.collision5Fixed,.collision5Coach,.collision5Mission,.collision5Message{padding:9px 11px;border-left:4px solid #8c7047;background:rgba(255,255,255,.34)}
+.collision5Coach{border-left-color:#7b3840;font-family:serif}
+.collision5Claims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.collision5Claim{border:1px solid #a58a61;padding:10px;background:rgba(255,255,255,.25)}
+.collision5Claim.done{border-color:#426b50;background:rgba(202,229,204,.35)}
+.collision5Claim p{font-size:.88rem;margin:.35rem 0}
+.collision5Claim small{overflow-wrap:anywhere}
+.collision5TableWrap{max-height:330px;overflow:auto;border:1px solid #9b7b4d;background:rgba(255,255,255,.2)}
+.collision5Table{width:100%;border-collapse:collapse;font-size:.84rem}
+.collision5Table th,.collision5Table td{padding:7px;border-bottom:1px solid rgba(91,68,36,.28);text-align:left;white-space:nowrap}
+.collision5Table thead{position:sticky;top:0;background:#e7d3aa;z-index:1}
+.collision5Table tr.selected{background:rgba(118,150,110,.18)}
+.collision5AssertionActions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.collision5Action,.collision5Gate{padding:9px 13px}
+.collision5Survey{margin-top:14px}
+.collision5Survey p{font-size:.86rem}
+body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
+@media(max-width:840px){
+  .collision5Spread{grid-template-columns:1fr}
+  .collision5Claims{grid-template-columns:1fr}
+  .collision5Workbench{width:100%}
+}
 </style>
 </head>
 <body data-view="title">
@@ -2437,10 +2549,10 @@
           <legend>從第一章開始・選擇模式（中途不可換）</legend>
           <div class="modeRow">
             <label class="mode"><input type="radio" name="mode" value="explore" checked>
-              <span class="mc"><b>探索模式</b><small>故事引導較多，卡住時同行科學家會主動追問</small></span>
+              <span class="mc"><b>探索模式</b><small>適合國中起步；同一套實驗，檢核預設展開，失敗後直接說明缺口</small></span>
             </label>
             <label class="mode"><input type="radio" name="mode" value="scholar">
-              <span class="mc"><b>學者模式</b><small>開放進階工具，提示改為主動索取</small></span>
+              <span class="mc"><b>學者模式</b><small>適合高中與成人挑戰；同一套實驗，提示與完整診斷預設收合</small></span>
             </label>
           </div>
           <div class="newGameActions">
@@ -2467,22 +2579,26 @@
 <script src="data/patterns.js"></script>
 <script src="data/debate.js"></script>
 <script src="data/debate2.js?v=20260724-dialogue-natural-v2"></script>
+<script src="data/debate5.js?v=20260727-ch05-v1"></script>
 <script src="data/histfacts.js"></script>
 <script src="data/histfacts2.js"></script>
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
+<script src="data/histfacts5.js?v=20260727-ch05-v1"></script>
 <script src="data/assets.js?v=20260726-ch03-dossier-v1"></script>
-<script src="src/sanitize.js?v=20260726-ch03-scope-v4"></script>
+<script src="src/sanitize.js?v=20260727-ch03-flow-v5"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js?v=20260726-ch03-scope-v4"></script>
+<script src="src/engine3.js?v=20260727-ch03-flow-v5"></script>
 <script src="src/engine4.js?v=20260725-ch04-redesign-v1"></script>
+<script src="src/engine5.js?v=20260727-ch05-v1"></script>
 <script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
-<script src="data/scenes3.js?v=20260726-ch03-cabin-v2"></script>
+<script src="data/scenes3.js?v=20260727-ch03-flow-v5"></script>
 <script src="data/scenes4.js?v=20260725-ch04-companion-v2"></script>
+<script src="data/scenes5.js?v=20260727-ch05-v1"></script>
 <script>
 (function () {
   "use strict";
@@ -2492,7 +2608,7 @@
   data.scenes1 = data.scenes;
   window.GB.Engine1 = window.GB.Engine;
   var requested = new URLSearchParams(location.search).get("chapter");
-  var chapter = requested === "ch04" ? "ch04" : (requested === "ch03" ? "ch03" : (requested === "ch02" ? "ch02" : "ch01"));
+  var chapter = requested === "ch05" ? "ch05" : (requested === "ch04" ? "ch04" : (requested === "ch03" ? "ch03" : (requested === "ch02" ? "ch02" : "ch01")));
   window.BD_CHAPTER = chapter;
   if (chapter === "ch02") {
     data.debate = data.debate2;
@@ -2510,11 +2626,18 @@
     data.scenes = data.scenes4;
     window.GB.Engine = window.GB.Engine4;
     window.BD_SAVE_KEY = "before-discovery:chapter4:v1";
+  } else if (chapter === "ch05") {
+    data.debate = data.debate5;
+    data.histfacts = data.histfacts5;
+    data.scenes = data.scenes5;
+    window.GB.Engine = window.GB.Engine5;
+    window.BD_SAVE_KEY = "before-discovery:chapter5:v1";
   }
+  document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=20260726-ch03-scope-v4"></script>
-<script src="src/chapter-ui.js?v=20260726-ch03-scope-v4"></script>
-<script src="src/stage-ui.js?v=20260726-ch03-dossier-v1"></script>
+<script src="src/narrative.js?v=20260727-ch03-flow-v5"></script>
+<script src="src/chapter-ui.js?v=20260727-ch03-flow-v5"></script>
+<script src="src/stage-ui.js?v=20260727-ch03-flow-v5"></script>
 </body>
 </html>

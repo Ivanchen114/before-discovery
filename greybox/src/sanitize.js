@@ -395,11 +395,17 @@
             !Array.isArray(dossier.scopeAttempts) || dossier.scopeAttempts.length > 100 ||
             !dossier.blind || !Array.isArray(dossier.blind.attempts) ||
             (dossier.blind.records != null && (!Array.isArray(dossier.blind.records) ||
-              dossier.blind.records.length > 2)) ||
+              dossier.blind.records.length > 60)) ||
             dossier.blind.attempts.length > 50 || !dossier.debate ||
+            typeof dossier.debate.active !== "boolean" ||
+            !isInt(dossier.debate.rep) || dossier.debate.rep < 0 || dossier.debate.rep > 5 ||
+            [null, "p1", "p2", "p3"].indexOf(dossier.debate.current) < 0 ||
             !Array.isArray(dossier.debate.pins) || dossier.debate.pins.length > 50 ||
             !Array.isArray(dossier.debate.attempts) || dossier.debate.attempts.length > 200 ||
             !dossier.debate.pillars || !dossier.debate.p1 || !dossier.debate.p2 || !dossier.debate.p3 ||
+            ["p1", "p2", "p3"].some(function (pillarId) {
+              return typeof dossier.debate.pillars[pillarId] !== "boolean";
+            }) ||
             (dossier.debate.p1.source != null && dossier.debate.p1.source !== "A1") ||
             (dossier.debate.p2.source != null && dossier.debate.p2.source !== "A3") ||
             (dossier.debate.p3.source != null && dossier.debate.p3.source !== "dual-papers") ||
@@ -410,7 +416,11 @@
             !Array.isArray(dossier.debate.p3.transformAttempts) ||
             typeof dossier.complete !== "boolean")
           return fail("第三章自由實驗卷宗格式錯誤");
-        var sourcePattern = /^(OLD|R[1-9][0-9]*|C-(dock|steady))$/;
+        /*
+         * C1、C2… 是目前逐回船艙原紙；C-dock／C-steady 是舊存檔
+         * 在遷移前留下的兩組合併代號。兩者都須可安全匯入。
+         */
+        var sourcePattern = /^(OLD|R[1-9][0-9]*|C[1-9][0-9]*|C-(dock|steady))$/;
         for (var selectionMap of [dossier.claimSelections, dossier.assertionSources]) {
           if (selectionMap == null) continue;
           for (var assertionId in selectionMap) {
@@ -481,6 +491,30 @@
                 return fail("第三章落石動畫含無法辨識的座標");
             }
           }
+        }
+        for (var cabinRow of dossier.blind.records || []) {
+          if (!cabinRow || !/^C[1-9][0-9]*$/.test(cabinRow.id || "") ||
+              ["dock", "steady"].indexOf(cabinRow.stage) < 0 ||
+              typeof cabinRow.stageLabel !== "string" || cabinRow.stageLabel.length > 40 ||
+              typeof cabinRow.observer !== "string" || cabinRow.observer.length > 160 ||
+              typeof cabinRow.classification !== "string" || cabinRow.classification.length > 80 ||
+              !Array.isArray(cabinRow.shoreGaps) || cabinRow.shoreGaps.length !== 3 ||
+              cabinRow.shoreGaps.some(function (n) {
+                return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 20;
+              }) ||
+              typeof cabinRow.water !== "string" || cabinRow.water.length > 80 ||
+              typeof cabinRow.ball !== "string" || cabinRow.ball.length > 80)
+            return fail("第三章船艙原紙格式錯誤");
+        }
+        if (dossier.blind.judgment === "comparison-recorded") {
+          var blindDockCount = dossier.blind.records.filter(function (row) {
+            return row.stage === "dock";
+          }).length;
+          var blindSteadyCount = dossier.blind.records.filter(function (row) {
+            return row.stage === "steady";
+          }).length;
+          if (blindDockCount < 3 || blindSteadyCount < 3)
+            return fail("第三章船艙對照回數不足");
         }
       }
     }
@@ -642,6 +676,27 @@
     var evidenceIds = ["k1", "k2", "k3", "k4", "k5"];
     for (var ei = 0; ei < evidenceIds.length; ei++)
       if (typeof lab.evidence[evidenceIds[ei]] !== "boolean") return fail("第四章證據狀態格式錯誤");
+    if (lab.claims != null) {
+      if (!lab.claims || typeof lab.claims !== "object" || Array.isArray(lab.claims) ||
+          Object.keys(lab.claims).some(function (id) { return evidenceIds.indexOf(id) < 0; }))
+        return fail("第四章斷言紀錄格式錯誤");
+      for (var claimKey of evidenceIds) {
+        var claimRows = lab.claims[claimKey];
+        if (!Array.isArray(claimRows) || claimRows.length > 100)
+          return fail("第四章斷言紀錄格式錯誤");
+        for (var cri = 0; cri < claimRows.length; cri++) {
+          var claimRow = claimRows[cri];
+          if (!claimRow || !Array.isArray(claimRow.sources) || claimRow.sources.length > 8 ||
+              claimRow.sources.some(function (source) {
+                return typeof source !== "string" || source.length > 80;
+              }) ||
+              (claimRow.concept != null &&
+                (typeof claimRow.concept !== "string" || claimRow.concept.length > 80)) ||
+              typeof claimRow.ok !== "boolean")
+            return fail("第四章斷言紀錄含無法辨識的資料");
+        }
+      }
+    }
     if (engine4 && lab.evidence.k5 && !engine4._proofAudit(lab).complete) {
       /* CH4-CR-004 新增署名範圍欄位；既有完章存檔無法憑空補出玩家選擇。
          只在舊欄位本來就完整、且唯一缺口確為新欄位時祖父條款放行。 */
@@ -659,8 +714,97 @@
     return { ok: true, state: state };
   }
 
+  /* 第五章白名單：碰撞紀錄、同批重算來源、追一筆與黏土深度。 */
+  function sanitizeImport5(state, scenes) {
+    if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
+    var generic = scrub(state, 0, { n: LIMITS.maxNodes });
+    if (generic) return fail(generic);
+    if (state.schemaVersion !== 1 || state.chapter !== "ch5") return fail("存檔版本或章節不相容");
+    if (state.mode !== "explore" && state.mode !== "scholar") return fail("遊戲模式無法辨識");
+    if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("信譽數值錯誤");
+    var sceneIds = {}, nodeIds = {};
+    (scenes && scenes.scenes || []).forEach(function (scene) {
+      sceneIds[scene.id] = 1;
+      nodeIds[scene.id] = {};
+      (scene.nodes || []).forEach(function (node) { nodeIds[scene.id][node.id] = 1; });
+    });
+    if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
+      return fail("存檔中的故事位置無法辨識");
+    var lab = state.lab;
+    if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
+        !lab.draft || !Array.isArray(lab.collisionRuns) || !Array.isArray(lab.clayRuns) ||
+        !lab.assertions || !lab.evidence)
+      return fail("第五章工作台紀錄格式錯誤");
+    if (lab.collisionRuns.length > 300 || lab.clayRuns.length > 300)
+      return fail("第五章實驗紀錄過多");
+    if (["steel", "putty"].indexOf(lab.draft.head) < 0 ||
+        ["low", "mid", "high"].indexOf(lab.draft.speed) < 0 ||
+        ["4/4", "4/8"].indexOf(lab.draft.masses) < 0 ||
+        ["h1", "h4", "h9"].indexOf(lab.draft.clayHeight) < 0 ||
+        ["light", "heavy"].indexOf(lab.draft.ballMass) < 0)
+      return fail("第五章工作台設定無法辨識");
+    for (var i = 0; i < lab.collisionRuns.length; i++) {
+      var row = lab.collisionRuns[i];
+      if (!row || !isInt(row.id) || row.kind !== "collision" ||
+          ["steel", "putty"].indexOf(row.head) < 0 ||
+          ["low", "mid", "high"].indexOf(row.speedBand) < 0 ||
+          ["4/4", "4/8"].indexOf(row.masses) < 0 ||
+          !row.momentum || !row.visViva ||
+          !isFinite(row.momentum.before) || !isFinite(row.momentum.after) ||
+          !isFinite(row.visViva.before) || !isFinite(row.visViva.after) ||
+          !isFinite(row.visViva.deficit))
+        return fail("第五章碰撞紀錄格式錯誤");
+    }
+    for (var j = 0; j < lab.clayRuns.length; j++) {
+      var clay = lab.clayRuns[j];
+      if (!clay || !isInt(clay.id) || clay.kind !== "clay" ||
+          [1, 4, 9].indexOf(clay.height) < 0 || [2, 4, 6].indexOf(clay.speed) < 0 ||
+          ["light", "heavy"].indexOf(clay.ballMass) < 0 ||
+          !isFinite(clay.depth) || !isFinite(clay.readingError))
+        return fail("第五章黏土紀錄格式錯誤");
+    }
+    var assertionKeys = ["j1", "j2", "j3"];
+    for (var ak = 0; ak < assertionKeys.length; ak++) {
+      var assertion = lab.assertions[assertionKeys[ak]];
+      if (!assertion || typeof assertion.done !== "boolean" || !Array.isArray(assertion.sources))
+        return fail("第五章斷言紀錄格式錯誤");
+    }
+    try {
+      var collisionIds = {};
+      lab.collisionRuns.forEach(function (row) { collisionIds[row.id] = true; });
+      var clayIds = {};
+      lab.clayRuns.forEach(function (row) { clayIds[row.id] = true; });
+      if (lab.assertions.j1.sources.some(function (id) { return !collisionIds[id]; }) ||
+          lab.assertions.j2.sources.some(function (id) { return !collisionIds[id]; }) ||
+          lab.assertions.j3.sources.some(function (id) { return !clayIds[id]; }))
+        return fail("第五章斷言引用了不存在的紀錄");
+    } catch (e) {
+      return fail("第五章斷言紀錄格式錯誤");
+    }
+    if (lab.evidence.j1 !== lab.assertions.j1.done ||
+        lab.evidence.j2 !== lab.assertions.j2.done ||
+        lab.evidence.j3 !== lab.assertions.j3.done)
+      return fail("第五章證據狀態與斷言不一致");
+    if (lab.evidence.followup &&
+        !lab.collisionRuns.some(function (row) {
+          return row.masses === "4/8" && row.head === "putty" &&
+            row.momentum.before === 24 && row.momentum.after === 24 &&
+            row.visViva.before === 144 && row.visViva.after === 48;
+        }))
+      return fail("第五章追一筆狀態與紀錄不一致");
+    if (!Array.isArray(state.transcript) || state.transcript.length > 3000)
+      return fail("對話紀錄格式錯誤");
+    for (var t = 0; t < state.transcript.length; t++) {
+      var line = state.transcript[t];
+      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2400)
+        return fail("對話紀錄中有一筆格式錯誤");
+    }
+    return { ok: true, state: state };
+  }
+
   var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2,
     sanitizeImport3: sanitizeImport3, sanitizeImport4: sanitizeImport4,
+    sanitizeImport5: sanitizeImport5,
     _scrub: scrub, LIMITS: LIMITS };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Sanitize = api; }

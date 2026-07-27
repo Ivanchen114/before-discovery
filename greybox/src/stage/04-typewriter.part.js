@@ -98,7 +98,11 @@
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
     $("dialogue").dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */
-    var gainHit = isSys && /^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/.test(item.text);
+    /* RUNTIME-CR-019 文案契約:凡「取得證據/斷言成立/筆記解鎖」的系統行,文案須命中下列 token 之一。
+       全章通用(原本只匹配第一章句式);新章的取得句照契約寫。 */
+    var gainHit = isSys && (/^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/.test(item.text) ||
+      /^(取得|◆ ?取得)/.test(item.text) ||
+      /收入卷宗|已簽名收卷|夾回.{0,2}筆記|證據已收|斷言.{0,4}成立/.test(item.text));
     $("dlgText").className = isNarr ? "narr"
       : (isSys ? ("sys" + (gainHit ? " gain" : ""))
       : (item.cls === "player" ? "pl" : ""));

@@ -1,0 +1,407 @@
+/* data/scenes5.js — 第五章場景執行載體（file:// 相容）。規範鏡像:scenes5.json。
+   ⚠ 本檔為生成物；請改 scenes5.json 後執行 node tools/build-ch5-data.mjs。 */
+(function (root) {
+ "use strict";
+ var data = {
+ "chapter": "ch5",
+ "startScene": "E0-1",
+ "title": "兩本帳，哪一本是真的？",
+ "evidenceNames": {
+  "S6": "《運動之量》正統文獻",
+  "S7": "'s Gravesande 黏土報告",
+  "J1": "帶方向的動量帳",
+  "J2": "活力帳（mv²）",
+  "J3": "黏土深度",
+  "J4": "兩本帳的重寫"
+ },
+ "evidenceSummaries": {
+  "J1": "鋼頭、油灰頭各三筆：帶方向的 mv 撞前撞後都閉合。",
+  "J2": "同一批紀錄改算 mv²：鋼頭閉合，油灰從可見運動短少。",
+  "J3": "同一顆球的三種速度：坑深與 v² 吻合；短少的完整去向仍未對平。",
+  "J4": "兩本帳記不同的事，各有用途；不能合成一本，也不能獨尊一本。"
+ },
+ "scenes": [
+  {
+   "id": "E0-1",
+   "title": "那本書，我看著它印出來",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "筆記自己翻頁。倫敦的墨味折進紙縫，露出一座有長窗、書牆與壁爐的鄉間莊園。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "system",
+     "speaker": "system",
+     "text": "約 1740 年，法國・西雷莊園。距上一頁的倫敦，五十三年。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「埃米莉・杜・夏特萊。你來得正好，還是正不巧——這屋裡最近只吵一件事。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E0-2"
+    }
+   ]
+  },
+  {
+   "id": "E0-2",
+   "title": "運動之量，只能有一個？",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "「運動之量，就是質量乘速度——帶著方向記。撞前多少，撞後就多少。萊布尼茲那個速度還要自乘的『活力』，只是多出來的玄想。」",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「杜佩院士的帳，每一次都對得平。這一點你要先記住：他不是在胡說。」",
+     "next": "s6"
+    },
+    {
+     "id": "s6",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 S6：《運動之量》正統文獻。可測主張：碰撞前後帶方向的 mv 加總閉合。",
+     "effects": [
+      {
+       "evidence": "S6"
+      }
+     ],
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「這是萊頓來的報告。作者是牛頓的信徒；他量出的坑深，卻跟著速度的平方走。」",
+     "next": "s7"
+    },
+    {
+     "id": "s7",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 S7：黏土報告。它給出可量的壓陷尺度，不替短少的完整去向開收據。",
+     "effects": [
+      {
+       "evidence": "S7"
+      }
+     ],
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「在你替任何一邊說話以前，先把這場架拆成兩本各自算得清的帳。誰對誰錯，等帳自己說。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E1-1"
+    }
+   ]
+  },
+  {
+   "id": "E1-1",
+   "title": "先把問句立好",
+   "nodes": [
+    {
+     "id": "q1",
+     "type": "choice",
+     "text": "先替兩本帳立下什麼可驗的問句？",
+     "options": [
+      {
+       "id": "ledger",
+       "text": "「一本問帶方向的 mv 前後變不變；一本問 mv² 前後變不變。」",
+       "next": "n1"
+      },
+      {
+       "id": "bigger",
+       "text": "「先比哪一本算出的數字比較大。」",
+       "next": "bad1"
+      },
+      {
+       "id": "authority",
+       "text": "「先比哪一位前輩的名聲更大。」",
+       "next": "bad2"
+      }
+     ]
+    },
+    {
+     "id": "bad1",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「比大小不是守恆。先問每一本在同一場碰撞前後，記的數有沒有對平。」",
+     "next": "q1"
+    },
+    {
+     "id": "bad2",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「名聲不能替帳結算。把前輩的名字收起來，只留下量得到的問句。」",
+     "next": "q1"
+    },
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「對。先把兩種算法各算清楚——哪一本、在什麼時候，對得平。怎麼問，等帳記完再說。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E1-2"
+    }
+   ]
+  },
+  {
+   "id": "E1-2",
+   "title": "碰撞台・第一輪",
+   "nodes": [
+    {
+     "id": "lab1",
+     "type": "embed",
+     "system": "collision",
+     "phase": "momentum",
+     "hint": "兩種碰法各留下三筆同速紀錄，勾選後提出斷言一。",
+     "until": {
+      "collision": "j1"
+     },
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E2-1"
+    }
+   ]
+  },
+  {
+   "id": "E2-1",
+   "title": "動量帳，到哪裡都平",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "「撞爛、黏住、彈開，它都守得住。這一本帳，我三十年沒見它出過錯。」",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「他說得對。別因為等一下要為難他，就假裝這本帳有問題。它沒有。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E2-2"
+    }
+   ]
+  },
+  {
+   "id": "E2-2",
+   "title": "同一批紀錄，換一本帳",
+   "nodes": [
+    {
+     "id": "lab2",
+     "type": "embed",
+     "system": "collision",
+     "phase": "vis-viva",
+     "hint": "不要再撞；勾回第一輪同一批紀錄重算，再完成 4／8 油灰追一筆。",
+     "until": {
+      "collision": "followup"
+     },
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E2-3"
+    }
+   ]
+  },
+  {
+   "id": "E2-3",
+   "title": "黏土記得速度的平方",
+   "nodes": [
+    {
+     "id": "lab3",
+     "type": "embed",
+     "system": "collision",
+     "phase": "clay",
+     "hint": "三種落下速度各留一筆，勾選後提出斷言三。",
+     "until": {
+      "collision": "j3"
+     },
+     "next": "n1"
+    },
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "這盤黏土給了短少一把可量的尺。可要把去向全帳對平，還缺一步：沒有人量過那兩團油灰的凹痕。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E3-1"
+    }
+   ]
+  },
+  {
+   "id": "E3-1",
+   "title": "兩本帳上桌",
+   "nodes": [
+    {
+     "id": "init",
+     "type": "system",
+     "speaker": "system",
+     "text": "莊園主人請眾人入席。動量帳、活力帳與黏土盤並排留在桌上。",
+     "effects": [
+      {
+       "debate": "init"
+      }
+     ],
+     "next": "debate"
+    },
+    {
+     "id": "debate",
+     "type": "embed",
+     "system": "debate",
+     "hint": "依序回答院士三問，再親手重寫題目。",
+     "until": {
+      "debateWon": true
+     },
+     "suspendNext": "debrief",
+     "next": "g1"
+    },
+    {
+     "id": "debrief",
+     "type": "embed",
+     "system": "debrief",
+     "hint": "攤開失手配對，帶著原證據回到桌邊。",
+     "next": "reenter"
+    },
+    {
+     "id": "reenter",
+     "type": "system",
+     "speaker": "system",
+     "text": "你回到桌邊。帳沒有人動過；剛才吵到哪裡，就從哪裡接下去。",
+     "effects": [
+      {
+       "debate": "reenter"
+      }
+     ],
+     "next": "debate"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "E3-2"
+    }
+   ]
+  },
+  {
+   "id": "E3-2",
+   "title": "紙都留在桌上",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "院士沒有撕掉自己的紙。兩本帳並排攤著，各自留下它能回答的問題，也留下還沒對平的去向。",
+     "next": "j4"
+    },
+    {
+     "id": "j4",
+     "type": "system",
+     "speaker": "system",
+     "text": "取得 J4：兩本帳的重寫。它不宣稱短少的完整去向已經對平。",
+     "effects": [
+      {
+       "evidence": "J4"
+      }
+     ],
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EE-1"
+    }
+   ]
+  },
+  {
+   "id": "EE-1",
+   "title": "她會把一生給那本書",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "客人散去。壁爐低了下來。杜夏特萊沒有收那兩本帳，任它們並排攤在桌上。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "「法國讀懂《原理》的人還太少。我要做的不只是翻字，是讓它在另一種語言裡也能算。」",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EE-2"
+    }
+   ]
+  },
+  {
+   "id": "EE-2",
+   "title": "旅人筆記・末頁",
+   "nodes": [
+    {
+     "id": "review",
+     "type": "review",
+     "prompts": [
+      "同一次油灰碰撞，兩本帳各記到了什麼？",
+      "黏土實驗量到什麼，又還不能替短少證明什麼？"
+     ],
+     "next": "facts"
+    },
+    {
+     "id": "facts",
+     "type": "histfacts",
+     "next": "end"
+    },
+    {
+     "id": "end",
+     "type": "end"
+    }
+   ]
+  }
+ ]
+};
+ if (typeof module === "object" && module.exports) { module.exports = data; }
+ else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.scenes5 = data; }
+})(typeof self !== "undefined" ? self : this);

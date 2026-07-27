@@ -44,8 +44,8 @@ for (const [scene, id] of Object.entries(expectedBackgrounds)) {
 }
 
 const portraits = {
-  dialogue_newton22: "ch04/characters/ch04_char_newton22_v02.webp",
-  dialogue_newton41: "ch04/characters/ch04_char_newton41_v02.webp",
+  dialogue_newton22: "ch04/characters/ch04_char_newton22_v03.webp",
+  dialogue_newton41: "ch04/characters/ch04_char_newton41_v03.webp",
   dialogue_halley28: "ch04/characters/ch04_char_halley28_v02.webp"
 };
 for (const [id, assetPath] of Object.entries(portraits)) {
@@ -87,8 +87,8 @@ for (const code of ["K1", "K2", "K3", "K4", "K5"]) {
     fail("第四章證據圖缺可及性文字:" + id);
 }
 
-const tangentSheet = entries.get("ch04_prop_tangent_prediction_sheet_v01");
-if (tangentSheet?.path !== "ch04/props/ch04_prop_tangent_prediction_sheet_v01.webp" ||
+const tangentSheet = entries.get("ch04_prop_tangent_prediction_sheet_v02");
+if (tangentSheet?.path !== "ch04/props/ch04_prop_tangent_prediction_sheet_v02.webp" ||
     tangentSheet.w !== 1200 || tangentSheet.h !== 750)
   fail("無作用切線預測紙宣告錯誤");
 if (!existsSync(path.join(here, "../../public/assets", tangentSheet.path)))
@@ -97,7 +97,7 @@ if (!existsSync(path.join(here, "../../", tangentSheet.sourceMaster)))
   fail("無作用切線預測紙母版不存在");
 const tangentFocus = (assets.lineFocusVisual || []).find((rule) =>
   rule.scene === "D1-1" && rule.match.includes("連出三個點"));
-if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v01" ||
+if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v02" ||
     !tangentFocus.caption.includes("不是觀測證據"))
   fail("D1-1 選對後未接上切線預測紙或證據邊界");
 
@@ -151,7 +151,7 @@ for (const fragment of [
   "封存四項設定，讓規則自己跑",
   "每拍重新指向地心",
   "把 1665 的未決紙重新攤開",
-  "定律與參數全程鎖住",
+  "先訂公平標準，再讓兩種說法各跑一次",
   '[["一","改向"],["二","跨尺度"],["三","封存預測"],["四","模型反驗"],["五","署名邊界"]]',
   "orbitProofTrack",
   "orbitStringDemo"

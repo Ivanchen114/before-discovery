@@ -1554,14 +1554,14 @@
    "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_typecase_collision_epilogue_master_v01.png"
   },
   {
-   "id": "ch04_prop_tangent_prediction_sheet_v01",
+   "id": "ch04_prop_tangent_prediction_sheet_v02",
    "kind": "prop",
    "label": "牛頓桌上的無作用切線預測紙",
-   "path": "ch04/props/ch04_prop_tangent_prediction_sheet_v01.webp",
+   "path": "ch04/props/ch04_prop_tangent_prediction_sheet_v02.webp",
    "firstScreen": false,
    "w": 1200,
    "h": 750,
-   "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v01.png"
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v02.png"
   },
   {
    "id": "ch04_prop_rope_ball_setup_v01",
@@ -1652,7 +1652,7 @@
    "id": "dialogue_newton22",
    "kind": "portrait",
    "label": "Isaac Newton 22 歲（合理重建）",
-   "path": "ch04/characters/ch04_char_newton22_v02.webp",
+   "path": "ch04/characters/ch04_char_newton22_v03.webp",
    "firstScreen": true,
    "w": 900,
    "h": 1200,
@@ -1662,7 +1662,7 @@
    "id": "dialogue_newton41",
    "kind": "portrait",
    "label": "Isaac Newton 約 41 歲（合理重建）",
-   "path": "ch04/characters/ch04_char_newton41_v02.webp",
+   "path": "ch04/characters/ch04_char_newton41_v03.webp",
    "firstScreen": false,
    "w": 900,
    "h": 1200,
@@ -2048,7 +2048,7 @@
    "match": "牛頓沿著選中的方向連出三個點",
    "items": [
     {
-     "asset": "ch04_prop_tangent_prediction_sheet_v01",
+     "asset": "ch04_prop_tangent_prediction_sheet_v02",
      "alt": "牛頓桌上的手繪預測紙：地球旁的月亮沿當下切線直走，沒有自行彎回圓軌道"
     }
    ],

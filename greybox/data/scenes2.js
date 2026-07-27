@@ -145,6 +145,36 @@
     "term": "同時落地",
     "class": "resolution-qualified",
     "conditionText": "近乎;裝置能分辨"
+   },
+   {
+    "nodeId": "debate2.fr.claim.options.honest.text",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.claim.options.over.text",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.claim.options.over.mistake",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.claim.options.sky.text",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
+   },
+   {
+    "nodeId": "debate2.fr.claim.options.sky.mistake",
+    "term": "平方根",
+    "class": "revealed-after-player",
+    "requiresReveal": "revealSqrt"
    }
   ]
  },
@@ -1031,21 +1061,21 @@
      "id": "q1",
      "type": "choice",
      "speaker": "system",
-     "text": "模型組裝・第一步:同高一推一放,三輪都聽不出先後。我們能說到哪裡?",
+     "text": "模型組裝・第一步:同高一推一放,三輪都聽不出先後。把紀錄寫成一句話:",
      "options": [
       {
        "id": "a",
-       "text": "在這套裝置內,水平推出沒有造成可測的落地延遲。",
+       "text": "這句話寫到這套裝置:在三個試驗高度,水平推出沒有造成我們聽得出的落地延遲。",
        "next": "n3"
       },
       {
        "id": "b",
-       "text": "所有物體在任何情況下,落地都會絕對不分先後。",
+       "text": "這句話寫到更高的落點:即使高度繼續增加,水平推出仍不會造成我們聽得出的落地延遲。",
        "next": "w1b"
       },
       {
        "id": "c",
-       "text": "向前飛的球一定比直接落下的球更晚落地。",
+       "text": "這句話寫到不同的球:換掉材質或重量,水平推出仍不會造成我們聽得出的落地延遲。",
        "next": "w1c"
       }
      ]
@@ -1054,14 +1084,14 @@
      "id": "w1b",
      "type": "line",
      "speaker": "伽利略",
-     "text": "我們只能說這套裝置聽得出來的事。「任何情況」——那是沒量過的地方。",
+     "text": "這三輪只到眼前這幾個高度。再高會怎樣,這張紙還沒量到。",
      "next": "q1"
     },
     {
      "id": "w1c",
      "type": "line",
      "speaker": "伽利略",
-     "text": "那三輪分不開的落地聲,正好不支持這句話。讀紀錄,別讀直覺。",
+     "text": "這三輪沒有換球。材質和重量換掉後會怎樣,得另做一組。",
      "next": "q1"
     },
     {

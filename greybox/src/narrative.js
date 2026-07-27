@@ -16,7 +16,7 @@
 
   /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
      不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
-  var CHAPTER_ID = /^ch[1234]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var CHAPTER_ID = /^ch[1-5]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : 1;
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = "SC-R1";
@@ -156,6 +156,15 @@
 
   /* ---------- 辯論引擎(R-DEB-09~13) ---------- */
   function pillarDef(pid) { return CH.pillars[pid]; }
+  function opponentSpeaker() {
+    return CH.speakers && CH.speakers.opponent || "辛普里奧";
+  }
+  function coachSpeaker() {
+    return CH.speakers && CH.speakers.coach || "伽利略";
+  }
+  function hostSpeaker() {
+    return CH.speakers && CH.speakers.host || opponentSpeaker();
+  }
   function pillarStatements(pid) {
     if (pillarDef(pid).useLegacy) return DEBATE.statements;
     return pillarDef(pid).statements;
@@ -181,6 +190,7 @@
       state.debate.fr.claimDone = false;
       state.debate.fr.overTried = false;
     }
+    if (CH.fr.kind === "rewrite") state.debate.fr.claimDone = false;
     state.eventLog.push({ t: "debateInit" });
   }
   function debateReenter(state) {
@@ -240,7 +250,7 @@
     var pid = curPillarId(d);
     if (d.pillars[pid].s[sid] === "pressed") return { state: state0, error: "這句已經問清了" };
     say(state, "旅人(你)", "【追問】" + stmt.text);
-    say(state, "辛普里奧", stmt.press || "(不答。)");
+    say(state, opponentSpeaker(), stmt.press || "(不答。)");
     d.pillars[pid].s[sid] = "pressed";
     if (stmt.insight) say(state, "旅人筆記", "【問清之後】" + stmt.insight);
     if (stmt.pressChoice) {
@@ -259,7 +269,7 @@
     stmt.pressChoice.options.forEach(function (o) { if (o.id === optionId) opt = o; });
     if (!opt) return { state: state0, error: "選項不存在" };
     say(state, "旅人(你)", opt.text);
-    say(state, "辛普里奧", opt.reply || "");
+    say(state, opponentSpeaker(), opt.reply || "");
     if (opt.penalty) {
       rememberMistake(d, { kind: "answer", label: "你用『未來的物理學』交換權威,反而走進了他的規則。" });
       if (opt.penalty.rep) applyRep(state, opt.penalty.rep, "debate.pressChoice");
@@ -294,7 +304,7 @@
       p.target === "s2" && e3.a && !e3.b;
     if (isCorrect) {
       say(state, "旅人(你)", pillarDef(pid).playerCorrect);
-      say(state, "辛普里奧", pillarDef(pid).breakReply);
+      say(state, opponentSpeaker(), pillarDef(pid).breakReply);
       d.pillars[pid].s[p.target] = "broken";
       d.pillars[pid].broken = true;
       d.idx += 1;
@@ -303,23 +313,23 @@
       if (d.idx === 3) {
         d.fr.opened = true;
         say(state, "system", CH.texts.frUnlocked);
-        say(state, "辛普里奧", CH.fr.open);
+        say(state, hostSpeaker(), CH.fr.open);
       }
     } else if (isInsufficientP3) {
       d.p3NeedFlag = true;
-      say(state, "辛普里奧", DEBATE.statements[1].insufficient.reply);
+      say(state, opponentSpeaker(), DEBATE.statements[1].insufficient.reply);
       outcome = "insufficient";
     } else if (special) {
-      say(state, "辛普里奧", special.reply);
+      say(state, opponentSpeaker(), special.reply);
       if (special.note) say(state, "system", special.note);
       outcome = "special";
     } else {
-      say(state, "辛普里奧", CH.texts.wrong);
+      say(state, CH.fr.kind === "rewrite" ? coachSpeaker() : opponentSpeaker(), CH.texts.wrong);
       rememberMistake(d, {
         kind: "present", pillar: pid, evidence: p.evidence, subitem: p.subitem || null,
         target: p.target, targetText: stmt.text
       });
-      if (pid === "P1" && !d.firstMissUsed) {
+      if (d.idx === 0 && !d.firstMissUsed) {
         /* GB-ADR-010:第一支柱首次誤擊=免扣試射(教規則,不教答案);僅一次,再入不重置 */
         d.firstMissUsed = true;
         say(state, "旅人筆記", "【試射】這張牌沒有咬住他的話——講堂容你一次失準,下一次就要算數了。");
@@ -340,7 +350,6 @@
   }
   function frResolveHonest(state) {
     var d = state.debate;
-    say(state, "旅人(你)", CH.fr.trap.honestText);
     say(state, "辛普里奧", CH.fr.trap.closeReply);
     d.fr.trapPending = false;
     d.fr.resolved = true;
@@ -397,25 +406,25 @@
       d.fr.trapPending = true;
       return { state: state, outcome: "step" };
     }
-    if (d.fr.trapPending) { /* claim:over/honest(over 強制轉 honest,代價照 CH2-CR-001) */
+    if (d.fr.trapPending) { /* claim:先承諾範圍;越界會留下痕跡並停在原步,由玩家自行修正 */
       var t = null;
       CH.fr.claim.options.forEach(function (o) { if (o.id === optionId) t = o; });
       if (!t) return { state: state0, error: "選項不存在" };
       say(state, "旅人(你)", t.text);
-      if (t.id === "over") {
-        if (d.fr.overTried) return { state: state0, error: "誇大的回答已被駁回——只能回到證據邊界" };
-        d.fr.overTried = true;
-        rememberMistake(d, { kind: "boundary", label: CH.fr.claim.overMistake });
+      var claimCorrect = t.correct === true || (typeof t.correct === "undefined" && t.id === "honest");
+      if (!claimCorrect) {
+        if (t.id === "over") d.fr.overTried = true; /* 舊存檔／回顧相容欄位 */
+        rememberMistake(d, { kind: "boundary", optionId: t.id, label: t.mistake || CH.fr.claim.overMistake });
         say(state, "辛普里奧", t.reply);
-        if (t.penalty.rep) applyRep(state, t.penalty.rep, "debate.fr2.over");
-        if (t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.fr2.over");
+        if (t.penalty && t.penalty.rep) applyRep(state, t.penalty.rep, "debate.fr2." + t.id);
+        if (t.penalty && t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.fr2." + t.id);
         if (d.status !== "pending") return { state: state, outcome: "suspended" };
+        return { state: state, outcome: "retry" };
       }
-      say(state, "旅人(你)", CH.fr.claim.honestText);
       d.fr.trapPending = false;
       d.fr.claimDone = true;
       say(state, "system", CH.texts.frUnlocked);
-      return { state: state, outcome: t.id === "over" ? "forcedHonest" : "honest" };
+      return { state: state, outcome: "honest" };
     }
     if (!d.fr.claimDone) return { state: state0, error: "先完成敵方資料判讀" };
     if (state.mode === "explore") {
@@ -454,12 +463,66 @@
     return { state: state, outcome: "slot" };
   }
 
+  /* 第五章 FR：兩步重讀同一批證據，再由玩家親手改寫問題。
+     正誤完全由資料的 correct/reason/reply 決定；錯項不移除，可重複提交。 */
+  function debateFrRewrite(state, state0, optionId) {
+    var d = state.debate, i;
+    for (i = 0; i < (CH.fr.requires || []).length; i++)
+      if (!state.evidence[CH.fr.requires[i]])
+        return { state: state0, error: "證據未齊:" + CH.fr.requires[i] };
+    var steps = CH.fr.explore.steps || [];
+    if (!d.fr.claimDone && d.fr.step < steps.length) {
+      var step = steps[d.fr.step], pick = null;
+      step.options.forEach(function (o) { if (o.id === optionId) pick = o; });
+      if (!pick) return { state: state0, error: "選項不存在" };
+      say(state, "旅人(你)", pick.text);
+      if (!pick.correct) {
+        say(state, coachSpeaker(), pick.reply || "");
+        rememberMistake(d, { kind: "rewrite-step", optionId: pick.id,
+          label: pick.reason || "同一批紀錄讀錯了一欄。" });
+        return { state: state, outcome: "retry" };
+      }
+      d.fr.step += 1;
+      if (d.fr.step >= steps.length) {
+        d.fr.claimDone = true;
+        d.fr.trapPending = true;
+        say(state, "旅人(你)", CH.fr.assertion);
+      }
+      return { state: state, outcome: "step" };
+    }
+    if (!d.fr.trapPending) return { state: state0, error: "重寫題目尚未開放" };
+    var claim = null;
+    CH.fr.claim.options.forEach(function (o) { if (o.id === optionId) claim = o; });
+    if (!claim) return { state: state0, error: "選項不存在" };
+    say(state, "旅人(你)", claim.correct ? CH.fr.claim.honestText : claim.text);
+    if (!claim.correct) {
+      rememberMistake(d, { kind: "boundary", optionId: claim.id,
+        reason: claim.reason || null, label: claim.reason || "問題仍沒有拆成兩本帳。" });
+      say(state, coachSpeaker(), claim.reply || "");
+      if (claim.penalty && claim.penalty.rep)
+        applyRep(state, claim.penalty.rep, "debate.fr5." + claim.id);
+      if (claim.penalty && claim.penalty.persuasion)
+        debatePersuasion(state, claim.penalty.persuasion, "debate.fr5." + claim.id);
+      return { state: state, outcome: d.status === "suspended" ? "suspended" : "retry" };
+    }
+    (CH.fr.claim.closeReply || []).forEach(function (line) {
+      say(state, line.speaker, line.text);
+    });
+    d.fr.trapPending = false;
+    d.fr.resolved = true;
+    d.status = "won";
+    grantEvidence(state, CH.fr.grant || "J4", "debate.fr5");
+    state.eventLog.push({ t: "debateWon" });
+    return { state: state, outcome: "resolved" };
+  }
+
   function debateFr(state0, optionId) {
     var state = clone(state0);
     var d = state.debate;
     var g = guardDebate(state); if (g) return { state: state0, error: g };
     if (!d.fr.opened || d.fr.resolved) return { state: state0, error: "尚未進入最後反撲" };
     if (CH.fr.enemy) return debateFr2(state, state0, optionId); /* 第二章 FR 全流程 */
+    if (CH.fr.kind === "rewrite") return debateFrRewrite(state, state0, optionId);
     /* A-1:外推論證之前提=玩家親手驗過「隨傾角形式不變」(E3.c);未持有不得組鏈 */
     if (!state.lab.evidence.e3.c) {
       return { state: state0, error: "尚未完成變換傾角的複驗——沒親手確認規律在不同傾角下仍保持同一形式，這段論證還不能成立。" };
@@ -468,14 +531,14 @@
       var t = null;
       CH.fr.trap.options.forEach(function (o) { if (o.id === optionId) t = o; });
       if (!t) return { state: state0, error: "選項不存在" };
-      say(state, "旅人(你)", t.text);
+      /* 誠實回答的完整句必須由玩家在選單中親自選下,不是答錯後由引擎代為改口。 */
+      say(state, "旅人(你)", t.id === "honest" ? CH.fr.trap.honestText : t.text);
       if (t.id === "lied") {
         rememberMistake(d, { kind: "boundary", label: "你聲稱量過垂直落下,卻拿不出任何紀錄。" });
         say(state, "辛普里奧", t.reply);
         if (t.penalty.rep) applyRep(state, t.penalty.rep, "debate.trap");
         if (t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.trap");
-        if (d.status === "pending") frResolveHonest(state); /* 強制轉誠實 */
-        return { state: state, outcome: d.status === "won" ? "resolvedAfterLie" : "suspended" };
+        return { state: state, outcome: d.status === "pending" ? "retry" : "suspended" };
       }
       frResolveHonest(state);
       return { state: state, outcome: "resolved" };
@@ -528,7 +591,7 @@
     if (!d) return null;
     var v = { persuasion: d.persuasion, status: d.status, pressChoice: null, phase: null,
               mistakes: (d.mistakes || []).slice() };
-    v.pillarSummary = ["P1", "P2", "P3"].map(function (pid) {
+    v.pillarSummary = CH.order.slice(0, 3).map(function (pid) {
       return { id: pid, title: pillarDef(pid).title, broken: d.pillars[pid].broken };
     });
     if (d.idx < 3) {
@@ -551,12 +614,15 @@
         v.enemy = { step: d.fr.enemyStep, card: CH.fr.enemy.card, prompt: Ed.prompt,
                     options: Ed.options.map(function (o) { return { id: o.id, text: o.text }; }) };
       } else if (d.fr.trapPending) {
-        var TP = CH.fr.enemy ? CH.fr.claim : CH.fr.trap;
+        var TP = (CH.fr.enemy || CH.fr.kind === "rewrite") ? CH.fr.claim : CH.fr.trap;
         v.phase = "trap";
         v.trap = { prompt: TP.prompt, options: TP.options
-          .filter(function (o) { return !(CH.fr.enemy && d.fr.overTried && o.id === "over"); })
-          .map(function (o) { return { id: o.id, text: o.text }; }) };
-      } else if (state.mode === "explore") {
+          .map(function (o) {
+            var text = (!CH.fr.enemy && CH.fr.kind !== "rewrite" && o.id === "honest" && CH.fr.trap.honestText) ?
+              CH.fr.trap.honestText : o.text;
+            return { id: o.id, text: text };
+          }) };
+      } else if (state.mode === "explore" || CH.fr.kind === "rewrite") {
         var steps0 = CH.fr.enemy ? exploreSteps2(state) : CH.fr.explore.steps;
         var st = steps0[d.fr.step];
         v.phase = "fr";
@@ -650,6 +716,13 @@
       if (until.orbit === "k5") return !!oe.k5;
       if (until.orbit === "archive-complete")
         return !!(ob.archiveLab && ob.archiveLab.complete);
+    }
+    if (until.collision) {
+      var ce = state.lab && state.lab.evidence || {};
+      if (until.collision === "j1") return !!ce.j1;
+      if (until.collision === "j2") return !!ce.j2;
+      if (until.collision === "followup") return !!ce.followup;
+      if (until.collision === "j3") return !!ce.j3;
     }
     return true;
   }
@@ -805,6 +878,7 @@
     else if (action === "setDossierDraft" && Engine.setDossierDraft) r = Engine.setDossierDraft(state.lab, args.field, args.value);
     else if (action === "copyDossierRecord" && Engine.copyDossierRecord) r = Engine.copyDossierRecord(state.lab, args.recordId);
     else if (action === "runDossierExperiment" && Engine.runDossierExperiment) r = Engine.runDossierExperiment(state.lab);
+    else if (action === "fileDossierRecord" && Engine.fileDossierRecord) r = Engine.fileDossierRecord(state.lab);
     else if (action === "selectDossierSource" && Engine.selectDossierSource)
       r = Engine.selectDossierSource(state.lab, args.assertionId, args.sourceId);
     else if (action === "setDossierScope" && Engine.setDossierScope) r = Engine.setDossierScope(state.lab, args.assertionId, args.choice);
@@ -858,6 +932,13 @@
     else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
     else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
     else if (action === "clipEvidence" && Engine.clipEvidence) r = Engine.clipEvidence(state.lab, args.evidenceId);
+    /* 第五章：同一批碰撞的兩本帳、4／8 追一筆與黏土深度。 */
+    else if (action === "setCollisionDraft" && Engine.setDraft) r = Engine.setDraft(state.lab, args.field, args.value);
+    else if (action === "runCollision" && Engine.runCollision) r = Engine.runCollision(state.lab);
+    else if (action === "assertJ1" && Engine.assertJ1) r = Engine.assertJ1(state.lab, args.runIds);
+    else if (action === "assertJ2" && Engine.assertJ2) r = Engine.assertJ2(state.lab, args.runIds);
+    else if (action === "runClay" && Engine.runClay) r = Engine.runClay(state.lab);
+    else if (action === "assertJ3" && Engine.assertJ3) r = Engine.assertJ3(state.lab, args.runIds);
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
@@ -876,6 +957,10 @@
     ["K1", "K2", "K3", "K4", "K5"].forEach(function (id) {
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
         grantEvidence(state, id, "orbit4");
+    });
+    ["J1", "J2", "J3"].forEach(function (id) {
+      if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
+        grantEvidence(state, id, "collision5");
     });
     if (r.repDelta) applyRep(state, r.repDelta, "ship3." + action);
     if (action === "judge") {
