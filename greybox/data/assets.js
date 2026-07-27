@@ -80,7 +80,18 @@
   "D3-3": "bg_ch04_london_printshop_1687",
   "D3-4": "bg_ch04_london_printshop_1687",
   "DE-1": "bg_ch04_london_printshop_1687",
-  "DE-2": "bg_ch04_typecase_collision_epilogue"
+  "DE-2": "bg_ch04_typecase_collision_epilogue",
+  "ch5:E0-1": "bg_ch05_cirey_library_day",
+  "ch5:E0-2": "bg_ch05_cirey_library_day",
+  "ch5:E1-1": "bg_ch05_cirey_library_day",
+  "ch5:E1-2": "bg_ch05_cirey_library_day",
+  "ch5:E2-1": "bg_ch05_cirey_library_day",
+  "ch5:E2-2": "bg_ch05_cirey_library_day",
+  "ch5:E2-3": "bg_ch05_cirey_library_day",
+  "ch5:E3-1": "bg_ch05_cirey_debate_evening",
+  "ch5:E3-2": "bg_ch05_cirey_debate_evening",
+  "ch5:EE-1": "bg_ch05_cirey_epilogue_night",
+  "ch5:EE-2": "bg_ch05_cirey_epilogue_night"
  },
  "apparatusBriefings": {
   "ch3:C1-1": {
@@ -1649,6 +1660,66 @@
    "h": 750
   },
   {
+   "id": "card_S6",
+   "kind": "card",
+   "label": "S6 《運動之量》正統文獻（史料意象圖）",
+   "path": "ch05/evidence/ch05_card_S6_quantity_of_motion_treatise_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_S6_quantity_of_motion_treatise_master_v01.png"
+  },
+  {
+   "id": "card_S7",
+   "kind": "card",
+   "label": "S7 's Gravesande 黏土報告（史料意象圖）",
+   "path": "ch05/evidence/ch05_card_S7_clay_report_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_S7_clay_report_master_v01.png"
+  },
+  {
+   "id": "card_J1",
+   "kind": "card",
+   "label": "J1 帶方向的動量帳",
+   "path": "ch05/evidence/ch05_card_J1_signed_momentum_ledger_v02.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J1_signed_momentum_ledger_master_v02.png"
+  },
+  {
+   "id": "card_J2",
+   "kind": "card",
+   "label": "J2 活力帳（mv²）",
+   "path": "ch05/evidence/ch05_card_J2_vis_viva_ledger_v02.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J2_vis_viva_ledger_master_v02.png"
+  },
+  {
+   "id": "card_J3",
+   "kind": "card",
+   "label": "J3 黏土深度",
+   "path": "ch05/evidence/ch05_card_J3_clay_depth_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J3_clay_depth_master_v01.png"
+  },
+  {
+   "id": "card_J4",
+   "kind": "card",
+   "label": "J4 兩本帳的重寫",
+   "path": "ch05/evidence/ch05_card_J4_two_ledgers_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J4_two_ledgers_master_v01.png"
+  },
+  {
    "id": "dialogue_newton22",
    "kind": "portrait",
    "label": "Isaac Newton 22 歲（合理重建）",
@@ -1687,6 +1758,96 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_woolsthorpe_orchard_1665_master_v01.png"
+  },
+  {
+   "id": "ch05_transition_1687_collision_question_v01",
+   "kind": "bg",
+   "label": "章首轉場・1687 碰撞問題留在筆記",
+   "path": "ch05/transitions/ch05_transition_1687_collision_question_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch05/transitions/ch05_transition_1687_collision_question_master_v01.png"
+  },
+  {
+   "id": "ch05_transition_1687_1740_pagefold_v01",
+   "kind": "bg",
+   "label": "章首轉場・1687 至 1740 紙頁時間通道",
+   "path": "ch05/transitions/ch05_transition_1687_1740_pagefold_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch05/transitions/ch05_transition_1687_1740_pagefold_master_v01.png"
+  },
+  {
+   "id": "ch05_transition_1740_cirey_arrival_v01",
+   "kind": "bg",
+   "label": "章首轉場・約 1740 抵達西雷莊園",
+   "path": "ch05/transitions/ch05_transition_1740_cirey_arrival_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch05/transitions/ch05_transition_1740_cirey_arrival_master_v01.png"
+  },
+  {
+   "id": "bg_ch05_cirey_library_day",
+   "kind": "bg",
+   "label": "約 1740 西雷莊園・日間書房",
+   "path": "ch05/backgrounds/ch05_bg_cirey_library_day_v01.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_library_day_master_v01.png"
+  },
+  {
+   "id": "bg_ch05_cirey_debate_evening",
+   "kind": "bg",
+   "label": "約 1740 西雷莊園・夜間辯論桌",
+   "path": "ch05/backgrounds/ch05_bg_cirey_debate_evening_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_debate_evening_master_v01.png"
+  },
+  {
+   "id": "bg_ch05_cirey_epilogue_night",
+   "kind": "bg",
+   "label": "約 1740 西雷莊園・低火尾聲",
+   "path": "ch05/backgrounds/ch05_bg_cirey_epilogue_night_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_epilogue_night_master_v01.png"
+  },
+  {
+   "id": "dialogue_du_chatelet34",
+   "kind": "portrait",
+   "label": "Émilie du Châtelet 約 34 歲（合理重建）",
+   "path": "ch05/characters/ch05_char_du_chatelet34_v01.webp",
+   "firstScreen": true,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch05/characters/ch05_char_du_chatelet34_alpha_v01.png"
+  },
+  {
+   "id": "dialogue_dupre58",
+   "kind": "portrait",
+   "label": "杜佩院士約 58 歲（虛構複合角色）",
+   "path": "ch05/characters/ch05_char_dupre58_v01.webp",
+   "firstScreen": false,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch05/characters/ch05_char_dupre58_alpha_v01.png"
+  },
+  {
+   "id": "chapter_thumbnail_ch05",
+   "kind": "cg",
+   "label": "第五章章節縮圖",
+   "path": "ch05/backgrounds/ch05_bg_cirey_library_day_v01.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_library_day_master_v01.png"
   }
  ],
  "sceneDialoguePortrait": {
@@ -1969,7 +2130,9 @@
   "Newton": "dialogue_newton41",
   "Halley": "dialogue_halley28",
   "牛頓": "dialogue_newton41",
-  "哈雷": "dialogue_halley28"
+  "哈雷": "dialogue_halley28",
+  "杜夏特萊": "dialogue_du_chatelet34",
+  "杜佩院士": "dialogue_dupre58"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -1984,7 +2147,9 @@
   "Newton": "right",
   "Halley": "left",
   "牛頓": "right",
-  "哈雷": "left"
+  "哈雷": "left",
+  "杜夏特萊": "right",
+  "杜佩院士": "left"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -2458,6 +2623,26 @@
      "caption": "白光退去。濕草、石牆，和白日天空裡沒有墜落的月亮。"
     }
    ]
+  },
+  "E0-1": {
+   "fx": "montage",
+   "steps": [
+    {
+     "plate": "ch05_transition_1687_collision_question_v01",
+     "label": "1687｜英格蘭・倫敦",
+     "caption": "《原理》已經印成書；碰撞之後該記住什麼，仍留在旅人的下一頁。"
+    },
+    {
+     "plate": "ch05_transition_1687_1740_pagefold_v01",
+     "label": "1687→約 1740｜筆記翻過五十三年",
+     "caption": "五十三年折進紙縫。旅人沒有變，接住問題的人已換了一代。"
+    },
+    {
+     "plate": "ch05_transition_1740_cirey_arrival_v01",
+     "label": "約 1740｜法國・西雷莊園",
+     "caption": "白光退去。書房裡已有兩本帳，等著被分開算清。"
+    }
+   ]
   }
  },
  "sceneBgm": {
@@ -2815,7 +3000,13 @@
   "K2": "距離與時間同放大六十倍時，反平方律把地表一秒落下與月球六十秒偏折接到同一量級。",
   "K3": "Mars 與 Jupiter 的週期都在觀測揭露前封存，舊預測即使改律也不會被刪除。",
   "K4": "反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet；比較只涵蓋這兩個明列版本。",
-  "K5": "證據鏈、來源署名與作用機制邊界同時通過校樣；可計算規則成立，機制仍未決。"
+  "K5": "證據鏈、來源署名與作用機制邊界同時通過校樣；可計算規則成立，機制仍未決。",
+  "S6": "正統主張把碰撞前後帶方向的 mv 當作同一本帳；這是待檢驗的主張，不是本輪結果。",
+  "S7": "黏土壓痕提供可量的深度尺度，但不替短少的可見運動說明完整去向。",
+  "J1": "鋼頭、油灰頭各三筆：帶方向的 mv 在碰撞前後都閉合。",
+  "J2": "同一批紀錄改算 mv²：鋼頭閉合，油灰碰撞後的可見運動出現短少。",
+  "J3": "同一顆球用三種速度撞黏土：坑深與 v² 的變化吻合；短少的完整去向仍未對平。",
+  "J4": "兩本帳記的是不同問題，各有用途；不能硬合成一本，也不能只留其中一本。"
  },
  "evidenceVisual": {
   "E1": {
@@ -3054,6 +3245,60 @@
     }
    ],
    "caption": "取得證據：證明、署名與未決機制都停在各自邊界。"
+  },
+  "S6": {
+   "items": [
+    {
+     "asset": "card_S6",
+     "alt": "十八世紀碰撞論著的史料意象圖，書頁畫出碰撞前後的方向箭頭"
+    }
+   ],
+   "caption": "取得史料：《運動之量》正統文獻（史料意象圖，非原書頁掃描）。"
+  },
+  "S7": {
+   "items": [
+    {
+     "asset": "card_S7",
+     "alt": "十八世紀黏土壓痕報告的史料意象圖，黏土上有三種深度的圓形壓痕"
+    }
+   ],
+   "caption": "取得史料：'s Gravesande 黏土報告（史料意象圖，非原報告掃描）。"
+  },
+  "J1": {
+   "items": [
+    {
+     "asset": "card_J1",
+     "alt": "同一批鋼球與油灰碰撞用方向箭頭整理成動量帳；數值帳格留白，由工作台紀錄給出"
+    }
+   ],
+   "caption": "取得證據：帶方向的動量帳在兩種碰撞都閉合。"
+  },
+  "J2": {
+   "items": [
+    {
+     "asset": "card_J2",
+     "alt": "同一批碰撞改列活力帳；數值帳格留白，油灰列另留一格尚未對平的去向"
+    }
+   ],
+   "caption": "取得證據：活力帳在鋼頭閉合，在油灰碰撞留下可見運動的短少。"
+  },
+  "J3": {
+   "items": [
+    {
+     "asset": "card_J3",
+     "alt": "同一顆球從三種高度落入黏土，留下由淺至深的三個壓痕"
+    }
+   ],
+   "caption": "取得證據：黏土坑深隨速度平方的尺度變化。"
+  },
+  "J4": {
+   "items": [
+    {
+     "asset": "card_J4",
+     "alt": "方向碰撞帳與黏土深度帳並排而不合併，中間保留尚未填寫的空白收據"
+    }
+   ],
+   "caption": "取得證據：兩本帳各答一種問題，短少的完整去向仍留白。"
   }
  },
  "workshopApparatusAsset": "workshop2_projectile_apparatus_master",
@@ -3099,7 +3344,8 @@
  "chapterThumbnail": {
   "ch02": "chapter_thumbnail_ch02",
   "ch03": "chapter_thumbnail_ch03",
-  "ch04": "chapter_thumbnail_ch04"
+  "ch04": "chapter_thumbnail_ch04",
+  "ch05": "chapter_thumbnail_ch05"
  }
 };
  if (typeof module === "object" && module.exports) { module.exports = data; }

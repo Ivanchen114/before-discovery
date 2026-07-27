@@ -439,8 +439,10 @@ tests.push({
       if (!cui.includes('"' + evName + '"')) throw new Error("chapter-ui 缺掛點:" + evName);
       if (!sui.includes('"' + evName + '"')) throw new Error("stage-ui 未訂閱:" + evName);
     }
-    /* 章首與跨年蒙太奇：四章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
-    const sceneIds = new Set([].concat(scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes).map((s) => s.id));
+    /* 章首與跨年蒙太奇：各章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
+    const sceneIds = new Set([].concat(
+      scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes, scenes5.scenes
+    ).map((s) => s.id));
     const entryById = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
     for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
       if (!sceneIds.has(sc)) throw new Error("sceneFx 指向不存在場景:" + sc);
@@ -456,7 +458,7 @@ tests.push({
           throw new Error("蒙太奇節拍缺時地標籤或敘事字幕:" + sc);
       }
     }
-    for (const id of ["P0-1", "INT-1", "B0-1", "C0-1", "D0-2"])
+    for (const id of ["P0-1", "INT-1", "B0-1", "C0-1", "D0-2", "E0-1"])
       if (!assets.sceneFx || !assets.sceneFx[id]) throw new Error("章首／交棒蒙太奇未註冊:" + id);
     const int1 = assets.sceneFx["INT-1"];
     if (JSON.stringify(int1.steps.map((s) => s.label)) !== JSON.stringify(["1592｜比薩 → 帕多瓦", "1597–1602｜帕多瓦", "1603｜帕多瓦"]))
@@ -3645,11 +3647,14 @@ tests.push({
 });
 
 tests.push({
-  name: "三章證據視覺|每項證據皆有可解析圖像，取得與筆記共用單一映射",
+  name: "五章證據視覺|每項宣告證據皆有可解析圖像，取得與筆記共用單一映射",
   fn: () => {
     const assets = require("../data/assets.js");
     const entries = new Map(assets.entries.map((e) => [e.id, e]));
-    const required = ["E1","E2","E3","E4","E5","S1","S2", "F1","F2","F3","F4","F5","S3","S4", "S5","G1","G2","G3","G4","G5"];
+    const required = [...new Set(
+      [scenes, scenes2, scenes3, scenes4, scenes5]
+        .flatMap((chapter) => Object.keys(chapter.evidenceNames || {}))
+    )];
     for (const code of required) {
       const visual = assets.evidenceVisual && assets.evidenceVisual[code];
       if (!visual || !visual.items?.length || !visual.caption) throw new Error("證據缺視覺映射：" + code);
@@ -3658,8 +3663,12 @@ tests.push({
         const entry = entries.get(item.asset);
         if (!entry?.path || !existsSync(path.join(here, "../../public/assets/", entry.path)))
           throw new Error("證據圖無法解析：" + code + " → " + item.asset);
+        if (entry.sourceMaster && entry.sourceMaster.startsWith("art/") &&
+            !existsSync(path.join(here, "../../", entry.sourceMaster)))
+          throw new Error("證據圖母版無法解析：" + code + " → " + entry.sourceMaster);
       }
     }
+    if (required.length !== 31) throw new Error("五章證據宣告數改變，請重審視覺盤點：" + required.length);
     const s5Visual = assets.evidenceVisual.S5;
     const s5Asset = entries.get(s5Visual.items[0].asset);
     if (s5Visual.items[0].asset === "bg_ch03_marseille_harbor_dawn" || s5Asset?.kind !== "card" || !s5Asset?.path?.startsWith("ch03/cards/"))
@@ -4376,13 +4385,26 @@ tests.push({
 });
 
 tests.push({
-  name: "全章證據解鎖儀式|gainHit 契約 token 齊備(RUNTIME-CR-019)",
+  name: "全章證據解鎖儀式|以證據狀態新增為主、舊文案只作 fallback(RUNTIME-CR-019)",
   fn() {
     const tw = readFileSync(path.join(here, "../src/stage/04-typewriter.part.js"), "utf-8");
+    const events = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const tok of ["item.evidence && item.evidence.length", "structuredGain || legacyGain",
+      "function playEvidenceGain(target)", 'playEvidenceGain($("dialogue"))'])
+      if (!tw.includes(tok)) throw new Error("結構化解鎖契約缺失:" + tok);
+    if (!events.includes('showEvidenceFocus(d.code, d.name || "新證據");') ||
+        !events.includes('playEvidenceGain($("sceneFocus"));'))
+      throw new Error("無取得台詞的實驗證據未觸發同一套視聽儀式");
+    if (!html.includes("#dialogue.fx-gain, #sceneFocus.fx-gain"))
+      throw new Error("證據圖層未接上金色脈動");
+    /* 舊的斷言／筆記解鎖尚未都有 evidence code，fallback token 暫留；不得再把它當新章主契約。 */
     for (const tok of ["取得(?:證據| [A-Z]\\d)", "旅人筆記解鎖", "收入卷宗", "已簽名收卷", "夾回"])
-      if (!tw.includes(tok)) throw new Error("gainHit 契約缺 token:" + tok);
+      if (!tw.includes(tok)) throw new Error("舊存量 fallback 缺 token:" + tok);
     const built = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    if (!built.includes("收入卷宗")) throw new Error("stage-ui.js 未重建(缺新契約 token)");
+    if (!built.includes("structuredGain || legacyGain") ||
+        !built.includes('playEvidenceGain($("sceneFocus"));'))
+      throw new Error("stage-ui.js 未重建（缺結構化解鎖契約）");
     /* 行為抽測:新舊句式都要命中,一般旁白不得誤中 */
     const re1 = /^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/, re2 = /^(取得|◆ ?取得)/,
       re3 = /收入卷宗|已簽名收卷|夾回.{0,2}筆記|證據已收|斷言.{0,4}成立/;
