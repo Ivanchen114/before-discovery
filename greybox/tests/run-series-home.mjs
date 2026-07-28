@@ -15,6 +15,8 @@ const ch4Script = readFileSync(
   path.join(here, "../../04_劇本/第四章完整劇本_月亮的無盡墜落_v0.2-review.md"),
   "utf8"
 );
+const vercel = JSON.parse(readFileSync(path.join(here, "../../vercel.json"), "utf8"));
+const sitemap = readFileSync(path.join(here, "../../sitemap.xml"), "utf8");
 
 function assert(ok, message) {
   if (!ok) throw new Error(message);
@@ -63,4 +65,19 @@ assert(JSON.stringify(scenes4).includes(`第四章《${chapter4.title}》`), "�
 assert(stageUi.includes(chapter4.title), "章末接力卡未同步第四章章名");
 assert(ch4Script.includes(`# 第四章完整劇本：${chapter4.title}`), "第四章劇本標題未同步");
 
+const rootRoute = (vercel.routes || []).find((route) => route.src === "^/$");
+const dataRoute = (vercel.routes || []).find((route) => route.src === "^/data/(.*)$");
+const srcRoute = (vercel.routes || []).find((route) => route.src === "^/src/(.*)$");
+const stageRedirect = (vercel.redirects || []).find((route) => route.source === "/stage.html");
+const internalStageRedirect = (vercel.redirects || []).find((route) => route.source === "/greybox/stage.html");
+assert(rootRoute?.dest === "/greybox/stage.html", "正式根網址未直接提供系列首頁");
+assert(dataRoute?.dest === "/greybox/data/$1", "根網址缺少 data 資源路由");
+assert(srcRoute?.dest === "/greybox/src/$1", "根網址缺少 src 資源路由");
+assert(stageRedirect?.destination === "/" && stageRedirect.permanent === true, "根層 stage.html 未永久收斂到正式網址");
+assert(internalStageRedirect?.destination === "/" && internalStageRedirect.permanent === true, "內部舞台網址未永久收斂到正式網址");
+assert(html.includes('<link rel="canonical" href="https://before-discovery.vercel.app/">'), "系列首頁 canonical 不是正式根網址");
+assert(sitemap.includes("<loc>https://before-discovery.vercel.app/</loc>"), "sitemap 未收錄正式根網址");
+assert(!sitemap.includes("/greybox/stage.html"), "sitemap 不得收錄內部舞台路徑");
+
 console.log("  ✓ 系列首頁 v3|目前旅程＋資料驅動章節目錄，可擴充且第四章章名同步");
+console.log("  ✓ 正式根入口|根網址直接提供系列首頁，資源路由與 canonical 收斂");

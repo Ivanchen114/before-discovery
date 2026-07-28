@@ -2,7 +2,7 @@
 
 **狀態**：正式法源  
 **適用範圍**：本機修改、GitHub 提交、Vercel 線上試玩與發佈驗收  
-**最後更新**：2026-07-27
+**最後更新**：2026-07-28
 
 ---
 
@@ -19,10 +19,11 @@
 
 - GitHub：<https://github.com/Ivanchen114/before-discovery>
 - 正式網站：<https://before-discovery.vercel.app/>
-- 玩家入口：<https://before-discovery.vercel.app/greybox/stage.html>
-- 第三章直達：<https://before-discovery.vercel.app/greybox/stage.html?chapter=ch03>
-- 第四章直達：<https://before-discovery.vercel.app/greybox/stage.html?chapter=ch04>
+- 玩家入口：<https://before-discovery.vercel.app/>
+- 第三章直達：<https://before-discovery.vercel.app/?chapter=ch03>
+- 第四章直達：<https://before-discovery.vercel.app/?chapter=ch04>
 - Vercel 以 repo 根目錄為靜態輸出；設定見根目錄 `vercel.json`。
+- `greybox/stage.html` 是內部實作路徑；正式對外連結一律使用根網址，避免入口與 canonical 分裂。
 
 `chatgpt.site`、本機 `127.0.0.1`、直接雙擊 `file://` 都不是本專案的正式發佈位址。
 
@@ -137,7 +138,7 @@ git push origin main
 5. 用帶 commit 短碼的查詢參數避開舊快取，例如：
 
 ```text
-https://before-discovery.vercel.app/greybox/stage.html?chapter=ch03&build=abc1234
+https://before-discovery.vercel.app/?chapter=ch03&build=abc1234
 ```
 
 6. 實際確認：

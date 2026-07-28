@@ -1,3 +1,33 @@
 {
-  "outputDirectory": "."
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/stage.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/greybox/stage.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/$",
+      "dest": "/greybox/stage.html"
+    },
+    {
+      "src": "^/data/(.*)$",
+      "dest": "/greybox/data/$1"
+    },
+    {
+      "src": "^/src/(.*)$",
+      "dest": "/greybox/src/$1"
+    },
+    {
+      "handle": "filesystem"
+    }
+  ]
 }
