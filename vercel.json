@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cp greybox/stage.html index.html",
   "outputDirectory": ".",
   "redirects": [
     {
@@ -13,21 +14,14 @@
       "permanent": true
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/$",
-      "dest": "/greybox/stage.html"
+      "source": "/data/:path*",
+      "destination": "/greybox/data/:path*"
     },
     {
-      "src": "^/data/(.*)$",
-      "dest": "/greybox/data/$1"
-    },
-    {
-      "src": "^/src/(.*)$",
-      "dest": "/greybox/src/$1"
-    },
-    {
-      "handle": "filesystem"
+      "source": "/src/:path*",
+      "destination": "/greybox/src/:path*"
     }
   ]
 }

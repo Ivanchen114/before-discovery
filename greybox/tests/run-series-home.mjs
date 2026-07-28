@@ -65,14 +65,14 @@ assert(JSON.stringify(scenes4).includes(`第四章《${chapter4.title}》`), "�
 assert(stageUi.includes(chapter4.title), "章末接力卡未同步第四章章名");
 assert(ch4Script.includes(`# 第四章完整劇本：${chapter4.title}`), "第四章劇本標題未同步");
 
-const rootRoute = (vercel.routes || []).find((route) => route.src === "^/$");
-const dataRoute = (vercel.routes || []).find((route) => route.src === "^/data/(.*)$");
-const srcRoute = (vercel.routes || []).find((route) => route.src === "^/src/(.*)$");
+const dataRoute = (vercel.rewrites || []).find((route) => route.source === "/data/:path*");
+const srcRoute = (vercel.rewrites || []).find((route) => route.source === "/src/:path*");
 const stageRedirect = (vercel.redirects || []).find((route) => route.source === "/stage.html");
 const internalStageRedirect = (vercel.redirects || []).find((route) => route.source === "/greybox/stage.html");
-assert(rootRoute?.dest === "/greybox/stage.html", "正式根網址未直接提供系列首頁");
-assert(dataRoute?.dest === "/greybox/data/$1", "根網址缺少 data 資源路由");
-assert(srcRoute?.dest === "/greybox/src/$1", "根網址缺少 src 資源路由");
+assert(vercel.buildCommand === "cp greybox/stage.html index.html", "部署未把系列首頁產生為根 index.html");
+assert(!Object.prototype.hasOwnProperty.call(vercel, "routes"), "不得混用 legacy routes 與正式 rewrites／redirects");
+assert(dataRoute?.destination === "/greybox/data/:path*", "根網址缺少 data 資源路由");
+assert(srcRoute?.destination === "/greybox/src/:path*", "根網址缺少 src 資源路由");
 assert(stageRedirect?.destination === "/" && stageRedirect.permanent === true, "根層 stage.html 未永久收斂到正式網址");
 assert(internalStageRedirect?.destination === "/" && internalStageRedirect.permanent === true, "內部舞台網址未永久收斂到正式網址");
 assert(html.includes('<link rel="canonical" href="https://before-discovery.vercel.app/">'), "系列首頁 canonical 不是正式根網址");
