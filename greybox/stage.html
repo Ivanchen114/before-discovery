@@ -116,6 +116,21 @@
   .scene-focus-e2-art .e2-label.light { left: 46%; bottom: 19%; }
   .scene-focus-e2-art .e2-label.slow { left: 70%; top: 30%; color: #7d3f12; }
   .scene-focus-e2-art .e2-label.fast { left: 70%; top: 56%; color: #1d4c63; }
+  #sceneFocusMedia .scene-focus-cannon { position: relative; display: block; width: 100%;
+    aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 3px; isolation: isolate;
+    background: #172c41; }
+  #sceneFocusMedia .scene-focus-cannon > img { position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; max-height: none; object-fit: cover; border-radius: 0; background: none; }
+  .scene-focus-cannon .cannon-trajectory-overlay { position: absolute; inset: 0; z-index: 1;
+    display: block; width: 100%; height: 100%; pointer-events: none; }
+  .scene-focus-cannon .cannon-trajectory-overlay path { fill: none; stroke-width: 7;
+    stroke-linecap: round; stroke-dasharray: 18 13;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.72)); }
+  .scene-focus-cannon .cannon-trajectory-overlay .near { stroke: #e6b15b; }
+  .scene-focus-cannon .cannon-trajectory-overlay .far { stroke: #e5d28b; }
+  .scene-focus-cannon .cannon-trajectory-overlay .orbiting { stroke: #9fd4e6; }
+  .scene-focus-cannon .cannon-trajectory-overlay .impact { stroke: rgba(20,14,10,.72);
+    stroke-width: 3; fill: #f1cf77; stroke-dasharray: none; }
   #sceneFocus.multi { width: min(58%, 940px); }
   #sceneFocus.multi #sceneFocusMedia { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #sceneFocus.multi #sceneFocusMedia img { max-height: 32vh; }
@@ -187,6 +202,7 @@
   body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue,
   body[data-view="debate"] #dialogue { display: none; } /* 辯論:台詞演完即退場,讓出證據手牌(總監實玩:對話框壓住手牌) */
   body.queue-active #dialogue { display: block !important; }
+  body[data-view="orbit"].queue-active #panelWrap { bottom: 33%; transition: bottom .25s ease; }
   /* 雙肖像槽(Sol 審核 20260720):位置+明暗+名牌文字+色彩=四線索;站位由 speakerSide 資料決定,永不鏡像 */
   .bslot { position: absolute; bottom: 0; height: clamp(170px, 26vh, 220px);
            display: none; pointer-events: none;
@@ -1979,7 +1995,10 @@
     background: linear-gradient(105deg,#182131,#283446 58%,#30291f); }
   .orbitHead small { grid-column:1; color:#a9c1d3; font:700 10px var(--font-ui); letter-spacing:.13em; }
   .orbitHead h2 { grid-column:1; margin:-3px 0 0; color:#f0e8d5; font-size:clamp(20px,2vw,28px); }
-  .orbitHead p { grid-column:2; grid-row:1/3; margin:0; color:#d6d8d4; font-size:clamp(13px,1.05vw,16px); }
+  .orbitHeadCopy { grid-column:2; grid-row:1/3; display:grid; gap:3px; align-content:center; min-width:0; }
+  .orbitHeadCopy p { margin:0; color:#d6d8d4; font-size:clamp(12px,.92vw,14px); line-height:1.28; }
+  .orbitHeadCopy .orbitPurpose { color:#bfcbd2; font-size:clamp(11px,.82vw,13px); }
+  .orbitHeadCopy .orbitPurposeQuote { color:#e8d9ad; font-style:italic; }
   .orbitHeadTools { grid-column:3; grid-row:1/3; display:grid; justify-items:end; gap:4px; }
   .orbitHelp { width:30px; min-width:30px; min-height:30px; padding:0; color:#e9d9a4;
     border:1px solid rgba(196,166,95,.7); border-radius:4px; background:rgba(23,27,34,.55);
@@ -2170,7 +2189,7 @@
   .orbitProofRow,.orbitCreditRow { display:grid; grid-template-columns:minmax(170px,.9fr) minmax(120px,1fr) max-content;
     align-items:center; gap:6px; margin:5px 0; padding:5px 7px; border:1px solid rgba(77,92,107,.24); background:rgba(255,255,255,.2); }
   .orbitProofRow .shipSelect,.orbitCreditRow .shipSelect { min-height:38px; }
-  .orbitProofTrack { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; margin:8px 0 10px; }
+  .orbitProofTrack { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; margin:8px 0 10px; }
   .orbitProofStep { display:grid; align-content:start; gap:3px; min-width:0; min-height:86px; padding:7px;
     border:1px solid rgba(77,92,107,.3); background:rgba(255,255,255,.22); }
   .orbitProofStep small { color:#65788b; font:800 10px var(--font-ui); letter-spacing:.06em; }
@@ -2196,7 +2215,9 @@
     body[data-view="orbit"] #panelWrap { top:12%; bottom:3%; left:3%; right:3%; padding:6px; overflow:auto; }
     #controls.orbitLab { gap:6px; min-height:max-content; }.orbitHead { min-height:48px; padding:5px 8px;
       grid-template-columns:minmax(220px,.8fr) minmax(220px,1.2fr) auto; }
-    .orbitHead h2 { font-size:17px; line-height:1.2; white-space:nowrap; }.orbitHead p { font-size:14px; line-height:1.4; }
+    .orbitHead h2 { font-size:17px; line-height:1.2; white-space:normal; overflow-wrap:anywhere; }
+    .orbitHeadCopy { gap:2px; }.orbitHeadCopy p { font-size:12px; line-height:1.25; }
+    .orbitHeadCopy .orbitPurpose { font-size:11px; }
     .orbitHeadTools { gap:3px; }.orbitHelp { width:44px; min-width:44px; min-height:44px; font-size:16px; }
     .orbitEvidenceChips { max-width:210px; gap:2px; }
     .orbitEvidenceChips .orbitNotebookLabel { font-size:11px; letter-spacing:.04em; }
@@ -2213,18 +2234,20 @@
     .orbitLawCards { gap:4px; }.orbitLawCard { padding:6px; gap:3px; }.orbitLawCard span { min-height:0; font-size:12px; }
     .orbitRuleDesigner { gap:4px; padding:6px; }.orbitRuleDesigner .shipSelect { min-height:44px; font-size:12px; }
     .orbitArchiveCard { padding:6px; gap:3px; }.orbitArchiveReview p,.orbitCometHistory p { padding:4px 6px; margin:3px 0; font-size:13px; }
-    .orbitProofTrack { gap:3px; margin:4px 0; }.orbitProofStep { min-height:64px; padding:5px; }
+    .orbitProofTrack { grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; margin:4px 0; }.orbitProofStep { min-height:64px; padding:5px; }
     .orbitProofStep small,.orbitProofStep span { font-size:12px; }.orbitProofStep b { font-size:14px; }
     .orbitSourceChoices .orbitAction { min-height:44px; }.orbitCreditStage { padding:7px; }
     .orbitClaimSource b { font-size:14px; }.orbitClaimSource small { font-size:13px; }
     .orbitClaimChoice .shipSelect { font-size:14px; }
+    #controls.orbitLab .shipSelect { min-height:44px; }
   }
   @media (max-width:760px) and (orientation:portrait) {
     body[data-view="orbit"] #panelWrap { top:10%; left:2%; right:2%; bottom:2%; overflow:auto; }
     #controls.orbitLab { grid-template-rows:auto auto; }
     .orbitHead { grid-template-columns:minmax(0,1fr) auto; }
     .orbitHead small,.orbitHead h2 { grid-column:1; }
-    .orbitHead p { grid-column:1/-1; grid-row:auto; font-size:14px; }
+    .orbitHeadCopy { grid-column:1/-1; grid-row:auto; }
+    .orbitHeadCopy p { font-size:14px; }
     .orbitHeadTools { grid-column:2; grid-row:1/3; }
     .orbitBody { grid-template-columns:minmax(0,1fr); }
     .orbitWork { overflow:visible; }
@@ -2585,20 +2608,21 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts3.js"></script>
 <script src="data/histfacts4.js"></script>
 <script src="data/histfacts5.js?v=20260727-ch05-v1"></script>
-<script src="data/assets.js?v=20260726-ch03-dossier-v1"></script>
-<script src="src/sanitize.js?v=20260727-ch03-flow-v5"></script>
+<script src="data/assets.js?v=asset-5d5169548cf5"></script>
+<script src="src/sanitize.js?v=asset-ba2947d8137a"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
 <script src="src/engine3.js?v=20260727-ch03-flow-v5"></script>
-<script src="src/engine4.js?v=20260725-ch04-redesign-v1"></script>
+<script src="src/engine4.js?v=asset-c835d851f05b"></script>
 <script src="src/engine5.js?v=20260727-ch05-v1"></script>
 <script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes3.js?v=20260727-ch03-flow-v5"></script>
-<script src="data/scenes4.js?v=20260725-ch04-companion-v2"></script>
+<script src="data/scenes4.js?v=asset-18a5ed19550b"></script>
 <script src="data/scenes5.js?v=20260727-ch05-v1"></script>
+<script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
 (function () {
   "use strict";
@@ -2636,8 +2660,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=20260727-ch03-flow-v5"></script>
-<script src="src/chapter-ui.js?v=20260727-ch03-flow-v5"></script>
-<script src="src/stage-ui.js?v=20260727-ch03-flow-v5"></script>
+<script src="src/narrative.js?v=asset-cdd9fdc31216"></script>
+<script src="src/chapter-ui.js?v=asset-84453d2ebac2"></script>
+<script src="src/stage-ui.js?v=asset-42feb6afc5dc"></script>
 </body>
 </html>

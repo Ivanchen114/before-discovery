@@ -8,6 +8,6 @@
     "build:ch5-data": "node tools/build-ch5-data.mjs",
     "build:series-data": "node tools/build-series-data.mjs",
     "build:stage": "node tools/build-stage.mjs",
-  "test": "node tests/run-node.mjs && node tests/run-ch4-art.mjs && node tests/run-ch5-art.mjs && node tests/run-series-home.mjs"
+  "test": "node tests/run-node.mjs && node tests/run-ch4-migration.mjs && node tests/run-ch4-art.mjs && node tests/run-ch5-art.mjs && node tests/run-series-home.mjs"
   }
 }

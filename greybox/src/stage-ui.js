@@ -287,6 +287,31 @@
       diagram.appendChild(label);
     });
   }
+  function mountCannonFocusVisual(item, art) {
+    var diagram = document.createElement("div");
+    diagram.className = "scene-focus-cannon";
+    diagram.setAttribute("role", "img");
+    diagram.setAttribute("aria-label", item.alt || "山頂大砲與三種引擎繪製的拋射路徑");
+    var img = document.createElement("img");
+    img.src = assetUrl(art);
+    img.alt = "";
+    img.loading = "eager";
+    img.setAttribute("aria-hidden", "true");
+    diagram.appendChild(img);
+    var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "cannon-trajectory-overlay");
+    overlay.setAttribute("viewBox", "0 0 1672 941");
+    overlay.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML =
+      '<path class="near" d="M 650 495 C 790 470 875 548 985 690"/>' +
+      '<path class="far" d="M 650 495 C 875 385 1150 430 1415 655"/>' +
+      '<path class="orbiting" d="M 650 495 C 930 250 1350 258 1660 510"/>' +
+      '<circle class="impact near" cx="985" cy="690" r="8"/>' +
+      '<circle class="impact far" cx="1415" cy="655" r="8"/>';
+    diagram.appendChild(overlay);
+    return diagram;
+  }
   function showFocusVisual(rule) {
     if (!rule) return;
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
@@ -307,6 +332,11 @@
       }
       var e = assetEntry(item.asset);
       if (!e) return;
+      if (item.overlay === "cannon-trajectories") {
+        media.appendChild(mountCannonFocusVisual(item, e));
+        shown++;
+        return;
+      }
       var img = document.createElement("img");
       img.src = assetUrl(e);
       img.alt = item.alt || "證據圖";
@@ -1610,16 +1640,16 @@
       return;
     }
     if (BGM.current() === "ch4Orbit") {
-      /* A=只看切線離開；B=逐拍加入向內改向；C=讓同一規則持續跑。 */
-      if (d.scene === "D1-3") BGM.variant(2);
+      /* A=封存切線來源紙；B=同尺換算；C=同尺關係完成並留下未決問號。 */
+      if (d.scene === "D1-2" && ["n9","n10","n11","n12","n13","n14","n15","n16","n17","n18","n19","n20","n21","n22","n23","n24","n25","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
       else if (d.scene === "D1-2") BGM.variant(1);
       else BGM.variant(0);
       return;
     }
     if (BGM.current() === "ch4Press") {
-      /* A=第一輪窗口；B=證明與署名上版；C=守住機制空白並送出校樣。 */
-      if (d.scene === "D3-4") BGM.variant(2);
-      else if (d.scene === "D3-3") BGM.variant(1);
+      /* A=三列對帳；B=六槽證明與署名；C=守住機制空白並送出校樣。 */
+      if (d.scene === "D4-2" && ["n17","n18","n19","n20","n21","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
+      else if (d.scene === "D4-2") BGM.variant(1);
       else BGM.variant(0);
     }
   });

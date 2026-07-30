@@ -535,20 +535,141 @@
     if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
     var generic = scrub(state, 0, { n: LIMITS.maxNodes });
     if (generic) return fail(generic);
-    if (state.schemaVersion !== 1 || state.chapter !== "ch4") return fail("存檔版本或章節不相容");
+    if (state.schemaVersion !== 2 || state.chapter !== "ch4") return fail("存檔版本或章節不相容");
     if (state.mode !== "explore" && state.mode !== "scholar") return fail("遊戲模式無法辨識");
     if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("信譽數值錯誤");
-    var sceneIds = {}, nodeIds = {};
-    (scenes && scenes.scenes || []).forEach(function (s) {
-      sceneIds[s.id] = 1; nodeIds[s.id] = {};
-      (s.nodes || []).forEach(function (n) { nodeIds[s.id][n.id] = 1; });
+    var sceneIds = {}, nodeIds = {}, sceneOrder = {}, nodeOrder = {};
+    (scenes && scenes.scenes || []).forEach(function (s, sceneIndex) {
+      sceneIds[s.id] = 1; sceneOrder[s.id] = sceneIndex;
+      nodeIds[s.id] = {}; nodeOrder[s.id] = {};
+      (s.nodes || []).forEach(function (n, nodeIndex) {
+        nodeIds[s.id][n.id] = 1;
+        nodeOrder[s.id][n.id] = nodeIndex;
+      });
     });
     if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
       return fail("存檔中的故事位置無法辨識");
+    var milestoneCursor = state.cursor;
+    function cursorPastMilestone(gateScene, gateNode) {
+      var currentSceneIndex = sceneOrder[milestoneCursor.scene];
+      var gateSceneIndex = sceneOrder[gateScene];
+      if (currentSceneIndex > gateSceneIndex) return true;
+      return currentSceneIndex === gateSceneIndex &&
+        nodeOrder[milestoneCursor.scene][milestoneCursor.node] >
+          nodeOrder[gateScene][gateNode];
+    }
     var lab = state.lab;
     if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
-        !lab.orbitLab || !lab.scaleLab || !lab.planetLab || !lab.modelLab || !lab.proof || !lab.evidence)
+        !isInt(lab.sequence) || lab.sequence < 0 || lab.sequence > 999999 ||
+        !lab.sourceLab || !lab.orbitLab || !lab.scaleLab || !lab.planetLab ||
+        !lab.modelLab || !lab.proof || !lab.evidence)
       return fail("第四章實驗紀錄格式錯誤");
+    var migratedV1 = false;
+    var migrationSourceEvidence = null;
+    var legacySceneOrder4 = [
+      "D0-1", "D0-2", "D1-1", "D1-2", "D1-3", "D2-1", "D2-2",
+      "D2-3", "D3-1", "D3-2", "D3-3", "D3-4", "DE-1", "DE-2"
+    ];
+    var legacyGateNodes4 = {
+      "D1-1": ["n1", "n2", "c1", "w1", "w2", "w3", "w4", "ok1",
+        "ok2", "ok3", "e1", "n3", "n4", "n5", "n6", "n7", "g1"],
+      "D2-2": ["n0", "n0a", "n0h", "n1", "e1", "n2", "n3", "n4", "n5", "g1"],
+      "D2-3": ["c1", "n1", "n1a", "n1b", "n1c", "n1d", "n1e", "n1f",
+        "n2", "n3", "n4", "n4a", "n4b", "e1", "n5", "n6", "n7", "n8", "g1"]
+    };
+    function legacyCursorPast4(cursor, gateScene, gateNode) {
+      var currentSceneIndex = legacySceneOrder4.indexOf(cursor && cursor.scene);
+      var gateSceneIndex = legacySceneOrder4.indexOf(gateScene);
+      if (currentSceneIndex < 0) return false;
+      if (currentSceneIndex > gateSceneIndex) return true;
+      if (currentSceneIndex < gateSceneIndex) return false;
+      var nodes = legacyGateNodes4[gateScene] || [];
+      var currentNodeIndex = nodes.indexOf(cursor.node);
+      var gateNodeIndex = nodes.indexOf(gateNode);
+      return currentNodeIndex > gateNodeIndex;
+    }
+    if (state.migration != null) {
+      var migration = state.migration;
+      var migrationEvidence = ["K1", "K2", "K3", "K4", "K5"];
+      var migrationReacquire = migration && migration.reacquire;
+      migrationSourceEvidence = migration && migration.sourceEvidence;
+      var migrationEvents = Array.isArray(state.eventLog)
+        ? state.eventLog.filter(function (event) { return event && event.t === "migration"; })
+        : [];
+      if (!migration || migration.fromSchema !== 1 || migration.toSchema !== 2 ||
+          migration.backupRequired !== true ||
+          !isInt(migration.baseSequence) || migration.baseSequence < 0 ||
+          migration.baseSequence > lab.sequence ||
+          !migration.originalCursor || typeof migration.originalCursor.scene !== "string" ||
+          typeof migration.originalCursor.node !== "string" ||
+          legacySceneOrder4.indexOf(migration.originalCursor.scene) < 0 ||
+          !migration.targetCursor || !sceneIds[migration.targetCursor.scene] ||
+          !nodeIds[migration.targetCursor.scene][migration.targetCursor.node] ||
+          !migrationSourceEvidence || typeof migrationSourceEvidence !== "object" ||
+          Array.isArray(migrationSourceEvidence) ||
+          Object.keys(migrationSourceEvidence).length !== migrationEvidence.length ||
+          migrationEvidence.some(function (id) {
+            return typeof migrationSourceEvidence[id] !== "boolean";
+          }) ||
+          !Array.isArray(migrationReacquire) ||
+          migrationReacquire.length !== new Set(migrationReacquire).size ||
+          migrationReacquire.some(function (id) {
+            return migrationEvidence.indexOf(id) < 0;
+          }) ||
+          [null, "transcript", "eventLog", "transcript+eventLog"]
+            .indexOf(migration.k0ProvenBy == null ? null : migration.k0ProvenBy) < 0 ||
+          typeof state.migrationNotice !== "string" || !state.migrationNotice ||
+          migrationEvents.length !== 1 ||
+          migrationEvents[0].fromSchema !== 1 ||
+          migrationEvents[0].toSchema !== 2 ||
+          migrationEvents[0].from !==
+            migration.originalCursor.scene + "/" + migration.originalCursor.node ||
+          migrationEvents[0].to !==
+            migration.targetCursor.scene + "/" + migration.targetCursor.node ||
+          JSON.stringify(migrationEvents[0].sourceEvidence) !==
+            JSON.stringify(migrationSourceEvidence) ||
+          migrationEvents[0].baseSequence !== migration.baseSequence ||
+          JSON.stringify(migrationEvents[0].reacquire) !==
+            JSON.stringify(migrationReacquire))
+        return fail("第四章遷移來源標記不完整或彼此矛盾");
+      migratedV1 = true;
+    }
+    var tangent = lab.sourceLab.tangentPrediction;
+    if (!tangent || typeof tangent.sealed !== "boolean" ||
+        (tangent.choice != null && ["arc", "fall", "tangent"].indexOf(tangent.choice) < 0) ||
+        (tangent.sealed && (tangent.choice !== "tangent" || !isInt(tangent.sealedAt) ||
+          tangent.sealedAt < 1 || tangent.sealedAt > lab.sequence)) ||
+        !Array.isArray(lab.sourceLab.attempts) || lab.sourceLab.attempts.length > 30)
+      return fail("切線來源紙格式錯誤");
+    for (var sta = 0; sta < lab.sourceLab.attempts.length; sta++) {
+      var sourceAttempt = lab.sourceLab.attempts[sta];
+      if (!sourceAttempt ||
+          ["arc", "fall", "tangent"].indexOf(sourceAttempt.choice) < 0 ||
+          typeof sourceAttempt.ok !== "boolean" ||
+          sourceAttempt.ok !== (sourceAttempt.choice === "tangent") ||
+          !isInt(sourceAttempt.at) || sourceAttempt.at < 1 ||
+          sourceAttempt.at > lab.sequence)
+        return fail("切線來源紙嘗試紀錄格式錯誤");
+      if (sta && sourceAttempt.at <= lab.sourceLab.attempts[sta - 1].at)
+        return fail("切線來源紙嘗試時間重複或倒置");
+    }
+    var successfulTangentAttempts = lab.sourceLab.attempts.filter(function (attempt) {
+      return attempt.choice === "tangent" && attempt.ok === true;
+    });
+    if (tangent.sealed) {
+      if (successfulTangentAttempts.length !== 1 ||
+          successfulTangentAttempts[0] !==
+            lab.sourceLab.attempts[lab.sourceLab.attempts.length - 1] ||
+          successfulTangentAttempts[0].at !== tangent.sealedAt ||
+          !lab.orbitLab.tangentRecord ||
+          (engine4 && !engine4._tangentRecordAudit(lab.orbitLab.tangentRecord)) ||
+          (lab.orbitLab.tangentRecord.source === "schema1-player-choice" &&
+            !migratedV1))
+        return fail("切線來源紙缺少唯一且可重算的玩家封存紀錄");
+    } else if (tangent.choice != null || tangent.sealedAt != null ||
+        successfulTangentAttempts.length || lab.orbitLab.tangentRecord != null) {
+      return fail("未封存切線來源紙混入完成資料");
+    }
     if (!isInt(lab.orbitLab.attempt) || lab.orbitLab.attempt < 0 || lab.orbitLab.attempt > 999 ||
         !isInt(lab.orbitLab.step) || lab.orbitLab.step < 0 || lab.orbitLab.step > 3 ||
         !Array.isArray(lab.orbitLab.path) || lab.orbitLab.path.length > 200 ||
@@ -561,48 +682,479 @@
     if (lab.orbitLab.ruleRuns != null) {
       if (!Array.isArray(lab.orbitLab.ruleRuns) || lab.orbitLab.ruleRuns.length > 100)
         return fail("改向規則紀錄格式錯誤");
+      var orbitShapeValues = ["line", "away", "circle", "ellipse", "crash", "wrong-center"];
+      var orbitOutcomeValues = ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"];
       for (var ori = 0; ori < lab.orbitLab.ruleRuns.length; ori++) {
         var orbitRun = lab.orbitLab.ruleRuns[ori];
-        if (!orbitRun ||
+        if (!orbitRun || orbitRun.id !== ori + 1 ||
             ["same-vector", "ink-mark", "earth-center"].indexOf(orbitRun.target) < 0 ||
             ["slow", "medium", "fast"].indexOf(orbitRun.speed) < 0 ||
             ["short", "medium", "long"].indexOf(orbitRun.strength) < 0 ||
-            ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"].indexOf(orbitRun.prediction) < 0 ||
-            ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"].indexOf(orbitRun.outcome) < 0 ||
-            !Array.isArray(orbitRun.path) || orbitRun.path.length > 200)
+            orbitShapeValues.indexOf(orbitRun.prediction) < 0 ||
+            orbitShapeValues.indexOf(orbitRun.actualShape) < 0 ||
+            orbitOutcomeValues.indexOf(orbitRun.outcome) < 0 ||
+            typeof orbitRun.predictionMatched !== "boolean" ||
+            !isInt(orbitRun.sealedAt) || !isInt(orbitRun.firstStepAt) ||
+            !isInt(orbitRun.continuedAt) ||
+            !(orbitRun.sealedAt < orbitRun.firstStepAt &&
+              orbitRun.firstStepAt < orbitRun.continuedAt) ||
+            !Array.isArray(orbitRun.playerBeats) || orbitRun.playerBeats.length !== 3 ||
+            !Array.isArray(orbitRun.path) || orbitRun.path.length > 200 ||
+            (engine4 && !engine4._orbitRunAudit(orbitRun)))
           return fail("改向規則含無法辨識的設定");
+        if (ori &&
+            (!(lab.orbitLab.ruleRuns[ori - 1].sealedAt < orbitRun.sealedAt) ||
+              !(lab.orbitLab.ruleRuns[ori - 1].continuedAt <
+                orbitRun.continuedAt)))
+          return fail("改向規則歷史順序與操作時間不一致");
       }
     }
-    if (!isFinite(lab.scaleLab.earthRadiusRatio) || lab.scaleLab.earthRadiusRatio < 1 ||
-        lab.scaleLab.earthRadiusRatio > 100 || !isFinite(lab.scaleLab.timeRatio) ||
-        lab.scaleLab.timeRatio < 1 || lab.scaleLab.timeRatio > 120 ||
+    if (!Array.isArray(lab.orbitLab.manualBeats) || lab.orbitLab.manualBeats.length > 3 ||
+        !Array.isArray(lab.orbitLab.manualAttempts) || lab.orbitLab.manualAttempts.length > 100 ||
+        typeof lab.orbitLab.manualComplete !== "boolean")
+      return fail("親手三拍紀錄格式錯誤");
+    for (var mai = 0; mai < lab.orbitLab.manualAttempts.length; mai++) {
+      var manualAttempt = lab.orbitLab.manualAttempts[mai];
+      var attemptSeal = manualAttempt && manualAttempt.seal;
+      if (!manualAttempt || !attemptSeal ||
+          ["same-vector", "ink-mark", "earth-center"].indexOf(attemptSeal.target) < 0 ||
+          ["slow", "medium", "fast"].indexOf(attemptSeal.speed) < 0 ||
+          ["short", "medium", "long"].indexOf(attemptSeal.strength) < 0 ||
+          ["line", "away", "circle", "ellipse", "crash", "wrong-center"].indexOf(attemptSeal.prediction) < 0 ||
+          !isInt(attemptSeal.sealedAt) || attemptSeal.sealedAt < 1 ||
+          !Array.isArray(manualAttempt.beats) ||
+          manualAttempt.beats.length < 1 || manualAttempt.beats.length > 3 ||
+          typeof manualAttempt.complete !== "boolean" ||
+          !isInt(manualAttempt.resetAt) || manualAttempt.resetAt > lab.sequence ||
+          (engine4 && !engine4._orbitAttemptAudit(manualAttempt)))
+        return fail("幽靈作圖紙格式錯誤");
+      for (var mab = 0; mab < manualAttempt.beats.length; mab++) {
+        var oldBeat = manualAttempt.beats[mab];
+        if (!oldBeat || oldBeat.step !== mab + 1 || !isInt(oldBeat.at) ||
+            oldBeat.at <= attemptSeal.sealedAt ||
+            !oldBeat.before || !isFinite(oldBeat.before.x) || !isFinite(oldBeat.before.y) ||
+            !oldBeat.after || !isFinite(oldBeat.after.x) || !isFinite(oldBeat.after.y) ||
+            !isFinite(oldBeat.aimAngle) || !isFinite(oldBeat.expectedAngle) ||
+            !isFinite(oldBeat.angleCurrentDeg) || !isFinite(oldBeat.anglePreviousDeg) ||
+            typeof oldBeat.valid !== "boolean")
+          return fail("幽靈作圖紙含無法辨識的方向");
+        if (mab && oldBeat.at <= manualAttempt.beats[mab - 1].at)
+          return fail("幽靈作圖紙時間線不一致");
+      }
+      if (manualAttempt.resetAt <=
+          manualAttempt.beats[manualAttempt.beats.length - 1].at ||
+          manualAttempt.complete !==
+            (manualAttempt.beats.length === 3 &&
+              manualAttempt.beats.every(function (row) { return row.valid; })))
+        return fail("幽靈作圖紙完成狀態不一致");
+      if (mai && manualAttempt.resetAt <=
+          lab.orbitLab.manualAttempts[mai - 1].resetAt)
+        return fail("幽靈作圖紙順序與重做時間不一致");
+    }
+    if (lab.orbitLab.ruleSeal != null) {
+      var seal = lab.orbitLab.ruleSeal;
+      if (!seal || ["same-vector", "ink-mark", "earth-center"].indexOf(seal.target) < 0 ||
+          ["slow", "medium", "fast"].indexOf(seal.speed) < 0 ||
+          ["short", "medium", "long"].indexOf(seal.strength) < 0 ||
+          ["line", "away", "circle", "ellipse", "crash", "wrong-center"].indexOf(seal.prediction) < 0 ||
+          !isInt(seal.sealedAt) || seal.sealedAt < 1 || seal.sealedAt > lab.sequence)
+        return fail("改向規則封存格式錯誤");
+      for (var mbi = 0; mbi < lab.orbitLab.manualBeats.length; mbi++) {
+        var beat = lab.orbitLab.manualBeats[mbi];
+        if (!beat || beat.step !== mbi + 1 || !isInt(beat.at) ||
+            !isFinite(beat.aimAngle) || !isFinite(beat.expectedAngle) ||
+            !isFinite(beat.angleCurrentDeg) || !isFinite(beat.anglePreviousDeg) ||
+            typeof beat.valid !== "boolean")
+          return fail("親手三拍含無法辨識的方向");
+      }
+      if (lab.orbitLab.firstStepAt != null &&
+          (!isInt(lab.orbitLab.firstStepAt) || lab.orbitLab.firstStepAt <= seal.sealedAt))
+        return fail("預測與落筆時間線倒置");
+      if (lab.orbitLab.continuedAt != null &&
+          (!isInt(lab.orbitLab.continuedAt) ||
+            lab.orbitLab.firstStepAt == null ||
+            lab.orbitLab.continuedAt <= lab.orbitLab.firstStepAt))
+        return fail("續畫時間線倒置");
+      if (lab.orbitLab.manualComplete &&
+          (lab.orbitLab.manualBeats.length !== 3 ||
+            lab.orbitLab.manualBeats.some(function (row) { return !row.valid; })))
+        return fail("親手三拍完成狀態與紀錄不一致");
+      if (lab.orbitLab.continuedAt == null &&
+          engine4 && !engine4._orbitPartialAudit(lab))
+        return fail("尚未續畫的親手三拍不是由封存規則重算");
+      if (lab.orbitLab.continuedAt != null &&
+          engine4 && !engine4._orbitRecordAudit(lab))
+        return fail("已續畫的作圖紀錄不是由封存規則重算");
+    } else if (lab.orbitLab.manualBeats.length || lab.orbitLab.manualComplete) {
+      return fail("親手三拍缺少封存規則");
+    }
+    var expectedOrbitAttempts = lab.orbitLab.ruleRuns.length +
+      (lab.orbitLab.ruleSeal != null && lab.orbitLab.continuedAt == null ? 1 : 0);
+    if (lab.orbitLab.attempt !== expectedOrbitAttempts)
+      return fail("作圖嘗試數不是由封存規則紀錄導出");
+    if (!migratedV1) {
+      var expectedOrbitDays = lab.orbitLab.ruleRuns.filter(function (run) {
+        return run.target === "earth-center" &&
+          ["circle", "ellipse"].indexOf(run.actualShape) >= 0;
+      }).length;
+      if (lab.days !== expectedOrbitDays)
+        return fail("第四章耗時不是由完成的作圖紙導出");
+    }
+    if (lab.scaleLab.earthRadiusRatio !== 60 ||
+        lab.scaleLab.timeRatio !== 60 ||
         !Array.isArray(lab.scaleLab.trials) || lab.scaleLab.trials.length > 100)
       return fail("跨尺度工作台紀錄格式錯誤");
+    if (!lab.scaleLab.actualCoordinates ||
+        lab.scaleLab.actualCoordinates.earthX !== 0 ||
+        lab.scaleLab.actualCoordinates.moonX !== lab.scaleLab.earthRadiusRatio ||
+        lab.scaleLab.actualCoordinates.displayMoonX !== 82)
+      return fail("同尺紙顯示座標不是可重算的固定刻度");
     for (var ti = 0; ti < lab.scaleLab.trials.length; ti++) {
       var trial = lab.scaleLab.trials[ti];
-      if (!trial || !isFinite(trial.exponent) || trial.exponent < 0 || trial.exponent > 3 ||
-          !isFinite(trial.moonSagM)) return fail("距離律試算紀錄格式錯誤");
+      if (!trial || trial.id !== ti + 1 ||
+          (engine4 && !engine4._scaleTrialAudit(trial)) ||
+          (trial.source === "schema1-validated-k2" && !migratedV1))
+        return fail("距離律試算不是可重算的 canonical 紀錄");
     }
     if (lab.scaleLab.lawLocked !== null &&
         (!isFinite(lab.scaleLab.lawLocked) || lab.scaleLab.lawLocked < 0 || lab.scaleLab.lawLocked > 3))
       return fail("封存距離律格式錯誤");
+    if (!Array.isArray(lab.scaleLab.predictionAttempts) ||
+        !Array.isArray(lab.scaleLab.conversionAttempts) ||
+        !Array.isArray(lab.scaleLab.ratioAttempts) ||
+        !Array.isArray(lab.scaleLab.relationAttempts) ||
+        lab.scaleLab.predictionAttempts.length > 30 ||
+        lab.scaleLab.conversionAttempts.length > 30 ||
+        lab.scaleLab.ratioAttempts.length > 30 ||
+        lab.scaleLab.relationAttempts.length > 30 ||
+        typeof lab.scaleLab.conversionCorrect !== "boolean" ||
+        typeof lab.scaleLab.ratioCorrect !== "boolean" ||
+        typeof lab.scaleLab.relationCorrect !== "boolean")
+      return fail("同尺紙判讀紀錄格式錯誤");
+    if (lab.scaleLab.scalePrediction != null) {
+      var scalePrediction = lab.scaleLab.scalePrediction;
+      if (!scalePrediction.sealed ||
+          ["same", "one-sixtieth", "one-over-3600", "almost-none"].indexOf(scalePrediction.choice) < 0 ||
+          !isInt(scalePrediction.sealedAt) || scalePrediction.sealedAt > lab.sequence ||
+          (scalePrediction.openedAt != null &&
+            (!isInt(scalePrediction.openedAt) ||
+              scalePrediction.openedAt <= scalePrediction.sealedAt ||
+              scalePrediction.openedAt > lab.sequence)) ||
+          (scalePrediction.matched != null &&
+            typeof scalePrediction.matched !== "boolean"))
+        return fail("同尺紙預測封存格式錯誤");
+    }
+    var scaleAttemptSpecs = [
+      {
+        rows: lab.scaleLab.predictionAttempts,
+        choices: ["same", "one-sixtieth", "one-over-3600", "almost-none"],
+        time: "sealedAt",
+        label: "量級預測"
+      },
+      {
+        rows: lab.scaleLab.conversionAttempts,
+        choices: ["divide-60", "divide-3600"],
+        time: "at",
+        label: "時間換算"
+      },
+      {
+        rows: lab.scaleLab.ratioAttempts,
+        choices: [60, 360, 3600, 36000],
+        time: "at",
+        label: "倍率判讀"
+      },
+      {
+        rows: lab.scaleLab.relationAttempts,
+        choices: ["add", "multiply", "unknown"],
+        time: "at",
+        label: "倍率關係"
+      }
+    ];
+    for (var sas = 0; sas < scaleAttemptSpecs.length; sas++) {
+      var scaleSpec = scaleAttemptSpecs[sas];
+      var previousScaleAt = 0;
+      for (var sar = 0; sar < scaleSpec.rows.length; sar++) {
+        var scaleAttempt = scaleSpec.rows[sar];
+        var scaleChoice = scaleAttempt && scaleAttempt.choice;
+        if (!scaleAttempt || scaleSpec.choices.indexOf(scaleChoice) < 0 ||
+            !isInt(scaleAttempt[scaleSpec.time]) ||
+            scaleAttempt[scaleSpec.time] <= previousScaleAt ||
+            scaleAttempt[scaleSpec.time] > lab.sequence)
+          return fail(scaleSpec.label + "嘗試紀錄格式錯誤");
+        if (scaleSpec.time === "at") {
+          var expectedScaleOk =
+            (sas === 1 && scaleChoice === "divide-3600") ||
+            (sas === 2 && scaleChoice === 3600) ||
+            (sas === 3 && scaleChoice === "multiply");
+          if (typeof scaleAttempt.ok !== "boolean" ||
+              scaleAttempt.ok !== expectedScaleOk)
+            return fail(scaleSpec.label + "嘗試結果與選項不一致");
+        }
+        previousScaleAt = scaleAttempt[scaleSpec.time];
+      }
+    }
+    var migratedK2 = migratedV1 && lab.scaleLab.trials.length === 1 &&
+      lab.scaleLab.trials[0].source === "schema1-validated-k2" &&
+      lab.scaleLab.scalePrediction == null &&
+      lab.scaleLab.predictionAttempts.length === 0 &&
+      lab.scaleLab.conversionAttempts.length === 0 &&
+      lab.scaleLab.ratioAttempts.length === 0 &&
+      lab.scaleLab.relationAttempts.length === 0;
+    if (!migratedK2) {
+      if (lab.scaleLab.predictionAttempts.length !==
+            (lab.scaleLab.scalePrediction ? 1 : 0) ||
+          (lab.scaleLab.scalePrediction &&
+            (lab.scaleLab.predictionAttempts[0].choice !==
+              lab.scaleLab.scalePrediction.choice ||
+             lab.scaleLab.predictionAttempts[0].sealedAt !==
+              lab.scaleLab.scalePrediction.sealedAt)))
+        return fail("同尺紙量級預測不是唯一的目前封存紙");
+      var scaleSuccessSpecs = [
+        [lab.scaleLab.conversionAttempts, "divide-3600", lab.scaleLab.conversionCorrect],
+        [lab.scaleLab.ratioAttempts, 3600, lab.scaleLab.ratioCorrect],
+        [lab.scaleLab.relationAttempts, "multiply", lab.scaleLab.relationCorrect]
+      ];
+      for (var ssi = 0; ssi < scaleSuccessSpecs.length; ssi++) {
+        var successfulScaleRows = scaleSuccessSpecs[ssi][0].filter(function (row) {
+          return row.ok === true;
+        });
+        if (successfulScaleRows.length !== (scaleSuccessSpecs[ssi][2] ? 1 : 0) ||
+            (successfulScaleRows.length &&
+              successfulScaleRows[0] !==
+                scaleSuccessSpecs[ssi][0][scaleSuccessSpecs[ssi][0].length - 1]) ||
+            (successfulScaleRows.length &&
+              successfulScaleRows[0].choice !== scaleSuccessSpecs[ssi][1]))
+          return fail("同尺紙成功狀態與玩家最後一次判讀不一致");
+      }
+    }
+    if (lab.scaleLab.scalePrediction != null) {
+      var sealedPrediction = lab.scaleLab.scalePrediction;
+      if (!lab.scaleLab.predictionAttempts.some(function (attempt) {
+        return attempt.choice === sealedPrediction.choice &&
+          attempt.sealedAt === sealedPrediction.sealedAt;
+      })) return fail("同尺紙預測缺少玩家封存紀錄");
+      if (sealedPrediction.openedAt != null) {
+        var firstConversion = lab.scaleLab.conversionAttempts[0];
+        if (!firstConversion || sealedPrediction.openedAt !== firstConversion.at ||
+            sealedPrediction.matched !==
+              (sealedPrediction.choice === "one-over-3600"))
+          return fail("同尺紙開蠟結果與首次換算不一致");
+      }
+    }
+    if (lab.scaleLab.conversionCorrect === true &&
+        lab.scaleLab.moonOneSecondSagMm !== 1.4)
+      return fail("月球一秒刻痕不是可重算的教學數值");
+    if (lab.scaleLab.trials.length !== (lab.scaleLab.relationCorrect ? 1 : 0))
+      return fail("同尺紙試算張數與最後倍率關係不一致");
     if (!Array.isArray(lab.planetLab.predictions) || lab.planetLab.predictions.length > 100 ||
         !lab.planetLab.revealed || !lab.planetLab.residuals) return fail("行星預測紀錄格式錯誤");
+    var planetRows = {};
     for (var pr = 0; pr < lab.planetLab.predictions.length; pr++) {
       var pred = lab.planetLab.predictions[pr];
-      if (!pred || ["mars", "jupiter"].indexOf(pred.planet) < 0 ||
-          !isFinite(pred.prediction) || !isFinite(pred.residualPct) ||
-          typeof pred.sealed !== "boolean" || typeof pred.pass !== "boolean")
+      if (!pred || pred.id !== pr + 1 ||
+          ["mars", "jupiter"].indexOf(pred.planet) < 0 ||
+          planetRows[pred.planet] ||
+          !isFinite(pred.exponent) || !isFinite(pred.prediction) ||
+          !isFinite(pred.actual) || !isFinite(pred.residualPct) ||
+          pred.sealed !== true || pred.revealedAfterSeal !== true ||
+          !isInt(pred.sealedAt) || !isInt(pred.openedAt) ||
+          pred.sealedAt < 1 || pred.sealedAt >= pred.openedAt ||
+          pred.openedAt > lab.sequence ||
+          typeof pred.pass !== "boolean" || pred.superseded !== false ||
+          (engine4 && !engine4._planetPredictionAudit(pred)) ||
+          (pred.source === "schema1-validated-k3" && !migratedV1))
         return fail("行星預測含無法辨識的資料");
+      planetRows[pred.planet] = pred;
     }
+    if (Object.keys(lab.planetLab.revealed).some(function (id) {
+      return ["mars", "jupiter"].indexOf(id) < 0;
+    }) || Object.keys(lab.planetLab.residuals).some(function (id) {
+      return ["mars", "jupiter"].indexOf(id) < 0;
+    })) return fail("行星顯示狀態含未知資料");
+    ["mars", "jupiter"].forEach(function (id) {
+      if (typeof lab.planetLab.revealed[id] !== "boolean")
+        planetRows.__invalid = true;
+      if (lab.planetLab.revealed[id] !== !!planetRows[id] ||
+          lab.planetLab.residuals[id] !==
+            (planetRows[id] ? planetRows[id].residualPct : null))
+        planetRows.__invalid = true;
+    });
+    if (planetRows.__invalid ||
+        lab.planetLab.crossScalePass !==
+          ["mars", "jupiter"].every(function (id) {
+            return !!(planetRows[id] && planetRows[id].pass);
+          }))
+      return fail("行星揭露畫面與 canonical 預測紀錄不一致");
     if (!Array.isArray(lab.modelLab.runs) || lab.modelLab.runs.length > 100)
       return fail("模型比較紀錄格式錯誤");
     for (var mr = 0; mr < lab.modelLab.runs.length; mr++) {
       var run = lab.modelLab.runs[mr];
-      if (!run || ["inverseSquare", "simpleVortex"].indexOf(run.model) < 0 ||
+      if (!run || run.id !== mr + 1 ||
+          ["inverseSquare", "simpleVortex"].indexOf(run.model) < 0 ||
           ["moon", "planets", "comet"].indexOf(run.caseId) < 0 ||
-          !isFinite(run.residual) || !isInt(run.patches) || run.patches < 0)
+          run.raw !== true ||
+          (run.residual != null && !isFinite(run.residual)) ||
+          ["matches", "story", "mismatch"].indexOf(run.fit) < 0 ||
+          Object.prototype.hasOwnProperty.call(run, "patches") ||
+          (engine4 && !engine4._modelRunAudit(run)))
         return fail("模型比較含無法辨識的資料");
+    }
+    if (!Array.isArray(lab.modelLab.rowOrder) || lab.modelLab.rowOrder.length > 3 ||
+        !Array.isArray(lab.modelLab.completedRows) || lab.modelLab.completedRows.length > 3 ||
+        !lab.modelLab.rowStage || typeof lab.modelLab.rowStage !== "object" ||
+        !Array.isArray(lab.modelLab.stampAttempts) || lab.modelLab.stampAttempts.length > 100 ||
+        !Array.isArray(lab.modelLab.loans) || lab.modelLab.loans.length > 2 ||
+        !lab.modelLab.loanDecisions || typeof lab.modelLab.loanDecisions !== "object" ||
+        !lab.modelLab.loanDecisionAt || typeof lab.modelLab.loanDecisionAt !== "object" ||
+        !Array.isArray(lab.modelLab.comparisonAttempts) ||
+        lab.modelLab.comparisonAttempts.length > 30 ||
+        !Array.isArray(lab.modelLab.selectedRecords) ||
+        lab.modelLab.selectedRecords.length !== 0 ||
+        typeof lab.modelLab.comparisonSealed !== "boolean" ||
+        (lab.modelLab.comparisonSealedAt != null &&
+          (!isInt(lab.modelLab.comparisonSealedAt) ||
+            lab.modelLab.comparisonSealedAt < 1 ||
+            lab.modelLab.comparisonSealedAt > lab.sequence)) ||
+        typeof lab.modelLab.gravityComplete !== "boolean" ||
+        typeof lab.modelLab.vortexComplete !== "boolean" ||
+        (lab.modelLab.comparisonClaim != null &&
+          ["same", "all-vortices", "actual-ledger"].indexOf(lab.modelLab.comparisonClaim) < 0) ||
+        (lab.modelLab.evidencePackage != null &&
+          (typeof lab.modelLab.evidencePackage !== "object" ||
+            Array.isArray(lab.modelLab.evidencePackage))))
+      return fail("對帳桌紀錄格式錯誤");
+    var ledgerCases = ["moon", "planets", "comet"];
+    var uniqueOrder = Array.from(new Set(lab.modelLab.rowOrder));
+    var uniqueCompleted = Array.from(new Set(lab.modelLab.completedRows));
+    if (uniqueOrder.length !== lab.modelLab.rowOrder.length ||
+        uniqueCompleted.length !== lab.modelLab.completedRows.length ||
+        uniqueOrder.some(function (id) { return ledgerCases.indexOf(id) < 0; }) ||
+        uniqueCompleted.some(function (id) {
+          return ledgerCases.indexOf(id) < 0 || uniqueOrder.indexOf(id) < 0;
+        }))
+      return fail("對帳桌列順序格式錯誤");
+    var loanCases = {};
+    for (var li = 0; li < lab.modelLab.loans.length; li++) {
+      var loan = lab.modelLab.loans[li];
+      if (!loan || !isInt(loan.id) || loan.id !== li + 1 ||
+          ["planets", "comet"].indexOf(loan.caseId) < 0 ||
+          loanCases[loan.caseId] || !isInt(loan.at) || loan.at > lab.sequence)
+        return fail("借條紀錄格式錯誤");
+      if (engine4 && !engine4._modelLoanAudit(loan))
+        return fail("借條內容不是玩家可選的兩種明示借法");
+      loanCases[loan.caseId] = true;
+    }
+    for (var sai = 0; sai < lab.modelLab.stampAttempts.length; sai++) {
+      var stampAttempt = lab.modelLab.stampAttempts[sai];
+      var canonicalExpected = stampAttempt && stampAttempt.model === "inverseSquare"
+        ? "matches"
+        : (stampAttempt && stampAttempt.caseId === "moon" ? "story" : "mismatch");
+      var stampRow = stampAttempt && lab.modelLab.rowStage[stampAttempt.caseId];
+      if (!stampAttempt || stampAttempt.id !== sai + 1 ||
+          ledgerCases.indexOf(stampAttempt.caseId) < 0 ||
+          ["inverseSquare", "simpleVortex"].indexOf(stampAttempt.model) < 0 ||
+          ["matches", "story", "mismatch"].indexOf(stampAttempt.stamp) < 0 ||
+          ["matches", "story", "mismatch"].indexOf(stampAttempt.expected) < 0 ||
+          typeof stampAttempt.ok !== "boolean" || !isInt(stampAttempt.at) ||
+          stampAttempt.at < 1 || stampAttempt.at > lab.sequence ||
+          stampAttempt.expected !== canonicalExpected ||
+          stampAttempt.ok !== (stampAttempt.stamp === canonicalExpected) ||
+          !stampRow || !isInt(stampRow.openedAt) ||
+          stampAttempt.at <= stampRow.openedAt ||
+          (isInt(stampRow.completedAt) &&
+            stampAttempt.at >= stampRow.completedAt))
+        return fail("蓋章嘗試紀錄格式錯誤");
+    }
+    for (var lci = 0; lci < ledgerCases.length; lci++) {
+      var ledgerCase = ledgerCases[lci];
+      var rowStage = lab.modelLab.rowStage[ledgerCase];
+      if (!rowStage) {
+        if (uniqueOrder.indexOf(ledgerCase) >= 0) return fail("對帳桌列狀態缺失");
+        continue;
+      }
+      if (uniqueOrder.indexOf(ledgerCase) < 0)
+        return fail("對帳桌列狀態沒有玩家開列紀錄");
+      var expectedVortex = ledgerCase === "moon" ? "story" : "mismatch";
+      if ((rowStage.forceStamp != null && rowStage.forceStamp !== "matches") ||
+          (rowStage.vortexStamp != null && rowStage.vortexStamp !== expectedVortex) ||
+          !isInt(rowStage.openedAt) || rowStage.openedAt < 1 ||
+          rowStage.openedAt > lab.sequence ||
+          typeof rowStage.complete !== "boolean" ||
+          (rowStage.complete !== (uniqueCompleted.indexOf(ledgerCase) >= 0)))
+        return fail("對帳桌章記與完成狀態不一致");
+      if (rowStage.complete &&
+          (!isInt(rowStage.completedAt) ||
+            rowStage.completedAt <= rowStage.openedAt ||
+            rowStage.completedAt > lab.sequence))
+        return fail("對帳桌列時間線不一致");
+      if (!rowStage.complete && rowStage.completedAt != null)
+        return fail("未完成對帳列不應有完成時間");
+      if (ledgerCase === "comet") {
+        var successfulCometBeforeRow = lab.cometLab &&
+          lab.cometLab.attempts.filter(function (attempt) {
+            return attempt.ok === true && attempt.mode === "same-orbit";
+          });
+        if (!successfulCometBeforeRow ||
+            successfulCometBeforeRow.length !== 1 ||
+            successfulCometBeforeRow[0].at >= rowStage.openedAt)
+          return fail("彗星對帳列早於玩家完成軌跡接合");
+      }
+      if (ledgerCase !== "moon" && rowStage.complete &&
+          ["loan", "no-loan"].indexOf(lab.modelLab.loanDecisions[ledgerCase]) < 0)
+        return fail("借條選擇缺失");
+      if (ledgerCase !== "moon" && rowStage.complete &&
+          (!isInt(lab.modelLab.loanDecisionAt[ledgerCase]) ||
+            lab.modelLab.loanDecisionAt[ledgerCase] <= rowStage.openedAt ||
+            lab.modelLab.loanDecisionAt[ledgerCase] >= rowStage.completedAt))
+        return fail("借條選擇時間線不一致");
+      var successfulCellTimes = ["inverseSquare", "simpleVortex"].map(function (model) {
+        var row = lab.modelLab.stampAttempts.filter(function (attempt) {
+          return attempt.caseId === ledgerCase && attempt.model === model &&
+            attempt.ok === true && attempt.at > rowStage.openedAt;
+        });
+        return row;
+      });
+      if (successfulCellTimes[0].length !== (rowStage.forceStamp != null ? 1 : 0) ||
+          successfulCellTimes[1].length !== (rowStage.vortexStamp != null ? 1 : 0))
+        return fail("對帳桌現態缺少玩家成功蓋章紀錄");
+      var lastCellAt = successfulCellTimes.every(function (rows) { return rows.length === 1; })
+        ? Math.max(successfulCellTimes[0][0].at, successfulCellTimes[1][0].at)
+        : null;
+      if (rowStage.complete && (lastCellAt == null ||
+          (ledgerCase === "moon" && !(lastCellAt < rowStage.completedAt)) ||
+          (ledgerCase !== "moon" &&
+            !(lastCellAt < lab.modelLab.loanDecisionAt[ledgerCase] &&
+              lab.modelLab.loanDecisionAt[ledgerCase] < rowStage.completedAt))))
+        return fail("蓋章、借條與完成列的時間線不一致");
+      if ((lab.modelLab.loanDecisions[ledgerCase] === "loan") !== !!loanCases[ledgerCase])
+        return fail("借條選擇與實際借條不一致");
+      if (lab.modelLab.loanDecisions[ledgerCase] === "loan" &&
+          lab.modelLab.loans.find(function (loan) {
+            return loan.caseId === ledgerCase;
+          }).at !== lab.modelLab.loanDecisionAt[ledgerCase])
+        return fail("借條內容與玩家選擇時間不一致");
+    }
+    if (Object.keys(lab.modelLab.rowStage).some(function (id) {
+      return ledgerCases.indexOf(id) < 0;
+    })) return fail("對帳桌含未知資料列");
+    var openedRowOrder = uniqueOrder.slice().sort(function (a, b) {
+      return lab.modelLab.rowStage[a].openedAt - lab.modelLab.rowStage[b].openedAt;
+    });
+    var completedRowOrder = uniqueCompleted.slice().sort(function (a, b) {
+      return lab.modelLab.rowStage[a].completedAt - lab.modelLab.rowStage[b].completedAt;
+    });
+    if (JSON.stringify(openedRowOrder) !== JSON.stringify(lab.modelLab.rowOrder) ||
+        JSON.stringify(completedRowOrder) !== JSON.stringify(lab.modelLab.completedRows))
+      return fail("對帳桌列順序與玩家操作時間不一致");
+    for (var roi = 1; roi < openedRowOrder.length; roi++) {
+      if (lab.modelLab.rowStage[openedRowOrder[roi - 1]].openedAt >=
+          lab.modelLab.rowStage[openedRowOrder[roi]].openedAt)
+        return fail("對帳桌開列時間重複或倒置");
+    }
+    for (var rci = 1; rci < completedRowOrder.length; rci++) {
+      if (lab.modelLab.rowStage[completedRowOrder[rci - 1]].completedAt >=
+          lab.modelLab.rowStage[completedRowOrder[rci]].completedAt)
+        return fail("對帳桌完成時間重複或倒置");
     }
     if (lab.modelLab.protocolAttempts != null) {
       if (!Array.isArray(lab.modelLab.protocolAttempts) || lab.modelLab.protocolAttempts.length > 30)
@@ -618,6 +1170,31 @@
     if (lab.modelLab.protocolLocked &&
         lab.modelLab.protocol !== "shared-law-observed-initials")
       return fail("模型比較完成狀態與公平標準不一致");
+    var successfulComparisons = [];
+    for (var mci = 0; mci < lab.modelLab.comparisonAttempts.length; mci++) {
+      var comparisonAttempt = lab.modelLab.comparisonAttempts[mci];
+      if (!comparisonAttempt || comparisonAttempt.id !== mci + 1 ||
+          ["same", "all-vortices", "actual-ledger"].indexOf(comparisonAttempt.claim) < 0 ||
+          comparisonAttempt.ok !== (comparisonAttempt.claim === "actual-ledger") ||
+          !isInt(comparisonAttempt.at) || comparisonAttempt.at < 1 ||
+          comparisonAttempt.at > lab.sequence ||
+          (mci && comparisonAttempt.at <=
+            lab.modelLab.comparisonAttempts[mci - 1].at))
+        return fail("模型比較封條嘗試紀錄格式錯誤");
+      if (comparisonAttempt.ok) successfulComparisons.push(comparisonAttempt);
+    }
+    if (lab.modelLab.comparisonClaim !==
+          (lab.modelLab.comparisonAttempts.length
+            ? lab.modelLab.comparisonAttempts[lab.modelLab.comparisonAttempts.length - 1].claim
+            : null) ||
+        successfulComparisons.length !== (lab.modelLab.comparisonSealed ? 1 : 0) ||
+        (successfulComparisons.length &&
+          successfulComparisons[0] !==
+            lab.modelLab.comparisonAttempts[lab.modelLab.comparisonAttempts.length - 1]) ||
+        lab.modelLab.comparisonSealedAt !==
+          (successfulComparisons.length ? successfulComparisons[0].at : null) ||
+        (!lab.modelLab.comparisonSealed && lab.modelLab.evidencePackage != null))
+      return fail("模型比較封條現態與玩家嘗試紀錄不一致");
     if (lab.cometLab != null) {
       if (!Array.isArray(lab.cometLab.attempts) || lab.cometLab.attempts.length > 100 ||
           typeof lab.cometLab.joined !== "boolean" ||
@@ -626,34 +1203,302 @@
         return fail("彗星接軌紀錄格式錯誤");
       for (var ca = 0; ca < lab.cometLab.attempts.length; ca++) {
         var cometAttempt = lab.cometLab.attempts[ca];
-        if (!cometAttempt || ["hard-kink", "same-orbit"].indexOf(cometAttempt.mode) < 0 ||
-            typeof cometAttempt.ok !== "boolean" || typeof cometAttempt.note !== "string" ||
-            cometAttempt.note.length > 240)
+        var cometOk = cometAttempt && cometAttempt.mode === "same-orbit";
+        var cometNote = cometOk
+          ? "十一月入向與十二月出向按日期、星位接成同一條高傾角軌道"
+          : "只把兩張紙的最近端點硬接，接縫留下觀測不支持的折角";
+        if (!cometAttempt || cometAttempt.id !== ca + 1 ||
+            ["hard-kink", "same-orbit"].indexOf(cometAttempt.mode) < 0 ||
+            cometAttempt.ok !== cometOk || cometAttempt.note !== cometNote ||
+            !isInt(cometAttempt.at) || cometAttempt.at < 1 ||
+            cometAttempt.at > lab.sequence ||
+            (ca && cometAttempt.at <= lab.cometLab.attempts[ca - 1].at))
           return fail("彗星接軌含無法辨識的資料");
       }
-      if (lab.cometLab.joined &&
-          !lab.cometLab.attempts.some(function (a) { return a.mode === "same-orbit" && a.ok; }))
+      var successfulComets = lab.cometLab.attempts.filter(function (attempt) {
+        return attempt.ok === true;
+      });
+      var lastComet = lab.cometLab.attempts.length
+        ? lab.cometLab.attempts[lab.cometLab.attempts.length - 1] : null;
+      if (lab.cometLab.selectedConnection !== (lastComet ? lastComet.mode : null) ||
+          successfulComets.length !== (lab.cometLab.joined ? 1 : 0) ||
+          (successfulComets.length && successfulComets[0] !== lastComet))
         return fail("彗星接軌完成狀態與紀錄不一致");
     }
     if (lab.archiveLab != null) {
       if (!Array.isArray(lab.archiveLab.clipped) || lab.archiveLab.clipped.length > 5 ||
+          !Array.isArray(lab.archiveLab.clipAttempts) ||
+          lab.archiveLab.clipAttempts.length > 5 ||
           typeof lab.archiveLab.complete !== "boolean")
         return fail("旅人筆記回收紀錄格式錯誤");
       var allowedArchive = ["K1", "K2", "K3", "K4", "K5"];
       var uniqueArchive = Array.from(new Set(lab.archiveLab.clipped));
       if (uniqueArchive.length !== lab.archiveLab.clipped.length ||
           uniqueArchive.some(function (id) { return allowedArchive.indexOf(id) < 0; }) ||
+          uniqueArchive.some(function (id) {
+            return !lab.evidence[id.toLowerCase()];
+          }) ||
           lab.archiveLab.complete !== allowedArchive.every(function (id) {
             return uniqueArchive.indexOf(id) >= 0;
           }))
         return fail("旅人筆記回收狀態與紀錄不一致");
+      for (var aci = 0; aci < lab.archiveLab.clipAttempts.length; aci++) {
+        var clipAttempt = lab.archiveLab.clipAttempts[aci];
+        if (!clipAttempt || clipAttempt.id !== aci + 1 ||
+            allowedArchive.indexOf(clipAttempt.evidenceId) < 0 ||
+            clipAttempt.evidenceId !== lab.archiveLab.clipped[aci] ||
+            !isInt(clipAttempt.at) || clipAttempt.at < 1 ||
+            clipAttempt.at > lab.sequence ||
+            (aci && clipAttempt.at <= lab.archiveLab.clipAttempts[aci - 1].at))
+          return fail("旅人筆記缺少玩家逐張夾回的操作紀錄");
+      }
+      if (lab.archiveLab.clipAttempts.length !== lab.archiveLab.clipped.length)
+        return fail("旅人筆記夾頁與玩家操作紀錄不一致");
     }
+    if (!Array.isArray(lab.proof.slots) || lab.proof.slots.length > 6 ||
+        !Array.isArray(lab.proof.slotAttempts) || lab.proof.slotAttempts.length > 100 ||
+        !Array.isArray(lab.proof.attributionAttempts) ||
+        lab.proof.attributionAttempts.length > 100 ||
+        !Array.isArray(lab.proof.boundaryAttempts) ||
+        lab.proof.boundaryAttempts.length > 100 ||
+        !lab.proof.attribution || typeof lab.proof.attribution !== "object" ||
+        Array.isArray(lab.proof.attribution))
+      return fail("證明槽或署名欄格式錯誤");
+    var proofSlots = ["inertia", "inward", "distance", "withheld", "model", "shell"];
+    var proofSources = ["M2", "M3", "K1", "K2", "K3", "K4", "SHELL"];
+    var seenProofSlots = {};
+    for (var psi = 0; psi < lab.proof.slots.length; psi++) {
+      var proofSlot = lab.proof.slots[psi];
+      if (!proofSlot || proofSlots.indexOf(proofSlot.slot) < 0 ||
+          proofSources.indexOf(proofSlot.evidenceId) < 0 ||
+          !isInt(proofSlot.placedAt) || proofSlot.placedAt < 1 ||
+          proofSlot.placedAt > lab.sequence ||
+          seenProofSlots[proofSlot.slot])
+        return fail("證明槽含無法辨識或重複的來源");
+      seenProofSlots[proofSlot.slot] = true;
+    }
+    var currentSlotById = {};
+    for (var psai = 0; psai < lab.proof.slotAttempts.length; psai++) {
+      var slotAttempt = lab.proof.slotAttempts[psai];
+      var expectedSlotSources = slotAttempt && engine4 &&
+        engine4._PROOF_EXPECT[slotAttempt.slot];
+      if (!slotAttempt || slotAttempt.id !== psai + 1 ||
+          proofSlots.indexOf(slotAttempt.slot) < 0 ||
+          proofSources.indexOf(slotAttempt.evidenceId) < 0 ||
+          !Array.isArray(expectedSlotSources) ||
+          slotAttempt.ok !==
+            (expectedSlotSources.indexOf(slotAttempt.evidenceId) >= 0) ||
+          !isInt(slotAttempt.at) || slotAttempt.at < 1 ||
+          slotAttempt.at > lab.sequence ||
+          (psai && slotAttempt.at <= lab.proof.slotAttempts[psai - 1].at))
+        return fail("證明槽缺少玩家放紙的操作紀錄");
+      currentSlotById[slotAttempt.slot] = slotAttempt;
+    }
+    if (Object.keys(currentSlotById).length !== lab.proof.slots.length ||
+        lab.proof.slots.some(function (slot) {
+          var attempt = currentSlotById[slot.slot];
+          return !attempt || attempt.evidenceId !== slot.evidenceId ||
+            attempt.at !== slot.placedAt;
+        }))
+      return fail("證明槽現態與玩家最後一次放紙不一致");
+    var creditKeys = ["direction", "publication", "observations", "proof"];
+    var creditPeople = ["Hooke", "Halley", "Flamsteed", "Newton"];
+    var attributionKeys = Object.keys(lab.proof.attribution);
+    if (attributionKeys.some(function (key) {
+      return creditKeys.indexOf(key) < 0 ||
+        creditPeople.indexOf(lab.proof.attribution[key]) < 0;
+    })) return fail("署名欄含無法辨識的工作或人名");
+    var currentAttribution = {};
+    for (var pai = 0; pai < lab.proof.attributionAttempts.length; pai++) {
+      var attributionAttempt = lab.proof.attributionAttempts[pai];
+      var expectedCredit = attributionAttempt && engine4 &&
+        engine4._CREDIT_EXPECT[attributionAttempt.contribution];
+      if (!attributionAttempt || attributionAttempt.id !== pai + 1 ||
+          creditKeys.indexOf(attributionAttempt.contribution) < 0 ||
+          creditPeople.indexOf(attributionAttempt.person) < 0 ||
+          attributionAttempt.ok !== (expectedCredit === attributionAttempt.person) ||
+          !isInt(attributionAttempt.at) || attributionAttempt.at < 1 ||
+          attributionAttempt.at > lab.sequence ||
+          (pai && attributionAttempt.at <=
+            lab.proof.attributionAttempts[pai - 1].at))
+        return fail("信用歸戶缺少玩家操作紀錄");
+      currentAttribution[attributionAttempt.contribution] = attributionAttempt.person;
+    }
+    if (JSON.stringify(currentAttribution) !== JSON.stringify(lab.proof.attribution))
+      return fail("信用歸戶現態與玩家最後一次操作不一致");
     var press = lab.proof.press;
     if (!press || !isInt(press.window) || press.window < 1 || press.window > 3 ||
         press.reservedWindows !== 3 || ["open", "schedule-lost"].indexOf(press.status) < 0 ||
-        typeof press.scheduleLost !== "boolean" || !Array.isArray(press.proofs) ||
+        (press.openingChoice != null &&
+          ["partial", "defer"].indexOf(press.openingChoice) < 0) ||
+        typeof press.scheduleLost !== "boolean" ||
+        typeof press.rushTried !== "boolean" || !Array.isArray(press.proofs) ||
         !Array.isArray(press.delays) || press.proofs.length > 100 || press.delays.length > 100)
       return fail("校樣窗口紀錄格式錯誤");
+    for (var pfi = 0; pfi < press.proofs.length; pfi++) {
+      var proofRecord = press.proofs[pfi];
+      if (!proofRecord ||
+          ["partial", "wrong-proof", "complete"].indexOf(proofRecord.kind) < 0 ||
+          typeof proofRecord.complete !== "boolean" ||
+          (proofRecord.kind === "complete" && proofRecord.complete !== true) ||
+          (proofRecord.kind !== "complete" && proofRecord.complete !== false))
+        return fail("校樣紀錄含無法辨識的內容");
+      if (proofRecord.kind === "partial") {
+        if (proofRecord.complete !== false ||
+            JSON.stringify(proofRecord.supported) !== JSON.stringify(["moon", "planets"]) ||
+            JSON.stringify(proofRecord.missing) !==
+            JSON.stringify(["comet", "model-comparison"]) ||
+            !isInt(proofRecord.window) || proofRecord.window < 1 ||
+            proofRecord.window > press.reservedWindows ||
+            !isInt(proofRecord.at) || proofRecord.at < 1 ||
+            proofRecord.at > lab.sequence ||
+            proofRecord.rescheduled === true)
+          return fail("部分校樣紀錄格式錯誤");
+      } else if (!isInt(proofRecord.submittedAt) ||
+          proofRecord.submittedAt < 1 || proofRecord.submittedAt > lab.sequence ||
+          !proofRecord.audit || typeof proofRecord.audit !== "object" ||
+          !Array.isArray(proofRecord.slots) ||
+          !proofRecord.attribution || typeof proofRecord.attribution !== "object" ||
+          !proofRecord.authorField || !Array.isArray(proofRecord.authorField.names) ||
+          typeof proofRecord.authorField.travelerRemoved !== "boolean" ||
+          typeof proofRecord.shellPagePlaced !== "boolean" ||
+          typeof proofRecord.superseded !== "boolean" ||
+          (proofRecord.kind === "wrong-proof" && proofRecord.superseded !== false) ||
+          !((isInt(proofRecord.window) &&
+              proofRecord.window >= 1 &&
+              proofRecord.window <= press.reservedWindows &&
+              proofRecord.rescheduled === false) ||
+            (proofRecord.window == null && proofRecord.rescheduled === true))) {
+        return fail("完整或錯誤校樣快照格式錯誤");
+      }
+    }
+    for (var pdi = 0; pdi < press.delays.length; pdi++) {
+      var delayRecord = press.delays[pdi];
+      if (!delayRecord || delayRecord.kind !== "delay" ||
+          typeof delayRecord.reason !== "string" || !delayRecord.reason.trim() ||
+          delayRecord.reason.length > 240 || !isInt(delayRecord.window) ||
+          delayRecord.window < 1 || delayRecord.window > press.reservedWindows ||
+          !isInt(delayRecord.at) || delayRecord.at < 1 ||
+          delayRecord.at > lab.sequence)
+        return fail("延後校樣紀錄格式錯誤");
+    }
+    var windowedPressRecords = [];
+    press.proofs.forEach(function (record) {
+      if (isInt(record.window)) {
+        windowedPressRecords.push({
+          window: record.window,
+          at: record.kind === "partial" ? record.at : record.submittedAt,
+          kind: record.kind,
+          record: record
+        });
+      }
+    });
+    press.delays.forEach(function (record) {
+      windowedPressRecords.push({
+        window: record.window, at: record.at, kind: "delay", record: record
+      });
+    });
+    windowedPressRecords.sort(function (a, b) { return a.window - b.window; });
+    if (windowedPressRecords.length > press.reservedWindows ||
+        windowedPressRecords.some(function (record, index) {
+          return record.window !== index + 1 ||
+            (index && record.at <= windowedPressRecords[index - 1].at);
+        }))
+      return fail("校樣窗口紀錄不是從第一窗連續留下");
+    var usedWindows = windowedPressRecords.length;
+    var expectedPressLost = usedWindows === press.reservedWindows;
+    if (press.window !== (expectedPressLost ? press.reservedWindows : usedWindows + 1) ||
+        press.status !== (expectedPressLost ? "schedule-lost" : "open") ||
+        press.scheduleLost !== expectedPressLost)
+      return fail("校樣窗口現態不是由實際使用紀錄導出");
+    var rescheduledProofs = press.proofs.filter(function (record) {
+      return record.window == null;
+    });
+    if (press.openingChoice == null && (usedWindows || rescheduledProofs.length))
+      return fail("未做出版取捨卻已有校樣窗口紀錄");
+    var lastWindowAt = windowedPressRecords.length
+      ? windowedPressRecords[windowedPressRecords.length - 1].at : 0;
+    for (var rpi = 0; rpi < rescheduledProofs.length; rpi++) {
+      if (!expectedPressLost ||
+          rescheduledProofs[rpi].submittedAt <=
+            (rpi ? rescheduledProofs[rpi - 1].submittedAt : lastWindowAt))
+        return fail("補排校樣沒有接在已耗盡的原窗口之後");
+    }
+    {
+      if (!Array.isArray(state.eventLog) || state.eventLog.length > 3000)
+        return fail("第四章事件紀錄格式錯誤");
+      var expectedPressActions = press.proofs.map(function (record) {
+        return {
+          at: record.kind === "partial" ? record.at : record.submittedAt,
+          action: record.kind === "partial" ? "submitPartialProof" : "submitProof"
+        };
+      }).concat(press.delays.map(function (record) {
+        return { at: record.at, action: "deferPress" };
+      })).sort(function (a, b) { return a.at - b.at; })
+        .map(function (record) {
+          return { action: record.action, sequence: record.at };
+        });
+      var migrationEventIndex = migratedV1
+        ? state.eventLog.findIndex(function (event) {
+            return event && event.t === "migration";
+          }) : -1;
+      var loggedPressActions = state.eventLog.filter(function (event, index) {
+        return index > migrationEventIndex && event && event.t === "lab" &&
+          ["submitPartialProof", "deferPress", "submitProof"]
+            .indexOf(event.action) >= 0;
+      }).map(function (event) {
+        return { action: event.action, sequence: event.sequence };
+      });
+      if (JSON.stringify(expectedPressActions) !==
+          JSON.stringify(loggedPressActions))
+        return fail("校樣窗口種類與敘事層玩家操作紀錄不一致");
+    }
+    var completeProofRows = press.proofs.filter(function (record) {
+      return record.kind === "complete" && record.complete === true &&
+        record.superseded !== true;
+    });
+    var allPressTimes = windowedPressRecords.map(function (record) { return record.at; })
+      .concat(rescheduledProofs.map(function (record) { return record.submittedAt; }));
+    if (completeProofRows.length > 1 ||
+        (completeProofRows.length &&
+          completeProofRows[0].submittedAt !== Math.max.apply(Math, allPressTimes)) ||
+        press.rushTried !== press.proofs.some(function (record) {
+          return record.kind === "wrong-proof" && record.complete === false;
+        }))
+      return fail("完整校樣之後仍有操作，或錯稿紀錄被刪除");
+    if (typeof lab.proof.shellPageReady !== "boolean" ||
+        typeof lab.proof.shellPagePlaced !== "boolean" ||
+        !lab.proof.authorField || !Array.isArray(lab.proof.authorField.names) ||
+        typeof lab.proof.authorField.travelerRemoved !== "boolean" ||
+        lab.proof.authorField.names.some(function (name) {
+          return ["Newton", "Traveler"].indexOf(name) < 0;
+        }) ||
+        (lab.proof.authorField.travelerRemoved &&
+          (lab.proof.authorField.names.length !== 1 ||
+            lab.proof.authorField.names[0] !== "Newton")))
+      return fail("第六槽或作者欄格式錯誤");
+    if ((lab.proof.shellPageReady &&
+          (!isInt(lab.proof.shellPageRevealedAt) ||
+            lab.proof.shellPageRevealedAt < 1 ||
+            lab.proof.shellPageRevealedAt > lab.sequence)) ||
+        (!lab.proof.shellPageReady && lab.proof.shellPageRevealedAt != null) ||
+        (lab.proof.shellPagePlaced &&
+          (!lab.proof.shellPageReady ||
+            !isInt(lab.proof.shellPagePlacedAt) ||
+            lab.proof.shellPagePlacedAt <= lab.proof.shellPageRevealedAt ||
+            lab.proof.shellPagePlacedAt > lab.sequence ||
+            !lab.proof.slots.some(function (slot) {
+              return slot.slot === "shell" && slot.evidenceId === "SHELL" &&
+                slot.placedAt < lab.proof.shellPagePlacedAt;
+            }))) ||
+        (!lab.proof.shellPagePlaced && lab.proof.shellPagePlacedAt != null) ||
+        (lab.proof.authorField.travelerRemoved &&
+          (!isInt(lab.proof.authorField.removedAt) ||
+            lab.proof.authorField.removedAt < 1 ||
+            lab.proof.authorField.removedAt > lab.sequence)) ||
+        (!lab.proof.authorField.travelerRemoved &&
+          lab.proof.authorField.removedAt != null))
+      return fail("第六槽或作者欄時間線不一致");
     var hookeChoices = ["hookeComplete", "newtonAlone", "precise-scope"];
     if (lab.proof.hookeScope != null && hookeChoices.indexOf(lab.proof.hookeScope) < 0)
       return fail("Hooke 貢獻句格式錯誤");
@@ -662,20 +1507,338 @@
         return fail("Hooke 貢獻句嘗試紀錄格式錯誤");
       for (var hs = 0; hs < lab.proof.hookeScopeAttempts.length; hs++) {
         var scopeTry = lab.proof.hookeScopeAttempts[hs];
-        if (!scopeTry || hookeChoices.indexOf(scopeTry.choice) < 0 || typeof scopeTry.ok !== "boolean")
+        if (!scopeTry || scopeTry.id !== hs + 1 ||
+            hookeChoices.indexOf(scopeTry.choice) < 0 ||
+            scopeTry.ok !== (scopeTry.choice === "precise-scope") ||
+            !isInt(scopeTry.at) || scopeTry.at < 1 ||
+            scopeTry.at > lab.sequence ||
+            (hs && scopeTry.at <= lab.proof.hookeScopeAttempts[hs - 1].at))
           return fail("Hooke 貢獻句嘗試含無法辨識的資料");
       }
     }
+    if (lab.proof.hookeScope !==
+        (lab.proof.hookeScopeAttempts.length
+          ? lab.proof.hookeScopeAttempts[lab.proof.hookeScopeAttempts.length - 1].choice
+          : null))
+      return fail("Hooke 貢獻句現態與玩家最後一次操作不一致");
+    var boundaryChoices = ["mechanismSolved", "newtonAlone", "ruleEstablished"];
+    for (var bai = 0; bai < lab.proof.boundaryAttempts.length; bai++) {
+      var boundaryAttempt = lab.proof.boundaryAttempts[bai];
+      if (!boundaryAttempt || boundaryAttempt.id !== bai + 1 ||
+          boundaryChoices.indexOf(boundaryAttempt.choice) < 0 ||
+          boundaryAttempt.ok !== (boundaryAttempt.choice === "ruleEstablished") ||
+          !isInt(boundaryAttempt.at) || boundaryAttempt.at < 1 ||
+          boundaryAttempt.at > lab.sequence ||
+          (bai && boundaryAttempt.at <= lab.proof.boundaryAttempts[bai - 1].at))
+        return fail("證明邊界缺少玩家操作紀錄");
+    }
+    if (lab.proof.boundaryChoice !==
+          (lab.proof.boundaryAttempts.length
+            ? lab.proof.boundaryAttempts[lab.proof.boundaryAttempts.length - 1].choice
+            : null) ||
+        lab.proof.overclaimTried !== lab.proof.boundaryAttempts.some(function (attempt) {
+          return attempt.ok === false;
+        }))
+      return fail("證明邊界現態與玩家最後一次操作不一致");
     if (press.priorityRecord != null) {
       var priority = press.priorityRecord;
       if (!priority || ["raised-early", "raised-at-press"].indexOf(priority.route) < 0 ||
           priority.source !== "hooke-letter-1679" || typeof priority.return !== "string" ||
-          !priority.return || priority.return.length > 240)
+          !priority.return || priority.return.length > 240 ||
+          !isInt(priority.at) || priority.at < 1 || priority.at > lab.sequence)
         return fail("署名爭議分支紀錄格式錯誤");
     }
+    if ((press.openingChoice == null) !== (press.priorityRecord == null) ||
+        (press.openingChoice === "partial" &&
+          press.priorityRecord.route !== "raised-early") ||
+        (press.openingChoice === "defer" &&
+          press.priorityRecord.route !== "raised-at-press"))
+      return fail("出版取捨與署名爭議紀錄不一致");
+    if (press.openingChoice === "partial") {
+      if (press.priorityRecord.return !== "署名爭議在完整排版前浮上桌" ||
+          press.priorityRecord.at == null ||
+          press.proofs.filter(function (record) {
+            return record.kind === "partial" && record.complete === false &&
+              record.window === 1 &&
+              record.at === press.priorityRecord.at &&
+              JSON.stringify(record.supported) === JSON.stringify(["moon", "planets"]) &&
+              JSON.stringify(record.missing) ===
+                JSON.stringify(["comet", "model-comparison"]);
+          }).length !== 1)
+        return fail("提早送部分校樣的玩家取捨紀錄缺失");
+    }
+    if (press.openingChoice === "defer") {
+      if (press.priorityRecord.return !== "保留完整反驗時間，署名爭議延至印刷台" ||
+          press.priorityRecord.at == null ||
+          press.delays.filter(function (record) {
+            return record.kind === "delay" && record.window === 1 &&
+              record.at === press.priorityRecord.at &&
+              typeof record.reason === "string" && !!record.reason.trim();
+          }).length !== 1)
+        return fail("延後送印的玩家取捨紀錄缺失");
+    }
+
+    /* 校樣快照是 append-only 的歷史，不可拿目前已修好的版面回填舊錯稿。
+       以 submittedAt 為切點，從每筆玩家操作重建當時六槽、署名與邊界，
+       再用同一 proofAudit 重算快照種類與失敗原因。 */
+    function proofStateAt(submittedAt) {
+      var slotsAt = [];
+      lab.proof.slotAttempts.forEach(function (attempt) {
+        if (attempt.at >= submittedAt) return;
+        var found = false;
+        slotsAt = slotsAt.map(function (slot) {
+          if (slot.slot !== attempt.slot) return slot;
+          found = true;
+          return {
+            slot: attempt.slot,
+            evidenceId: attempt.evidenceId,
+            placedAt: attempt.at
+          };
+        });
+        if (!found) {
+          slotsAt.push({
+            slot: attempt.slot,
+            evidenceId: attempt.evidenceId,
+            placedAt: attempt.at
+          });
+        }
+      });
+      var attributionAt = {};
+      lab.proof.attributionAttempts.forEach(function (attempt) {
+        if (attempt.at < submittedAt)
+          attributionAt[attempt.contribution] = attempt.person;
+      });
+      var hookeScopeAt = null;
+      lab.proof.hookeScopeAttempts.forEach(function (attempt) {
+        if (attempt.at < submittedAt) hookeScopeAt = attempt.choice;
+      });
+      var boundaryAt = null;
+      lab.proof.boundaryAttempts.forEach(function (attempt) {
+        if (attempt.at < submittedAt) boundaryAt = attempt.choice;
+      });
+      var shellReadyAt = isInt(lab.proof.shellPageRevealedAt) &&
+        lab.proof.shellPageRevealedAt < submittedAt;
+      var shellPlacedAt = isInt(lab.proof.shellPagePlacedAt) &&
+        lab.proof.shellPagePlacedAt < submittedAt;
+      var authorAt = {
+        names: ["Newton", "Traveler"],
+        travelerRemoved: false
+      };
+      if (isInt(lab.proof.authorField.removedAt) &&
+          lab.proof.authorField.removedAt < submittedAt) {
+        authorAt = {
+          names: ["Newton"],
+          travelerRemoved: true,
+          removedAt: lab.proof.authorField.removedAt
+        };
+      }
+      return {
+        slots: slotsAt,
+        attribution: attributionAt,
+        hookeScope: hookeScopeAt,
+        boundaryChoice: boundaryAt,
+        shellPageReady: shellReadyAt,
+        shellPagePlaced: shellPlacedAt,
+        authorField: authorAt
+      };
+    }
+    var proofRevisionTimes = lab.proof.slotAttempts
+      .concat(lab.proof.attributionAttempts)
+      .concat(lab.proof.hookeScopeAttempts)
+      .concat(lab.proof.boundaryAttempts)
+      .map(function (attempt) { return attempt.at; });
+    for (var psiSnapshot = 0; psiSnapshot < press.proofs.length; psiSnapshot++) {
+      var historicalProof = press.proofs[psiSnapshot];
+      if (historicalProof.kind === "partial") continue;
+      if (!engine4 || typeof engine4._proofAudit !== "function")
+        return fail("缺少可重算校樣的第四章引擎");
+      var rebuiltProof = proofStateAt(historicalProof.submittedAt);
+      var rebuiltAudit = engine4._proofAudit({
+        proof: rebuiltProof,
+        evidence: { k1: true, k2: true, k3: true, k4: true }
+      });
+      var expectedComplete = rebuiltAudit.complete === true;
+      var expectedSuperseded = expectedComplete &&
+        proofRevisionTimes.some(function (at) {
+          return at > historicalProof.submittedAt;
+        });
+      if (historicalProof.kind !==
+            (expectedComplete ? "complete" : "wrong-proof") ||
+          historicalProof.complete !== expectedComplete ||
+          historicalProof.superseded !== expectedSuperseded ||
+          JSON.stringify(historicalProof.audit) !== JSON.stringify(rebuiltAudit) ||
+          JSON.stringify(historicalProof.slots) !==
+            JSON.stringify(rebuiltProof.slots) ||
+          JSON.stringify(historicalProof.attribution) !==
+            JSON.stringify(rebuiltProof.attribution) ||
+          historicalProof.hookeScope !== rebuiltProof.hookeScope ||
+          historicalProof.boundaryChoice !== rebuiltProof.boundaryChoice ||
+          historicalProof.shellPagePlaced !== rebuiltProof.shellPagePlaced ||
+          JSON.stringify(historicalProof.authorField) !==
+            JSON.stringify(rebuiltProof.authorField) ||
+          historicalProof.openingChoice !== press.openingChoice ||
+          JSON.stringify(historicalProof.priorityRecord) !==
+            JSON.stringify(press.priorityRecord))
+        return fail("校樣快照不是由送出當下的玩家操作重建");
+    }
+
     var evidenceIds = ["k1", "k2", "k3", "k4", "k5"];
     for (var ei = 0; ei < evidenceIds.length; ei++)
       if (typeof lab.evidence[evidenceIds[ei]] !== "boolean") return fail("第四章證據狀態格式錯誤");
+    if (lab.evidence.k5 !== (completeProofRows.length === 1))
+      return fail("K5 與完整校樣送出紀錄不一致");
+    if (lab.evidence.k1) {
+      var currentSeal = lab.orbitLab.ruleSeal;
+      var currentOrbitRun = !!currentSeal && (lab.orbitLab.ruleRuns || []).some(function (run) {
+        return run && run.target === "earth-center" &&
+          ["circle", "ellipse"].indexOf(run.actualShape) >= 0 &&
+          run.sealedAt === currentSeal.sealedAt &&
+          run.firstStepAt === lab.orbitLab.firstStepAt &&
+          run.continuedAt === lab.orbitLab.continuedAt;
+      });
+      var sealedTangentAttempt = lab.sourceLab.attempts.some(function (attempt) {
+        return attempt && attempt.choice === "tangent" && attempt.ok === true &&
+          attempt.at === tangent.sealedAt;
+      });
+      if (!(tangent.sealed && sealedTangentAttempt && currentSeal &&
+          currentSeal.target === "earth-center" &&
+          lab.orbitLab.manualComplete && lab.orbitLab.continuedAt &&
+          lab.orbitLab.closedRecord && currentOrbitRun &&
+          (!engine4 || engine4._orbitRecordAudit(lab))))
+        return fail("K1 與玩家親手作圖紀錄不一致");
+    }
+    if (lab.evidence.k2) {
+      var k2Trial = lab.scaleLab.trials.some(function (trial) {
+        return trial && trial.exponent === 2 && trial.sealed === true &&
+          trial.revealedAfterSeal === true &&
+          trial.moonSagM >= 4.7 && trial.moonSagM <= 5.1;
+      });
+      if (!(lab.scaleLab.relationCorrect && lab.scaleLab.conversionCorrect &&
+          lab.scaleLab.ratioCorrect && lab.scaleLab.lawLocked === 2 &&
+          lab.scaleLab.exponent === 2 && lab.scaleLab.earthRadiusRatio === 60 &&
+          lab.scaleLab.timeRatio === 60 && lab.scaleLab.moonMatch === true &&
+          lab.scaleLab.moonObservationRevealed === true && k2Trial))
+        return fail("K2 與同尺紙判讀紀錄不一致");
+      if (!migratedK2) {
+        var predictionAt = lab.scaleLab.scalePrediction &&
+          lab.scaleLab.scalePrediction.sealedAt;
+        var predictionOpenedAt = lab.scaleLab.scalePrediction &&
+          lab.scaleLab.scalePrediction.openedAt;
+        var conversionAt = null, ratioAt = null, relationAt = null;
+        lab.scaleLab.conversionAttempts.forEach(function (attempt) {
+          if (attempt && attempt.choice === "divide-3600" && attempt.ok === true &&
+              isInt(attempt.at) && (conversionAt == null || attempt.at < conversionAt))
+            conversionAt = attempt.at;
+        });
+        lab.scaleLab.ratioAttempts.forEach(function (attempt) {
+          if (attempt && Number(attempt.choice) === 3600 && attempt.ok === true &&
+              isInt(attempt.at) && (ratioAt == null || attempt.at < ratioAt))
+            ratioAt = attempt.at;
+        });
+        lab.scaleLab.relationAttempts.forEach(function (attempt) {
+          if (attempt && attempt.choice === "multiply" && attempt.ok === true &&
+              isInt(attempt.at) && (relationAt == null || attempt.at < relationAt))
+            relationAt = attempt.at;
+        });
+        if (!isInt(predictionAt) || !isInt(predictionOpenedAt) ||
+            !isInt(conversionAt) || !isInt(ratioAt) ||
+            !isInt(relationAt) ||
+            predictionOpenedAt !== lab.scaleLab.conversionAttempts[0].at ||
+            lab.scaleLab.scalePrediction.matched !==
+              (lab.scaleLab.scalePrediction.choice === "one-over-3600") ||
+            lab.scaleLab.moonOneSecondSagMm !== 1.4 ||
+            !(predictionAt < conversionAt && conversionAt < ratioAt && ratioAt < relationAt))
+          return fail("K2 缺少玩家依序完成的同尺紙判讀");
+      }
+    }
+    if (lab.evidence.k3) {
+      var migratedK3 = migratedV1 && lab.planetLab.predictions.length === 2 &&
+        lab.planetLab.predictions.every(function (prediction) {
+          return prediction.source === "schema1-validated-k3";
+        });
+      var validPlanetPrediction = function (id) {
+        var currentRows = lab.planetLab.predictions.filter(function (prediction) {
+          return prediction && prediction.planet === id &&
+            prediction.superseded !== true;
+        });
+        return currentRows.length === 1 && currentRows.some(function (prediction) {
+          return prediction && prediction.planet === id && prediction.exponent === 2 &&
+            prediction.sealed === true && prediction.revealedAfterSeal === true &&
+            prediction.pass === true && prediction.superseded !== true &&
+            prediction.sealedAt < prediction.openedAt &&
+            lab.planetLab.residuals[id] === prediction.residualPct &&
+            (!engine4 || engine4._planetPredictionAudit(prediction));
+        });
+      };
+      if (!((lab.evidence.k1 || migratedK3) && lab.evidence.k2 &&
+          lab.planetLab.crossScalePass === true &&
+          lab.planetLab.revealed.mars === true &&
+          lab.planetLab.revealed.jupiter === true &&
+          validPlanetPrediction("mars") && validPlanetPrediction("jupiter")))
+        return fail("K3 與封存後開啟的兩個行星預測不一致");
+    }
+    if (lab.evidence.k4) {
+      var completeLedger = uniqueOrder.length === 3 && uniqueCompleted.length === 3 &&
+        ledgerCases.every(function (id) {
+          var row = lab.modelLab.rowStage[id];
+          var expectedVortexStamp = id === "moon" ? "story" : "mismatch";
+          var forceRun = lab.modelLab.runs.some(function (run) {
+            return run.caseId === id && run.model === "inverseSquare" &&
+              run.raw === true && run.fit === "matches";
+          });
+          var vortexRun = lab.modelLab.runs.some(function (run) {
+            return run.caseId === id && run.model === "simpleVortex" &&
+              run.raw === true && run.fit === expectedVortexStamp;
+          });
+          var forceStamped = lab.modelLab.stampAttempts.some(function (attempt) {
+            return attempt.caseId === id && attempt.model === "inverseSquare" &&
+              attempt.expected === "matches" && attempt.stamp === "matches" &&
+              attempt.ok === true && attempt.at > row.openedAt &&
+              attempt.at < row.completedAt;
+          });
+          var vortexStamped = lab.modelLab.stampAttempts.some(function (attempt) {
+            return attempt.caseId === id && attempt.model === "simpleVortex" &&
+              attempt.expected === expectedVortexStamp &&
+              attempt.stamp === expectedVortexStamp && attempt.ok === true &&
+              attempt.at > row.openedAt && attempt.at < row.completedAt;
+          });
+          return row.complete && row.forceStamp === "matches" &&
+            row.vortexStamp === expectedVortexStamp &&
+            forceRun && vortexRun && forceStamped && vortexStamped;
+        });
+      var expectedLedgerStamps = ledgerCases.map(function (id) {
+        var packageRow = lab.modelLab.rowStage[id] || {};
+        return {
+          caseId: id,
+          inverseSquare: packageRow.forceStamp || null,
+          vortex: packageRow.vortexStamp || null,
+          loanDecision: lab.modelLab.loanDecisions[id] || null
+        };
+      });
+      var evidencePackage = lab.modelLab.evidencePackage;
+      var packageMatches = evidencePackage &&
+        JSON.stringify(evidencePackage.rowOrder) === JSON.stringify(lab.modelLab.rowOrder) &&
+        JSON.stringify(evidencePackage.stamps) === JSON.stringify(expectedLedgerStamps) &&
+        JSON.stringify(evidencePackage.loans) === JSON.stringify(lab.modelLab.loans) &&
+        typeof evidencePackage.claimText === "string" &&
+        (!engine4 || evidencePackage.claimText === engine4._ledgerClaimText(lab.modelLab));
+      if (!(lab.evidence.k1 && lab.evidence.k2 && lab.evidence.k3 &&
+          press.openingChoice && press.priorityRecord &&
+          completeLedger && lab.cometLab && lab.cometLab.joined === true &&
+          lab.modelLab.gravityComplete === true &&
+          lab.modelLab.vortexComplete === true &&
+          lab.modelLab.comparisonClaim === "actual-ledger" &&
+          lab.modelLab.comparisonSealed === true && packageMatches))
+        return fail("K4 與逐格蓋章／借條／出版取捨紀錄不一致");
+    }
+    var chapterEvidence = state.evidence;
+    if (!chapterEvidence || typeof chapterEvidence !== "object" || Array.isArray(chapterEvidence))
+      return fail("章節證據格式錯誤");
+    for (var eti = 0; eti < evidenceIds.length; eti++) {
+      var upper = evidenceIds[eti].toUpperCase();
+      if (!!chapterEvidence[upper] !== !!lab.evidence[evidenceIds[eti]])
+        return fail("章節證據與工作台狀態不一致");
+    }
     if (lab.claims != null) {
       if (!lab.claims || typeof lab.claims !== "object" || Array.isArray(lab.claims) ||
           Object.keys(lab.claims).some(function (id) { return evidenceIds.indexOf(id) < 0; }))
@@ -684,31 +1847,644 @@
         var claimRows = lab.claims[claimKey];
         if (!Array.isArray(claimRows) || claimRows.length > 100)
           return fail("第四章斷言紀錄格式錯誤");
+        var allowedClaimActions = {
+          k1: ["assertK1"],
+          k2: ["judgeScaleRelation", "assertK2", "migrationCarryK2"],
+          k3: ["assertK3", "migrationCarryK3"],
+          k4: ["sealModelComparison", "assertK4"],
+          k5: ["submitProof"]
+        };
         for (var cri = 0; cri < claimRows.length; cri++) {
           var claimRow = claimRows[cri];
-          if (!claimRow || !Array.isArray(claimRow.sources) || claimRow.sources.length > 8 ||
+          if (!claimRow || claimRow.id !== cri + 1 ||
+              !Array.isArray(claimRow.sources) || claimRow.sources.length > 8 ||
               claimRow.sources.some(function (source) {
                 return typeof source !== "string" || source.length > 80;
               }) ||
               (claimRow.concept != null &&
                 (typeof claimRow.concept !== "string" || claimRow.concept.length > 80)) ||
-              typeof claimRow.ok !== "boolean")
+              typeof claimRow.ok !== "boolean" ||
+              !isInt(claimRow.at) || claimRow.at < 1 ||
+              claimRow.at > lab.sequence ||
+              allowedClaimActions[claimKey].indexOf(claimRow.action) < 0 ||
+              ["player-assertion", "schema1-validated-claim"]
+                .indexOf(claimRow.source) < 0 ||
+              (claimRow.source === "schema1-validated-claim" &&
+                (!migratedV1 ||
+                 ["migrationCarryK2", "migrationCarryK3"]
+                   .indexOf(claimRow.action) < 0 ||
+                 claimRow.at > state.migration.baseSequence)) ||
+              (claimRow.source === "player-assertion" && migratedV1 &&
+                claimRow.at <= state.migration.baseSequence) ||
+              (cri && claimRow.at <= claimRows[cri - 1].at))
             return fail("第四章斷言紀錄含無法辨識的資料");
+          if (claimRow.source === "player-assertion") {
+            var claimMigrationIndex = migratedV1
+              ? state.eventLog.findIndex(function (event) {
+                  return event && event.t === "migration";
+                }) : -1;
+            var matchingClaimEvents = state.eventLog.filter(function (event, index) {
+              return index > claimMigrationIndex && event &&
+                event.t === "lab" && event.action === claimRow.action &&
+                event.sequence === claimRow.at;
+            });
+            if (matchingClaimEvents.length !== 1)
+              return fail("第四章斷言缺少同一次玩家操作事件");
+            if (["assertK1", "assertK2", "assertK3", "assertK4"]
+                .indexOf(claimRow.action) >= 0) {
+              var eventArgs = matchingClaimEvents[0].args;
+              var eventSources = eventArgs && Array.isArray(eventArgs.records)
+                ? Array.from(new Set(eventArgs.records)).sort() : [];
+              var eventConcept = claimRow.action === "assertK4"
+                ? eventArgs && eventArgs.claim
+                : eventArgs && eventArgs.concept;
+              if (JSON.stringify(eventSources) !==
+                    JSON.stringify(claimRow.sources.slice().sort()) ||
+                  eventConcept !== claimRow.concept)
+                return fail("第四章斷言文字與玩家送出的選項不一致");
+            }
+          }
+
+          var sortedClaimSources = claimRow.sources.slice().sort();
+          var expectedClaimSources = null, expectedClaimConcept = null;
+          if (claimKey === "k1") {
+            expectedClaimSources = ["closed", "tangent"];
+            expectedClaimConcept = "forward-plus-inward-turn";
+          } else if (claimKey === "k2") {
+            expectedClaimSources = ["earth-fall", "moon-sag", "scale-60-60"];
+            expectedClaimConcept = "inverse-square-cross-scale";
+          } else if (claimKey === "k3") {
+            expectedClaimSources = ["jupiter-sealed", "mars-sealed"];
+            expectedClaimConcept = "withheld-data-prediction";
+          } else if (claimKey === "k4" &&
+              claimRow.action === "sealModelComparison") {
+            expectedClaimSources = ledgerCases.map(function (id) {
+              return "ledger:" + id;
+            }).concat(lab.modelLab.loans.map(function (loan) {
+              return "loan:" + loan.caseId;
+            })).sort();
+            expectedClaimConcept = "same-rule-fewer-player-recorded-loans";
+          } else if (claimKey === "k5") {
+            expectedClaimSources = ["K1", "K2", "K3", "K4", "SHELL"];
+            expectedClaimConcept = "sources-and-rule-scoped";
+          }
+          var wordsMatch = expectedClaimSources == null ||
+            (JSON.stringify(sortedClaimSources) ===
+              JSON.stringify(expectedClaimSources.slice().sort()) &&
+             claimRow.concept === expectedClaimConcept);
+          var expectedClaimOk = false;
+          if (claimRow.action === "migrationCarryK2" ||
+              claimRow.action === "migrationCarryK3") {
+            expectedClaimOk = wordsMatch;
+          } else if (claimRow.action === "assertK1") {
+            var latestSealAt = Math.max.apply(Math, [-1]
+              .concat((lab.orbitLab.ruleRuns || []).map(function (run) {
+                return run.sealedAt < claimRow.at ? run.sealedAt : -1;
+              }))
+              .concat((lab.orbitLab.manualAttempts || []).map(function (attempt) {
+                return attempt.seal.sealedAt < claimRow.at
+                  ? attempt.seal.sealedAt : -1;
+              }))
+              .concat(lab.orbitLab.ruleSeal &&
+                lab.orbitLab.ruleSeal.sealedAt < claimRow.at
+                  ? [lab.orbitLab.ruleSeal.sealedAt] : []));
+            expectedClaimOk = wordsMatch &&
+              (lab.orbitLab.ruleRuns || []).some(function (run) {
+                return run.sealedAt === latestSealAt &&
+                  run.continuedAt < claimRow.at &&
+                  run.target === "earth-center" &&
+                  ["circle", "ellipse"].indexOf(run.actualShape) >= 0;
+              });
+          } else if (claimRow.action === "judgeScaleRelation" ||
+              claimRow.action === "assertK2") {
+            var relationReady = lab.scaleLab.relationAttempts.some(function (row) {
+              return row.ok === true && row.at <= claimRow.at;
+            });
+            expectedClaimOk = wordsMatch && relationReady;
+          } else if (claimRow.action === "assertK3") {
+            expectedClaimOk = wordsMatch &&
+              ["mars", "jupiter"].every(function (planet) {
+                return lab.planetLab.predictions.some(function (prediction) {
+                  return prediction.planet === planet &&
+                    prediction.pass === true &&
+                    prediction.openedAt < claimRow.at;
+                });
+              });
+          } else if (claimRow.action === "sealModelComparison") {
+            expectedClaimOk = wordsMatch &&
+              lab.modelLab.comparisonSealedAt === claimRow.at;
+          } else if (claimRow.action === "assertK4") {
+            expectedClaimOk = lab.modelLab.comparisonSealed === true &&
+              lab.modelLab.evidencePackage != null &&
+              claimRow.concept === "same-rule-fewer-patches";
+          } else if (claimRow.action === "submitProof") {
+            expectedClaimOk = wordsMatch && press.proofs.some(function (proofRow) {
+              return proofRow.kind === "complete" &&
+                proofRow.complete === true &&
+                proofRow.submittedAt === claimRow.at;
+            });
+          }
+          if (claimRow.ok !== expectedClaimOk)
+            return fail("第四章斷言結果不是由當時證據重算");
         }
       }
     }
-    if (engine4 && lab.evidence.k5 && !engine4._proofAudit(lab).complete) {
-      /* CH4-CR-004 新增署名範圍欄位；既有完章存檔無法憑空補出玩家選擇。
-         只在舊欄位本來就完整、且唯一缺口確為新欄位時祖父條款放行。 */
-      var legacy = JSON.parse(JSON.stringify(lab));
-      if (legacy.proof.hookeScope != null) return fail("完成證據與校樣內容不一致");
-      legacy.proof.hookeScope = "precise-scope";
-      if (!engine4._proofAudit(legacy).complete) return fail("完成證據與校樣內容不一致");
+    function hasExactSuccessfulClaim(key, sources, concept) {
+      var expectedSources = sources.slice().sort();
+      return !!(lab.claims && Array.isArray(lab.claims[key]) &&
+        lab.claims[key].some(function (row) {
+          return row && row.ok === true && row.concept === concept &&
+            JSON.stringify((row.sources || []).slice().sort()) ===
+              JSON.stringify(expectedSources);
+        }));
     }
+    if (lab.evidence.k1 &&
+        !hasExactSuccessfulClaim("k1", ["closed", "tangent"],
+          "forward-plus-inward-turn"))
+      return fail("K1 缺少與目前作圖一致的成功斷言");
+    if (lab.evidence.k2 &&
+        !hasExactSuccessfulClaim("k2",
+          ["earth-fall", "moon-sag", "scale-60-60"],
+          "inverse-square-cross-scale"))
+      return fail("K2 缺少與目前同尺紙一致的成功斷言");
+    if (lab.evidence.k3 &&
+        !hasExactSuccessfulClaim("k3",
+          ["jupiter-sealed", "mars-sealed"],
+          "withheld-data-prediction"))
+      return fail("K3 缺少與目前封存預測一致的成功斷言");
+    if (lab.evidence.k4) {
+      var k4Sources = ledgerCases.map(function (id) { return "ledger:" + id; })
+        .concat(lab.modelLab.loans.map(function (loan) {
+          return "loan:" + loan.caseId;
+        }));
+      if (!hasExactSuccessfulClaim("k4", k4Sources,
+          "same-rule-fewer-player-recorded-loans"))
+        return fail("K4 缺少與目前蓋章／借條一致的成功斷言");
+    }
+    if (lab.evidence.k5) {
+      if (!["k1", "k2", "k3", "k4"].every(function (id) {
+        return lab.evidence[id];
+      })) return fail("K5 缺少前四份有效證據");
+      if (!hasExactSuccessfulClaim("k5",
+          ["K1", "K2", "K3", "K4", "SHELL"],
+          "sources-and-rule-scoped"))
+        return fail("K5 缺少與目前校樣一致的成功斷言");
+      if (engine4 && !engine4._proofAudit(lab).complete)
+        return fail("完成證據與校樣內容不一致");
+      var shellRevealedAt = lab.proof.shellPageRevealedAt;
+      var shellPlacedAt = lab.proof.shellPagePlacedAt;
+      var authorRemovedAt = lab.proof.authorField.removedAt;
+      if (!isInt(shellRevealedAt) || !isInt(shellPlacedAt) ||
+          !isInt(authorRemovedAt) ||
+          !(shellRevealedAt < shellPlacedAt &&
+            shellPlacedAt < authorRemovedAt &&
+            authorRemovedAt <= lab.sequence))
+        return fail("K5 缺少玩家翻頁、放頁或退出作者欄的時間線");
+      var completeProofSnapshot = press.proofs.some(function (snapshot) {
+        return snapshot && snapshot.kind === "complete" &&
+          snapshot.complete === true && snapshot.superseded !== true &&
+          isInt(snapshot.submittedAt) &&
+          authorRemovedAt < snapshot.submittedAt &&
+          snapshot.submittedAt <= lab.sequence &&
+          snapshot.audit && snapshot.audit.complete === true &&
+          snapshot.openingChoice === press.openingChoice &&
+          JSON.stringify(snapshot.priorityRecord) ===
+            JSON.stringify(press.priorityRecord) &&
+          JSON.stringify(snapshot.slots) === JSON.stringify(lab.proof.slots) &&
+          JSON.stringify(snapshot.attribution) === JSON.stringify(lab.proof.attribution) &&
+          snapshot.hookeScope === lab.proof.hookeScope &&
+          snapshot.boundaryChoice === lab.proof.boundaryChoice &&
+          snapshot.shellPagePlaced === lab.proof.shellPagePlaced &&
+          JSON.stringify(snapshot.authorField) ===
+            JSON.stringify(lab.proof.authorField);
+      });
+      if (!completeProofSnapshot)
+        return fail("K5 缺少由玩家實際送出的完整校樣快照");
+    }
+
+    /* schema 2 的 sequence 是操作時鐘，不只是可任改的顯示數字。
+       先驗每一次實際 tick 唯一，再驗各證據階段只能沿依賴方向前進。 */
+    var operationTimes = [];
+    function rememberOperation(label, at) {
+      if (isInt(at)) operationTimes.push({ label: label, at: at });
+    }
+    lab.sourceLab.attempts.forEach(function (row) {
+      rememberOperation("source", row.at);
+    });
+    lab.scaleLab.predictionAttempts.forEach(function (row) {
+      rememberOperation("scale-prediction", row.sealedAt);
+    });
+    lab.scaleLab.conversionAttempts.forEach(function (row) {
+      rememberOperation("scale-conversion", row.at);
+    });
+    lab.scaleLab.ratioAttempts.forEach(function (row) {
+      rememberOperation("scale-ratio", row.at);
+    });
+    lab.scaleLab.relationAttempts.forEach(function (row) {
+      rememberOperation("scale-relation", row.at);
+    });
+    lab.orbitLab.manualAttempts.forEach(function (attempt) {
+      (attempt.beats || []).forEach(function (row) {
+        rememberOperation("orbit-old-beat", row.at);
+      });
+      rememberOperation("orbit-reset", attempt.resetAt);
+    });
+    if (lab.orbitLab.ruleSeal) {
+      rememberOperation("orbit-seal", lab.orbitLab.ruleSeal.sealedAt);
+      lab.orbitLab.manualBeats.forEach(function (row) {
+        rememberOperation("orbit-beat", row.at);
+      });
+      rememberOperation("orbit-continue", lab.orbitLab.continuedAt);
+    }
+    lab.orbitLab.ruleRuns.forEach(function (run) {
+      var isCurrentRun = lab.orbitLab.ruleSeal &&
+        run.sealedAt === lab.orbitLab.ruleSeal.sealedAt &&
+        run.continuedAt === lab.orbitLab.continuedAt;
+      if (isCurrentRun) return;
+      rememberOperation("orbit-old-seal", run.sealedAt);
+      (run.playerBeats || []).forEach(function (row) {
+        rememberOperation("orbit-old-beat", row.at);
+      });
+      rememberOperation("orbit-old-continue", run.continuedAt);
+    });
+    lab.planetLab.predictions.forEach(function (row) {
+      rememberOperation("planet-seal", row.sealedAt);
+      rememberOperation("planet-open", row.openedAt);
+    });
+    windowedPressRecords.forEach(function (row) {
+      rememberOperation("press-window", row.at);
+    });
+    rescheduledProofs.forEach(function (row) {
+      rememberOperation("press-rescheduled", row.submittedAt);
+    });
+    (lab.cometLab && lab.cometLab.attempts || []).forEach(function (row) {
+      rememberOperation("comet", row.at);
+    });
+    Object.keys(lab.modelLab.rowStage).forEach(function (id) {
+      var row = lab.modelLab.rowStage[id];
+      rememberOperation("ledger-open", row.openedAt);
+      rememberOperation("ledger-complete", row.completedAt);
+    });
+    lab.modelLab.stampAttempts.forEach(function (row) {
+      rememberOperation("ledger-stamp", row.at);
+    });
+    Object.keys(lab.modelLab.loanDecisionAt).forEach(function (id) {
+      rememberOperation("ledger-loan", lab.modelLab.loanDecisionAt[id]);
+    });
+    lab.modelLab.comparisonAttempts.forEach(function (row) {
+      rememberOperation("comparison", row.at);
+    });
+    lab.proof.slotAttempts.forEach(function (row) {
+      rememberOperation("proof-slot", row.at);
+    });
+    lab.proof.hookeScopeAttempts.forEach(function (row) {
+      rememberOperation("proof-scope", row.at);
+    });
+    lab.proof.attributionAttempts.forEach(function (row) {
+      rememberOperation("proof-credit", row.at);
+    });
+    lab.proof.boundaryAttempts.forEach(function (row) {
+      rememberOperation("proof-boundary", row.at);
+    });
+    rememberOperation("shell-reveal", lab.proof.shellPageRevealedAt);
+    rememberOperation("shell-place", lab.proof.shellPagePlacedAt);
+    rememberOperation("author-remove", lab.proof.authorField.removedAt);
+    (lab.archiveLab && lab.archiveLab.clipAttempts || []).forEach(function (row) {
+      rememberOperation("archive-clip", row.at);
+    });
+    evidenceIds.forEach(function (id) {
+      (lab.claims[id] || []).forEach(function (row) {
+        if (["assertK1", "assertK2", "assertK3", "assertK4",
+             "migrationCarryK2", "migrationCarryK3"].indexOf(row.action) >= 0)
+          rememberOperation("claim:" + id, row.at);
+      });
+    });
+    var seenOperationTimes = {};
+    for (var oti = 0; oti < operationTimes.length; oti++) {
+      var operation = operationTimes[oti];
+      if (seenOperationTimes[operation.at])
+        return fail("玩家操作時鐘重複：" +
+          seenOperationTimes[operation.at] + "／" + operation.label);
+      seenOperationTimes[operation.at] = operation.label;
+    }
+    var orderedOperationTimes = operationTimes.map(function (row) { return row.at; })
+      .sort(function (a, b) { return a - b; });
+    if ((lab.sequence === 0 && orderedOperationTimes.length) ||
+        (lab.sequence > 0 &&
+          (!orderedOperationTimes.length ||
+            orderedOperationTimes[orderedOperationTimes.length - 1] !== lab.sequence)))
+      return fail("玩家操作時鐘尾端缺少不可刪除的紀錄");
+    if (migratedV1) {
+      var migrationIndexForBase = state.eventLog.findIndex(function (event) {
+        return event && event.t === "migration";
+      });
+      var k0Provenance = [];
+      state.transcript.forEach(function (row, index) {
+        if (row && row.legacyScene === "D1-1" &&
+            /^c1\.(arc|fall|tangent)$/.test(row.legacyNode || "")) {
+          k0Provenance.push({
+            choice: row.legacyNode.slice(3),
+            at: index + 1,
+            via: "transcript"
+          });
+        }
+      });
+      state.eventLog.forEach(function (event, index) {
+        if (index < migrationIndexForBase && event &&
+            event.t === "choice" && event.at === "D1-1/c1" &&
+            ["arc", "fall", "tangent"].indexOf(event.pick) >= 0) {
+          k0Provenance.push({
+            choice: event.pick,
+            at: state.transcript.length + index + 1,
+            via: "eventLog"
+          });
+        }
+      });
+      var provenanceChoices = Array.from(new Set(k0Provenance.map(function (row) {
+        return row.choice;
+      })));
+      var expectedK0At = null, expectedK0Via = null;
+      if (k0Provenance.length === 1 ||
+          (k0Provenance.length > 1 &&
+            provenanceChoices.length === 1 &&
+            provenanceChoices[0] === "tangent")) {
+        k0Provenance.sort(function (a, b) { return a.at - b.at; });
+        if (provenanceChoices[0] === "tangent") {
+          expectedK0At = k0Provenance[0].at;
+          expectedK0Via = Array.from(new Set(k0Provenance.map(function (row) {
+            return row.via;
+          }))).join("+");
+        }
+      }
+      var nativeK0AfterMigration = expectedK0At == null &&
+        tangent.sealed === true &&
+        tangent.sealedAt > state.migration.baseSequence &&
+        lab.orbitLab.tangentRecord &&
+        lab.orbitLab.tangentRecord.source === "player-sealed-k0";
+      if (state.migration.k0ProvenBy !== expectedK0Via ||
+          (expectedK0At != null &&
+            (!tangent.sealed || tangent.sealedAt !== expectedK0At)) ||
+          (expectedK0At == null && tangent.sealed && !nativeK0AfterMigration))
+        return fail("遷移的 K0 來源時間不是由舊對話紀錄重建");
+      var expectedMigrationBase = expectedK0At || 0;
+      var migratedK2Claims = (lab.claims.k2 || []).filter(function (row) {
+        return row.action === "migrationCarryK2";
+      });
+      if (migratedK2Claims.length) {
+        expectedMigrationBase += 1;
+        if (migratedK2Claims.length !== 1 ||
+            migratedK2Claims[0].at !== expectedMigrationBase)
+          return fail("遷移的 K2 斷言時間不是 canonical 前綴");
+      }
+      var migratedPlanetRowsForBase = lab.planetLab.predictions.filter(function (row) {
+        return row.source === "schema1-validated-k3";
+      });
+      for (var mpb = 0; mpb < migratedPlanetRowsForBase.length; mpb++) {
+        expectedMigrationBase += 1;
+        if (migratedPlanetRowsForBase[mpb].sealedAt !== expectedMigrationBase)
+          return fail("遷移的 K3 封存時間不是 canonical 前綴");
+        expectedMigrationBase += 1;
+        if (migratedPlanetRowsForBase[mpb].openedAt !== expectedMigrationBase)
+          return fail("遷移的 K3 開封時間不是 canonical 前綴");
+      }
+      var migratedK3Claims = (lab.claims.k3 || []).filter(function (row) {
+        return row.action === "migrationCarryK3";
+      });
+      if (migratedK3Claims.length) {
+        expectedMigrationBase += 1;
+        if (migratedK3Claims.length !== 1 ||
+            migratedK3Claims[0].at !== expectedMigrationBase)
+          return fail("遷移的 K3 斷言時間不是 canonical 前綴");
+      }
+      var carriedK2AtMigration = migratedK2Claims.length === 1;
+      var carriedK3AtMigration = migratedK3Claims.length === 1;
+      if ((carriedK2AtMigration &&
+            (!migrationSourceEvidence.K2 || expectedK0At == null ||
+              !legacyCursorPast4(state.migration.originalCursor, "D2-2", "e1"))) ||
+          (carriedK3AtMigration &&
+            (!migrationSourceEvidence.K3 || !carriedK2AtMigration ||
+              !legacyCursorPast4(state.migration.originalCursor, "D2-3", "e1"))))
+        return fail("遷移攜帶的 K2／K3 早於舊版玩家完成里程碑");
+      var expectedReacquire4 = ["K1", "K2", "K3", "K4", "K5"]
+        .filter(function (id) {
+          var carried = id === "K2" ? carriedK2AtMigration :
+            (id === "K3" ? carriedK3AtMigration : false);
+          return migrationSourceEvidence[id] && !carried;
+        });
+      if (JSON.stringify(state.migration.reacquire) !==
+          JSON.stringify(expectedReacquire4))
+        return fail("遷移重做清單不是由舊證據與可攜帶證據導出");
+      var legacyToV2Scene4 = {
+        "D0-1": "D0-1", "D0-2": "D0-2", "D1-1": "D1-1",
+        "D1-2": "D1-2", "D1-3": "D1-2", "D2-1": "D2-1",
+        "D2-2": "D1-2", "D2-3": "D3-1", "D3-1": "D4-1",
+        "D3-2": "D4-1", "D3-3": "D4-2", "D3-4": "D4-2",
+        "DE-1": "DE-1", "DE-2": "DE-2"
+      };
+      var expectedTargetScene4;
+      if (expectedK0At == null && migrationSourceEvidence.K1) {
+        expectedTargetScene4 = "D1-1";
+      } else {
+        expectedTargetScene4 =
+          legacyToV2Scene4[state.migration.originalCursor.scene];
+        [
+          ["K2", "D1-2"], ["K1", "D2-1"], ["K3", "D3-1"],
+          ["K4", "D4-1"], ["K5", "D4-2"]
+        ].some(function (redo) {
+          if (expectedReacquire4.indexOf(redo[0]) < 0) return false;
+          expectedTargetScene4 = redo[1];
+          return true;
+        });
+        var v2SceneOrder4 = [
+          "D0-1", "D0-2", "D1-1", "D1-2", "D-INT-1", "D2-1",
+          "D2-2", "D3-1", "D4-1", "D4-2", "DE-1", "DE-2"
+        ];
+        var targetSceneIndex4 = v2SceneOrder4.indexOf(expectedTargetScene4);
+        [
+          ["D1-1", expectedK0At != null],
+          ["D1-2", carriedK2AtMigration],
+          ["D2-1", false],
+          ["D3-1", carriedK3AtMigration],
+          ["D4-1", false],
+          ["D4-2", false]
+        ].some(function (gate) {
+          if (targetSceneIndex4 <= v2SceneOrder4.indexOf(gate[0]) || gate[1])
+            return false;
+          expectedTargetScene4 = gate[0];
+          return true;
+        });
+      }
+      var expectedTargetNode4 = expectedTargetScene4 &&
+        Object.keys(nodeOrder[expectedTargetScene4] || {})[0];
+      if (!expectedTargetNode4 ||
+          state.migration.targetCursor.scene !== expectedTargetScene4 ||
+          state.migration.targetCursor.node !== expectedTargetNode4)
+        return fail("遷移安全入口不是由舊游標與重做清單導出");
+      if (state.migration.baseSequence !== expectedMigrationBase)
+        return fail("遷移基準時鐘不是由可驗證的舊證據重建");
+    }
+    if (!migratedV1 &&
+        (orderedOperationTimes.length !== lab.sequence ||
+          orderedOperationTimes.some(function (at, index) { return at !== index + 1; })))
+      return fail("玩家操作時鐘中間有紀錄被刪除");
+    if (migratedV1) {
+      var migrationBase = state.migration.baseSequence;
+      var nativeOperationTimes = orderedOperationTimes.filter(function (at) {
+        return at > migrationBase;
+      });
+      if (nativeOperationTimes.length !== lab.sequence - migrationBase ||
+          nativeOperationTimes.some(function (at, index) {
+            return at !== migrationBase + index + 1;
+          }))
+        return fail("遷移後的玩家操作時鐘中間有紀錄被刪除");
+    }
+    var supersededCompleteProofs = press.proofs.filter(function (record) {
+      return record.kind === "complete" && record.complete === true &&
+        record.superseded === true;
+    });
+    if (supersededCompleteProofs.some(function (record) {
+      return !operationTimes.some(function (operation) {
+        return operation.at > record.submittedAt;
+      });
+    })) return fail("舊完整校樣被標成失效，卻沒有更晚的重做操作");
+    if (completeProofRows.length) {
+      var activeProofTime = completeProofRows[0].submittedAt;
+      if (operationTimes.some(function (operation) {
+        return operation.at > activeProofTime &&
+          operation.label !== "archive-clip" &&
+          operation.label !== "claim:k5";
+      }))
+        return fail("有效完整校樣之後混入不可能的前置操作");
+    }
+
+    var firstScaleAt = lab.scaleLab.scalePrediction &&
+      lab.scaleLab.scalePrediction.sealedAt;
+    var successfulConversion = lab.scaleLab.conversionAttempts.find(function (row) {
+      return row.ok === true;
+    });
+    var successfulRatio = lab.scaleLab.ratioAttempts.find(function (row) {
+      return row.ok === true;
+    });
+    var successfulRelation = lab.scaleLab.relationAttempts.find(function (row) {
+      return row.ok === true;
+    });
+    if (!migratedK2 && firstScaleAt != null &&
+        (!tangent.sealed || !(tangent.sealedAt < firstScaleAt)))
+      return fail("同尺紙預測早於切線來源紙");
+    if (!migratedK2 && successfulConversion &&
+        !(firstScaleAt < successfulConversion.at))
+      return fail("同尺紙換算早於量級封存");
+    if (!migratedK2 && successfulRatio &&
+        (!successfulConversion || !(successfulConversion.at < successfulRatio.at)))
+      return fail("同尺紙倍率判讀早於時間換算");
+    if (!migratedK2 && successfulRelation &&
+        (!successfulRatio || !(successfulRatio.at < successfulRelation.at)))
+      return fail("同尺紙關係判讀早於倍率判讀");
+    if (lab.orbitLab.ruleSeal && !migratedK2 &&
+        (!successfulRelation ||
+          !(successfulRelation.at < lab.orbitLab.ruleSeal.sealedAt)))
+      return fail("作圖規則早於同尺紙成立");
+    var nativePlanetRows = lab.planetLab.predictions.filter(function (row) {
+      return row.source !== "schema1-validated-k3";
+    });
+    if (nativePlanetRows.length &&
+        (!lab.orbitLab.continuedAt ||
+          nativePlanetRows.some(function (row) {
+            return row.sealedAt <= lab.orbitLab.continuedAt;
+          })))
+      return fail("行星封存預測早於玩家作圖與牛頓續畫");
+    var lastPlanetOpen = lab.planetLab.predictions.length
+      ? Math.max.apply(Math, lab.planetLab.predictions.map(function (row) {
+          return row.openedAt;
+        })) : null;
+    if (press.priorityRecord) {
+      var priorDiscoveryTimes = [lab.orbitLab.continuedAt, lastPlanetOpen].filter(isInt);
+      if (priorDiscoveryTimes.length < 2 ||
+          press.priorityRecord.at <= Math.max.apply(Math, priorDiscoveryTimes))
+        return fail("出版取捨早於 K1／K3 證據成立");
+    }
+    var openingAt = press.priorityRecord && press.priorityRecord.at;
+    var ledgerOpenTimes = Object.keys(lab.modelLab.rowStage).map(function (id) {
+      return lab.modelLab.rowStage[id].openedAt;
+    });
+    var cometTimes = lab.cometLab && lab.cometLab.attempts.map(function (row) {
+      return row.at;
+    }) || [];
+    if (openingAt != null &&
+        ledgerOpenTimes.concat(cometTimes).some(function (at) {
+          return at <= openingAt;
+        }))
+      return fail("彗星接軌或對帳桌早於出版取捨");
+    if (lab.modelLab.comparisonSealedAt != null) {
+      var ledgerEndTimes = Object.keys(lab.modelLab.rowStage).map(function (id) {
+        return lab.modelLab.rowStage[id].completedAt;
+      }).filter(isInt);
+      var joinedCometAt = lab.cometLab && lab.cometLab.attempts.length
+        ? lab.cometLab.attempts[lab.cometLab.attempts.length - 1].at : null;
+      if (ledgerEndTimes.length !== 3 || !isInt(joinedCometAt) ||
+          lab.modelLab.comparisonSealedAt <=
+            Math.max.apply(Math, ledgerEndTimes.concat([joinedCometAt])))
+        return fail("模型比較封條早於三列對帳或彗星接軌");
+    }
+    var proofActionTimes = lab.proof.slotAttempts.map(function (row) { return row.at; })
+      .concat(lab.proof.hookeScopeAttempts.map(function (row) { return row.at; }))
+      .concat(lab.proof.attributionAttempts.map(function (row) { return row.at; }))
+      .concat(lab.proof.boundaryAttempts.map(function (row) { return row.at; }))
+      .concat([
+        lab.proof.shellPageRevealedAt,
+        lab.proof.shellPagePlacedAt,
+        lab.proof.authorField.removedAt
+      ].filter(isInt));
+    if (proofActionTimes.length &&
+        (!isInt(lab.modelLab.comparisonSealedAt) ||
+          proofActionTimes.some(function (at) {
+            return at <= lab.modelLab.comparisonSealedAt;
+          })))
+      return fail("印刷台操作早於 K4 對帳封條");
+    if (completeProofRows.length) {
+      var finalProofAt = completeProofRows[0].submittedAt;
+      if (!proofActionTimes.length ||
+          finalProofAt <= Math.max.apply(Math, proofActionTimes))
+        return fail("完整校樣早於六槽、署名或邊界操作");
+      if (lab.archiveLab && lab.archiveLab.clipAttempts.some(function (row) {
+        return row.at <= finalProofAt;
+      })) return fail("旅人筆記早於完整校樣送出");
+    } else if (lab.archiveLab && lab.archiveLab.clipAttempts.length) {
+      return fail("尚未送出完整校樣就夾回旅人筆記");
+    }
+
+    var cursorMilestones = [
+      {
+        scene: "D1-1", node: "e1",
+        ok: tangent.sealed === true && tangent.choice === "tangent",
+        label: "K0 切線來源紙"
+      },
+      { scene: "D1-2", node: "e1", ok: lab.evidence.k2, label: "K2 同尺紙" },
+      { scene: "D2-1", node: "e1", ok: lab.evidence.k1, label: "K1 作圖法" },
+      { scene: "D3-1", node: "e1", ok: lab.evidence.k3, label: "K3 封存預測" },
+      { scene: "D4-1", node: "e1", ok: lab.evidence.k4, label: "K4 對帳桌" },
+      { scene: "D4-2", node: "e1", ok: lab.evidence.k5, label: "K5 完整校樣" },
+      {
+        scene: "DE-1", node: "e1",
+        ok: !!(lab.archiveLab && lab.archiveLab.complete),
+        label: "證據回收"
+      }
+    ];
+    for (var cmi = 0; cmi < cursorMilestones.length; cmi++) {
+      var milestone = cursorMilestones[cmi];
+      if (sceneOrder[milestone.scene] != null &&
+          cursorPastMilestone(milestone.scene, milestone.node) &&
+          !milestone.ok)
+        return fail("故事位置已越過尚未完成的" + milestone.label);
+    }
+    if (state.ended && !(lab.evidence.k5 && lab.archiveLab && lab.archiveLab.complete))
+      return fail("完章狀態與證據回收不一致");
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
     for (var t = 0; t < state.transcript.length; t++) {
       var line = state.transcript[t];
-      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2000)
+      if (!line || (!sceneIds[line.scene] &&
+          !/^(D[0-4]-[0-9]+|INT-1|D-INT-1|DE-[12])$/.test(line.scene || "")) ||
+          typeof line.text !== "string" || line.text.length > 2000)
         return fail("對話紀錄中有一筆格式錯誤");
     }
     return { ok: true, state: state };

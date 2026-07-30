@@ -59,6 +59,31 @@
       diagram.appendChild(label);
     });
   }
+  function mountCannonFocusVisual(item, art) {
+    var diagram = document.createElement("div");
+    diagram.className = "scene-focus-cannon";
+    diagram.setAttribute("role", "img");
+    diagram.setAttribute("aria-label", item.alt || "山頂大砲與三種引擎繪製的拋射路徑");
+    var img = document.createElement("img");
+    img.src = assetUrl(art);
+    img.alt = "";
+    img.loading = "eager";
+    img.setAttribute("aria-hidden", "true");
+    diagram.appendChild(img);
+    var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "cannon-trajectory-overlay");
+    overlay.setAttribute("viewBox", "0 0 1672 941");
+    overlay.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML =
+      '<path class="near" d="M 650 495 C 790 470 875 548 985 690"/>' +
+      '<path class="far" d="M 650 495 C 875 385 1150 430 1415 655"/>' +
+      '<path class="orbiting" d="M 650 495 C 930 250 1350 258 1660 510"/>' +
+      '<circle class="impact near" cx="985" cy="690" r="8"/>' +
+      '<circle class="impact far" cx="1415" cy="655" r="8"/>';
+    diagram.appendChild(overlay);
+    return diagram;
+  }
   function showFocusVisual(rule) {
     if (!rule) return;
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
@@ -79,6 +104,11 @@
       }
       var e = assetEntry(item.asset);
       if (!e) return;
+      if (item.overlay === "cannon-trajectories") {
+        media.appendChild(mountCannonFocusVisual(item, e));
+        shown++;
+        return;
+      }
       var img = document.createElement("img");
       img.src = assetUrl(e);
       img.alt = item.alt || "證據圖";

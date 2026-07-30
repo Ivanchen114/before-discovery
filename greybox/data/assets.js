@@ -71,14 +71,12 @@
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
-  "D1-3": "bg_ch04_woolsthorpe_study_1665",
+  "D-INT-1": "bg_ch04_woolsthorpe_study_1665",
   "D2-1": "bg_ch04_cambridge_hooke_letter_1679",
   "D2-2": "bg_ch04_cambridge_hooke_letter_1679",
-  "D2-3": "bg_ch04_cambridge_halley_1684",
   "D3-1": "bg_ch04_cambridge_halley_1684",
-  "D3-2": "bg_ch04_greenwich_observatory_1680s",
-  "D3-3": "bg_ch04_london_printshop_1687",
-  "D3-4": "bg_ch04_london_printshop_1687",
+  "D4-1": "bg_ch04_cambridge_halley_1684",
+  "D4-2": "bg_ch04_london_printshop_1687",
   "DE-1": "bg_ch04_london_printshop_1687",
   "DE-2": "bg_ch04_typecase_collision_epilogue",
   "ch5:E0-1": "bg_ch05_cirey_library_day",
@@ -1615,6 +1613,36 @@
    "sourceMaster": "art/source/production/ch04/props/ch04_prop_print_credit_sources_master_v01.png"
   },
   {
+   "id": "ch04_focus_drawer_closes_1665_v01",
+   "kind": "cg",
+   "label": "1665 年抽屜關上的焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_drawer_closes_1665_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_drawer_closes_1665_master_v01.png"
+  },
+  {
+   "id": "ch04_focus_newton_orbit_montage_1679_v01",
+   "kind": "cg",
+   "label": "1679 年牛頓接筆續畫焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_newton_orbit_montage_1679_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_newton_orbit_montage_1679_master_v01.png"
+  },
+  {
+   "id": "ch04_focus_mountain_cannon_v01",
+   "kind": "cg",
+   "label": "山頂大砲思想實驗焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_mountain_cannon_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_mountain_cannon_master_v01.png"
+  },
+  {
    "id": "card_K1",
    "kind": "card",
    "label": "K1 一直改向的路",
@@ -2100,7 +2128,7 @@
    "Newton": "dialogue_newton22",
    "牛頓": "dialogue_newton22"
   },
-  "D1-3": {
+  "D-INT-1": {
    "Newton": "dialogue_newton22",
    "牛頓": "dialogue_newton22"
   },
@@ -2112,30 +2140,19 @@
    "Newton": "dialogue_newton41",
    "牛頓": "dialogue_newton41"
   },
-  "D2-3": {
-   "Newton": "dialogue_newton41",
-   "Halley": "dialogue_halley28",
-   "牛頓": "dialogue_newton41",
-   "哈雷": "dialogue_halley28"
-  },
   "D3-1": {
    "Newton": "dialogue_newton41",
    "Halley": "dialogue_halley28",
    "牛頓": "dialogue_newton41",
    "哈雷": "dialogue_halley28"
   },
-  "D3-2": {
-   "Newton": "dialogue_newton41",
-   "牛頓": "dialogue_newton41",
-   "哈雷": "dialogue_halley28"
-  },
-  "D3-3": {
+  "D4-1": {
    "Newton": "dialogue_newton41",
    "Halley": "dialogue_halley28",
    "牛頓": "dialogue_newton41",
    "哈雷": "dialogue_halley28"
   },
-  "D3-4": {
+  "D4-2": {
    "Newton": "dialogue_newton41",
    "Halley": "dialogue_halley28",
    "牛頓": "dialogue_newton41",
@@ -2240,7 +2257,7 @@
  "lineFocusVisual": [
   {
    "scene": "D1-1",
-   "match": "牛頓沿著選中的方向連出三個點",
+   "match": "旅人沿選中的方向畫下一條直線",
    "items": [
     {
      "asset": "ch04_prop_tangent_prediction_sheet_v02",
@@ -2250,8 +2267,8 @@
    "caption": "無作用預測紙：若沒有作用改變運動，月亮下一步沿當下切線直走。這是操作前的預測，不是觀測證據。"
   },
   {
-   "scene": "D1-2",
-   "match": "牛頓把一顆木球繫到細繩末端",
+   "scene": "D2-1",
+   "match": "他在木球上繫好細繩",
    "items": [
     {
      "asset": "ch04_prop_rope_ball_setup_v01",
@@ -2261,8 +2278,19 @@
    "caption": "繩球演示的裝置：它只把「持續轉彎需要持續改變運動」的問題指出來，不替月亮提供答案。"
   },
   {
+   "scene": "D1-2",
+   "match": "他把兩張紙放進抽屜",
+   "items": [
+    {
+     "asset": "ch04_focus_drawer_closes_1665_v01",
+     "alt": "1665 年工作桌的抽屜被輕輕關上，兩張尚未完成的計算紙留在裡面"
+    }
+   ],
+   "caption": "兩張紙先進抽屜：量級對上了，但「憑什麼從地心量」尚未被證明。"
+  },
+  {
    "scene": "D2-1",
-   "match": "一封拆開的信壓在上面",
+   "match": "信上畫著兩支箭",
    "items": [
     {
      "asset": "ch04_prop_hooke_letter_reconstruction_v01",
@@ -2272,8 +2300,31 @@
    "caption": "1679 年書信道具重建（非真跡影像）：信把切線前進與向中心吸引放進同一個問題，沒有替後面的證明作答。"
   },
   {
-   "scene": "D2-3",
-   "match": "匣內兩包封住的觀測",
+   "scene": "D2-1",
+   "match": "第三十拍落下",
+   "items": [
+    {
+     "asset": "ch04_focus_newton_orbit_montage_1679_v01",
+     "alt": "1679 年燭光下，牛頓接過羽毛筆，在玩家留下的前三拍之後繼續作圖"
+    }
+   ],
+   "caption": "玩家先留下三拍；其後的細分作圖由牛頓續完。底圖只承載手、紙與燭光，軌跡仍由引擎繪製。"
+  },
+  {
+   "scene": "D2-1",
+   "match": "最高的山頂上，架一門砲",
+   "items": [
+    {
+     "asset": "ch04_focus_mountain_cannon_v01",
+     "overlay": "cannon-trajectories",
+     "alt": "高山左下方架著十七世紀大砲，右側天空留白等待引擎疊加三條軌跡"
+    }
+   ],
+   "caption": "山與砲只提供思想實驗的情境；快慢不同的三條軌跡由引擎 SVG 疊加。"
+  },
+  {
+   "scene": "D3-1",
+   "match": "哈雷掏出封蠟",
    "items": [
     {
      "asset": "ch04_prop_halley_sealed_observation_box_v01",
@@ -2283,8 +2334,8 @@
    "caption": "觀測仍在封口裡：先留下預測，才有資格拆開火星與木星的資料。"
   },
   {
-   "scene": "D3-3",
-   "match": "旅人親手把空白名條移出作者欄",
+   "scene": "D4-2",
+   "match": "作者欄沒有旅人的名條",
    "items": [
     {
      "asset": "ch04_prop_print_credit_sources_v01",
@@ -2740,14 +2791,12 @@
   "D0-2": "ch4Orchard",
   "D1-1": "ch4Orbit",
   "D1-2": "ch4Orbit",
-  "D1-3": "ch4Orbit",
+  "D-INT-1": "timePassage",
   "D2-1": "ch4Hooke",
   "D2-2": "ch4Hooke",
-  "D2-3": "ch4Predictions",
-  "D3-1": "ch4Press",
-  "D3-2": "ch4Greenwich",
-  "D3-3": "ch4Press",
-  "D3-4": "ch4Press",
+  "D3-1": "ch4Predictions",
+  "D4-1": "ch4Press",
+  "D4-2": "ch4Press",
   "DE-1": "ch4Principia",
   "DE-2": "ch4Principia"
  },

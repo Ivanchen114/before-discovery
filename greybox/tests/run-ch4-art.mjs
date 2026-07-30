@@ -22,14 +22,12 @@ const expectedBackgrounds = {
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
-  "D1-3": "bg_ch04_woolsthorpe_study_1665",
+  "D-INT-1": "bg_ch04_woolsthorpe_study_1665",
   "D2-1": "bg_ch04_cambridge_hooke_letter_1679",
   "D2-2": "bg_ch04_cambridge_hooke_letter_1679",
-  "D2-3": "bg_ch04_cambridge_halley_1684",
   "D3-1": "bg_ch04_cambridge_halley_1684",
-  "D3-2": "bg_ch04_greenwich_observatory_1680s",
-  "D3-3": "bg_ch04_london_printshop_1687",
-  "D3-4": "bg_ch04_london_printshop_1687",
+  "D4-1": "bg_ch04_cambridge_halley_1684",
+  "D4-2": "bg_ch04_london_printshop_1687",
   "DE-1": "bg_ch04_london_printshop_1687",
   "DE-2": "bg_ch04_typecase_collision_epilogue"
 };
@@ -55,13 +53,13 @@ for (const [id, assetPath] of Object.entries(portraits)) {
   if (!existsSync(path.join(here, "../../public/assets", assetPath))) fail("人物檔案不存在:" + assetPath);
 }
 
-for (const scene of ["D0-2", "D1-1", "D1-2", "D1-3"])
+for (const scene of ["D0-2", "D1-1", "D1-2", "D-INT-1"])
   if (assets.sceneDialoguePortrait[scene]?.Newton !== "dialogue_newton22")
     fail("1665 場景未使用青年 Newton:" + scene);
-for (const scene of ["D2-1", "D2-2", "D2-3", "D3-1", "D3-2", "D3-3", "D3-4", "DE-1"])
+for (const scene of ["D2-1", "D2-2", "D3-1", "D4-1", "D4-2", "DE-1"])
   if (assets.sceneDialoguePortrait[scene]?.Newton !== "dialogue_newton41")
     fail("1679–1687 場景未使用成熟 Newton:" + scene);
-for (const scene of ["D2-3", "D3-1", "D3-3", "D3-4", "DE-1"])
+for (const scene of ["D3-1", "D4-1", "D4-2", "DE-1"])
   if (assets.sceneDialoguePortrait[scene]?.Halley !== "dialogue_halley28")
     fail("Halley 場景缺肖像:" + scene);
 
@@ -96,30 +94,30 @@ if (!existsSync(path.join(here, "../../public/assets", tangentSheet.path)))
 if (!existsSync(path.join(here, "../../", tangentSheet.sourceMaster)))
   fail("無作用切線預測紙母版不存在");
 const tangentFocus = (assets.lineFocusVisual || []).find((rule) =>
-  rule.scene === "D1-1" && rule.match.includes("連出三個點"));
+  rule.scene === "D1-1" && rule.match.includes("畫下一條直線"));
 if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v02" ||
     !tangentFocus.caption.includes("不是觀測證據"))
   fail("D1-1 選對後未接上切線預測紙或證據邊界");
 
 const focusProps = {
   ch04_prop_rope_ball_setup_v01: {
-    scene: "D1-2",
-    match: "木球繫到細繩末端",
+    scene: "D2-1",
+    match: "木球上繫好細繩",
     guard: "不替月亮提供答案"
   },
   ch04_prop_hooke_letter_reconstruction_v01: {
     scene: "D2-1",
-    match: "拆開的信壓在上面",
+    match: "信上畫著兩支箭",
     guard: "非真跡影像"
   },
   ch04_prop_halley_sealed_observation_box_v01: {
-    scene: "D2-3",
-    match: "兩包封住的觀測",
+    scene: "D3-1",
+    match: "哈雷掏出封蠟",
     guard: "先留下預測"
   },
   ch04_prop_print_credit_sources_v01: {
-    scene: "D3-3",
-    match: "親手把空白名條移出作者欄",
+    scene: "D4-2",
+    match: "作者欄沒有旅人的名條",
     guard: "署名決定之後"
   }
 };
@@ -138,25 +136,66 @@ for (const [id, expected] of Object.entries(focusProps)) {
     fail("第四章台詞特寫觸發或洩答護欄錯誤:" + id);
 }
 
+const generatedFocus = {
+  ch04_focus_drawer_closes_1665_v01: {
+    scene: "D1-2", match: "兩張紙放進抽屜", guard: "尚未被證明"
+  },
+  ch04_focus_newton_orbit_montage_1679_v01: {
+    scene: "D2-1", match: "第三十拍落下", guard: "軌跡仍由引擎繪製"
+  },
+  ch04_focus_mountain_cannon_v01: {
+    scene: "D2-1", match: "最高的山頂上", guard: "引擎 SVG 疊加"
+  }
+};
+for (const [id, expected] of Object.entries(generatedFocus)) {
+  const entry = entries.get(id);
+  if (!entry?.path || entry.w !== 1672 || entry.h !== 941)
+    fail("第四章新增敘事特寫宣告錯誤:" + id);
+  const runtime = path.join(here, "../../public/assets", entry.path);
+  const source = path.join(here, "../../", entry.sourceMaster || "");
+  if (!existsSync(runtime)) fail("第四章新增敘事特寫 runtime 檔案不存在:" + id);
+  if (!existsSync(source)) fail("第四章新增敘事特寫母版不存在:" + id);
+  if (statSync(runtime).size > 512 * 1024)
+    fail("第四章新增敘事特寫超過單檔 512 KB 預算:" + id);
+  const focus = (assets.lineFocusVisual || []).find((rule) =>
+    rule.scene === expected.scene && rule.match.includes(expected.match));
+  if (focus?.items?.[0]?.asset !== id || !focus.caption.includes(expected.guard))
+    fail("第四章新增敘事特寫觸發或 SVG 邊界錯誤:" + id);
+}
+
 const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
 if (!/body\[data-view="orbit"\] #panelWrap\s*\{\s*display:\s*block/.test(stageHtml))
   fail("第四章工作台仍可能被全域 display:none 隱藏");
 if (!stageHtml.includes('body[data-view="orbit"] #dialogue'))
   fail("第四章工作台未關閉殘留對話框");
+const focusRenderer = readFileSync(path.join(here, "../src/stage/03-focus-visual.part.js"), "utf-8");
+const cannonRule = (assets.lineFocusVisual || []).find((rule) =>
+  rule.items?.some((item) => item.asset === "ch04_focus_mountain_cannon_v01"));
+if (cannonRule?.items?.[0]?.overlay !== "cannon-trajectories" ||
+    !focusRenderer.includes("function mountCannonFocusVisual") ||
+    !focusRenderer.includes('overlay.setAttribute("class", "cannon-trajectory-overlay")') ||
+    (focusRenderer.match(/<path class=/g) || []).length < 5 ||
+    !stageHtml.includes(".cannon-trajectory-overlay"))
+  fail("山頂大砲的物理軌跡沒有由 runtime SVG 疊加");
 
 const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
 for (const fragment of [
-  "先把預測封存，觀測才翻面",
-  "同一批天空，兩個模型都必須跑完",
-  "封存四項設定，讓規則自己跑",
-  "每拍重新指向地心",
-  "把 1665 的未決紙重新攤開",
-  "先訂公平標準，再讓兩種說法各跑一次",
-  '[["一","改向"],["二","跨尺度"],["三","封存預測"],["四","模型反驗"],["五","署名邊界"]]',
+  "orbit4BlankSelect",
+  "四項都要由玩家選定",
+  "commitOrbitBeat",
+  "continueOrbitRule",
+  "beginLedgerRow",
+  "stampLedgerCell",
+  "addModelLoan",
+  "declineModelLoan",
+  "revealShellPage",
+  "placeShellPage",
+  "removeTravelerFromAuthorField",
   "orbitProofTrack",
-  "orbitStringDemo"
+  "cannon-trajectory-overlay"
 ])
-  if (!chapterUi.includes(fragment)) fail("第四章動態證據視覺缺漏:" + fragment);
+  if (!chapterUi.includes(fragment) && !focusRenderer.includes(fragment))
+    fail("第四章 v0.8 動態證據視覺缺漏:" + fragment);
 for (const obsolete of ["箭頭方向 ", "箭頭長度 ", 'dist.type="range"', 'exponent.type="range"'])
   if (chapterUi.includes(obsolete)) fail("D1-2／D2-2 仍殘留已退役滑桿:" + obsolete);
 
@@ -204,14 +243,12 @@ const expectedSceneBgm = {
   "D0-2": "ch4Orchard",
   "D1-1": "ch4Orbit",
   "D1-2": "ch4Orbit",
-  "D1-3": "ch4Orbit",
+  "D-INT-1": "timePassage",
   "D2-1": "ch4Hooke",
   "D2-2": "ch4Hooke",
-  "D2-3": "ch4Predictions",
-  "D3-1": "ch4Press",
-  "D3-2": "ch4Greenwich",
-  "D3-3": "ch4Press",
-  "D3-4": "ch4Press",
+  "D3-1": "ch4Predictions",
+  "D4-1": "ch4Press",
+  "D4-2": "ch4Press",
   "DE-1": "ch4Principia",
   "DE-2": "ch4Principia"
 };
@@ -260,11 +297,9 @@ const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
 for (const fragment of [
   'BGM.current() === "ch4Orbit"',
   'd.scene === "D1-2"',
-  'd.scene === "D1-3"',
   'BGM.current() === "ch4Press"',
-  'd.scene === "D3-3"',
-  'd.scene === "D3-4"'
+  'd.scene === "D4-2"'
 ])
   if (!stageUi.includes(fragment)) fail("第四章三段式音樂缺里程碑切換:" + fragment);
 
-console.log("  ✓ 第四章正式美術與音樂交接|14 場背景、3 張去邊肖像、5 張台詞特寫、5 張證據圖、11 首 BGM、可見工作台與零斷鏈");
+console.log("  ✓ 第四章正式美術與音樂交接|12 場背景、3 張去邊肖像、8 張台詞特寫、5 張證據圖、3 張新增 focus、SVG 物理疊圖、11 首 BGM");

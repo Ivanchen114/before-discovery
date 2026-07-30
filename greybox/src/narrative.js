@@ -17,7 +17,7 @@
   /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
      不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
   var CHAPTER_ID = /^ch[1-5]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
-  var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : 1;
+  var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : (CHAPTER_ID === "ch4" ? 2 : 1);
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = "SC-R1";
   var CH = (DEBATE && DEBATE.chapter) || {};
@@ -716,6 +716,9 @@
       if (until.orbit === "k5") return !!oe.k5;
       if (until.orbit === "archive-complete")
         return !!(ob.archiveLab && ob.archiveLab.complete);
+      if (until.orbit === "source-k0")
+        return !!(ob.sourceLab && ob.sourceLab.tangentPrediction &&
+          ob.sourceLab.tangentPrediction.sealed);
     }
     if (until.collision) {
       var ce = state.lab && state.lab.evidence || {};
@@ -747,10 +750,22 @@
     return v;
   }
 
+  function chapterEndReady(state) {
+    if (CHAPTER_ID !== "ch4") return true;
+    return !!(state && state.lab && state.lab.evidence &&
+      state.lab.evidence.k5 && state.lab.archiveLab &&
+      state.lab.archiveLab.complete);
+  }
+
   function advance(state0) {
     var state = clone(state0);
     var node = skipInvisible(state);
-    if (node.type === "end") { state.ended = true; return { state: state, done: true }; }
+    if (node.type === "end") {
+      if (!chapterEndReady(state))
+        return { state: state0, error: "第四章尚未完成 K5 與證據回收" };
+      state.ended = true;
+      return { state: state, done: true };
+    }
     if (node.type === "choice") return { state: state0, error: "此節點需要選擇" };
     if (node.type === "embed") return { state: state0, error: "此節點為互動段落,請以 embedComplete 收束" };
     if (node.type === "review") return { state: state0, error: "此節點需要 setReview" };
@@ -758,14 +773,22 @@
       state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: "system", text: "(史實與虛構頁——見資料表)" });
       state.cursor.node = node.next;
       var n2 = skipInvisible(state);
-      if (n2.type === "end") state.ended = true;
+      if (n2.type === "end") {
+        if (!chapterEndReady(state))
+          return { state: state0, error: "第四章尚未完成 K5 與證據回收" };
+        state.ended = true;
+      }
       return { state: state, node: node };
     }
     state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: node.speaker || "", text: node.text || "" });
     if (node.type === "system") applyEffects(state, node.effects, state.cursor.scene + "/" + node.id);
     state.cursor.node = node.next;
     var nxt = skipInvisible(state);
-    if (nxt.type === "end") state.ended = true;
+    if (nxt.type === "end") {
+      if (!chapterEndReady(state))
+        return { state: state0, error: "第四章尚未完成 K5 與證據回收" };
+      state.ended = true;
+    }
     return { state: state, node: node };
   }
 
@@ -901,28 +924,42 @@
     else if (action === "setBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     /* 第四章軌道、跨尺度反驗與行動制校樣。 */
     else if (action === "advanceTransition" && Engine.advanceTransition) r = Engine.advanceTransition(state.lab, args.cardId);
-    else if (action === "runOrbitRule" && Engine.runOrbitRule) r = Engine.runOrbitRule(state.lab, args.config, args.prediction);
-    else if (action === "startOrbitAttempt" && Engine.startOrbitAttempt) r = Engine.startOrbitAttempt(state.lab);
-    else if (action === "commitDeflection" && Engine.commitDeflection) r = Engine.commitDeflection(state.lab, args.vector);
-    else if (action === "runConsequence" && Engine.runConsequence) r = Engine.runConsequence(state.lab);
-    else if (action === "repeatOrbitRule" && Engine.repeatOrbitRule) r = Engine.repeatOrbitRule(state.lab);
+    else if (action === "sealTangentPrediction" && Engine.sealTangentPrediction)
+      r = Engine.sealTangentPrediction(state.lab, args.choice);
+    else if (action === "sealOrbitRule" && Engine.sealOrbitRule)
+      r = Engine.sealOrbitRule(state.lab, args.config, args.prediction);
+    else if (action === "nudgeOrbitAim" && Engine.nudgeOrbitAim)
+      r = Engine.nudgeOrbitAim(state.lab, args.delta);
+    else if (action === "commitOrbitBeat" && Engine.commitOrbitBeat)
+      r = Engine.commitOrbitBeat(state.lab);
+    else if (action === "resetOrbitBeats" && Engine.resetOrbitBeats)
+      r = Engine.resetOrbitBeats(state.lab);
+    else if (action === "continueOrbitRule" && Engine.continueOrbitRule)
+      r = Engine.continueOrbitRule(state.lab);
     else if (action === "assertK1" && Engine.assertK1) r = Engine.assertK1(state.lab, args.records, args.concept);
-    else if (action === "setScale" && Engine.setScale) r = Engine.setScale(state.lab, args.distanceRatio, args.timeRatio);
-    else if (action === "tryDistanceLaw" && Engine.tryDistanceLaw) r = Engine.tryDistanceLaw(state.lab, args.exponent);
-    else if (action === "sealDistanceLaw" && Engine.sealDistanceLaw) r = Engine.sealDistanceLaw(state.lab, args.exponent);
-    else if (action === "reopenScalePrediction" && Engine.reopenScalePrediction) r = Engine.reopenScalePrediction(state.lab);
-    else if (action === "lockDistanceLaw" && Engine.lockDistanceLaw) r = Engine.lockDistanceLaw(state.lab, args.exponent);
-    else if (action === "unlockDistanceLaw" && Engine.unlockDistanceLaw) r = Engine.unlockDistanceLaw(state.lab);
+    else if (action === "sealScalePrediction" && Engine.sealScalePrediction)
+      r = Engine.sealScalePrediction(state.lab, args.choice);
+    else if (action === "convertMoonTime" && Engine.convertMoonTime)
+      r = Engine.convertMoonTime(state.lab, args.choice);
+    else if (action === "judgeScaleRatio" && Engine.judgeScaleRatio)
+      r = Engine.judgeScaleRatio(state.lab, args.choice);
+    else if (action === "judgeScaleRelation" && Engine.judgeScaleRelation)
+      r = Engine.judgeScaleRelation(state.lab, args.choice);
     else if (action === "resetPlanetReveals" && Engine.resetPlanetReveals) r = Engine.resetPlanetReveals(state.lab);
     else if (action === "predictPlanet" && Engine.predictPlanet) r = Engine.predictPlanet(state.lab, args.id);
     else if (action === "assertK2" && Engine.assertK2) r = Engine.assertK2(state.lab, args.records, args.concept);
     else if (action === "assertK3" && Engine.assertK3) r = Engine.assertK3(state.lab, args.records, args.concept);
     else if (action === "connectCometTracks" && Engine.connectCometTracks) r = Engine.connectCometTracks(state.lab, args.mode);
-    else if (action === "setModelProtocol" && Engine.setModelProtocol) r = Engine.setModelProtocol(state.lab, args.protocol);
-    else if (action === "sealModelPrediction" && Engine.sealModelPrediction) r = Engine.sealModelPrediction(state.lab, args.model, args.prediction);
-    else if (action === "runModelSuite" && Engine.runModelSuite) r = Engine.runModelSuite(state.lab, args.model);
-    else if (action === "runModel" && Engine.runModel) r = Engine.runModel(state.lab, args.model, args.caseId);
-    else if (action === "assertK4" && Engine.assertK4) r = Engine.assertK4(state.lab, args.records, args.claim);
+    else if (action === "beginLedgerRow" && Engine.beginLedgerRow)
+      r = Engine.beginLedgerRow(state.lab, args.caseId);
+    else if (action === "stampLedgerCell" && Engine.stampLedgerCell)
+      r = Engine.stampLedgerCell(state.lab, args.caseId, args.model, args.stamp);
+    else if (action === "addModelLoan" && Engine.addModelLoan)
+      r = Engine.addModelLoan(state.lab, args.caseId);
+    else if (action === "declineModelLoan" && Engine.declineModelLoan)
+      r = Engine.declineModelLoan(state.lab, args.caseId);
+    else if (action === "sealModelComparison" && Engine.sealModelComparison)
+      r = Engine.sealModelComparison(state.lab, args.claim);
     else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
     else if (action === "assignCredit" && Engine.assignCredit) r = Engine.assignCredit(state.lab, args.contribution, args.person);
     else if (action === "setHookeScope" && Engine.setHookeScope) r = Engine.setHookeScope(state.lab, args.choice);
@@ -931,6 +968,12 @@
     else if (action === "setProofBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
     else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
     else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
+    else if (action === "revealShellPage" && Engine.revealShellPage)
+      r = Engine.revealShellPage(state.lab);
+    else if (action === "placeShellPage" && Engine.placeShellPage)
+      r = Engine.placeShellPage(state.lab);
+    else if (action === "removeTravelerFromAuthorField" && Engine.removeTravelerFromAuthorField)
+      r = Engine.removeTravelerFromAuthorField(state.lab);
     else if (action === "clipEvidence" && Engine.clipEvidence) r = Engine.clipEvidence(state.lab, args.evidenceId);
     /* 第五章：同一批碰撞的兩本帳、4／8 追一筆與黏土深度。 */
     else if (action === "setCollisionDraft" && Engine.setDraft) r = Engine.setDraft(state.lab, args.field, args.value);
@@ -942,7 +985,7 @@
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
-    if (CHAPTER_ID === "ch4" && state.cursor.scene === "D3-1") {
+    if (CHAPTER_ID === "ch4" && (state.cursor.scene === "D3-1" || state.cursor.scene === "D4-1")) {
       if (action === "submitPartialProof") state.flags.ch4OpeningChoice = "partial";
       if (action === "deferPress" && !state.flags.ch4OpeningChoice) state.flags.ch4OpeningChoice = "defer";
     }
@@ -955,6 +998,11 @@
         grantEvidence(state, id, "ship3");
     });
     ["K1", "K2", "K3", "K4", "K5"].forEach(function (id) {
+      if (CHAPTER_ID === "ch4" && state.evidence[id] &&
+          !(state.lab.evidence && state.lab.evidence[id.toLowerCase()])) {
+        delete state.evidence[id];
+        state.eventLog.push({ t: "evidenceRevoked", id: id, at: "orbit4-state-truth" });
+      }
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
         grantEvidence(state, id, "orbit4");
     });
@@ -971,7 +1019,18 @@
         state.flags.labFailStreak = "0";
       }
     }
-    state.eventLog.push({ t: "lab", action: action, at: state.cursor.scene + "/" + state.cursor.node });
+    var labEvent = {
+      t: "lab",
+      action: action,
+      at: state.cursor.scene + "/" + state.cursor.node
+    };
+    if (CHAPTER_ID === "ch4") {
+      labEvent.sequence = state.lab.sequence;
+      if (["assertK1", "assertK2", "assertK3", "assertK4"]
+          .indexOf(action) >= 0)
+        labEvent.args = clone(args || {});
+    }
+    state.eventLog.push(labEvent);
     return { state: state, result: r };
   }
 
@@ -987,7 +1046,9 @@
     if (!untilMet(state, node.until)) return { state: state0, error: "完成條件未達:" + (node.hint || "") };
     state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: "system", text: "(互動段落完成)" });
     state.eventLog.push({ t: "embedDone", at: state.cursor.scene + "/" + node.id });
-    if (CHAPTER_ID === "ch4" && state.cursor.scene === "D3-1" && node.phase === "press-opening" &&
+    if (CHAPTER_ID === "ch4" &&
+        (state.cursor.scene === "D3-1" || state.cursor.scene === "D4-1") &&
+        node.phase === "press-opening" &&
         !state.flags.ch4OpeningChoice) {
       var opening = state.lab && state.lab.proof && state.lab.proof.press && state.lab.proof.press.openingChoice;
       if (opening === "partial" || opening === "defer") state.flags.ch4OpeningChoice = opening;

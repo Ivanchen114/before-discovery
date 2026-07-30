@@ -247,16 +247,16 @@
       return;
     }
     if (BGM.current() === "ch4Orbit") {
-      /* A=只看切線離開；B=逐拍加入向內改向；C=讓同一規則持續跑。 */
-      if (d.scene === "D1-3") BGM.variant(2);
+      /* A=封存切線來源紙；B=同尺換算；C=同尺關係完成並留下未決問號。 */
+      if (d.scene === "D1-2" && ["n9","n10","n11","n12","n13","n14","n15","n16","n17","n18","n19","n20","n21","n22","n23","n24","n25","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
       else if (d.scene === "D1-2") BGM.variant(1);
       else BGM.variant(0);
       return;
     }
     if (BGM.current() === "ch4Press") {
-      /* A=第一輪窗口；B=證明與署名上版；C=守住機制空白並送出校樣。 */
-      if (d.scene === "D3-4") BGM.variant(2);
-      else if (d.scene === "D3-3") BGM.variant(1);
+      /* A=三列對帳；B=六槽證明與署名；C=守住機制空白並送出校樣。 */
+      if (d.scene === "D4-2" && ["n17","n18","n19","n20","n21","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
+      else if (d.scene === "D4-2") BGM.variant(1);
       else BGM.variant(0);
     }
   });

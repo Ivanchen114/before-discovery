@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "mode": "explore",
+  "rep": 3,
+  "flags": {},
+  "evidence": {},
+  "lab": {
+    "days": 0,
+    "scene": "D0-1",
+    "transition": {
+      "cardIndex": 0,
+      "acknowledged": []
+    },
+    "orbitLab": {
+      "attempt": 0,
+      "step": 0,
+      "path": [],
+      "velocityVectors": [],
+      "deflectionVectors": [],
+      "consequence": null,
+      "tangentRecord": null,
+      "closedRecord": null,
+      "ruleRepeatReady": false,
+      "complete": false,
+      "position": {
+        "x": 1,
+        "y": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0.24
+      },
+      "ruleRuns": [],
+      "activeRule": null
+    },
+    "scaleLab": {
+      "earthRadiusRatio": 60,
+      "timeRatio": 60,
+      "exponent": null,
+      "trials": [],
+      "lawLocked": null,
+      "moonObservationRevealed": false,
+      "moonMatch": false,
+      "scaleHistory": [
+        {
+          "distanceRatio": 60,
+          "timeRatio": 60,
+          "source": "observed-comparison-window"
+        }
+      ],
+      "actualCoordinates": {
+        "earthX": 0,
+        "moonX": 60,
+        "displayMoonX": 82
+      }
+    },
+    "planetLab": {
+      "predictions": [],
+      "revealed": {
+        "mars": false,
+        "jupiter": false
+      },
+      "residuals": {
+        "mars": null,
+        "jupiter": null
+      },
+      "crossScalePass": false
+    },
+    "modelLab": {
+      "runs": [],
+      "gravityComplete": false,
+      "vortexComplete": false,
+      "selectedRecords": [],
+      "comparisonClaim": null,
+      "protocolAttempts": [],
+      "protocolLocked": false,
+      "protocol": null,
+      "predictions": {}
+    },
+    "cometLab": {
+      "attempts": [],
+      "selectedConnection": null,
+      "joined": false
+    },
+    "archiveLab": {
+      "clipped": [],
+      "complete": false
+    },
+    "proof": {
+      "slots": [],
+      "attribution": {},
+      "hookeScope": null,
+      "hookeScopeAttempts": [],
+      "boundaryChoice": null,
+      "overclaimTried": false,
+      "press": {
+        "window": 1,
+        "reservedWindows": 3,
+        "openingChoice": null,
+        "status": "open",
+        "proofs": [],
+        "delays": [],
+        "rushTried": false,
+        "scheduleLost": false,
+        "priorityRecord": null
+      }
+    },
+    "claims": {
+      "k1": [],
+      "k2": [],
+      "k3": [],
+      "k4": [],
+      "k5": []
+    },
+    "evidence": {
+      "k1": false,
+      "k2": false,
+      "k3": false,
+      "k4": false,
+      "k5": false
+    }
+  },
+  "debate": null,
+  "review": {
+    "q1": "",
+    "q2": ""
+  },
+  "cursor": {
+    "scene": "D0-1",
+    "node": "n1"
+  },
+  "transcript": [],
+  "eventLog": [],
+  "ended": false,
+  "chapter": "ch4"
+}
