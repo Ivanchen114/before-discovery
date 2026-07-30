@@ -3,7 +3,7 @@
 > - repo skill canonical：`tools/skill/before-discovery-dev/SKILL.md`
 > - Claude overlay：`tools/skill/before-discovery-dev/OVERLAY-claude.md`
 > - registry：`tools/skill/before-discovery-dev/references/source-registry.json`
-> - skill 版本：3.4.3-candidate
+> - skill 版本：3.4.4-candidate
 > - registry 狀態：candidate
 > - 本鏡像由 `scripts/skill_guard.py sync-mirror` 機械產生。
 > - Claude 對抗審與總監裁決前，不同步成 Claude／Codex 生效版。
@@ -11,7 +11,7 @@
 <!-- MIRROR:COMMON:BEGIN -->
 # 《發現之前》開發路由器
 
-**版本**：v3.4.3-candidate（2026-07-30）
+**版本**：v3.4.4-candidate（2026-07-30）
 **狀態**：候選；Claude 獨立對抗審與總監裁決前，不同步成任何 agent 生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
@@ -108,7 +108,7 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py route \
 
 ```text
 core runtime design workbench narrative history art license browser accessibility
-save archive release review testing chapter.ch1 ... chapter.ch5
+reputation save archive release review testing chapter.ch1 ... chapter.ch5
 ```
 
 未登錄新章沒有 `chapter.chN` 專屬 source；先走通用路由，並依上文用章規格與
@@ -186,6 +186,10 @@ git status --short
 `--task narrative`；同時涉及歷史情境、探究迴路與證據資格時，再加
 `--task historical-inquiry`。路由後依正式敘事法源 §十的完整精修流程執行；
 不得先靠局部潤稿掩蓋場景功能缺口，也不得用 OS 補足主角在場。
+
+信譽、研究誠實、授權支付、歸零修復或信譽事件帳的工作，使用
+`--task reputation`；章別個案再加 `--chapter chN`。不得只讀一般設計原則，
+漏掉跨章信譽法源與該章 CR。
 
 史實性證據圖與時代場景在生圖前同時路由 `history`：runtime 史實頁只提供現況對照，新增的年代、器物、服飾、文本或科學主張仍須回查原典或權威館藏，並把來源與生成參數寫入逐件 ledger。
 

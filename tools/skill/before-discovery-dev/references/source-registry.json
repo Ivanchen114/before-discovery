@@ -2,7 +2,7 @@
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
   "registry_status": "candidate",
-  "skill_version": "3.4.3-candidate",
+  "skill_version": "3.4.4-candidate",
   "updated": "2026-07-30",
   "truth_modes": [
     "AS-IS",
@@ -471,6 +471,7 @@
         "design",
         "evidence",
         "assertion",
+        "reputation",
         "historical-inquiry"
       ],
       "requires": [
@@ -505,6 +506,36 @@
           "supersedes": [],
           "blocks_skill_activation": false,
           "note": "全章證據解鎖／配圖、證據所有權、誘答可否證契約與歷史誠實的單一法源；historical-inquiry 不因本 route 自動載入一二章工作台外形。"
+        },
+        {
+          "id": "design.reputation-lifecycle",
+          "path": "01_治理/發現之前_GB-ADR-030_信譽作為研究誠實與授權階梯_20260729.md",
+          "status": "active",
+          "authority": "project_decision",
+          "phase": [
+            "plan",
+            "write",
+            "diagnose",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "二、裁定",
+            "三、五章施工矩陣",
+            "四、跨章施工設計",
+            "五、不變量",
+            "六、驗收"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "信譽＝研究誠實與授權支付，不是答題血量；跨章事件帳、首次觸發與非免費修復的現行法源。"
         }
       ]
     },
@@ -1868,6 +1899,40 @@
           "supersedes": [],
           "blocks_skill_activation": false,
           "note": "第三章碼頭辯論心聲層的既有 CR；現行旅人聲域與心聲減量另讀 NARRATIVE-CR-031。"
+        },
+        {
+          "id": "ch3.cr-026",
+          "path": "01_治理/發現之前_CH3-CR-026_旅人實驗授權與信譽前置_20260729.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime"
+          ],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "DESIGN GATE：PASS",
+            "正向路徑",
+            "失準與修復路徑",
+            "施工自驗",
+            "IMPLEMENTATION GATE：待獨立覆核"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "第三章信譽前置與實驗授權工作包；P3 乾淨重建完成後仍待 Claude A=0、B=0。"
         },
         {
           "id": "ch3.current-cr",

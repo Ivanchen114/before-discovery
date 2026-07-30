@@ -717,6 +717,52 @@ class RouteGuardTests(unittest.TestCase):
         self.assertNotIn("[workbench]", result.stdout)
         self.assertNotIn("design.workbench", result.stdout)
 
+    def test_reputation_route_loads_cross_chapter_law_and_ch3_case(self) -> None:
+        cross_chapter = run_guard(
+            "route",
+            "--task",
+            "reputation",
+            "--phase",
+            "review",
+            "--mode",
+            "CONFORMANCE",
+            "--lane",
+            "R0",
+            "--target-label",
+            "WP-REPUTATION-REVIEW",
+        )
+        self.assertEqual(
+            cross_chapter.returncode,
+            0,
+            cross_chapter.stdout + cross_chapter.stderr,
+        )
+        self.assertIn("SOURCE design.reputation-lifecycle", cross_chapter.stdout)
+        self.assertNotIn("SOURCE ch3.cr-026", cross_chapter.stdout)
+        self.assertNotIn("[workbench]", cross_chapter.stdout)
+
+        chapter_three = run_guard(
+            "route",
+            "--task",
+            "reputation",
+            "--chapter",
+            "ch3",
+            "--phase",
+            "review",
+            "--mode",
+            "CONFORMANCE",
+            "--lane",
+            "R0",
+            "--target-label",
+            "WP-CH3-REPUTATION-REVIEW",
+        )
+        self.assertEqual(
+            chapter_three.returncode,
+            0,
+            chapter_three.stdout + chapter_three.stderr,
+        )
+        self.assertIn("SOURCE design.reputation-lifecycle", chapter_three.stdout)
+        self.assertIn("CAUTION ch3.cr-026", chapter_three.stdout)
+
     def test_release_routes_closeout_accessibility_and_review_sources(self) -> None:
         result = run_guard(
             "route",
