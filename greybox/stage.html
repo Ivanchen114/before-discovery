@@ -228,6 +228,22 @@
   #dialogue.voice-no-portrait #dlgText { margin-left: 0; margin-right: 0; }
   #dialogue.voice-no-portrait #nameplate { left: 16px; }
   #nameplate.np-player { background: var(--color-evidence); }
+  /* 旅人雙聲域共用可見名牌；心聲另以虛線框、現代斜體與全肖像壓暗區分。 */
+  #dialogue.voice-inner {
+    background: linear-gradient(180deg,rgba(20,31,45,.82),rgba(10,16,25,.94));
+    border-color: rgba(151,184,209,.62);
+    border-style: dashed;
+    box-shadow: inset 0 0 0 1px rgba(151,184,209,.12);
+  }
+  #dialogue.voice-inner .bslot {
+    opacity: .58;
+    filter: brightness(.32) saturate(.48);
+  }
+  #nameplate.np-inner {
+    color: #e4edf5;
+    background: #304d66;
+    border: 1px dashed #a9c4d8;
+  }
   #nameplate { position: absolute; top: -14px; left: 16px; background: var(--color-chapter-accent);
                color: #f3e9d5; font-size: clamp(16px, 1.4vw, 20px); padding: 3px 16px;
                border-radius: 3px; letter-spacing: 0.08em; font-family: var(--font-dialogue); }
@@ -240,6 +256,7 @@
   #dlgText.sys.gain { font-size: 1.1em; text-align: left; line-height: 1.55; }
   #dlgText.sys.gain::before { content: "◆ "; color: #cfa96b; }
   #dlgText.pl { color: #d9e4f0; }
+  #dlgText.inner { color: #d6e2ed; font-family: var(--font-ui); font-style: italic; letter-spacing: .015em; }
   @keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
   #dlgCue { position: absolute; right: 16px; bottom: 10px; color: #cfa96b; font-size: 16px;
             animation: bdBlink 1.1s step-end infinite; }
@@ -1233,6 +1250,7 @@
   #log .line.stage { color: var(--color-ink-secondary); font-style: italic; }
   #log .line.system { border-left: 3px solid var(--color-ink-secondary); padding-left: 8px; white-space: pre-wrap; }
   #log .line.player { color: var(--color-evidence); }
+  #log .line.player.inner { border-left: 2px dashed currentColor; padding-left: 8px; font-style: italic; }
   #log .scene-title { border-bottom: 1px solid var(--color-ink-secondary); margin: 14px 0 6px;
                       padding-bottom: 2px; font-weight: bold; }
   #log .scene-banner { display: block; max-width: 100%; max-height: 140px; margin: 4px 0;
@@ -2650,7 +2668,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="src/engine5.js?v=20260727-ch05-v1"></script>
 <script src="data/scenes.js?v=asset-660fa9b2d036"></script>
 <script src="data/scenes2.js?v=asset-134e03d8992f"></script>
-<script src="data/scenes3.js?v=asset-1b20ba129a69"></script>
+<script src="data/scenes3.js?v=asset-e4110397f85f"></script>
 <script src="data/scenes4.js?v=asset-7191490a5755"></script>
 <script src="data/scenes5.js?v=asset-8e63ab0d4695"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
@@ -2692,7 +2710,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/narrative.js?v=asset-326626f98e67"></script>
-<script src="src/chapter-ui.js?v=asset-88182bcd33fc"></script>
-<script src="src/stage-ui.js?v=asset-68e80083d402"></script>
+<script src="src/chapter-ui.js?v=asset-cb98b4791797"></script>
+<script src="src/stage-ui.js?v=asset-c1703e35ad89"></script>
 </body>
 </html>

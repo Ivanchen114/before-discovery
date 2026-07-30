@@ -1049,7 +1049,8 @@ tests.push({
     }
     if (!sui.includes('SHORT_P = "、，,；;：:·—"') || !sui.includes('LONG_P = "。．.？！?!…"'))
       throw new Error("逐字演出未識別全形中文標點");
-    if (!sui.includes('"聲音：" +') || !sui.includes('displayText(d.speaker) + "："'))
+    if (!sui.includes('"聲音：" +') ||
+        !sui.includes('travelerVoiceAccessibleName(d.speaker, d.cls) + "："'))
       throw new Error("動態 HUD／對話紀錄仍輸出半形中文標點");
   }
 });
@@ -1125,6 +1126,133 @@ tests.push({
 });
 
 tests.push({
+  name: "五章旅人聲域|可見名牌統一、內部聲域與讀屏語意不合併",
+  fn: () => {
+    const jsonFiles = ["scenes.json", "scenes2.json", "scenes3.json",
+      "scenes4.json", "scenes5.json"];
+    const runtimeSets = [scenes, scenes2, scenes3, scenes4, scenes5];
+    const allowed = new Set(["旅人", "旅人(你)", "旅人・心聲"]);
+    const validate = (data, label, allowLegacyBare) => {
+      const found = [];
+      for (const scene of data.scenes) for (const node of scene.nodes || []) {
+        const speaker = node.speaker;
+        if (speaker === "旅人" && !allowLegacyBare)
+          throw new Error(label + "/" + scene.id + "/" + node.id +
+            " 在非舊資料章使用裸旅人");
+        if (typeof speaker === "string" && speaker.startsWith("旅人")) {
+          if (!allowed.has(speaker))
+            throw new Error(label + "/" + scene.id + "/" + node.id +
+              " 使用未定義的旅人聲域:" + speaker);
+          found.push(speaker);
+        }
+      }
+      if (!found.length) throw new Error(label + " 沒有任何旅人聲域樣本，掃描可能假綠");
+      return found;
+    };
+    runtimeSets.forEach((data, index) => {
+      const canonical = JSON.parse(readFileSync(
+        path.join(here, "../data/" + jsonFiles[index]), "utf-8"));
+      if (JSON.stringify(data) !== JSON.stringify(canonical))
+        throw new Error(jsonFiles[index] + " 的 runtime 鏡像漂移");
+      validate(data, "ch" + (index + 1), index < 2);
+    });
+
+    /* 負向控制：非舊資料章的合法旅人節點改回裸名，taxonomy 必須轉紅。 */
+    const broken = JSON.parse(JSON.stringify(scenes3));
+    const target = broken.scenes.flatMap((scene) => scene.nodes)
+      .find((node) => node.speaker === "旅人(你)" || node.speaker === "旅人・心聲");
+    target.speaker = "旅人";
+    let reversedRed = false;
+    try { validate(broken, "broken", false); }
+    catch (_) { reversedRed = true; }
+    if (!reversedRed) throw new Error("旅人裸名 taxonomy 沒有反向轉紅");
+
+    const busts = readFileSync(path.join(here, "../src/stage/03-busts.part.js"), "utf-8");
+    const typewriter = readFileSync(path.join(here, "../src/stage/04-typewriter.part.js"), "utf-8");
+    const events = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
+    const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const travelerHelperStart = busts.indexOf("  var TRAVELER_SPOKEN");
+    const travelerHelperEnd = busts.indexOf("  var travelerOn", travelerHelperStart);
+    if (travelerHelperStart < 0 || travelerHelperEnd < 0)
+      throw new Error("找不到旅人聲域純 helper 邊界");
+    const travelerHelperContext = {
+      displayText: (value) => String(value || "")
+    };
+    new Script(
+      busts.slice(travelerHelperStart, travelerHelperEnd) +
+      "\nglobalThis.__travelerVoice = { normalizeTravelerLine, travelerVoiceName, travelerVoiceAccessibleName };"
+    ).runInNewContext(travelerHelperContext);
+    const travelerVoice = travelerHelperContext.__travelerVoice;
+    const legacySpoken = travelerVoice.normalizeTravelerLine({
+      speaker: "旅人", cls: ""
+    });
+    const innerLine = travelerVoice.normalizeTravelerLine({
+      speaker: "旅人・心聲", cls: "player"
+    });
+    if (legacySpoken.speaker !== "旅人(你)" || legacySpoken.cls !== "player")
+      throw new Error("舊旅人接口沒有正規化為說出口");
+    if (innerLine.speaker !== "旅人・心聲" || innerLine.cls === "player")
+      throw new Error("旅人心聲仍被 player class 誤標成說出口");
+    if (travelerVoice.travelerVoiceName("旅人(你)", "player") !== "旅人（你）" ||
+        travelerVoice.travelerVoiceName("旅人・心聲", "") !== "旅人（你）")
+      throw new Error("旅人兩聲域的可見名牌沒有統一為「旅人（你）」");
+    if (travelerVoice.travelerVoiceAccessibleName("旅人(你)", "player") !==
+          "旅人說" ||
+        travelerVoice.travelerVoiceAccessibleName("旅人・心聲", "") !==
+          "旅人心裡想")
+      throw new Error("旅人兩聲域的讀屏語意被可見名牌合併");
+    for (const source of [busts, stageUi]) for (const phrase of [
+      'out.speaker = "旅人(你)"',
+      'return "旅人（你）"',
+      'return "旅人心裡想"',
+      'return "旅人說"'
+    ]) if (!source.includes(phrase))
+      throw new Error("旅人舊接口沒有在呈現邊界正規化:" + phrase);
+    if (!typewriter.includes("travelerVoiceName(item.speaker, item.cls)") ||
+        !events.includes("normalizeTravelerLine(ev.detail)") ||
+        !events.includes("travelerVoiceAccessibleName(d.speaker, d.cls)"))
+      throw new Error("視覺名牌與讀屏沒有共用旅人聲域名稱");
+    for (const phrase of [
+      "#dialogue.voice-inner", "border-style: dashed",
+      "#dlgText.inner", "font-style: italic",
+      "#dialogue.voice-inner .bslot", "brightness(.32)"
+    ]) if (!html.includes(phrase))
+      throw new Error("心聲缺少非色彩辨識提示:" + phrase);
+
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const beat = ui.slice(ui.indexOf("function sayDebateBeat"),
+      ui.indexOf("function doShip"));
+    const spokenAt = beat.indexOf("db.lastPlayerLine");
+    const replyAt = beat.indexOf("db.lastReply");
+    const innerAt = beat.indexOf("db.lastOS");
+    if (!(spokenAt >= 0 && spokenAt < replyAt && replyAt < innerAt))
+      throw new Error("第三章辯論對話框未維持說出口→NPC 回應→心聲順序");
+    for (const phrase of ["旅人（你）", '"旅人說"', '"旅人心裡想"'])
+      if (!ui.includes(phrase))
+        throw new Error("第三章工作台留檔層沒有同步名牌／讀屏聲域:" + phrase);
+    for (const phrase of [
+      "function visibleSpeakerName", "function accessibleSpeakerName",
+      'speaker === "旅人・心聲") return "player inner"',
+      'b.setAttribute("aria-label", accessibleSpeakerName(speaker))'
+    ]) if (!ui.includes(phrase))
+      throw new Error("完整筆記紀錄沒有同步旅人名牌／聲域:" + phrase);
+    for (const file of ["chapter.html", "chapter2.html", "chapter3.html", "stage.html"]) {
+      const shell = readFileSync(path.join(here, "../" + file), "utf-8");
+      if (!shell.includes(".line.player.inner") ||
+          !shell.includes("border-left: 2px dashed") ||
+          !shell.includes("font-style: italic"))
+        throw new Error(file + " 的完整筆記心聲缺少非色彩辨識");
+    }
+    for (const forbidden of [
+      "旅人（你・說出口）",
+      "旅人・心聲（其他角色聽不見）"
+    ]) if (ui.includes(forbidden) || busts.includes(forbidden) || stageUi.includes(forbidden))
+      throw new Error("玩家可見層仍殘留舊聲域說明:" + forbidden);
+  }
+});
+
+tests.push({
   name: "雙章角色聲線|旅人固定現代白話；老派不等於文言；章末不用製作術語",
   fn: () => {
     const s1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
@@ -1133,9 +1261,12 @@ tests.push({
     const d2 = JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"));
     const traveler = [];
     for (const data of [s1, s2]) for (const scene of data.scenes) for (const node of (scene.nodes || []))
-      if (node.speaker === "旅人") traveler.push(node.text || "");
+      if (node.speaker === "旅人" || node.speaker === "旅人(你)" || node.speaker === "旅人・心聲")
+        traveler.push(node.text || "");
     for (const data of [d1, d2]) for (const pillar of Object.values(data.chapter.pillars))
       traveler.push(pillar.playerCorrect || "");
+    if (traveler.length < 10)
+      throw new Error("旅人聲線掃描樣本為空或過少，可能漏掉既有聲域");
     const travelerText = traveler.join("\n");
     const travelerBanned = ["便知", "二石", "擲下", "慢於", "快於", "敢問", "取哪一頭", "稚子", "尚不足以判定", "前行得再遠"];
     travelerBanned.forEach((word) => { if (travelerText.includes(word)) throw new Error("旅人聲線滑向半文言:" + word); });
@@ -1167,6 +1298,88 @@ tests.push({
       const script = readFileSync(path.join(here, "../../04_劇本/" + file), "utf-8");
       if (!script.includes(cr) || !script.includes("旅人筆記新增未解線索")) throw new Error("凍結劇本未同步聲線 CR:" + file);
     }
+  }
+});
+
+tests.push({
+  name: "第三章心聲減量|舊游標保留、活躍 OS 有用途、首個玩家發言選擇前移",
+  fn: () => {
+    const allowedPurposes = new Set([
+      "time_dislocation", "future_knowledge", "cross_chapter_memory",
+      "private_observation", "private_hypothesis", "emotional_risk", "naming"
+    ]);
+    const validate = (data) => {
+      const allInner = [];
+      const activeInner = [];
+      const legacyInner = [];
+      let firstAction = null;
+      let linesBefore = 0;
+      for (const scene of data.scenes) {
+        const byId = new Map((scene.nodes || []).map((node) => [node.id, node]));
+        for (const node of (scene.nodes || [])) {
+          if (!firstAction && node.legacyOnly !== true &&
+              (node.type === "choice" || node.type === "embed")) {
+            firstAction = scene.id + "/" + node.id;
+          } else if (!firstAction && node.legacyOnly !== true &&
+              typeof node.text === "string" && node.text.trim()) {
+            linesBefore += 1;
+          }
+          if (node.speaker === "旅人・心聲") {
+            allInner.push(scene.id + "/" + node.id);
+            if (node.legacyOnly === true) legacyInner.push(scene.id + "/" + node.id);
+            else {
+              activeInner.push(scene.id + "/" + node.id);
+              if (!allowedPurposes.has(node.osPurpose))
+                throw new Error(scene.id + "/" + node.id + " 活躍心聲缺合法 osPurpose");
+            }
+          }
+          if (node.legacyOnly === true) continue;
+          const targets = [];
+          if (typeof node.next === "string") targets.push(node.next);
+          for (const option of (node.options || []))
+            if (typeof option.next === "string") targets.push(option.next);
+          for (const target of targets)
+            if (byId.get(target)?.legacyOnly === true)
+              throw new Error(scene.id + "/" + node.id +
+                " 仍指向 legacyOnly 節點 " + target);
+        }
+      }
+      if (allInner.length !== 45 || activeInner.length !== 17 ||
+          legacyInner.length !== 28)
+        throw new Error("第三章心聲庫存／活躍／相容數不符:" +
+          [allInner.length, activeInner.length, legacyInner.length].join("/"));
+      if (firstAction !== "C0-1/c_meet" || linesBefore > 10)
+        throw new Error("第三章首個玩家發言選擇沒有前移:" +
+          firstAction + " before=" + linesBefore);
+    };
+    validate(scenes3);
+    const meet = scenes3.scenes.find((scene) => scene.id === "C0-1");
+    const meetChoice = meet.nodes.find((node) => node.id === "c_meet");
+    for (const option of meetChoice.options) {
+      const response = meet.nodes.find((node) => node.id === option.next);
+      if (!response || response.speaker !== "伽桑狄")
+        throw new Error("C0-1 的公開發言沒有由伽桑狄各自接住:" + option.id);
+      const unquoted = option.text.replace(/^「|」$/g, "");
+      if (response.text === unquoted)
+        throw new Error("C0-1 選項被逐字重播，玩家同一句說了兩次:" + option.id);
+    }
+
+    /* 負向控制一：拔掉用途標記必須轉紅。 */
+    const noPurpose = JSON.parse(JSON.stringify(scenes3));
+    noPurpose.scenes.flatMap((scene) => scene.nodes)
+      .find((node) => node.speaker === "旅人・心聲" && node.legacyOnly !== true)
+      .osPurpose = undefined;
+    let purposeRed = false;
+    try { validate(noPurpose); } catch (_) { purposeRed = true; }
+    if (!purposeRed) throw new Error("拔掉 osPurpose 沒有反向轉紅");
+
+    /* 負向控制二：讓新主線重新走進舊心聲必須轉紅。 */
+    const legacyEdge = JSON.parse(JSON.stringify(scenes3));
+    legacyEdge.scenes.find((scene) => scene.id === "C0-1")
+      .nodes.find((node) => node.id === "n1").next = "x4";
+    let edgeRed = false;
+    try { validate(legacyEdge); } catch (_) { edgeRed = true; }
+    if (!edgeRed) throw new Error("legacyOnly 入邊沒有反向轉紅");
   }
 });
 
@@ -1989,7 +2202,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章資料鏡像與敘事圖|10 場主線＋1 修復場、218 節點、全圖可達、舊游標相容",
+  name: "第三章資料鏡像與敘事圖|10 場主線＋1 修復場、221 節點、活躍圖全可達、舊游標相容",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts3.json"), "utf-8"));
@@ -2001,7 +2214,7 @@ tests.push({
     if (scenes3.scenes.length !== 11 || !scenes3.scenes.some((scene) => scene.id === "SC3-R1"))
       throw new Error("第三章應保留 10 場主線並另有 SC3-R1 修復場");
     const allNodes = scenes3.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 218) throw new Error("第三章節點數不是 218，實得:" + allNodes);
+    if (allNodes !== 221) throw new Error("第三章節點數不是 221，實得:" + allNodes);
     if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
       throw new Error("第三章場景 id 重複");
     for (const s of scenes3.scenes) {
@@ -2036,12 +2249,20 @@ tests.push({
       for (const option of node.options || []) pending.push([sceneId, option.next]);
       if (node.scene) pending.push([node.scene, sceneDefs.get(node.scene)?.nodes[0]?.id]);
     }
-    if (visited.size !== allNodes) {
-      const unreachable = scenes3.scenes.flatMap((scene) =>
-        scene.nodes.map((node) => scene.id + "/" + node.id))
-        .filter((key) => !visited.has(key));
-      throw new Error("第三章仍有不可達節點:" + unreachable.join("、"));
-    }
+    const activeNodes = scenes3.scenes.flatMap((scene) =>
+      scene.nodes.filter((node) => !node.legacyOnly)
+        .map((node) => scene.id + "/" + node.id));
+    const unreachableActive = activeNodes.filter((key) => !visited.has(key));
+    if (unreachableActive.length)
+      throw new Error("第三章仍有不可達的活躍節點:" + unreachableActive.join("、"));
+    const legacyNodes = scenes3.scenes.flatMap((scene) =>
+      scene.nodes.filter((node) => node.legacyOnly)
+        .map((node) => scene.id + "/" + node.id));
+    if (legacyNodes.length !== 29)
+      throw new Error("第三章 legacyOnly 節點應保留 29 個舊游標，實得:" + legacyNodes.length);
+    const reachedLegacy = legacyNodes.filter((key) => visited.has(key));
+    if (reachedLegacy.length)
+      throw new Error("第三章新流程仍會進入 legacyOnly 節點:" + reachedLegacy.join("、"));
     /* 2026-07-28 前最後一個可由 Git 追溯的 8 場／71 游標清單。
        展開只插新節點；每一個舊 scene+node 都須能被 v1 載入、淨化並顯示。 */
     const legacyCursors = {
@@ -2066,6 +2287,20 @@ tests.push({
       if (!clean.ok) throw new Error("第三章舊游標無法淨化:" + sceneId + "/" + nodeId);
       try { N3.view(clean.state); }
       catch (error) { throw new Error("第三章舊游標無法顯示:" + sceneId + "/" + nodeId + ":" + error.message); }
+    }
+    for (const key of legacyNodes) {
+      const [sceneId, nodeId] = key.split("/");
+      const state = N3.initialState("explore");
+      state.cursor = { scene: sceneId, node: nodeId };
+      const clean = San.sanitizeImport3(state, scenes3);
+      if (!clean.ok) throw new Error("第三章 legacyOnly 游標無法淨化:" + key);
+      try {
+        N3.view(clean.state);
+        const next = N3.advance(clean.state);
+        if (next.error) throw new Error(next.error);
+      } catch (error) {
+        throw new Error("第三章 legacyOnly 游標無法續讀:" + key + ":" + error.message);
+      }
     }
     const allowed = new Set(hs.labels);
     for (const row of hs.rows) if (!allowed.has(row.label)) throw new Error("第三章史實 label 越界:" + row.label);
@@ -2126,7 +2361,7 @@ tests.push({
     /* 括號動作不是密度 KPI：鎖住「場面真的改變→有人回應→有人確認」，
        並確認核心體感會把玩家送回親手操作，而不是靠補括號湊比例。 */
     const causalBeats = [
-      ["C0-2", ["x18", "x19", "n8"], ["把裝貨箱最底下那一層翻開", "箱底", "以前也有人做過"]],
+      ["C0-2", ["x18", "n8"], ["把裝貨箱最底下那一層翻開", "以前也有人做過"]],
       ["C1-1", ["x4", "x5", "x6"], ["碼頭在往後退", "什麼時候開的", "剛剛"]],
       ["INT-C2", ["x3", "x4", "x5"], ["沒有了", "沒有了", "我問完了"]],
       ["C3-1", ["x13", "x14", "x15"], ["洛朗・維達爾", "你辯到一半", "我沒有說謊"]],
@@ -3261,7 +3496,7 @@ tests.push({
     const N3 = Narrative._factory(scenes3, Engine3, {});
     const San = require("../src/sanitize.js");
     let s = N3.initialState("explore"), guard = 0;
-    const pick = { "C0-3": "bounded", "C3-2": "cabin" };
+    const pick = { "C0-1": "own-drawing", "C0-3": "bounded", "C3-2": "cabin" };
     const SPOKEN_RT = /^([\u4e00-\u9fff·・A-Za-z]{1,8})：(?:（([^）]*)）)?\s*「([\s\S]*?)」\s*$/;
     const RT_WL = new Set(["維達爾船長","槳手","商人","艾蒂安","馬蒂厄","伽桑狄","官員"]);
     const act = (name, args) => {

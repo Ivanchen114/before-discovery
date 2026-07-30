@@ -141,7 +141,32 @@
   /* 左右雙肖像槽(Sol 審核 20260720):站位由 assets.speakerSide 決定(依原圖朝向,永不鏡像);
      旅人=無臉中性剪影,站對手相反側,按側選圖(travelerSilhouette 資料);
      發言者亮/對方暗;旁白系統=雙暗;預設開啟,?travelerBust=0 一鍵撤回(A/B)。 */
-  var TRAVELER = { "旅人": 1, "旅人(你)": 1 };
+  var TRAVELER_SPOKEN = { "旅人": 1, "旅人(你)": 1 }; /* 裸「旅人」只保留給舊的動態發言接口 */
+  var TRAVELER_INNER = { "旅人・心聲": 1 };
+  function isTravelerSpoken(speaker, cls) { return !!TRAVELER_SPOKEN[speaker] || cls === "player"; }
+  function isTravelerInner(speaker) { return !!TRAVELER_INNER[speaker]; }
+  function normalizeTravelerLine(item) {
+    var speaker = item && item.speaker;
+    if (speaker !== "旅人" && speaker !== "旅人(你)" && speaker !== "旅人・心聲")
+      return item;
+    var out = Object.assign({}, item);
+    if (speaker === "旅人" || speaker === "旅人(你)") {
+      out.speaker = "旅人(你)";
+      out.cls = "player";
+    } else if (out.cls === "player") {
+      out.cls = "";
+    }
+    return out;
+  }
+  function travelerVoiceName(speaker, cls) {
+    if (isTravelerInner(speaker) || isTravelerSpoken(speaker, cls)) return "旅人（你）";
+    return displayText(speaker);
+  }
+  function travelerVoiceAccessibleName(speaker, cls) {
+    if (isTravelerInner(speaker)) return "旅人心裡想";
+    if (isTravelerSpoken(speaker, cls)) return "旅人說";
+    return displayText(speaker);
+  }
   var travelerOn = true;
   try { travelerOn = !/[?&]travelerBust=0/.test(window.location.search); } catch (e) {}
   var SLOT_ID = { left: "bustLeft", right: "bustRight" };
@@ -198,7 +223,12 @@
     var noPortraitVoice = cls === "stage" || cls === "system";
     $("dialogue").classList.toggle("voice-no-portrait", noPortraitVoice);
     if (noPortraitVoice) { setLit("none"); return; } /* 旁白/系統:肖像退場並還回完整文字寬度 */
-    if (TRAVELER[speaker] || cls === "player") {
+    if (isTravelerInner(speaker)) {
+      ensureTraveler();
+      setLit("none"); /* 心聲可保留旅人剪影，但沒有「正在對外發言」的亮側 */
+      return;
+    }
+    if (isTravelerSpoken(speaker, cls)) {
       var tside = ensureTraveler();
       setLit(tside || "none"); /* 撤回剪影時=舊行為:對手壓暗 */
       return;
@@ -485,11 +515,17 @@
     var np = $("nameplate");
     var isNarr = item.cls === "stage", isSys = item.cls === "system";
     var showName = item.speaker && !isNarr && !isSys;
+    var travelerSpoken = isTravelerSpoken(item.speaker, item.cls);
+    var travelerInner = isTravelerInner(item.speaker);
+    var dialogue = $("dialogue");
     np.style.display = showName ? "" : "none";
-    np.textContent = showName ? displayText(item.speaker) : "";
-    /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
-    np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
-    $("dialogue").dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */
+    np.textContent = showName ? travelerVoiceName(item.speaker, item.cls) : "";
+    /* 旅人兩聲域共用可見名牌；公開發言=亮側，心聲=虛線框/斜體+全肖像壓暗。 */
+    np.className = travelerInner ? "np-inner" : (travelerSpoken ? "np-player" : "");
+    dialogue.classList.toggle("voice-inner", travelerInner);
+    dialogue.classList.toggle("voice-spoken", travelerSpoken && !travelerInner);
+    dialogue.dataset.voice = travelerInner ? "inner" : (travelerSpoken ? "spoken" : "other");
+    dialogue.dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */
     var structuredGain = !!(item.evidence && item.evidence.length);
     /* 舊存量 fallback：斷言／筆記解鎖尚未都有 evidence code，暫保留文案命中；
        新證據的可靠契約是 structuredGain，不得把新增章節綁在台詞字樣上。 */
@@ -499,7 +535,7 @@
     var gainHit = structuredGain || legacyGain;
     $("dlgText").className = isNarr ? "narr"
       : (isSys ? ("sys" + (gainHit ? " gain" : ""))
-      : (item.cls === "player" ? "pl" : ""));
+      : (travelerInner ? "inner" : (travelerSpoken ? "pl" : "")));
     if (gainHit && !instant) playEvidenceGain($("dialogue"));
     setBust(item.speaker, item.cls, item.text);
     pages = paginate(item.text);
@@ -569,11 +605,12 @@
   });
   var lastReplay = null;
   document.addEventListener("bd:line", function (ev) {
-    var d = ev.detail;
+    var d = normalizeTravelerLine(ev.detail);
     if (d.replay) { lastReplay = d; return; } /* 回放進筆記(chapter-ui 寫入 #log),不重演 */
     /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
     $("srLine").textContent =
-      (d.speaker && d.cls !== "stage" && d.cls !== "system" ? displayText(d.speaker) + "：" : "") + displayText(d.text);
+      (d.speaker && d.cls !== "stage" && d.cls !== "system"
+        ? travelerVoiceAccessibleName(d.speaker, d.cls) + "：" : "") + displayText(d.text);
     enqueue(d);
   });
   var needKickoff = false;

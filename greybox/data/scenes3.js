@@ -69,12 +69,13 @@
      "type": "system",
      "speaker": "system",
      "text": "1610——他把鏡筒對準木星，看見四顆繞著它跑的星。\n1616——羅馬送來一份告誡。他收下，沒有回話。\n1632——《關於兩大世界體系的對話》出版。書裡有一艘船。\n1633——他在羅馬跪著讀完一份聲明。之後回到阿爾切特里，不再離開。",
-     "next": "x4"
+     "next": "x5"
     },
     {
      "id": "x4",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "我一頁都沒趕上。他這輩子最要緊的三十年，我全部是翻過去的。",
      "next": "x5"
     },
@@ -83,12 +84,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（墨跡在眼前乾了又泛黃。等他再抬頭，橋沒有了。腳下是石板，潮的。空氣裡是魚、鹽，還有燒焦的柏油味。耳朵先反應過來：周圍的話他聽得懂，但那不是義大利話。）",
-     "next": "x6"
+     "next": "x7"
     },
     {
      "id": "x6",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "（低頭看自己的手，翻過來，又翻過去）……還是這雙手。連指甲的長度都沒變。",
      "next": "x7"
     },
@@ -96,13 +98,15 @@
      "id": "x7",
      "type": "line",
      "speaker": "旅人・心聲",
-     "text": "三十年欸。三十年就這樣從我手上滑過去，我連一根白頭髮都沒賺到。",
-     "next": "n2"
+     "osPurpose": "time_dislocation",
+     "text": "（低頭看自己的手）三十年欸。就這樣從我手上滑過去，我連一根白頭髮都沒賺到。",
+     "next": "x8"
     },
     {
      "id": "n2",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "我還來不及道別，紙頁已經翻過三十年。他們老了，我沒有。",
      "next": "x8"
     },
@@ -111,12 +115,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（海鷗。吊臂。有人在遠處喊價。石堤上有個人，面前攤著一本書。海風一直把書頁掀起來——而且每次都翻回同一頁。他一直用手按回去。）",
-     "next": "x9"
+     "next": "n3"
     },
     {
      "id": "x9",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "風也覺得那頁比較有意思吧。",
      "next": "n3"
     },
@@ -125,12 +130,44 @@
      "type": "line",
      "speaker": "伽桑狄",
      "text": "（按住被風吹起的書頁，目光停在旅人筆記的桅杆圖上）你也在看這一頁？",
-     "next": "x10"
+     "next": "c_meet"
+    },
+    {
+     "id": "c_meet",
+     "type": "choice",
+     "text": "你怎麼回答？",
+     "options": [
+      {
+       "id": "own-drawing",
+       "text": "「我在看自己的圖。不過，它好像跟你那一頁問的是同一件事。」",
+       "next": "meet-own-reply"
+      },
+      {
+       "id": "ask-page",
+       "text": "「風一直把書翻回那一頁。可以讓我看看嗎？」",
+       "next": "meet-page-reply"
+      }
+     ]
+    },
+    {
+     "id": "meet-own-reply",
+     "type": "line",
+     "speaker": "伽桑狄",
+     "text": "那就一起看看，這兩張圖究竟是不是同一件事。",
+     "next": "x11"
+    },
+    {
+     "id": "meet-page-reply",
+     "type": "line",
+     "speaker": "伽桑狄",
+     "text": "可以。先看完，再告訴我你看見什麼。",
+     "next": "x11"
     },
     {
      "id": "x10",
      "type": "line",
      "speaker": "旅人(你)",
+     "legacyOnly": true,
      "text": "我看的是我自己畫的。不過看起來，好像跟你那一頁是同一件事。",
      "next": "x11"
     },
@@ -173,13 +210,15 @@
      "id": "x14",
      "type": "line",
      "speaker": "旅人・心聲",
-     "text": "一六四〇。……還有兩年。",
-     "next": "x15"
+     "osPurpose": "future_knowledge",
+     "text": "一六四〇。……還有兩年。不要算。現在不要算。",
+     "next": "x16"
     },
     {
      "id": "x15",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "（把這件事按回去）不要算。現在不要算。",
      "next": "x16"
     },
@@ -253,12 +292,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（貨還在上船。兩個工人扛著木桶從踏板上下來，伽桑狄站在踏板口，擋住了路。有人從他背後繞過去，撞了他一下，他也沒退。）",
-     "next": "x2"
+     "next": "n2"
     },
     {
      "id": "x2",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他要在一個正在裝貨的碼頭上，跟一個正在裝貨的人談哲學。祝福他。",
      "next": "n2"
     },
@@ -302,12 +342,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（維達爾船長手上的筆停住了。就一下。他沒有抬頭，也沒有說話。旁邊沒有人注意到——工人在喊，吊臂在響。）",
-     "next": "x7"
+     "next": "x8"
     },
     {
      "id": "x7",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他停了。",
      "next": "x8"
     },
@@ -315,7 +356,8 @@
      "id": "x8",
      "type": "line",
      "speaker": "旅人・心聲",
-     "text": "一個人聽到「新問題」的時候，會抬頭。他沒有抬頭——他低著頭停住。那是聽到舊問題的樣子。",
+     "osPurpose": "private_hypothesis",
+     "text": "他的筆只停了一下。這個問題，他以前聽過嗎？",
      "next": "x9"
     },
     {
@@ -379,12 +421,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（維達爾船長沒有馬上回答。他轉頭看了一眼自己的船。）",
-     "next": "x15"
+     "next": "n7"
     },
     {
      "id": "x15",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他在想的不是錢。錢他兩句話就講完了。",
      "next": "n7"
     },
@@ -414,12 +457,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（他蹲下去，把裝貨箱最底下那一層翻開。上面壓著繩索、油布、兩件備用帆。他把它們一件一件搬開。）",
-     "next": "x19"
+     "next": "n8"
     },
     {
      "id": "x19",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "箱底。不是抽屜，不是口袋——箱底。他把那個東西壓在所有東西下面。",
      "next": "n8"
     },
@@ -434,6 +478,7 @@
      "id": "x20",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "private_observation",
      "text": "「有人」。他講這兩個字的時候，眼睛看的是紙。",
      "next": "n9"
     },
@@ -519,13 +564,14 @@
      "type": "line",
      "speaker": "維達爾船長",
      "text": "船是我的，舊紙也是我的。我若跟著上船，回頭誰都會懷疑我在替自己說話。",
-     "next": "x26",
+     "next": "n13",
      "_keep": false
     },
     {
      "id": "x26",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他說得很順。順到像講過很多次。可是這件事今天才第一次發生。",
      "next": "n13"
     },
@@ -559,12 +605,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "艾蒂安在數鼓點。馬蒂厄在削封蠟。維達爾船長在他自己的船上，一趟一趟走，沒有靠近石台。",
-     "next": "x3"
+     "next": "x4"
     },
     {
      "id": "x3",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他不看。他從剛剛到現在，一次都沒有往那張紙的方向看。",
      "next": "x4"
     },
@@ -580,12 +627,13 @@
      "type": "line",
      "speaker": "伽桑狄",
      "text": "（沒抬頭）今天早上。",
-     "next": "x6"
+     "next": "g1"
     },
     {
      "id": "x6",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "……那我更看不懂了。",
      "next": "g1"
     },
@@ -619,12 +667,13 @@
      "type": "line",
      "speaker": "伽桑狄",
      "text": "（看了一眼）沒有。做的人沒簽。",
-     "next": "x3"
+     "next": "x4"
     },
     {
      "id": "x3",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "不簽名的紙，跟壓在箱底的紙，是同一種紙。",
      "next": "x4"
     },
@@ -632,6 +681,7 @@
      "id": "x4",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
      "text": "好，先看紙。紙上寫了什麼，就只能說什麼——這句話我在比薩學過一次，在帕多瓦又學過一次。",
      "next": "c1"
     },
@@ -735,12 +785,13 @@
      "type": "line",
      "speaker": "伽桑狄",
      "text": "你剛才沒有把一趟寫成每一趟，也沒有替空白補答案。而且明天在船上的人裡，只有你不欠這艘船人情。",
-     "next": "x8"
+     "next": "g1"
     },
     {
      "id": "x8",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他不是因為我知道答案才把卷宗交給我。是因為我沒有先把答案寫進去。",
      "next": "g1"
     },
@@ -761,6 +812,7 @@
      "id": "xa",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
      "text": "在比薩我也做過同一件事：先把答案說完，再等別人問我證據在哪裡。",
      "next": "c1",
      "_keep": true
@@ -785,6 +837,7 @@
      "id": "xf",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "naming",
      "text": "不算數跟不夠用，不一樣。差一點就把人家的東西丟掉了。",
      "next": "c1",
      "_keep": true
@@ -807,12 +860,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（他就站在踏板外那一步的地方。不是遠遠地站著——是剛剛好差一步。）",
-     "next": "x2"
+     "next": "n2"
     },
     {
      "id": "x2",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "差一步。他量得很準。",
      "next": "n2"
     },
@@ -876,13 +930,15 @@
      "id": "x7",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "private_observation",
      "text": "我站在這裡整整一段時間，腳下這整艘船已經在動了，而我完全沒發現。",
-     "next": "x8"
+     "next": "x9"
     },
     {
      "id": "x8",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "我不是看見船在動才知道的。我是看見岸在退才知道的。",
      "next": "x9"
     },
@@ -905,12 +961,13 @@
      "type": "line",
      "speaker": "旅人(你)",
      "text": "沒事。（把這件事寫進筆記）",
-     "next": "x12"
+     "next": "e1"
     },
     {
      "id": "x12",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "沒事才怪。今天要證的那件事，我剛剛用自己的身體先做了一遍——而且我沒發現。",
      "next": "e1"
     },
@@ -969,12 +1026,13 @@
      "type": "line",
      "speaker": "維達爾船長",
      "text": "我問完了。",
-     "next": "x6"
+     "next": "x7"
     },
     {
      "id": "x6",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他問了三輪。每一輪都往同一個地方戳：你憑什麼說「所有的船」。",
      "next": "x7"
     },
@@ -982,6 +1040,7 @@
      "id": "x7",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "private_hypothesis",
      "text": "……八年前，好像也有人被這樣問過。而且問他的是他自己。",
      "next": "g1"
     },
@@ -1035,6 +1094,7 @@
      "id": "x5",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
      "text": "兩天，換掉一句「所以地球不會動」。聽起來不划算——可是那句話擋在那裡快兩千年了。",
      "next": "n2"
     },
@@ -1071,12 +1131,13 @@
      "type": "line",
      "speaker": "馬蒂厄",
      "text": "（把筆遞過來）設計。是你排的。",
-     "next": "x8"
+     "next": "n4"
     },
     {
      "id": "x8",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "……原來排順序也要簽名。",
      "next": "n4"
     },
@@ -1148,14 +1209,15 @@
      "type": "line",
      "speaker": "維達爾船長",
      "text": "我沒有說謊。以前確實有人做過。",
-     "next": "x16"
+     "next": "x17"
     },
     {
      "id": "x16",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "emotional_risk",
      "text": "八年。他把它壓在箱底八年，今天親手翻出來，交給一個早上才認識的人。",
-     "next": "x17"
+     "next": "x19"
     },
     {
      "id": "x17",
@@ -1169,7 +1231,7 @@
      "type": "line",
      "speaker": "維達爾船長",
      "text": "說了，你們就會替我做。（把紙掛回木板）我不要人替我做。我要看它到底錯在哪。",
-     "next": "x19"
+     "next": "x16"
     },
     {
      "id": "x19",
@@ -1190,12 +1252,13 @@
      "type": "line",
      "speaker": "維達爾船長",
      "text": "要掛。留在這裡，大家才看得見哪一句說過頭了。",
-     "next": "x20"
+     "next": "n9"
     },
     {
      "id": "x20",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "他把自己那張，掛在最中間。",
      "next": "n9"
     },
@@ -1250,12 +1313,13 @@
      "type": "line",
      "speaker": "伽桑狄",
      "text": "（看了他一眼，沒有追問）那就更該是你。你不會回來替它辯護，所以你只能一次取對。",
-     "next": "x4b"
+     "next": "c1"
     },
     {
      "id": "x4b",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "……好，壓力有點大。",
      "next": "c1"
     },
@@ -1360,12 +1424,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "1642 年。紙張、鉛字與油墨。伽桑狄把伽利略的《對話》放在左邊，自己的手稿放在右邊。",
-     "next": "x1"
+     "next": "x2"
     },
     {
      "id": "x1",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "一六四二。",
      "next": "x2"
     },
@@ -1373,6 +1438,7 @@
      "id": "x2",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "time_dislocation",
      "text": "我從兩年前那個下午開始，每翻一頁就數一次。數到今天。",
      "next": "n2"
     },
@@ -1423,12 +1489,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（他沒有再說下去。旅人沒有問是誰。）",
-     "next": "x7"
+     "next": "x8"
     },
     {
      "id": "x7",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "我知道。我兩年前就知道了。",
      "next": "x8"
     },
@@ -1436,6 +1503,7 @@
      "id": "x8",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "future_knowledge",
      "text": "我以為知道會比較好受。",
      "next": "x9"
     },
@@ -1444,12 +1512,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（旅人低頭看自己手上那本筆記。封皮磨得起毛了，邊角捲起來，裡面寫滿了——比薩的斜面、帕多瓦的木槽、馬賽的落點。）",
-     "next": "x10"
+     "next": "x11"
     },
     {
      "id": "x10",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "這本是他塞給我的。那天他還很年輕，話很多，手上全是墨。",
      "next": "x11"
     },
@@ -1457,6 +1526,7 @@
      "id": "x11",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
      "text": "他說：先別急著相信我。",
      "next": "x12"
     },
@@ -1464,7 +1534,7 @@
      "id": "x12",
      "type": "line",
      "speaker": "伽桑狄",
-     "text": "（過了很久）你認識他？",
+     "text": "（看見旅人的手指停在筆記上一行舊字，過了很久）你認識他？",
      "next": "x13"
     },
     {
@@ -1493,12 +1563,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "（伽桑狄算了一下年份，又看了旅人一眼，沒有再問。）",
-     "next": "x17"
+     "next": "n5"
     },
     {
      "id": "x17",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "謝謝你不問。",
      "next": "n5"
     },
@@ -1520,6 +1591,7 @@
      "id": "n6",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "time_dislocation",
      "text": "五十年前，伽利略把第一本空白筆記塞進我手裡。現在他走了，我卻還是那天的模樣。",
      "next": "g1"
     },
@@ -1539,12 +1611,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "旅人把岸上紙與船上紙並排攤開。原紙一張不少；畫歪的線、改過的句子，也都留著。",
-     "next": "x1"
+     "next": "n2"
     },
     {
      "id": "x1",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "一張都沒丟。連我自己畫壞的那張也在。",
      "next": "n2"
     },
@@ -1553,12 +1626,13 @@
      "type": "line",
      "speaker": "旅人(你)",
      "text": "（把船上那張推到岸上那張下面）同一顆石頭，同一次落下。只是記它的人，站在兩個地方。",
-     "next": "x2"
+     "next": "t1"
     },
     {
      "id": "x2",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "那天我沒發現船開了。這件事我到現在還在想。",
      "next": "t1"
     },
@@ -1634,6 +1708,7 @@
      "id": "x5",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
      "text": "好。我到現在都還沒有。",
      "next": "n3"
     },
@@ -1649,12 +1724,13 @@
      "type": "line",
      "speaker": "旅人(你)",
      "text": "月亮也一直往前走。如果沒有東西讓它轉彎，為什麼它沒有沿直線離開？",
-     "next": "x6"
+     "next": "x7"
     },
     {
      "id": "x6",
      "type": "line",
      "speaker": "旅人・心聲",
+     "legacyOnly": true,
      "text": "石頭離了手，仍把船給它的前進帶在身上。那月亮呢？",
      "next": "x7"
     },
@@ -1662,6 +1738,7 @@
      "id": "x7",
      "type": "line",
      "speaker": "旅人・心聲",
+     "osPurpose": "time_dislocation",
      "text": "（闔上筆記）……這一頁又要開始翻了吧。",
      "next": "h1"
     },

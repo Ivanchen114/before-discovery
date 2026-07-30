@@ -28,7 +28,32 @@
   /* 左右雙肖像槽(Sol 審核 20260720):站位由 assets.speakerSide 決定(依原圖朝向,永不鏡像);
      旅人=無臉中性剪影,站對手相反側,按側選圖(travelerSilhouette 資料);
      發言者亮/對方暗;旁白系統=雙暗;預設開啟,?travelerBust=0 一鍵撤回(A/B)。 */
-  var TRAVELER = { "旅人": 1, "旅人(你)": 1 };
+  var TRAVELER_SPOKEN = { "旅人": 1, "旅人(你)": 1 }; /* 裸「旅人」只保留給舊的動態發言接口 */
+  var TRAVELER_INNER = { "旅人・心聲": 1 };
+  function isTravelerSpoken(speaker, cls) { return !!TRAVELER_SPOKEN[speaker] || cls === "player"; }
+  function isTravelerInner(speaker) { return !!TRAVELER_INNER[speaker]; }
+  function normalizeTravelerLine(item) {
+    var speaker = item && item.speaker;
+    if (speaker !== "旅人" && speaker !== "旅人(你)" && speaker !== "旅人・心聲")
+      return item;
+    var out = Object.assign({}, item);
+    if (speaker === "旅人" || speaker === "旅人(你)") {
+      out.speaker = "旅人(你)";
+      out.cls = "player";
+    } else if (out.cls === "player") {
+      out.cls = "";
+    }
+    return out;
+  }
+  function travelerVoiceName(speaker, cls) {
+    if (isTravelerInner(speaker) || isTravelerSpoken(speaker, cls)) return "旅人（你）";
+    return displayText(speaker);
+  }
+  function travelerVoiceAccessibleName(speaker, cls) {
+    if (isTravelerInner(speaker)) return "旅人心裡想";
+    if (isTravelerSpoken(speaker, cls)) return "旅人說";
+    return displayText(speaker);
+  }
   var travelerOn = true;
   try { travelerOn = !/[?&]travelerBust=0/.test(window.location.search); } catch (e) {}
   var SLOT_ID = { left: "bustLeft", right: "bustRight" };
@@ -85,7 +110,12 @@
     var noPortraitVoice = cls === "stage" || cls === "system";
     $("dialogue").classList.toggle("voice-no-portrait", noPortraitVoice);
     if (noPortraitVoice) { setLit("none"); return; } /* 旁白/系統:肖像退場並還回完整文字寬度 */
-    if (TRAVELER[speaker] || cls === "player") {
+    if (isTravelerInner(speaker)) {
+      ensureTraveler();
+      setLit("none"); /* 心聲可保留旅人剪影，但沒有「正在對外發言」的亮側 */
+      return;
+    }
+    if (isTravelerSpoken(speaker, cls)) {
       var tside = ensureTraveler();
       setLit(tside || "none"); /* 撤回剪影時=舊行為:對手壓暗 */
       return;

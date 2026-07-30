@@ -267,6 +267,15 @@
   }
 
   /* ---------- 敘事渲染 ---------- */
+  function visibleSpeakerName(speaker) {
+    return speaker === "旅人" || speaker === "旅人(你)" || speaker === "旅人・心聲"
+      ? "旅人（你）" : displayText(speaker);
+  }
+  function accessibleSpeakerName(speaker) {
+    if (speaker === "旅人・心聲") return "旅人心裡想";
+    if (speaker === "旅人" || speaker === "旅人(你)") return "旅人說";
+    return displayText(speaker);
+  }
   function addLine(speaker, text, cls, sceneId) {
     var shownText = displayText(text);
     var div = document.createElement("div");
@@ -276,7 +285,9 @@
         var pe = assetEntry(ASSETS.speakerPortrait[speaker]);
         if (pe) div.appendChild(buildPortrait(pe, speaker));
       }
-      var b = document.createElement("span"); b.className = "spk"; b.textContent = displayText(speaker) + "：";
+      var b = document.createElement("span"); b.className = "spk";
+      b.textContent = visibleSpeakerName(speaker) + "：";
+      b.setAttribute("aria-label", accessibleSpeakerName(speaker));
       div.appendChild(b);
     }
     var t = document.createElement("span"); t.textContent = shownText;
@@ -296,6 +307,7 @@
     if (speaker === "stage") return "stage";
     if (speaker === "system") return "system";
     if (speaker === "旅人(你)") return "player";
+    if (speaker === "旅人・心聲") return "player inner";
     return "";
   }
   function playerSceneTitle(sceneId) {

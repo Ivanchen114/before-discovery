@@ -7,11 +7,12 @@
   });
   var lastReplay = null;
   document.addEventListener("bd:line", function (ev) {
-    var d = ev.detail;
+    var d = normalizeTravelerLine(ev.detail);
     if (d.replay) { lastReplay = d; return; } /* 回放進筆記(chapter-ui 寫入 #log),不重演 */
     /* A-2 讀屏主線:永不隱藏的 sr-only log,每個完整邏輯句播一次「講者:全文」,不隨打字機洗版 */
     $("srLine").textContent =
-      (d.speaker && d.cls !== "stage" && d.cls !== "system" ? displayText(d.speaker) + "：" : "") + displayText(d.text);
+      (d.speaker && d.cls !== "stage" && d.cls !== "system"
+        ? travelerVoiceAccessibleName(d.speaker, d.cls) + "：" : "") + displayText(d.text);
     enqueue(d);
   });
   var needKickoff = false;
