@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>內部原型A|D2-2 六步版(牛頓命名距離平方)</title>
+<style>
+  :root{--bg:#1b2430;--paper:#f4ecd8;--ink:#2b2417;--gold:#c9a227;--dim:#8a94a6;--bad:#b0413e;--ok:#3e7d5a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.6;}
+  .phonebar{display:flex;justify-content:space-between;align-items:center;background:#0e141d;color:#cfd6e0;
+    padding:6px 14px;font-size:13px;border-bottom:1px solid #2c3a4d;position:sticky;top:0;z-index:9;}
+  .phonebar .cap{color:#77839a;font-size:12px;}
+  header{padding:14px 18px 4px;}
+  header h1{font-size:17px;margin:0 0 4px;color:var(--gold);}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:760px;margin:0 auto;padding:12px 14px 60px;}
+  .step{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;margin:14px 0;
+    box-shadow:0 2px 8px rgba(0,0,0,.35);display:none;}
+  .step.open{display:block;}
+  .step h2{font-size:15px;margin:0 0 8px;color:#6b4f1d;}
+  .npc{font-weight:700;}
+  .note{font-size:12.5px;color:#6a5f4a;margin-top:6px;}
+  button{min-height:44px;padding:8px 18px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;
+    background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;}
+  button:disabled{opacity:.45;cursor:default;}
+  .result{border-left:4px solid var(--gold);background:#fbf4e2;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .wrong{border-left:4px solid var(--bad);background:#f7e8e6;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .big{font-size:22px;font-weight:800;color:#6b4f1d;letter-spacing:1px;}
+  svg{display:block;max-width:100%;height:auto;margin-top:8px;}
+  details{margin-top:8px;font-size:13.5px;}
+  summary{cursor:pointer;color:#6b4f1d;}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .chip{background:#fff8ea;border:1.5px solid #6b4f1d;border-radius:20px;padding:6px 14px;font-weight:700;}
+  footer{max-width:760px;margin:0 auto;padding:10px 16px 40px;font-size:13px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:14px;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div style="background:#4a1f1f;color:#ffd9d9;padding:8px 14px;font:13px/1.5 sans-serif;border-bottom:2px solid #8a2f2c"><b>⛔ OBSOLETE — 不得施工</b>|六步版=對照檔(玩家無不可替代判斷,總監 20260727 打回)<br>現行 canonical:<b>spike_ch4_d22_v3_prediction.html</b>(見 <code>spike_workshop/README_ch4_spike索引.md</code>)</div>
+<div class="phonebar"><span>旅人的手機</span><span class="cap">戲內:牛頓只看到紙</span><span>✕ 無訊號&nbsp;&nbsp;🔋62%</span></div>
+<header>
+  <h1>內部原型A|六步版——定律由牛頓說出</h1>
+  <p>spike_workshop 零依賴單檔;不進 runtime。60/3600 為現代可操作重建,非 1665 年實況。</p>
+</header>
+<main>
+
+<section class="step open" id="s1">
+  <h2>第一步|月亮有多遠</h2>
+  <p><span class="npc">牛頓:</span>「月亮不在雲上。它在——<b>六十個地球半徑</b>外。」</p>
+  <p class="note">月距約六十個地球半徑:古典視差傳統早已通行(現代值約 60.3)。這一步由牛頓給,不是旅人。</p>
+  <button id="b1">把月亮放上尺</button>
+  <div id="r1" style="display:none">
+    <svg viewBox="0 0 700 90" role="img" aria-label="地月距離尺">
+      <line x1="30" y1="55" x2="670" y2="55" stroke="#6b4f1d" stroke-width="2"/>
+      <circle cx="30" cy="55" r="12" fill="#3e6c9e"/><text x="30" y="86" font-size="12" text-anchor="middle" fill="#2b2417">地球</text>
+      <g id="ticks"></g>
+      <circle cx="660" cy="55" r="6" fill="#b9b3a5"/><text x="655" y="35" font-size="13" text-anchor="middle" fill="#2b2417">月亮|60 個地球半徑</text>
+    </svg>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <h2>第二步|走一分鐘,量它偏離切線多遠</h2>
+  <p>知道多遠、也知道它繞一圈要二十七天多——就能算它一分鐘「離開切線」多少。</p>
+  <button id="b2">讓月亮走一分鐘</button>
+  <div id="r2" style="display:none">
+    <svg viewBox="0 0 700 190">
+      <circle cx="90" cy="170" r="150" fill="none" stroke="#b9b3a5" stroke-dasharray="4 5"/>
+      <line x1="196" y1="64" x2="330" y2="-30" stroke="#3e6c9e" stroke-width="2"/>
+      <circle cx="196" cy="64" r="6" fill="#b9b3a5"/>
+      <path d="M196 64 A150 150 0 0 1 236 33" fill="none" stroke="#c9a227" stroke-width="3"/>
+      <rect x="380" y="30" width="290" height="120" rx="10" fill="#fff8ea" stroke="#6b4f1d"/>
+      <text x="525" y="66" font-size="15" text-anchor="middle" fill="#2b2417">放大鏡:六十秒後</text>
+      <text x="525" y="98" font-size="17" font-weight="700" text-anchor="middle" fill="#6b4f1d">離開切線 ≈ 4.9 公尺</text>
+      <text x="525" y="128" font-size="12" text-anchor="middle" fill="#6a5f4a">(圖為示意,非比例)</text>
+    </svg>
+    <details><summary>計算怎麼來(選讀)</summary>
+      週期 27.3 天+距離 60 個地球半徑 → 軌道速率約每秒 1 公里;六十秒內弧線垂足與切線的差 ≈ ½·(v²∕r)·t² ≈ 4.9 公尺。</details>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <h2>第三步|跟地表比——先把時間換成一樣</h2>
+  <div class="result">地表的紙:<b>一秒</b>落下 <b>4.9 公尺</b>。月亮的紙:<b>一分鐘</b>偏折 <b>4.9 公尺</b>。</div>
+  <p>一分鐘對一秒,不能直接比。把月亮那份換成「一秒的落下」,要除以多少?</p>
+  <button data-a="60">÷60(時間變六十分之一,距離也變六十分之一)</button>
+  <button data-a="3600">÷3600(距離跟著時間的平方走——第一章的規律)</button>
+  <div id="w3" class="wrong" style="display:none">第一章你親手量過:落下距離跟著<b>時間平方</b>走(1、4、9、16……)。一秒與六十秒,差的不是 60,是 60×60。</div>
+  <div id="r3" class="result" style="display:none">換算成一秒:4.9 公尺 ÷ 3600。</div>
+</section>
+
+<section class="step" id="s4">
+  <h2>第四步|同一種掉,差多少</h2>
+  <div class="chips"><span class="chip">地表一秒:4.9 公尺</span><span class="chip">月亮處一秒:約 1.4 公釐</span></div>
+  <button id="b4">把兩個數放在一起</button>
+  <div id="r4" class="result" style="display:none">月亮那裡的「掉」,弱了 <b>3600 倍</b>。</div>
+</section>
+
+<section class="step" id="s5">
+  <h2>第五步|兩個數的關係</h2>
+  <div class="chips"><span class="chip">弱了 3600 倍</span><span class="chip">遠了 60 倍</span></div>
+  <p>這兩個數,是什麼關係?</p>
+  <button data-k="mul2">3600 = 60×2</button>
+  <button data-k="sq">3600 = 60×60</button>
+  <button data-k="none">看不出關係</button>
+  <div id="w5" class="wrong" style="display:none">再算一次:60×2=120;60×60=?</div>
+  <div id="r5" style="display:none"><div class="big">3600 = 60²</div><div class="result">遠 60 倍,弱 60² 倍。</div></div>
+</section>
+
+<section class="step" id="s6">
+  <h2>第六步|命名</h2>
+  <p><span class="npc">牛頓</span>盯著那兩個數看了很久,才開口:</p>
+  <div class="result">「距離每遠一倍,這股勁就弱到<b>四分之一</b>。」<br>「照這條規矩算,地上那個數,跟天上這個數,就對得上了。」<br>「先記下。我們只量過月亮。天上還有火星、木星、還有那些幾十年才回來一次的東西——它們照不照這條規矩,今天一個都沒問過。」</div>
+  <div class="chips"><span class="chip">定律由牛頓說出</span><span class="chip">相合只支持距離律</span><span class="chip">60/3600=現代重建</span></div>
+</section>
+
+</main>
+<footer>
+  <h3>給 Sol 的判準(A 版自評)</h3>
+  命名權=牛頓|爬坡=無轉盤,無可爬|「先承諾」不在本場(留在切線封存與火星木星封蠟)|操作=4 次點擊+2 次判讀|
+  可讀失敗=÷60 與 60×2 兩處,皆用玩家自己的第一章規律反駁|史實錨=60R 視差傳統由牛頓給出。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function open(id){ $(id).classList.add('open'); $(id).scrollIntoView({behavior:'smooth',block:'center'}); }
+  var t=$('ticks'); for(var i=1;i<6;i++){ var x=30+((660-30)/6)*i;
+    t.innerHTML+='<line x1="'+x+'" y1="48" x2="'+x+'" y2="62" stroke="#6b4f1d"/><text x="'+x+'" y="80" font-size="10" text-anchor="middle" fill="#6a5f4a">'+(i*10)+'R</text>'; }
+  $('b1').onclick=function(){ $('r1').style.display='block'; this.disabled=true; open('s2'); };
+  $('b2').onclick=function(){ $('r2').style.display='block'; this.disabled=true; open('s3'); };
+  Array.prototype.forEach.call(document.querySelectorAll('#s3 button'),function(b){
+    b.onclick=function(){ if(b.dataset.a==='60'){ $('w3').style.display='block'; }
+      else{ $('r3').style.display='block'; $('w3').style.display='none';
+        Array.prototype.forEach.call(document.querySelectorAll('#s3 button'),function(x){x.disabled=true;}); open('s4'); } };});
+  $('b4').onclick=function(){ $('r4').style.display='block'; this.disabled=true; open('s5'); };
+  Array.prototype.forEach.call(document.querySelectorAll('#s5 button'),function(b){
+    b.onclick=function(){ if(b.dataset.k!=='sq'){ $('w5').style.display='block'; }
+      else{ $('r5').style.display='block'; $('w5').style.display='none';
+        Array.prototype.forEach.call(document.querySelectorAll('#s5 button'),function(x){x.disabled=true;}); open('s6'); } };});
+})();
+</script>
+</body>
+</html>

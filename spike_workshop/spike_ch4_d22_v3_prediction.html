@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>內部原型v3|D2-2 同一把尺(玩家封存量級預測版)</title>
+<style>
+  :root{--bg:#1b2430;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#3e6c9e;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.6;}
+  header{padding:14px 18px 4px;}
+  header h1{font-size:17px;margin:0 0 4px;color:#c9a227;}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:800px;margin:0 auto;padding:12px 14px 60px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:15px;margin:0 0 8px;color:#6b4f1d;}
+  button{min-height:44px;padding:8px 16px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;}
+  button.sel{background:#e7d29a;font-weight:700;}
+  button:disabled{opacity:.4;cursor:default;}
+  .msg{border-left:4px solid var(--gold);background:#fbf4e2;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .msg.bad{border-left-color:var(--bad);background:#f7e8e6;}
+  .npc{font-weight:700;}
+  .strip{display:flex;gap:12px;flex-wrap:wrap;}
+  .paperbit{flex:1;min-width:240px;background:#fff8ea;border:1.5px solid #d8cbaa;border-radius:8px;padding:10px 12px;font-size:14px;}
+  .paperbit b{color:#6b4f1d;}
+  .big{font-size:21px;font-weight:800;color:#6b4f1d;}
+  details{margin-top:8px;font-size:13.5px;}
+  summary{cursor:pointer;color:#6b4f1d;}
+  .slips{font-size:13px;color:#6a5f4a;margin-top:8px;}
+  .slips .dead{text-decoration:line-through;}
+  .hide{display:none;}
+  footer{max-width:800px;margin:0 auto;padding:10px 16px 40px;font-size:13px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:14px;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>D2-2 原型 v3|同一把尺——牛頓出力氣,玩家出判斷</h1>
+  <p>粗活(幾何、計算)=牛頓;判斷(預測、封存、換算、指認)=玩家。四個判斷+一次封蠟,沒有一步是看戲。</p>
+</header>
+<main>
+
+<div class="card">
+  <h2>桌上兩張紙</h2>
+  <div class="strip">
+    <div class="paperbit"><b>地表紙(你的第一章證據)</b><br>一秒,落下 <b>4.9 公尺</b>。<br><span style="color:#6a5f4a">——你自己在斜面上量出來的規律,外推到垂直。</span></div>
+    <div class="paperbit"><b>月亮紙(牛頓的幾何)</b><br>六十秒,離開切線 <b>4.9 公尺</b>。<details><summary>他怎麼算的(選讀)</summary>月距約六十個地球半徑(視差傳統)+週期二十七天多 → 軌道速率每秒約一公里 → 六十秒內與切線的差約 4.9 公尺。這一步是牛頓的紙筆活。</details></div>
+  </div>
+  <button id="who">「等等——六十個地球半徑,誰量的?」(可選,不擋流程)</button>
+  <div id="whoMsg"></div>
+  <p style="margin-top:10px">兩個 4.9。你會不會想喊——「一樣!」</p>
+  <button id="trap1">「一樣!這就證明了!」</button>
+  <button id="trap2">「先別高興。時間不一樣。」</button>
+  <div id="trapMsg"></div>
+</div>
+
+<div class="card hide" id="sealCard">
+  <h2>判斷一|封存你的賭注</h2>
+  <p><span class="npc">牛頓:</span>「把時間還清之後——月亮那裡,真正的『一秒落下』是多少?」</p>
+  <p>想:月亮遠了六十倍。如果拉它的和拉蘋果的是同一股作用,只是隨距離變弱……你賭多少?</p>
+  <div id="sealOpts">
+    <button data-s="same">跟地表一樣:4.9 公尺</button>
+    <button data-s="d60">約 8 公分</button>
+    <button data-s="d3600">約 1.4 公釐</button>
+    <button data-s="zero">幾乎為零</button>
+  </div>
+  <button id="doSeal" disabled>滴蠟封存</button>
+  <ul class="slips" id="sealSlip"></ul>
+</div>
+
+<div class="card hide" id="convCard">
+  <h2>判斷二|把六十秒還成一秒</h2>
+  <p>月亮紙寫的是「六十秒偏 4.9 公尺」。要換成「一秒」,落下的距離該除以——</p>
+  <button data-c="60">÷60(時間變六十分之一,距離也變六十分之一)</button>
+  <button data-c="3600">÷3600(落下距離跟著時間的平方走——第一章的規律)</button>
+  <div id="convMsg"></div>
+</div>
+
+<div class="card hide" id="checkCard">
+  <h2>開蠟對照</h2>
+  <div class="msg">月亮的一秒落下 = 4.9 公尺 ÷ 3600 ≈ <b>1.4 公釐</b>。</div>
+  <div id="checkMsg"></div>
+</div>
+
+<div class="card hide" id="ratioCard">
+  <h2>判斷三|差幾倍</h2>
+  <p>地表一秒 <b>4.9 公尺</b>;月亮那裡一秒 <b>1.4 公釐</b>。地表是月亮的幾倍?</p>
+  <button data-r="60">約 60 倍</button>
+  <button data-r="360">約 360 倍</button>
+  <button data-r="3600">約 3600 倍</button>
+  <button data-r="36000">約 36000 倍</button>
+  <div id="ratioMsg"></div>
+</div>
+
+<div class="card hide" id="sqCard">
+  <h2>判斷四|兩個數的關係</h2>
+  <p>紙角並排著兩件事實:<b>弱了 3600 倍</b>、<b>遠了 60 倍</b>。</p>
+  <button data-q="add">3600 = 60 加出來的</button>
+  <button data-q="sq">3600 = 60×60</button>
+  <button data-q="no">看不出關係</button>
+  <div id="sqMsg"></div>
+</div>
+
+<div class="card hide" id="nameCard">
+  <h2>命名(這一步不是你的)</h2>
+  <div class="msg">「距離每遠一倍,這股勁就弱到<b>四分之一</b>。」<br>「照這條規矩算,地上那個數,跟天上這個數,就對得上了。」<br>「先記下。我們只量過月亮。天上還有火星、木星、還有那些幾十年才回來一次的東西——它們照不照這條規矩,今天一個都沒問過。」</div>
+  <p style="margin-top:10px"><span class="npc">牛頓</span>收筆,忽然停住。</p>
+  <div class="msg bad">「等等。蘋果離地三公尺。你憑什麼說它離地球——<b>一個地球半徑</b>?」<br>
+  「整顆地球都在拉它:腳下的土,對面的海。憑什麼算成全部擠在地心的一點?」<br>
+  (沒有人答得出來。他把問號寫進紙角,兩張紙——進了抽屜。)</div>
+  <div class="msg"><b>證據成立|地上與天上的同一把尺(紙角帶問號)</b>:支持「按距離平方縮弱可讓地表與月球進同一量級」;不支持「一筆相合證明整套定律」——而且它自己還欠一個回答。</div>
+</div>
+
+</main>
+<footer>
+  <h3>設計註記(給總監)</h3>
+  ①玩家動詞清點:陷阱抉擇+<b>封存量級預測</b>+<b>時間換算判斷</b>(奇數律當裁判)+<b>倍數指認</b>+<b>平方關係指認</b>=四判斷一封蠟;粗活(60R、週期、幾何)全歸牛頓,公式全程選讀。
+  ②失敗的樣子:封錯量級→自己的換算打臉,蠟條劃線留桌;÷60→第一章奇數律反駁;倍數/關係選錯→數字自己頂回來,不彈紅字。
+  ③剎車拍=牛頓的戲:「憑什麼從地心量」→問號入紙角→進抽屜。1685 年球殼定理在 D3 回收(「這一頁,他補了二十年」)。
+  ④六步版與倍率天平版退為對照檔,不再是候選主線。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var sealed=null;
+  $('who').onclick=function(){
+    this.disabled=true;
+    $('whoMsg').innerHTML='<div class="msg"><span class="npc">牛頓:</span>「量月亮,不用等我。」(從架上抽出一本翻舊的書——斯特里特《卡洛琳天文學》)「希臘人用月食的影子和兩地看月的視差,把它量在六十上下。這本書寫 60⅖;托勒密寫 59;惠更斯寫 60。」'+
+    '<details><summary>視差怎麼量出「六十倍」(選讀)</summary>兩地同時看月,月亮在星空背景上的位置差接近一度;一度≈六十分之一弧長→距離≈六十條基線——而基線就是地球本身。所以「六十倍」的單位<b>天生是地球半徑</b>,不必先知道地球的公尺數;要把偏折換成公尺才需要,那是史實頁「月球檢驗爭議」的戰場。</details></div>';
+  };
+  function show(id){ $(id).classList.remove('hide'); $(id).scrollIntoView({behavior:'smooth',block:'center'}); }
+  $('trap1').onclick=function(){
+    $('trapMsg').innerHTML='<div class="msg bad"><span class="npc">牛頓:</span>「一分鐘,對一秒。」(指節分別敲在兩張紙上)「你拿六十倍的時間換來的相等——先把時間還清,再說一樣不一樣。」</div>';
+    $('trap1').disabled=true; $('trap2').disabled=true; show('sealCard');
+  };
+  $('trap2').onclick=function(){
+    $('trapMsg').innerHTML='<div class="msg">對。一分鐘對一秒,這筆帳還沒還。</div>';
+    $('trap1').disabled=true; $('trap2').disabled=true; show('sealCard');
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('#sealOpts button'),function(b){
+    b.onclick=function(){ sealed=b.dataset.s;
+      Array.prototype.forEach.call(document.querySelectorAll('#sealOpts button'),function(x){x.classList.remove('sel');});
+      b.classList.add('sel'); $('doSeal').disabled=false; };
+  });
+  $('doSeal').onclick=function(){
+    this.disabled=true;
+    Array.prototype.forEach.call(document.querySelectorAll('#sealOpts button'),function(x){x.disabled=true;});
+    var names={same:'跟地表一樣 4.9 公尺',d60:'約 8 公分',d3600:'約 1.4 公釐',zero:'幾乎為零'};
+    var li=document.createElement('li'); li.textContent='蠟封:月亮的一秒落下='+names[sealed]+'(封於換算之前)'; li.id='sealLine';
+    $('sealSlip').appendChild(li); show('convCard');
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('#convCard button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.c==='60'){
+        $('convMsg').innerHTML='<div class="msg bad">你第一章親手量的:落下距離跟著<b>時間平方</b>走(1、4、9、16……)。一秒與六十秒,差的不是 60,是 60×60。</div>';
+      }else{
+        $('convMsg').innerHTML='<div class="msg">還清了。</div>';
+        Array.prototype.forEach.call(document.querySelectorAll('#convCard button'),function(x){x.disabled=true;});
+        show('checkCard'); reveal();
+      }
+    };
+  });
+  function reveal(){
+    if(sealed==='d3600'){
+      $('checkMsg').innerHTML='<div class="msg">開蠟:你封的正是這個量級。<span class="npc">牛頓:</span>「封的算數。」</div>';
+    }else{
+      $('sealLine').className='dead';
+      $('checkMsg').innerHTML='<div class="msg bad">開蠟:你封的不是這個量級。蠟條劃線留桌。<span class="npc">牛頓:</span>「封的留著。<b>紙上的數字才算。</b>」</div>';
+    }
+    show('ratioCard');
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#ratioCard button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.r==='3600'){
+        $('ratioMsg').innerHTML='<div class="msg">4.9 公尺 ≈ 4900 公釐;4900 ÷ 1.4 ≈ <b>3600</b>。</div>';
+        Array.prototype.forEach.call(document.querySelectorAll('#ratioCard button'),function(x){x.disabled=true;});
+        show('sqCard');
+      }else{
+        $('ratioMsg').innerHTML='<div class="msg bad">換成同一個單位再比:4.9 公尺=4900 公釐。4900 對 1.4——再估一次。</div>';
+      }
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#sqCard button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.q==='sq'){
+        $('sqMsg').innerHTML='<div class="msg"><span class="big">3600 = 60²</span><br>遠 60 倍,弱 60² 倍。</div>';
+        Array.prototype.forEach.call(document.querySelectorAll('#sqCard button'),function(x){x.disabled=true;});
+        show('nameCard');
+      }else{
+        $('sqMsg').innerHTML='<div class="msg bad">60 加 60 是 120;60×60 是——?</div>';
+      }
+    };
+  });
+})();
+</script>
+</body>
+</html>

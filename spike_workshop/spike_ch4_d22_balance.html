@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>內部原型B|D2-2 倍率天平版(先承諾後揭曉)</title>
+<style>
+  :root{--bg:#1b2430;--paper:#f4ecd8;--ink:#2b2417;--gold:#c9a227;--dim:#8a94a6;--bad:#b0413e;--ok:#3e7d5a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.6;}
+  .phonebar{display:flex;justify-content:space-between;align-items:center;background:#0e141d;color:#cfd6e0;
+    padding:6px 14px;font-size:13px;border-bottom:1px solid #2c3a4d;position:sticky;top:0;z-index:9;}
+  .phonebar .cap{color:#77839a;font-size:12px;}
+  header{padding:14px 18px 4px;}
+  header h1{font-size:17px;margin:0 0 4px;color:var(--gold);}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:760px;margin:0 auto;padding:12px 14px 60px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:15px;margin:0 0 8px;color:#6b4f1d;}
+  .npc{font-weight:700;}
+  button{min-height:44px;padding:8px 16px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;}
+  button.sel{background:#e7d29a;border-color:#8a6b1f;font-weight:700;}
+  button:disabled{opacity:.45;cursor:default;}
+  .result{border-left:4px solid var(--gold);background:#fbf4e2;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .wrong{border-left:4px solid var(--bad);background:#f7e8e6;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .slips{font-size:13px;color:#6a5f4a;margin-top:8px;}
+  .slips li.dead{text-decoration:line-through;}
+  svg{display:block;max-width:100%;height:auto;margin-top:8px;}
+  .hide{display:none;}
+  footer{max-width:760px;margin:0 auto;padding:10px 16px 40px;font-size:13px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:14px;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div style="background:#4a1f1f;color:#ffd9d9;padding:8px 14px;font:13px/1.5 sans-serif;border-bottom:2px solid #8a2f2c"><b>⛔ OBSOLETE — 不得施工</b>|倍率天平=棄案(命名權落在玩家,踩「旅人=答案來源」紅線)<br>現行 canonical:<b>spike_ch4_d22_v3_prediction.html</b>(見 <code>spike_workshop/README_ch4_spike索引.md</code>)</div>
+<div class="phonebar"><span>旅人的手機</span><span class="cap">戲內:牛頓只看到紙</span><span>✕ 無訊號&nbsp;&nbsp;🔋62%</span></div>
+<header>
+  <h1>內部原型B|倍率天平——先承諾,後揭曉</h1>
+  <p>spike_workshop 零依賴單檔;不進 runtime。60/3600 為現代可操作重建,非 1665 年實況。</p>
+</header>
+<main>
+
+<div class="card">
+  <h2>兩張紙</h2>
+  <p>下方:<b>地表|一秒落下 4.9 公尺</b>。上方:<b>月球|一分鐘偏離切線</b>——紀錄蓋著,封存前不得翻看。</p>
+  <div class="result">左盤(自動):時間 1 秒→60 秒,落下量放大 <b>60²=3600 倍</b>。<br>右盤(你設):到了六十個地球半徑外,作用縮弱多少?</div>
+</div>
+
+<div class="card" id="pick">
+  <h2>設右盤,然後封存</h2>
+  <button data-v="none">不變</button>
+  <button data-v="d60">÷60</button>
+  <button data-v="d3600">÷3600</button>
+  <button data-v="d216000">÷216000(距離立方)</button>
+  <p class="slips" id="fiddle"></p>
+  <button id="seal" disabled>滴蠟封存</button>
+  <ul class="slips" id="slips"></ul>
+</div>
+
+<div class="card hide" id="reveal">
+  <h2>翻開月球紀錄</h2>
+  <button id="flip">翻開</button>
+  <div id="verdict"></div>
+  <svg id="vsvg" viewBox="0 0 700 180" class="hide">
+    <text x="20" y="24" font-size="13" fill="#2b2417">月球紙(換算成同一把尺後,偏折點落在哪)</text>
+    <line x1="60" y1="40" x2="60" y2="160" stroke="#6b4f1d" stroke-width="2"/>
+    <line x1="48" y1="100" x2="72" y2="100" stroke="#6b4f1d" stroke-width="3"/>
+    <text x="80" y="104" font-size="13" fill="#2b2417">地表刻痕|一秒 4.9 公尺</text>
+    <circle id="dot" cx="60" cy="100" r="7" fill="#c9a227" class="hide"/>
+    <text id="dotlabel" x="80" y="60" font-size="13" fill="#6b4f1d"></text>
+  </svg>
+  <div id="retry" class="hide"><button id="unseal">解封,重設右盤(舊預測留紙條)</button></div>
+</div>
+
+<div class="card hide" id="why">
+  <h2>牛頓的問題</h2>
+  <p><span class="npc">牛頓:</span>「你是<b>先算出</b>它會在這裡相合,還是<b>一路調到</b>它剛好相合?」</p>
+  <button data-w="ok">時間放大 3600 倍,距離就得縮 3600 倍才抵消</button>
+  <button data-w="far">月亮比較遠,自然比較弱</button>
+  <button data-w="try">試了幾次,試出來的</button>
+  <div id="whywrong" class="wrong hide"></div>
+  <div id="whyok" class="result hide">「封存的就算數。」他把蠟按上去。<br><b>取得:地上與天上的同一把尺</b>(相合只支持距離律,不證明作用如何穿過空間)。<br><span class="npc">牛頓:</span>「先記下。它只回答了月亮。火星和木星還沒問。」</div>
+</div>
+
+</main>
+<footer>
+  <h3>給 Sol 的判準(B 版自評)</h3>
+  命名權=玩家(從四條律中選出反平方;牛頓只審計「算出還是調到」)|爬坡=已由「封存前不得翻看」堵住,但封存前反覆改選會被記次數|
+  「先承諾」教學=本場+K3 共兩處|操作=選律+封存+翻開+說理由|可讀失敗=掉得太深/幾乎不彎,失敗紙條永久保留|史實錨=較弱(天平為純現代重建)。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var chosen=null, changes=-1, sealed=false, tries=0;
+  var v={none:{y:168,label:'掉得太深——遠遠越過地表刻痕。牛頓:「到月亮那裡,它還太強。」',ok:false},
+         d60:{y:140,label:'仍然太深。縮得不夠快。',ok:false},
+         d3600:{y:100,label:'相合——兩張紙的落下刻痕連成一線。',ok:true},
+         d216000:{y:48,label:'月亮幾乎不彎。牛頓:「這一次,月亮幾乎感覺不到地球。」',ok:false}};
+  var names={none:'不變',d60:'÷60',d3600:'÷3600',d216000:'÷216000'};
+  Array.prototype.forEach.call(document.querySelectorAll('#pick button[data-v]'),function(b){
+    b.onclick=function(){ if(sealed) return;
+      chosen=b.dataset.v; changes++;
+      Array.prototype.forEach.call(document.querySelectorAll('#pick button[data-v]'),function(x){x.classList.remove('sel');});
+      b.classList.add('sel'); $('seal').disabled=false;
+      $('fiddle').textContent = changes>0 ? '(封存前已更動 '+changes+' 次——牛頓在看。)' : ''; };});
+  $('seal').onclick=function(){ if(!chosen) return; sealed=true; this.disabled=true;
+    Array.prototype.forEach.call(document.querySelectorAll('#pick button[data-v]'),function(x){x.disabled=true;});
+    $('reveal').classList.remove('hide'); $('reveal').scrollIntoView({behavior:'smooth'}); };
+  $('flip').onclick=function(){ this.disabled=true; tries++;
+    var r=v[chosen];
+    $('vsvg').classList.remove('hide'); $('dot').classList.remove('hide');
+    $('dot').setAttribute('cy',r.y); $('dotlabel').textContent='你的右盤:'+names[chosen];
+    $('verdict').innerHTML='<div class="'+(r.ok?'result':'wrong')+'">'+r.label+'</div>';
+    if(r.ok){ $('why').classList.remove('hide'); $('why').scrollIntoView({behavior:'smooth'}); }
+    else{ var li=document.createElement('li'); li.className='dead';
+      li.textContent='封存紙條:'+names[chosen]+'——未相合(第 '+tries+' 次)'; $('slips').appendChild(li);
+      $('retry').classList.remove('hide'); } };
+  $('unseal').onclick=function(){ sealed=false; chosen=null; $('seal').disabled=true; $('flip').disabled=false;
+    $('retry').classList.add('hide'); $('verdict').innerHTML=''; $('dot').classList.add('hide');
+    Array.prototype.forEach.call(document.querySelectorAll('#pick button[data-v]'),function(x){x.disabled=false;x.classList.remove('sel');});
+    $('pick').scrollIntoView({behavior:'smooth'}); };
+  Array.prototype.forEach.call(document.querySelectorAll('#why button[data-w]'),function(b){
+    b.onclick=function(){
+      if(b.dataset.w==='ok' && changes<2){ $('whyok').classList.remove('hide'); $('whywrong').classList.add('hide');
+        Array.prototype.forEach.call(document.querySelectorAll('#why button[data-w]'),function(x){x.disabled=true;}); return; }
+      if(b.dataset.w==='ok' && changes>=2){ $('whywrong').textContent='「理由對。但封存前你改了 '+changes+' 次——這比較像調到,不是先知道。重來一次:這次先想清楚,再封存。」'; }
+      else if(b.dataset.w==='far'){ $('whywrong').textContent='「遠,所以弱——遠多少、弱多少,你沒說。這不是一條律,是一句話。」'; }
+      else{ $('whywrong').textContent='「這是調到對,不是先知道會對。重來一次——這次先想清楚再封存。」'; }
+      $('whywrong').classList.remove('hide'); };});
+})();
+</script>
+</body>
+</html>

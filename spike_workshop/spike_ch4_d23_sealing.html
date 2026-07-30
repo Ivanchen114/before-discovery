@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>內部原型|D2-3 哈雷的封蠟(火星與木星)</title>
+<style>
+  :root{--bg:#1b2430;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#3e6c9e;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.6;}
+  header{padding:14px 18px 4px;}
+  header h1{font-size:17px;margin:0 0 4px;color:#c9a227;}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:820px;margin:0 auto;padding:12px 14px 60px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:15px;margin:0 0 8px;color:#6b4f1d;}
+  button{min-height:44px;padding:8px 16px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;}
+  button.sel{background:#e7d29a;font-weight:700;}
+  button:disabled{opacity:.4;cursor:default;}
+  button.tempt{border-color:#8a5a2b;background:#f6ead2;}
+  .msg{border-left:4px solid var(--gold);background:#fbf4e2;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .msg.bad{border-left-color:var(--bad);background:#f7e8e6;}
+  .npc{font-weight:700;}
+  svg{display:block;max-width:100%;height:auto;}
+  .slips{font-size:13px;color:#6a5f4a;margin-top:8px;}
+  .hide{display:none;}
+  footer{max-width:820px;margin:0 auto;padding:10px 16px 40px;font-size:13px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:14px;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div style="background:#4a1f1f;color:#ffd9d9;padding:8px 14px;font:13px/1.5 sans-serif;border-bottom:2px solid #8a2f2c"><b>⛔ OBSOLETE — 不得施工</b>|對照盤=棄案(「難懂即換」條款觸發,改紙帶刻痕)<br>現行 canonical:<b>spike_ch4_D3-1_sealing_v2_CANONICAL.html</b>(見 <code>spike_workshop/README_ch4_spike索引.md</code>)</div>
+<header>
+  <h1>D2-3 原型|哈雷的封蠟——「你們先留下預測,我才開資料」</h1>
+  <p>1684 年,劍橋。哈雷帶來兩包封住的觀測,封面只寫「火星」「木星」。你的規則已在同尺紙上鎖定:作用按距離平方縮弱,不准中途改。</p>
+</header>
+<main>
+
+<div class="card">
+  <h2>桌上的東西</h2>
+  <p>木匣裡:🔒火星包、🔒木星包。桌角:你的規則卡「<b>÷距離平方</b>」(從同尺紙延續,已鎖)。旁邊放著封蠟。</p>
+  <div>
+    <button id="tweak" class="tempt">把規則微調一點,讓預測更漂亮</button>
+  </div>
+  <div id="tweakMsg"></div>
+</div>
+
+<div class="card" id="marsCard">
+  <h2>火星|先想,再封,再開</h2>
+  <p>當年已知:火星離太陽約是地球的一倍半。<b>依這條規則</b>,它繞一圈該比地球——</p>
+  <div id="marsThink">
+    <button data-t="fast">快(路遠但拉力照舊)</button>
+    <button data-t="slow">慢(路更長,拉力還更弱)</button>
+    <button data-t="same">一樣(一年就是一年)</button>
+  </div>
+  <div id="marsThinkMsg"></div>
+  <div id="marsSealZone" class="hide">
+    <div class="msg">依規則推得:火星一圈約 <b>1.87 年</b>。</div>
+    <button id="marsSeal">滴蠟封存這個預測</button>
+    <button id="marsOpen" disabled>拆開「火星」觀測包</button>
+    <div id="marsResult"></div>
+  </div>
+</div>
+
+<div class="card hide" id="quitCard">
+  <h2>火星點頭了</h2>
+  <p><span class="npc">哈雷</span>把火星紙壓在桌上,手仍按著木星包。</p>
+  <button id="quitBtn" class="tempt">「一筆相合夠了。規則已經證明。」</button>
+  <button id="goJup">「開木星。」</button>
+  <div id="quitMsg"></div>
+</div>
+
+<div class="card hide" id="jupCard">
+  <h2>木星|更遠的那一包</h2>
+  <p>木星離太陽約是地球的五倍。先想:<b>如果規則其實錯了一點點</b>,錯誤在木星身上會——</p>
+  <div id="jupThink">
+    <button data-j="more">比在火星更明顯</button>
+    <button data-j="less">比在火星更藏得住</button>
+  </div>
+  <div id="jupThinkMsg"></div>
+  <div id="jupSealZone" class="hide">
+    <div class="msg">依規則推得:木星一圈約 <b>11.9 年</b>。</div>
+    <button id="jupSeal">滴蠟封存</button>
+    <button id="jupOpen" disabled>拆開「木星」觀測包</button>
+    <div id="jupResult"></div>
+  </div>
+</div>
+
+<div class="card hide" id="dialCard">
+  <h2>哈雷的對照盤|預測的針與觀測的針</h2>
+  <p><span class="npc">哈雷:</span>「數字對過了,還不夠。」(把預測與觀測各做成一根針,裝上同一個盤)「讓它們<b>走著比</b>。疊著走,規則活著;拉開,規則死了。」</p>
+  <svg viewBox="0 0 700 220">
+    <g id="dialMars" transform="translate(180,110)">
+      <circle r="80" fill="#fff8ea" stroke="#6b4f1d" stroke-width="2"/>
+      <text y="-90" text-anchor="middle" font-size="14" fill="#2b2417">火星</text>
+      <line id="mPred" x1="0" y1="0" x2="0" y2="-68" stroke="#b8860b" stroke-width="4"/>
+      <line id="mObs" x1="0" y1="0" x2="0" y2="-52" stroke="#3e6c9e" stroke-width="4"/>
+    </g>
+    <g id="dialJup" transform="translate(520,110)">
+      <circle r="80" fill="#fff8ea" stroke="#6b4f1d" stroke-width="2"/>
+      <text y="-90" text-anchor="middle" font-size="14" fill="#2b2417">木星</text>
+      <line id="jPred" x1="0" y1="0" x2="0" y2="-68" stroke="#b8860b" stroke-width="4"/>
+      <line id="jObs" x1="0" y1="0" x2="0" y2="-52" stroke="#3e6c9e" stroke-width="4"/>
+    </g>
+    <text x="350" y="210" text-anchor="middle" font-size="13" fill="#2b2417">金=你封存的預測|藍=觀測。疊著走=規則活著;拉開=規則死了。</text>
+  </svg>
+  <button id="runDials">讓針走十年</button>
+  <button id="altLaw" class="hide">「若當初鎖的是 ÷距離,木星會怎樣?」(觀摩)</button>
+  <div id="dialMsg"></div>
+</div>
+
+<div class="card hide" id="assertCard">
+  <h2>斷言|這兩個封口,能讓你說到哪裡?</h2>
+  <p><span class="npc">哈雷:</span>「話說出口之前想清楚——它會跟著這疊紙,一起進木匣、進倫敦。」</p>
+  <button data-a="over">「同一條規則管到整片天空——可以結案了。」</button>
+  <button data-a="ok">「預測先滴了蠟,資料包後拆——匣子從頭到尾在哈雷手上。火星、木星,兩筆都對上。這不能再叫湊巧。」</button>
+  <button data-a="pick">「會過,是因為挑了會配合的行星。」</button>
+  <div id="assertMsg"></div>
+  <div id="k3" class="msg hide"><b>證據成立|沒看答案前的兩個週期</b>:兩個蠟封的時間都早於拆包。<span class="npc">哈雷:</span>「現在我信的不是你的語氣。是這兩個封口。」——支持:同一規則通過未揭露的跨尺度資料。不支持:通過兩筆就不必再驗其他天體;也還沒回答任何「如何作用」。</div>
+</div>
+
+<ul class="slips" id="slips"></ul>
+
+</main>
+<footer>
+  <h3>設計註記(給總監)</h3>
+  ①本場的敵人不是「算錯」,是兩個誘惑:<b>看完火星再微調規則</b>(=事後配答案,微調鍵全程亮著)與<b>一筆相合就想結案</b>(哈雷按著木星包)。
+  ②兩道「先想」小題=玩家不可替代的判讀(慢/更明顯),公式全程不出現;數字由規則卡推出,玩家的工作是封存與判讀,不是背 T∝r^1.5。
+  ③數字驗算:火星距離 1.52 倍→預測 1.87 年(實測 1.88);木星 5.2 倍→預測 11.9 年(實測 11.9);若鎖 ÷距離,木星只該 5.2 年——十年內針就分家,「近處藏得住的誤差,遠處藏不住」。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var tweaked=0, marsSealed=false, jupSealed=false, marsOpened=false;
+  function slip(t){ var li=document.createElement('li'); li.textContent=t; $('slips').appendChild(li); }
+  // 誘惑一:微調
+  $('tweak').onclick=function(){
+    tweaked++;
+    if(!marsOpened){
+      $('tweakMsg').innerHTML='<div class="msg bad"><span class="npc">哈雷:</span>「還沒開包你就想調?」(把封蠟推得更近)「先留下預測。調過的規則,我照樣記帳。」</div>';
+      slip('帳:拆包前碰過規則 '+tweaked+' 次(哈雷記下)。');
+    }else{
+      $('tweakMsg').innerHTML='<div class="msg bad"><span class="npc">哈雷:</span>「<b>順序一反,預測就變成事後配答案。</b>」(他把你的手從規則卡上挪開)「木星照舊規則來。」</div>';
+      slip('帳:看過火星結果後試圖改規則(被攔下,留紀錄)。');
+    }
+  };
+  // 火星:先想
+  Array.prototype.forEach.call(document.querySelectorAll('#marsThink button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.t==='slow'){
+        $('marsThinkMsg').innerHTML='<div class="msg">路更長,拉力還更弱——它只能走得更慢。</div>';
+        $('marsSealZone').classList.remove('hide');
+        Array.prototype.forEach.call(document.querySelectorAll('#marsThink button'),function(x){x.disabled=true;});
+      }else if(b.dataset.t==='fast'){
+        $('marsThinkMsg').innerHTML='<div class="msg bad">拉力「照舊」?你的規則卡寫的是——距離越遠,縮得越弱。再想。</div>';
+      }else{
+        $('marsThinkMsg').innerHTML='<div class="msg bad">一年是地球的帳。火星的路比地球長,帳得自己算。</div>';
+      }
+    };
+  });
+  $('marsSeal').onclick=function(){ marsSealed=true; this.disabled=true; $('marsOpen').disabled=false;
+    slip('蠟封:火星 1.87 年(封於拆包之前)。'); };
+  $('marsOpen').onclick=function(){ marsOpened=true; this.disabled=true;
+    $('marsResult').innerHTML='<div class="msg">拆包。觀測:火星一圈 <b>1.88 年</b>——與蠟封的 1.87 在允許帶內相遇。</div>';
+    $('quitCard').classList.remove('hide'); $('quitCard').scrollIntoView({behavior:'smooth'}); };
+  // 誘惑二:結案
+  $('quitBtn').onclick=function(){
+    $('quitMsg').innerHTML='<div class="msg bad"><span class="npc">哈雷:</span>「一個。」(指節敲在木星包上)「<b>更遠的還在匣裡。</b>近處藏得住的誤差,遠處藏不住——這句話,等下你自己看。」</div>';
+    slip('帳:曾主張一筆相合即可結案(被駁回,留紀錄)。');
+  };
+  $('goJup').onclick=function(){ $('jupCard').classList.remove('hide'); $('jupCard').scrollIntoView({behavior:'smooth'}); };
+  // 木星:先想
+  Array.prototype.forEach.call(document.querySelectorAll('#jupThink button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.j==='more'){
+        $('jupThinkMsg').innerHTML='<div class="msg">對。小小的規則差,經更長的路、更多年,累積成看得見的錯位。</div>';
+        $('jupSealZone').classList.remove('hide');
+        Array.prototype.forEach.call(document.querySelectorAll('#jupThink button'),function(x){x.disabled=true;});
+      }else{
+        $('jupThinkMsg').innerHTML='<div class="msg bad">藏得住?差一點的規則,走五倍遠的路、十倍長的年——帳會越滾越大,不會越滾越小。</div>';
+      }
+    };
+  });
+  $('jupSeal').onclick=function(){ jupSealed=true; this.disabled=true; $('jupOpen').disabled=false;
+    slip('蠟封:木星 11.9 年(封於拆包之前)。'); };
+  $('jupOpen').onclick=function(){ this.disabled=true;
+    $('jupResult').innerHTML='<div class="msg">拆包。觀測:木星一圈 <b>11.9 年</b>——第二個封口,也對上了。</div>';
+    $('dialCard').classList.remove('hide'); $('dialCard').scrollIntoView({behavior:'smooth'}); };
+  // 兩座鐘
+  var t=0, timer=null;
+  $('runDials').onclick=function(){
+    this.disabled=true;
+    timer=setInterval(function(){
+      t+=0.05;
+      // 角度=經過年數/週期 ×360
+      $('mPred').setAttribute('transform','rotate('+(t/1.874*360)%360+')');
+      $('mObs').setAttribute('transform','rotate('+(t/1.881*360)%360+')');
+      $('jPred').setAttribute('transform','rotate('+(t/11.87*360)%360+')');
+      $('jObs').setAttribute('transform','rotate('+(t/11.86*360)%360+')');
+      if(t>=10){ clearInterval(timer);
+        $('dialMsg').innerHTML='<div class="msg">十年。四根針,兩兩幾乎疊著走。</div>';
+        $('altLaw').classList.remove('hide');
+        $('assertCard').classList.remove('hide'); $('assertCard').scrollIntoView({behavior:'smooth'}); }
+    },50);
+  };
+  // 觀摩:錯的規則
+  $('altLaw').onclick=function(){
+    this.disabled=true; var t2=0;
+    var timer2=setInterval(function(){
+      t2+=0.05;
+      $('jPred').setAttribute('transform','rotate('+(t2/5.2*360)%360+')');   // ÷距離 → 木星只該 5.2 年
+      $('jObs').setAttribute('transform','rotate('+(t2/11.86*360)%360+')');
+      if(t2>=10){ clearInterval(timer2);
+        $('dialMsg').innerHTML='<div class="msg bad">換成「÷距離」:十年裡,木星的預測針把觀測針<b>套了快一圈</b>。<span class="npc">牛頓:</span>「近處藏得住的誤差,遠處藏不住。」(觀摩,不入帳)</div>'; }
+    },50);
+  };
+  // 斷言三選(收官基線§四:證據不得自動發)
+  Array.prototype.forEach.call(document.querySelectorAll('#assertCard button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.a==='ok'){
+        $('assertMsg').innerHTML='<div class="msg">哈雷把這句抄上封面,和兩個封口放在一起。</div>';
+        $('k3').classList.remove('hide');
+        Array.prototype.forEach.call(document.querySelectorAll('#assertCard button'),function(x){x.disabled=true;});
+      }else if(b.dataset.a==='over'){
+        $('assertMsg').innerHTML='<div class="msg bad"><span class="npc">哈雷:</span>(推開窗,指著夜空)「天上不是只有兩顆行星。<b>沒問過的,不替你作證。</b>」</div>';
+        slip('帳:曾主張兩筆通過=整片天空結案(被駁回,留紀錄)。');
+      }else{
+        $('assertMsg').innerHTML='<div class="msg bad"><span class="npc">哈雷:</span>「行星是<b>我</b>挑的、<b>我</b>封的,你們連匣子都沒碰過。要指控挑資料,先指控我。」——規則的提出者與資料的持有者分屬兩人,這正是封存的用意。</div>';
+      }
+    };
+  });
+})();
+</script>
+</body>
+</html>

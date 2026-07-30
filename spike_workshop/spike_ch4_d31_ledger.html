@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>內部原型v3|D3-1 對帳桌(圖卡+類比+蓋章有名目)</title>
+<style>
+  :root{--bg:#1b2430;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#3e6c9e;--green:#3e7d5a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.6;}
+  header{padding:14px 18px 4px;}
+  header h1{font-size:17px;margin:0 0 4px;color:#c9a227;}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:900px;margin:0 auto;padding:12px 14px 60px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:15px;margin:0 0 8px;color:#6b4f1d;}
+  button{min-height:44px;padding:8px 16px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;}
+  button:disabled{opacity:.4;cursor:default;}
+  button.tempt{border-color:#8a5a2b;background:#f6ead2;}
+  .msg{border-left:4px solid var(--gold);background:#fbf4e2;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .msg.bad{border-left-color:var(--bad);background:#f7e8e6;}
+  .npc{font-weight:700;}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+  .pic{flex:1;min-width:230px;background:#fff8ea;border:1.5px solid #d8cbaa;border-radius:8px;padding:10px 12px;font-size:14px;}
+  .pic b{color:#6b4f1d;}
+  .pic .cap{font-size:12.5px;color:#6a5f4a;margin-top:4px;}
+  .pic svg{background:transparent;border:none;}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;}
+  th,td{border:1.5px solid #b9a98a;padding:8px 10px;vertical-align:top;text-align:left;}
+  th{background:#efe3c6;color:#6b4f1d;}
+  td .res{color:#6a5f4a;font-size:12.5px;}
+  .stamp{display:inline-block;border-radius:4px;padding:2px 10px;font-weight:700;font-size:13px;margin-bottom:4px;}
+  .stamp.ok{background:#dcebe0;color:#2e5d44;border:1.5px solid #3e7d5a;}
+  .stamp.story{background:#eee6d4;color:#6b4f1d;border:1.5px solid #b8860b;}
+  .stamp.no{background:#f3dcda;color:#8a2f2c;border:1.5px solid #b0413e;}
+  .slip{display:inline-block;background:#f7e9b0;border:1px solid #c9a227;border-radius:3px;padding:2px 8px;margin:3px 3px 0 0;font-size:12.5px;box-shadow:1px 1px 0 rgba(0,0,0,.15);transform:rotate(-1.5deg);}
+  .slip.big{background:#f2d98f;transform:rotate(1.2deg);}
+  .slips{font-size:13px;color:#6a5f4a;margin-top:8px;}
+  .hide{display:none;}
+  svg.board{display:block;max-width:100%;height:auto;background:#faf3e0;border:1px solid #d8cbaa;border-radius:8px;}
+  footer{max-width:900px;margin:0 auto;padding:10px 16px 40px;font-size:13px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:14px;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div style="background:#1e3a2a;color:#bfe3cd;padding:6px 14px;font:12.5px/1.5 sans-serif;border-bottom:1px solid #2f5c44">✅ <b>CANONICAL</b>|第四章 D4-1 對帳桌(2026-07-28 修 A-3 四狀態分支、B-7 rowOrder)。</div>
+<header>
+  <h1>D3-1 原型 v3|對帳桌——三張圖、兩個比方、三顆章</h1>
+  <p>目標:國中生看得懂。所有簡圖=Sol 生圖佔位;數字與路徑=引擎 SVG。</p>
+</header>
+<main>
+
+<div class="card">
+  <h2>兩種說法,先聽懂再對帳</h2>
+  <div class="row">
+    <div class="pic">
+      <b>漩渦說|像攪一杯茶</b>
+      <svg viewBox="0 0 220 110">
+        <ellipse cx="110" cy="60" rx="80" ry="34" fill="none" stroke="#8fa3b8" stroke-width="2"/>
+        <path d="M110 60 m-50 0 a50 21 0 1 1 100 0 a35 15 0 1 1 -70 0 a20 9 0 1 1 40 0" fill="none" stroke="#8fa3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <rect x="104" y="8" width="7" height="46" rx="3" fill="#6b4f1d" transform="rotate(18 108 30)"/>
+        <circle cx="152" cy="48" r="5" fill="#3e7d5a"/>
+        <path d="M152 48 a42 18 0 0 1 -30 16" fill="none" stroke="#3e7d5a" stroke-width="2" marker-end="none"/>
+      </svg>
+      <div class="cap">水轉,茶葉就被帶著轉——不是茶葉自己想轉。<br><b>太陽=那支湯匙;行星=茶葉。</b>那個年代,讀書人多半這樣想:天上塞滿看不見的流。</div>
+    </div>
+    <div class="pic">
+      <b>拉力說|像磁鐵</b>
+      <svg viewBox="0 0 220 110">
+        <path d="M30 30 a25 25 0 0 0 0 50 l16 0 0-14 -16 0 a11 11 0 0 1 0-22 l16 0 0-14 z" fill="#b0413e"/>
+        <rect x="46" y="30" width="12" height="14" fill="#8a94a6"/><rect x="46" y="66" width="12" height="14" fill="#8a94a6"/>
+        <circle cx="150" cy="55" r="9" fill="#5a626e"/>
+        <path d="M70 55 h20" stroke="#b0413e" stroke-width="3"/>
+        <path d="M96 55 h16" stroke="#b0413e" stroke-width="2" opacity=".7"/>
+        <path d="M118 55 h12" stroke="#b0413e" stroke-width="1.6" opacity=".45"/>
+        <path d="M136 55 h8" stroke="#b0413e" stroke-width="1.2" opacity=".28"/>
+      </svg>
+      <div class="cap">不碰你,也拉你;<b>離得越遠,拉得越弱</b>。牛頓說:太陽拉行星、地球拉月亮,就是這樣一股勁,而且按「距離平方」變弱。<br>(只借兩點:隔空、會變弱。磁鐵只吸鐵——<b>這股拉力,什麼都拉</b>。)</div>
+    </div>
+  </div>
+  <div class="msg">兩邊都講得出道理。<span class="npc">哈雷:</span>「道理不算數。<b>對帳。</b>」</div>
+</div>
+
+<div class="card">
+  <h2>帳桌開張|三份觀測,三顆章</h2>
+  <p>(哈雷把三份觀測拍在桌上——每份一張封面)</p>
+  <div class="row">
+    <div class="pic">
+      <svg viewBox="0 0 220 80">
+        <circle cx="60" cy="40" r="16" fill="#3e6c9e"/>
+        <circle cx="60" cy="40" r="34" fill="none" stroke="#b9b3a5" stroke-dasharray="4 4"/>
+        <circle cx="94" cy="40" r="6" fill="#8a8374"/>
+      </svg>
+      <b>月亮</b><div class="cap">在六十個地球半徑外,二十七天繞一圈。</div>
+    </div>
+    <div class="pic">
+      <svg viewBox="0 0 220 80">
+        <circle cx="70" cy="40" r="12" fill="#c9a227"/>
+        <ellipse cx="70" cy="40" rx="40" ry="18" fill="none" stroke="#b9b3a5" stroke-dasharray="4 4"/>
+        <ellipse cx="70" cy="40" rx="70" ry="30" fill="none" stroke="#b9b3a5" stroke-dasharray="4 4"/>
+        <circle cx="110" cy="40" r="4" fill="#b0413e"/><circle cx="140" cy="40" r="6" fill="#8a5a2b"/>
+      </svg>
+      <b>行星</b><div class="cap">火星、木星繞太陽,一圈各要幾年——都有人記著。</div>
+    </div>
+    <div class="pic">
+      <svg viewBox="0 0 220 80">
+        <circle cx="60" cy="40" r="12" fill="#c9a227"/>
+        <ellipse cx="60" cy="40" rx="55" ry="24" fill="none" stroke="#b9b3a5" stroke-dasharray="4 4"/>
+        <path d="M200 10 C 150 30, 90 45, 30 70" stroke="#b0413e" stroke-width="2.4" fill="none"/>
+        <circle cx="120" cy="38" r="4" fill="#b0413e"/>
+      </svg>
+      <b>彗星</b><div class="cap">十一月闖進來、十二月離開的那位訪客——佛蘭斯蒂德每夜記下它的位置。</div>
+    </div>
+  </div>
+  <p style="margin-top:10px"><span class="npc">哈雷:</span>「三份都要過帳。兩本帳的規矩先寫死——拉力這本,變弱的方式就是平方,不准動;漩渦那本,流速表就這一張,也不准動。<b>中途改任何一條,整桌帳作廢。</b>」</p>
+  <p>(他把三顆木章擺到你面前)</p>
+  <p><span class="npc">哈雷:</span>「過帳的規矩:每一格,先看依據,再蓋一顆章。<b>對上了</b>——有數字,而且對了。<b>講得通</b>——只有說法,沒數字可對。<b>對不上</b>——有數字,錯了。」</p>
+  <p><span class="npc">旅人:</span>「為什麼是我蓋?」</p>
+  <p><span class="npc">哈雷:</span>「牛頓不能蓋——規矩是他的。我不能蓋——書是我要印的。你?你什麼都不要。<b>帳房裡最值錢的,就是一雙不要東西的手。</b>」</p>
+  <div class="msg">蓋錯不罰。桌上的數字,自己會把章頂回來。</div>
+</div>
+
+<div class="card" id="ledgerCard">
+  <h2>對帳桌</h2>
+  <div>
+    <button id="runMoon">過帳:月亮</button>
+    <button id="runPlanets">過帳:行星</button>
+    <button id="runComet">過帳:彗星</button>
+  </div>
+  <table>
+    <tr><th style="width:12%"></th><th>拉力帳|隔空拉,按距離平方變弱</th><th>漩渦帳|流帶著轉,像攪茶</th></tr>
+    <tr><th>月亮</th><td id="mA">—</td><td id="mB">—</td></tr>
+    <tr><th>行星</th><td id="pA">—</td><td id="pB">—</td></tr>
+    <tr><th>彗星</th><td id="cA">—</td><td id="cB">—</td></tr>
+  </table>
+  <div id="cometJoin" class="hide">
+    <div class="msg">彗星這疊要先整理:十一月與十二月,是兩位訪客,還是同一位?</div>
+    <svg class="board" id="comet" viewBox="0 0 700 210">
+      <text x="24" y="24" font-size="13" fill="#2b2417">十一月|進來(每點有日期與參考星)</text>
+      <text x="676" y="24" font-size="13" fill="#2b2417" text-anchor="end">十二月|出去</text>
+      <g fill="#2b2417">
+        <circle cx="60" cy="60" r="4"/><circle cx="120" cy="86" r="4"/><circle cx="180" cy="116" r="4"/><circle cx="240" cy="148" r="4"/>
+        <circle cx="460" cy="148" r="4"/><circle cx="520" cy="116" r="4"/><circle cx="580" cy="86" r="4"/><circle cx="640" cy="60" r="4"/>
+      </g>
+      <g id="joinDraw"></g>
+    </svg>
+    <button data-j="two">兩位訪客,各走各的直路</button>
+    <button data-j="one">同一位——按日期與星位接成一條路</button>
+    <div id="jmsg"></div>
+  </div>
+  <div id="stampZone"></div>
+  <div id="ledgerMsg"></div>
+  <div id="deadEndZone" class="hide"><button id="deadEnd" class="tempt">「兩邊都活著——結案。」</button></div>
+  <div id="tweakZone" class="hide"><button id="tweakLaw" class="tempt">微調拉力帳的「平方」,讓數字更漂亮</button></div>
+  <div id="patchZone"></div>
+</div>
+
+<div class="card hide" id="pressCard">
+  <h2>門縫塞進來的短箋</h2>
+  <p><span class="npc">哈雷・短箋:</span>「印刷台開始問下一批頁面。可以送一份只寫到目前證據的短稿,也可以放掉這輪,等三份都過完帳。沒有倒數;但送樣與延後,都會留在帳上。」</p>
+  <button data-p="short">送誠實短稿(寫明做完的和沒做完的)</button>
+  <button data-p="wait">主動延後,等帳過完</button>
+  <div id="pmsg"></div>
+</div>
+
+<div class="card hide" id="sealCard">
+  <h2>封條|這桌帳,能讓你說到哪裡?</h2>
+  <p><span class="npc">哈雷:</span>「選一句放進木匣。到倫敦以後,它會被排成鉛字,不能靠語氣收回。」</p>
+  <button data-s="same">「兩本帳沒有差別。」</button>
+  <button data-s="all">「漩渦說,整個被推翻了。」</button>
+  <button data-s="ok" id="okBtn">(依你實際的記帳狀態產生的那一句)</button>
+  <div id="smsg"></div>
+  <div id="k4" class="msg hide"><b>證據成立|一條規則穿過三種天空</b>——支持:只就桌上這三份資料、兩套寫死的規矩,比較兩本帳「為了活下來各花了多少」——零頭與借條,張張數得出來。不支持:推翻所有種類的漩渦;也不回答拉力如何穿過空間。<br><span class="npc">哈雷:</span>「三份都過帳了。現在去處理最難算的部分。」<span class="npc">旅人:</span>「還有比彗星難算的?」<span class="npc">哈雷:</span>「<b>人名。</b>」(→接印刷台)</div>
+</div>
+
+<ul class="slips" id="slips"></ul>
+
+</main>
+<footer>
+  <h3>設計註記(給總監)</h3>
+  ①依總監 2026-07-27:三疊紙→三張圖卡(Sol 生圖位;本檔簡圖佔位)/兩本帳給國中生類比(攪茶=漩渦;磁鐵=拉力,附守門句「磁鐵只吸鐵,這股拉力什麼都拉」——克卜勒當年真拿磁石打比方,史實頁可註)/蓋章有名目=無股份的手(牛頓不能蓋、哈雷不能蓋,旅人什麼都不要——本章合作線的權限拍)。
+  ②「合不合」=引用+蓋章制:拉力帳引玩家自己的同尺紙、兩個蠟封、親手接的彗星路;漩渦帳的檢查攤在格內;章由玩家蓋,蓋錯由數字頂回。
+  ③流速表推木星 6.4 年=教學代理數字(等速流、火星校準),史實頁標註。
+  ④彗星併軌移入「過帳:彗星」內——一次只學一件事。⑤文字皆佔位,正式台詞稿過白話五查(白話/流暢/聲線/比喻有實物/國中生可讀)+禁語 lint。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var joined=false, moonDone=false, pDone=false, cDone=false;
+  // A-3:借條狀態(系統不得捏造玩家未做的操作)
+  var slipP=false, slipC=false;
+  function okText(){
+    if(!slipP && !slipC) return '「三份資料、兩套寫死的規矩:拉力帳三格都有數,而且都對得上;漩渦帳一格只有說法,另外兩格對不上。」';
+    if(slipP && !slipC)  return '「拉力帳三格都有數。漩渦帳的行星格是改了流速表才對上的,那張借條還在帳上;彗星格對不上。」';
+    if(!slipP && slipC)  return '「拉力帳三格都有數。漩渦帳的彗星格靠一個沒人量過的假設才講得通;行星格對不上。」';
+    return '「拉力帳三格都有數。漩渦帳原先兩格都對不上;每次改成講得通,代價都留在借條上。」';
+  }
+  function evidenceText(){
+    var n=(slipP?1:0)+(slipC?1:0);
+    if(n===0) return '證據包:三份紀錄、兩本帳的逐格章記。<b>沒有借條</b>(你一張都沒開)。';
+    if(n===1) return '證據包:三份紀錄、逐格章記,以及你實際貼出的 <b>1 張借條</b>。';
+    return '證據包:三份紀錄、逐格章記,以及你實際貼出的 <b>2 張借條</b>。';
+  }
+  function slip(t){ var li=document.createElement('li'); li.textContent=t; $('slips').appendChild(li); }
+  function checkAllDone(){ if(moonDone&&pDone&&cDone){ $('okBtn').textContent=okText(); $('sealCard').classList.remove('hide'); $('sealCard').scrollIntoView({behavior:'smooth'}); } }
+  function stampHTML(kind){
+    if(kind==='ok') return '<span class="stamp ok">對上了</span>';
+    if(kind==='story') return '<span class="stamp story">講得通(沒數可對)</span>';
+    return '<span class="stamp no">對不上</span>';
+  }
+  function askStamp(cellId, prompt, correct, bounce, after){
+    var z=$('stampZone');
+    z.innerHTML='<div class="msg">'+prompt+'</div>'+
+      '<button data-k="ok">蓋「對上了」</button><button data-k="story">蓋「講得通」</button><button data-k="no">蓋「對不上」</button>'+
+      '<div id="stampMsg"></div>';
+    Array.prototype.forEach.call(z.querySelectorAll('button'),function(b){
+      b.onclick=function(){
+        if(b.dataset.k===correct){
+          $(cellId).innerHTML=stampHTML(correct)+$(cellId).innerHTML;
+          z.innerHTML=''; after();
+        }else{
+          $('stampMsg').innerHTML='<div class="msg bad">'+bounce[b.dataset.k]+'</div>';
+        }
+      };
+    });
+  }
+  // ---- 月亮 ----
+  $('runMoon').onclick=function(){
+    this.disabled=true;
+    $('mA').innerHTML='<div class="res"><b>依據(你的證據)</b>:同一把尺——地表一秒掉 4.9 公尺 ↔ 月亮那裡一秒只掉 1.4 公釐,弱 3600=60²。零頭:月亮的路有點「喘」,太陽也在拉它(記下,不修)。</div>';
+    $('mB').innerHTML='<div class="res"><b>漩渦的說法</b>:地球自己也攪著一小杯,帶著月亮轉。<b>沒有數字可對。</b></div>';
+    askStamp('mA','拉力帳的月亮格——你蓋哪顆章?','ok',
+      {story:'不只講得通——紙上有數:3600 對 60²。有數而且對了,蓋「對上了」。',no:'4.9 公尺對 1.4 公釐,差的正是 3600=60²——它對上了。'},
+      function(){
+        askStamp('mB','漩渦帳的月亮格呢?','story',
+          {ok:'<span class="npc">哈雷:</span>「對上?拿什麼<b>數</b>對的?」這格只有說法。',no:'也抓不到它錯——它沒交數字,想錯都錯不了。'},
+          function(){
+            moonDone=true;
+            $('ledgerMsg').innerHTML='<div class="msg">月亮這一格:<b>一邊有數,一邊有故事——誰都沒輸。</b></div>';
+            $('deadEndZone').classList.remove('hide');
+            $('pressCard').classList.remove('hide');
+            checkAllDone();
+          });
+      });
+  };
+  $('deadEnd').onclick=function(){
+    $('ledgerMsg').innerHTML='<div class="msg bad"><span class="npc">哈雷</span>把「行星」與「彗星」兩份推回你面前:「<b>只看誰都沒輸的一格,誰都不會輸。</b>」</div>';
+    slip('帳:曾想只憑月亮結案(被推回,留紀錄)。');
+  };
+  // ---- 行星 ----
+  $('runPlanets').onclick=function(){
+    this.disabled=true;
+    $('pA').innerHTML='<div class="res"><b>依據(你的證據)</b>:哈雷的兩個蠟封——火星:封 1.87 年,開 1.88 年;木星:封 11.9 年,開 11.9 年。先封,後開。</div>';
+    $('pB').innerHTML='<div class="res"><b>檢查(攤在桌上)</b>:流速表調到讓火星剛好對(1.88 ✓)。<b>同一張表</b>推木星:該 6.4 年。觀測:11.9 年。</div>';
+    $('tweakZone').classList.remove('hide');
+    askStamp('pA','拉力帳的行星格——蓋哪顆章?','ok',
+      {story:'兩個蠟封裡都是數,而且都對上了。',no:'1.87 對 1.88、11.9 對 11.9——封口都還在,你要推翻哪一個?'},
+      function(){
+        askStamp('pB','漩渦帳的行星格呢?','no',
+          {ok:'表上推 6.4,天上走 11.9——差了快一倍。',story:'它這次交了數——數錯了。交了數就得認,說法救不回來。'},
+          function(){
+            $('patchZone').innerHTML='<div class="msg">漩渦這本帳,行星格對不上。你替它記帳:</div>'+
+              '<button id="patchP" class="tempt">貼借條:「木星那一層,另設流速」</button>'+
+              '<button id="noPatchP">不貼。照實記:對不上</button>';
+            $('patchP').onclick=function(){
+              slipP=true;
+              $('pB').innerHTML=stampHTML('story')+'<br><span class="slip">借條:木星層另設流速</span><div class="res">改完表,木星對了——代價貼在帳上。</div>';
+              $('patchZone').innerHTML='<div class="msg"><span class="npc">佛蘭斯蒂德・書信:</span>「每多一顆星,就再開一層——<b>這不是一條規矩,是一張隨你填的表。</b>」借條留在帳上,終局一起算。</div>';
+              pDone=true; checkAllDone();
+            };
+            $('noPatchP').onclick=function(){
+              $('patchZone').innerHTML='<div class="msg">照實記下:同一張表,追不上兩顆行星。</div>';
+              pDone=true; checkAllDone();
+            };
+          });
+      });
+  };
+  $('tweakLaw').onclick=function(){
+    $('ledgerMsg').innerHTML='<div class="msg bad"><span class="npc">佛蘭斯蒂德・書信:</span>「給每顆星它真實的距離與速度,是正當的;<b>為每顆星各改一次規矩,那才是心虛。</b>」<br><span class="npc">牛頓:</span>「平方不動。動了,那兩個封口就白封了。」</div>';
+    slip('帳:曾想微調拉力帳的平方(被攔下,留紀錄)。');
+  };
+  // ---- 彗星(併軌在內) ----
+  $('runComet').onclick=function(){
+    this.disabled=true;
+    $('cometJoin').classList.remove('hide');
+    $('cometJoin').scrollIntoView({behavior:'smooth'});
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-j]'),function(b){
+    b.onclick=function(){
+      var g=$('joinDraw'); g.innerHTML='';
+      if(b.dataset.j==='two'){
+        g.innerHTML='<path d="M60 60 L240 148" stroke="#b0413e" stroke-width="2" fill="none"/>'+
+                    '<path d="M460 148 L640 60" stroke="#b0413e" stroke-width="2" fill="none"/>'+
+                    '<circle cx="350" cy="150" r="10" fill="none" stroke="#b0413e" stroke-width="2"/>'+
+                    '<text x="350" y="180" font-size="12" text-anchor="middle" fill="#b0413e">中間這幾夜,誰都不在場——斷裂</text>';
+        $('jmsg').innerHTML='<div class="msg bad">兩條直路在中段對不上任何一夜的星位。<span class="npc">佛蘭斯蒂德・書信:</span>「請讓計算穿過<b>這些位置</b>,不是穿過你的判斷。」</div>';
+      }else{
+        g.innerHTML='<path d="M60 60 C 200 170, 500 170, 640 60" stroke="#2b2417" stroke-width="2.5" fill="none"/>'+
+                    '<text x="350" y="196" font-size="12" text-anchor="middle" fill="#3e7d5a">同一條高傾角的路,穿過每一夜</text>';
+        $('jmsg').innerHTML='<div class="msg">進來與出去,連成同一條路。<span class="npc">牛頓:</span>「我先前把它看成兩顆。」(把兩份紙合進同一個紙套)「<b>這一筆,我改。</b>」</div>';
+        joined=true;
+        Array.prototype.forEach.call(document.querySelectorAll('button[data-j]'),function(x){x.disabled=true;});
+        fillComet();
+      }
+    };
+  });
+  function fillComet(){
+    $('cA').innerHTML='<div class="res"><b>依據(你的證據)</b>:你接的那條路——同一套拉力規矩,從十一月穿到十二月,每一夜都在線上。</div>';
+    $('cB').innerHTML='<div class="res"><b>檢查(攤在桌上)</b>:流都在一個平面上、往同一個方向轉;你的彗星路<b>斜著切進來,還逆著流</b>。</div>'+
+      '<svg viewBox="0 0 320 130" style="background:transparent;border:none"><g stroke="#8fa3b8" fill="none" stroke-width="1.5">'+
+      '<ellipse cx="160" cy="65" rx="140" ry="44"/><ellipse cx="160" cy="65" rx="95" ry="30"/><ellipse cx="160" cy="65" rx="50" ry="16"/></g>'+
+      '<g fill="#8fa3b8" font-size="11"><text x="292" y="60">→流向</text></g>'+
+      '<path d="M40 118 C 120 80, 200 40, 290 14" stroke="#b0413e" stroke-width="2.2" fill="none"/>'+
+      '<text x="46" y="112" font-size="11" fill="#b0413e">彗星(你的路)</text></svg>';
+    askStamp('cA','拉力帳的彗星格——蓋哪顆章?','ok',
+      {story:'那條路是算出來的,每一夜都對得上星位——有數。',no:'哪一夜脫線了?指給我看。'},
+      function(){
+        askStamp('cB','漩渦帳的彗星格呢?','no',
+          {ok:'它連方向都跟流打架——箭頭全逆著。',story:'它不是沒數可對——它是連「往哪流」都對不上。'},
+          function(){
+            var pz=document.createElement('div');
+            pz.innerHTML='<div class="msg">漩渦這本帳,彗星格對不上。你替它記帳:</div>'+
+              '<button id="patchC" class="tempt">貼借條:「彗星可以穿過流」(從沒被量過的假設)</button>'+
+              '<button id="noPatchC">不貼。照實記:對不上</button>';
+            $('patchZone').appendChild(pz);
+            $('patchC').onclick=function(){
+              slipC=true;
+              $('cB').innerHTML=stampHTML('story')+'<br><span class="slip big">大借條:彗星可穿過流(從未被量過)</span>';
+              pz.innerHTML='<div class="msg"><span class="npc">牛頓:</span>「這個版本需要例外。記下來。」<span class="npc">旅人:</span>「所以漩渦錯了?」<span class="npc">牛頓:</span>「所以這個漩渦,<b>多欠了一個回答</b>。」</div>';
+              cDone=true; checkAllDone();
+            };
+            $('noPatchC').onclick=function(){
+              pz.innerHTML='<div class="msg">照實記下:漩渦在彗星面前沉默。</div>';
+              cDone=true; checkAllDone();
+            };
+          });
+      });
+  }
+  // ---- 校樣窗口 ----
+  Array.prototype.forEach.call(document.querySelectorAll('#pressCard button'),function(b){
+    b.onclick=function(){
+      Array.prototype.forEach.call(document.querySelectorAll('#pressCard button'),function(x){x.disabled=true;});
+      if(b.dataset.p==='short'){
+        $('pmsg').innerHTML='<div class="msg">印出的短稿寫明「做完的」與「沒做完的」,釘在桌邊,不被後續成功蓋掉。<span class="npc">哈雷・短箋:</span>「這張沒有說謊。但完整的書仍欠一片天空。」</div>';
+        slip('帳:送出誠實短稿(釘桌邊)。');
+      }else{
+        $('pmsg').innerHTML='<div class="msg">排程劃掉一格,旁邊寫「等帳過完」。<span class="npc">哈雷・短箋:</span>「我去重談紙張和排程。慢有成本,硬印也有。」</div>';
+        slip('帳:主動延後一輪(理由留牆上)。');
+      }
+    };
+  });
+  // ---- 封條斷言 ----
+  Array.prototype.forEach.call(document.querySelectorAll('#sealCard button'),function(b){
+    b.onclick=function(){
+      if(b.dataset.s==='ok'){
+        $('smsg').innerHTML='<div class="msg">封條剛好包住三份資料與桌上這兩本帳,不蓋住沒測過的空白。</div><div class="msg">'+evidenceText()+'</div>';
+        $('k4').classList.remove('hide');
+        Array.prototype.forEach.call(document.querySelectorAll('#sealCard button'),function(x){x.disabled=true;});
+      }else if(b.dataset.s==='same'){
+        $('smsg').innerHTML='<div class="msg bad">封條只蓋得住「月亮」那一列。行星與彗星——不是靠借條,就是對不上——全露在外面。<span class="npc">佛蘭斯蒂德・書信:</span>「你得先把不方便的兩列拿走,這句話才放得下。」</div>';
+      }else{
+        $('smsg').innerHTML='<div class="msg bad">封條超出桌上這一種漩渦的紙邊,壓到沒測過的空白——桌上只放了一個規則寫死的簡化版本,別種漩渦都還沒上過桌。<span class="npc">牛頓:</span>「我們算過的是<b>這一個版本</b>。空白不能替你作證。」</div>';
+      }
+    };
+  });
+})();
+</script>
+</body>
+</html>

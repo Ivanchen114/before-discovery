@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CANONICAL|D2-1 牛頓的作圖法(完整規則版 v3)</title>
+<style>
+  :root{--bg:#141c26;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#3e6c9e;--ok:#3e7d5a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.7;}
+  .banner{background:#1e3a2a;color:#bfe3cd;padding:6px 14px;font-size:12.5px;border-bottom:1px solid #2f5c44;}
+  header{padding:12px 16px 4px;max-width:1100px;margin:0 auto;}
+  header h1{font-size:16px;margin:0 0 3px;color:#c9a227;}
+  header p{margin:0;font-size:12.5px;color:var(--dim);}
+  main{max-width:1100px;margin:0 auto;padding:8px 12px 48px;}
+  .wrap{display:grid;grid-template-columns:1fr;gap:12px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:14.5px;margin:0 0 6px;color:#6b4f1d;}
+  .card.locked{opacity:.55;}
+  fieldset{border:1.5px solid #d8cbaa;border-radius:8px;margin:0 0 10px;padding:8px 10px;}
+  legend{font-size:13px;color:#6b4f1d;font-weight:700;padding:0 6px;}
+  button{min-height:44px;min-width:44px;padding:8px 14px;font-size:14.5px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:4px 6px 2px 0;}
+  button:hover{background:#f1e3c2;} button:disabled{opacity:.4;cursor:default;}
+  button.sel{background:#e7d29a;font-weight:700;box-shadow:inset 0 0 0 2px #8a6b1f;}
+  button:focus-visible{outline:3px solid #3e6c9e;outline-offset:2px;}
+  button.primary{background:#e8dcc0;border-color:#8a6b1f;font-weight:700;}
+  .msg{border-left:4px solid var(--gold);background:#fbf4e2;padding:7px 10px;margin-top:8px;font-size:14px;}
+  .msg.bad{border-left-color:var(--bad);background:#f7e8e6;}
+  .msg.ok{border-left-color:var(--ok);background:#e8f2ea;}
+  .npc{font-weight:700;}
+  svg#board{display:block;width:100%;height:auto;max-height:46vh;background:#faf3e0;border-radius:8px;border:1px solid #d8cbaa;}
+  .hint{font-size:12.5px;color:#6a5f4a;margin-top:6px;}
+  .rotbar{display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 8px;background:#fff8ea;border:1.5px solid #d8cbaa;border-radius:8px;}
+  .rotbar #stepTag{font-size:13px;color:#6b4f1d;font-weight:700;min-width:52px;text-align:center;}
+  .rotbar button{margin:0;}
+  .seal{font-size:12.5px;color:#6a5f4a;background:#fff8ea;border:1px dashed #c9bda0;border-radius:6px;padding:6px 8px;margin-top:8px;}
+  .hide{display:none;}
+  .sticky-act{position:sticky;bottom:0;background:linear-gradient(transparent,#f4ecd8 22%);padding-top:10px;}
+  footer{max-width:1100px;margin:0 auto;padding:4px 16px 40px;font-size:12.5px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:13.5px;margin:12px 0 4px;}
+  @media (min-width:900px){ .wrap{grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);} }
+  @media (max-height:460px) and (orientation:landscape){
+    .wrap{grid-template-columns:minmax(0,1fr) minmax(280px,.9fr);}
+    svg#board{max-height:78vh;}
+    header{padding:6px 12px 2px;} header p{display:none;}
+    .card{padding:9px 11px;} button{min-height:44px;padding:6px 12px;font-size:14px;}
+  }
+  @media (prefers-reduced-motion:reduce){ * {transition:none!important;animation:none!important;} }
+</style>
+</head>
+<body>
+<div class="banner">✅ <b>CANONICAL</b>|第四章 D2-1 作圖法・完整規則版 v3(2026-07-28)。取代 <code>spike_ch4_d1_construction.html</code> 與 <code>_v2.html</code>(兩者已標 OBSOLETE)。修 Sol 對抗審 A-5、B-6、B-10。</div>
+<header>
+  <h1>D2-1|牛頓的作圖法(1679,虎克來信之後)</h1>
+  <p>先封存三項規則與形狀預測 → 才畫第一步。操作只有「轉」與「落筆」。三組配對都能繞成近正圓;錯配各有自己的可讀結果。</p>
+</header>
+<main>
+<div class="wrap">
+
+  <!-- 左:紙 -->
+  <div class="card">
+    <h2>紙上</h2>
+    <svg id="board" viewBox="0 0 700 480" role="img" aria-label="軌道作圖紙">
+      <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b8860b"/></marker></defs>
+      <circle cx="350" cy="240" r="170" fill="none" stroke="#c9bda0" stroke-width="9" opacity="0.3"/>
+      <circle cx="350" cy="240" r="26" fill="#3e6c9e"/><text x="350" y="245" font-size="12" text-anchor="middle" fill="#fff">地球</text>
+      <line x1="520" y1="240" x2="520" y2="40" stroke="#3e6c9e" stroke-width="2" stroke-dasharray="6 6"/>
+      <text x="533" y="58" font-size="12" fill="#3e6c9e">十四年前那張切線預測</text>
+      <g id="ghosts"></g><g id="paths"></g><g id="arrows"></g>
+      <line id="aim" x1="0" y1="0" x2="0" y2="0" stroke="#b8860b" stroke-width="3.5" marker-end="url(#ah)" visibility="hidden"/>
+      <circle id="moon" cx="520" cy="240" r="7" fill="#8a8374" stroke="#2b2417"/>
+    </svg>
+    <div id="rotBar" class="rotbar hide">
+        <button id="rot-l" aria-label="箭頭逆時針轉">◀ 轉</button>
+        <span id="stepTag">第 1 拍</span>
+        <button id="rot-r" aria-label="箭頭順時針轉">轉 ▶</button>
+        <button id="commit" class="primary" disabled>落筆</button>
+      </div>
+      <div class="hint" id="hint">封存四項之後,才能落筆。</div>
+  </div>
+
+  <!-- 右:規則與操作 -->
+  <div>
+    <div class="card" id="ruleCard">
+      <h2>一、立規矩(封了不准改)</h2>
+      <div class="msg"><span class="npc">牛頓:</span>「月亮是一路連著走的。可是筆不能一路連著算。」(在紙上點出一串小點)「我把它切成一小段、一小段——<b>每一小段,叫一拍</b>。」
+      <br><span class="npc">牛頓:</span>「一拍之內,它照原來的方向走一小段;走完,我再把它的方向朝地球扳一點點。然後下一拍。」
+      <br><span class="npc">牛頓:</span>「切得越細,畫出來的路就越接近它真正走的那條。我今天切得很粗,因為我只有一雙手。」</div>
+      <fieldset><legend>一拍之內,把它的方向往哪扳?</legend>
+        <button data-k="dir" data-v="earth">每拍指向當下的地球</button>
+        <button data-k="dir" data-v="fixed">永遠指同一個方向</button>
+        <button data-k="dir" data-v="ink">指向紙上一個固定墨點</button>
+      </fieldset>
+      <fieldset><legend>這顆月亮,原本跑多快?</legend>
+        <div class="hint" style="margin:0 0 6px"><span class="npc">牛頓:</span>「這一項不是你能改月亮,是<b>你要先假定它多快</b>——同樣一扳,對慢的來說太重,對快的來說太輕。扳多少,得配上它跑多快。」</div>
+        <button data-k="spd" data-v="slow">慢</button>
+        <button data-k="spd" data-v="mid">中</button>
+        <button data-k="spd" data-v="fast">快</button>
+      </fieldset>
+      <fieldset><legend>每一拍,方向扳多少?</legend>
+        <button data-k="arr" data-v="short">扳一點點(短箭)</button>
+        <button data-k="arr" data-v="mid">扳中等(中箭)</button>
+        <button data-k="arr" data-v="long">扳很多(長箭)</button>
+      </fieldset>
+      <fieldset><legend>照這條規矩一直畫下去,會走成什麼形狀?(先賭,封了才畫)</legend>
+        <button data-k="shape" data-v="line">一路直線離開</button>
+        <button data-k="shape" data-v="away">彎出去,不回頭</button>
+        <button data-k="shape" data-v="circle">繞回來,幾乎是正圓</button>
+        <button data-k="shape" data-v="ellipse">繞回來,可是扁扁的</button>
+        <button data-k="shape" data-v="crash">捲進地球</button>
+      </fieldset>
+      <div class="sticky-act"><button id="seal" class="primary" disabled>封存這四項</button></div>
+      <div class="seal hide" id="sealed"></div>
+    </div>
+
+    <div class="card locked hide" id="drawCard">
+      <h2>二、你畫前三步</h2>
+      <p style="font-size:14px;margin:0 0 6px"><span class="npc">牛頓:</span>「規矩是你的。前三步,你自己來。」</p>
+      <div class="hint">用圖下方的 <b>◀ 轉 / 轉 ▶</b> 調整箭頭方向,再按<b>落筆</b>。鍵盤 <b>← →</b> 同效,<b>Enter</b> 落筆。角度不吸附——你朝哪,墨線就往哪長。</div>
+      <div id="fb"></div>
+    </div>
+
+    <div class="card locked hide" id="newtonCard">
+      <h2>三、剩下的他來畫</h2>
+      <p style="font-size:14px;margin:0 0 6px"><span class="npc">牛頓:</span>(取過筆)「手,換我的。畫到它繞回來為止。」</p>
+      <div class="sticky-act"><button id="go" class="primary">讓他畫完</button></div>
+      <div id="verdict"></div>
+    </div>
+
+  </div>
+</div>
+</main>
+<footer>
+  <h3>契約(對應 Sol 對抗審)</h3>
+  <b>A-5</b>|四項全封才畫第一步,封存時間戳早於第一個 SVG 步驟;<b>三組配對(慢×短/中×中/快×長)都得近正圓</b>,中間選項不是唯一正解;每一格設定都有定義好的結果與回應;UI 不預選任何選項。<br>
+  <b>B-6</b>|三步診斷比較箭頭與「當下地心方向」「上一拍地心方向」的實際夾角;只有落在上一拍方向 ±18° 才說「你朝的是它剛才的地方」,否則用中性回饋。<br>
+  <b>B-10</b>|低高度橫屏雙欄、SVG 限高、操作列 sticky、44px 觸控目標、<b>操作僅用轉鍵</b>(◀ 轉/轉 ▶,置於圖正下方,不遮畫面)+鍵盤 ←→/Enter;拖曳已移除(總監 2026-07-28:避免 pointer 事件的無障礙與橫屏問題)、prefers-reduced-motion。<br>
+  <h3>3×3 結果表(已程式驗算)</h3>
+  慢×短 35 步近正圓|中×中 29 步近正圓|快×長 25 步近正圓|慢×中 27 步橢圓|慢×長 92 步橢圓(內捲)|中×短 39 步橢圓(外張)|中×長 23 步橢圓|快×中 32 步橢圓|快×短 120 步未繞回(一路外張)。方向錯:固定方向 10 步離開紙面;瞄墨點=繞著墨點轉,不繞地球。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var CX=350, CY=240, R0=170;
+  var SPD={slow:30,mid:36,fast:42}, ARR={short:5.3,mid:7.6,long:10.4};
+  var rule={dir:null,spd:null,arr:null,shape:null}, sealedAt=null;
+  var px=520,py=240,vx=0,vy=0,step=0, aimAng=null;
+  var attempt=[[520,240]], firstStepAt=null;
+  var J=[0.9,-0.7,0.5,-1.0,0.6,-0.4,0.8,-0.9,0.3,-0.6];
+  var svg=$('board'), paths=$('paths'), arrows=$('arrows'), ghosts=$('ghosts');
+  function unit(dx,dy){var d=Math.hypot(dx,dy)||1;return [dx/d,dy/d];}
+  function inkSeg(x1,y1,x2,y2,color,w,idx,dash){
+    var mx=(x1+x2)/2,my=(y1+y2)/2,n=unit(-(y2-y1),(x2-x1)),j=J[idx%J.length]*1.3;
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M'+x1.toFixed(1)+' '+y1.toFixed(1)+' Q'+(mx+n[0]*j).toFixed(1)+' '+(my+n[1]*j).toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1));
+    p.setAttribute('fill','none');p.setAttribute('stroke',color);p.setAttribute('stroke-width',w);p.setAttribute('stroke-linecap','round');
+    if(dash) p.setAttribute('stroke-dasharray',dash);
+    return p;
+  }
+  function moveMoon(){ $('moon').setAttribute('cx',px); $('moon').setAttribute('cy',py); }
+  function dirUnit(){
+    if(rule.dir==='earth') return unit(CX-px,CY-py);
+    if(rule.dir==='fixed') return [-1,0];
+    return unit(430-px,120-py);
+  }
+  // ---- 選規則 ----
+  Array.prototype.forEach.call(document.querySelectorAll('#ruleCard button[data-k]'),function(b){
+    b.onclick=function(){
+      var k=b.dataset.k; rule[k]=b.dataset.v;
+      Array.prototype.forEach.call(document.querySelectorAll('#ruleCard button[data-k="'+k+'"]'),function(x){x.classList.remove('sel');});
+      b.classList.add('sel');
+      $('seal').disabled = !(rule.dir&&rule.spd&&rule.arr&&rule.shape);
+    };
+  });
+  $('seal').onclick=function(){
+    sealedAt=Date.now(); this.disabled=true;
+    Array.prototype.forEach.call(document.querySelectorAll('#ruleCard button[data-k]'),function(x){x.disabled=true;});
+    $('ruleCard').classList.add('locked');
+    var names={earth:'每拍指向當下的地球',fixed:'永遠指同一個方向',ink:'指向固定墨點',
+      slow:'慢',mid:'中',fast:'快',short:'短箭',long:'長箭',
+      line:'一路直線離開',away:'彎出去不回頭',circle:'幾乎正圓',ellipse:'扁扁的一圈',crash:'捲進地球'};
+    $('sealed').classList.remove('hide');
+    $('sealed').innerHTML='封存於 '+new Date(sealedAt).toLocaleTimeString()+'|方向:'+names[rule.dir]+
+      '|速度:'+names[rule.spd]+'|改多少:'+(rule.arr==='mid'?'中箭':names[rule.arr])+
+      '|形狀預測:'+names[rule.shape];
+    vx=0; vy=-SPD[rule.spd];
+    $('drawCard').classList.remove('hide','locked');
+    $('rotBar').classList.remove('hide');
+    setAim(Math.atan2(CY-py,CX-px)+0.6); /* 給一個明顯非正解的起始角,不預選 */
+    $('commit').disabled=false;
+    $('hint').textContent='用 ◀ 轉 / 轉 ▶ 對準,再按落筆。';
+    $('rot-l').focus();
+  };
+  // ---- 拖曳 / 鍵盤 ----
+  function setAim(a){
+    aimAng=a; var L=46, x=$('aim');
+    x.setAttribute('visibility','visible');
+    x.setAttribute('x1',px);x.setAttribute('y1',py);
+    x.setAttribute('x2',px+Math.cos(a)*L);x.setAttribute('y2',py+Math.sin(a)*L);
+    $('commit').disabled=false;
+  }
+  /* 拖曳已移除(總監 2026-07-28):只保留轉鍵與鍵盤,避免 pointer 事件的無障礙與橫屏問題。 */
+  function nudge(d){ if(!sealedAt||step>=3)return; setAim((aimAng===null?Math.atan2(CY-py,CX-px):aimAng)+d); }
+  $('rot-l').onclick=function(){nudge(-0.09);}; $('rot-r').onclick=function(){nudge(0.09);};
+  document.addEventListener('keydown',function(e){
+    if(!sealedAt||step>=3)return;
+    if(e.key==='ArrowLeft'){nudge(-0.09);e.preventDefault();}
+    if(e.key==='ArrowRight'){nudge(0.09);e.preventDefault();}
+    if(e.key==='Enter'&&!$('commit').disabled){$('commit').click();e.preventDefault();}
+  });
+  // ---- 落筆 ----
+  $('commit').onclick=function(){
+    if(aimAng===null||step>=3)return;
+    if(firstStepAt===null) firstStepAt=Date.now();
+    var ux=Math.cos(aimAng),uy=Math.sin(aimAng),ox=px,oy=py,A=ARR[rule.arr];
+    // 記錄診斷用夾角
+    var cur=unit(CX-ox,CY-oy);
+    var prev= step>0 ? unit(CX-attempt[step-1][0],CY-attempt[step-1][1]) : cur;
+    var angCur=Math.acos(Math.max(-1,Math.min(1,ux*cur[0]+uy*cur[1])));
+    var angPrev=Math.acos(Math.max(-1,Math.min(1,ux*prev[0]+uy*prev[1])));
+    vx+=A*ux; vy+=A*uy; px+=vx; py+=vy;
+    arrows.appendChild(inkSeg(ox,oy,ox+ux*18,oy+uy*18,'#b8860b',3,step));
+    paths.appendChild(inkSeg(ox,oy,px,py,'#2b2417',2.6,step+3));
+    attempt.push([px,py]); moveMoon(); step++;
+    $('stepTag').textContent='第 '+Math.min(step+1,3)+' 拍';
+    $('aim').setAttribute('visibility','hidden'); aimAng=null;
+    if(step<3){ setAim(Math.atan2(CY-py,CX-px)+0.6); $('commit').disabled=false; }
+    else { $('commit').disabled=true; }
+    // B-6:比夾角,不比半徑
+    var THRESH=18*Math.PI/180;
+    if(rule.dir==='earth' && angCur>THRESH){
+      if(step>1 && angPrev<THRESH){
+        $('fb').innerHTML='<div class="msg bad"><span class="npc">牛頓:</span>(用筆桿點著那一步)「這一步,你朝的是它<b>剛才</b>的地方。」</div>';
+      } else {
+        $('fb').innerHTML='<div class="msg bad"><span class="npc">牛頓:</span>「這一步偏離了當下地球的方向。把兩支箭疊起來看。」</div>';
+      }
+    } else if(step<3){
+      $('fb').innerHTML='<div class="msg">落筆。注意——月亮走到新位置,地球的方向也跟著變了。</div>';
+    }
+    if(step>=3){
+      $('fb').innerHTML+='<div class="msg">三步,一小段弧。</div>';
+      $('drawCard').classList.add('locked');
+      $('rotBar').classList.add('hide');
+      $('newtonCard').classList.remove('hide','locked');
+      $('newtonCard').scrollIntoView({behavior:'smooth',block:'center'});
+      $('go').focus();
+    }
+  };
+  // ---- 牛頓續畫到繞回來 ----
+  $('go').onclick=function(){
+    this.disabled=true;
+    var A=ARR[rule.arr], v0=SPD[rule.spd], n=step, ds=[], reduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    attempt.forEach(function(p){ds.push(Math.hypot(CX-p[0],CY-p[1]));});
+    var timer=setInterval(function(){
+      var u=dirUnit(), ox=px, oy=py;
+      vx+=A*u[0]; vy+=A*u[1]; px+=vx; py+=vy; n++;
+      paths.appendChild(inkSeg(ox,oy,px,py,'#2b2417',2.6,n)); moveMoon();
+      var d=Math.hypot(CX-px,CY-py); ds.push(d);
+      var back=Math.hypot(px-520,py-240);
+      var done=null;
+      if(d<26) done='crash';
+      else if(px<-60||px>760||py<-60||py>560) done='away';
+      else if(n>10 && back<v0*0.9) done='loop';
+      else if(n>=120) done='noloop';
+      if(done){ clearInterval(timer); finish(done,n,Math.min.apply(null,ds),Math.max.apply(null,ds)); }
+    }, reduced?0:70);
+  };
+  function finish(kind,n,lo,hi){
+    var actual, text;
+    if(kind==='crash'){ actual='crash'; text='第 '+n+' 步,它捲進了地球。改的量比它跑的速度大太多。'; }
+    else if(kind==='away'){ actual='line'; text='第 '+n+' 步,它離開紙面。每一拍都朝同一個方向改——這是拋出去的東西,不是繞行的東西。'; }
+    else if(kind==='noloop'){ actual='away'; text='畫了 '+n+' 步,它一路往外張,沒有繞回來。改的量追不上它跑的速度。'; }
+    else { actual = (hi-lo)<26 ? 'circle' : 'ellipse';
+      text = actual==='circle'
+        ? '第 '+n+' 步,它繞回起點。半徑 '+lo.toFixed(0)+'~'+hi.toFixed(0)+'——一條窄帶,幾乎是正圓。'
+        : '第 '+n+' 步,它繞回起點,可是這一圈是<b>扁的</b>。半徑從 '+lo.toFixed(0)+' 拉到 '+hi.toFixed(0)+'。';
+    }
+    var hit = (actual===rule.shape);
+    var extra='';
+    if(actual==='ellipse'){
+      extra='<div class="msg"><span class="npc">牛頓:</span>「它還是繞回來了,只是繞成一個扁的。」(在旁邊寫下一個字)「這個形狀,以後會有人專程來問我。」</div>';
+    }
+    if(rule.dir==='ink'){
+      extra='<div class="msg bad"><span class="npc">牛頓:</span>「路確實彎了。可是它繞的是你那個墨點,不是地球。」</div>';
+    }
+    $('verdict').innerHTML='<div class="msg '+(hit?'ok':'bad')+'">'+text+'<br>'+
+      (hit?'<b>與你封存的形狀預測相符。</b>':'<b>與你封存的形狀預測不同。</b>預測紙留在桌上,不塗改。')+'</div>'+extra+
+      '<div class="msg"><span class="npc">牛頓:</span>「這條路是照他信上那兩支箭畫出來的。」(把虎克的信放在圖旁邊)「畫得出來,不等於證得出來。」</div>'+
+      '<div class="hint">封存時間 '+new Date(sealedAt).toLocaleTimeString()+' 早於第一步 '+new Date(firstStepAt).toLocaleTimeString()+'。</div>';
+    $('hint').textContent='錯路與舊墨都留在紙上,可疊著比。';
+  }
+})();
+</script>
+</body>
+</html>

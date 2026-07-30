@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>內部原型|D1 牛頓的作圖法(三步親手+牛頓續完)</title>
+<style>
+  :root{--bg:#1b2430;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#3e6c9e;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.6;}
+  header{padding:14px 18px 4px;}
+  header h1{font-size:17px;margin:0 0 4px;color:#c9a227;}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:860px;margin:0 auto;padding:12px 14px 60px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:15px;margin:0 0 8px;color:#6b4f1d;}
+  button{min-height:44px;padding:8px 16px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;}
+  button.sel{background:#e7d29a;font-weight:700;}
+  button:disabled{opacity:.4;cursor:default;}
+  .msg{border-left:4px solid var(--gold);background:#fbf4e2;padding:8px 12px;margin-top:10px;font-size:14.5px;}
+  .msg.bad{border-left-color:var(--bad);background:#f7e8e6;}
+  svg{display:block;max-width:100%;height:auto;background:#faf3e0;border-radius:8px;border:1px solid #d8cbaa;}
+  .legend{font-size:13px;color:#6a5f4a;margin-top:6px;}
+  .npc{font-weight:700;}
+</style>
+</head>
+<body>
+<div style="background:#4a1f1f;color:#ffd9d9;padding:8px 14px;font:13px/1.5 sans-serif;border-bottom:2px solid #8a2f2c"><b>⛔ OBSOLETE — 不得施工</b>|v1;步長寫死、無規則封存<br>現行 canonical:<b>spike_ch4_D2-1_construction_v3_CANONICAL.html</b>(見 <code>spike_workshop/README_ch4_spike索引.md</code>)</div>
+<header>
+  <h1>D1 原型|牛頓的作圖法——你畫三步,他畫二十七步</h1>
+  <p>spike_workshop 零依賴單檔,不進 runtime。離散步進=《原理》第一命題的多邊形作圖;沒有模擬器,只有紙、規矩、耐心。</p>
+</header>
+<main>
+
+<div class="card">
+  <h2>紙上現況</h2>
+  <p>虛線=你先前封存的<b>切線預測紙</b>(沒有任何作用時,月亮沿直線離開)。規矩已立:<b>每一拍,把速度朝「當下」的地球改一小段(中箭),原有前進保留。</b>現在——親手畫前三步。</p>
+  <svg id="board" viewBox="0 0 700 540">
+    <circle cx="350" cy="270" r="26" fill="#3e6c9e"/>
+    <text x="350" y="275" font-size="12" text-anchor="middle" fill="#fff">地球</text>
+    <line x1="520" y1="270" x2="520" y2="60" stroke="#3e6c9e" stroke-width="2" stroke-dasharray="6 6"/>
+    <text x="533" y="80" font-size="12" fill="#3e6c9e">切線預測(已封存)</text>
+    <circle id="moon" cx="520" cy="270" r="7" fill="#8a8374" stroke="#2b2417"/>
+    <g id="paths"></g>
+    <g id="arrows"></g>
+    <g id="labels"></g>
+    <!-- 一步的解剖(右上角) -->
+    <g transform="translate(30,30)">
+      <rect x="-10" y="-14" width="218" height="96" rx="8" fill="#fff8ea" stroke="#d8cbaa"/>
+      <text x="0" y="4" font-size="12" fill="#6b4f1d">一步的解剖:</text>
+      <line x1="10" y1="52" x2="90" y2="20" stroke="#3e6c9e" stroke-width="3"/>
+      <text x="30" y="18" font-size="11" fill="#3e6c9e">原有前進</text>
+      <line x1="90" y1="20" x2="76" y2="52" stroke="#b8860b" stroke-width="3"/>
+      <text x="96" y="42" font-size="11" fill="#b8860b">朝地球改一段</text>
+      <line x1="10" y1="52" x2="76" y2="52" stroke="#2b2417" stroke-width="2.5"/>
+      <text x="20" y="68" font-size="11" fill="#2b2417">=真正走出的下一步</text>
+    </g>
+  </svg>
+  <div class="legend">黑實線=已完成的作圖|金短線=每一步「朝地球改的那一段」|藍虛線=切線預測</div>
+</div>
+
+<div class="card" id="playCard">
+  <h2>第 <span id="stepNo">1</span> 步|這一拍,改向哪裡?</h2>
+  <div id="choices">
+    <button data-c="earth">朝地球「現在」的方向</button>
+    <button data-c="old">照上一步的方向</button>
+    <button data-c="out">朝外</button>
+  </div>
+  <div id="feedback"></div>
+</div>
+
+<div class="card" id="newtonCard" style="display:none">
+  <h2>三步成了。剩下的交給他。</h2>
+  <p><span class="npc">牛頓:</span>「規矩是你的。」(取過筆)「手,換我的。」</p>
+  <p>先封存:同一條規矩畫滿三十步,會是什麼形狀?</p>
+  <div id="sealChoices">
+    <button data-s="line">一路直線離開</button>
+    <button data-s="para">彎出去,不回頭</button>
+    <button data-s="band">首尾相接的一圈</button>
+    <button data-s="fall">捲進地球</button>
+  </div>
+  <button id="goNewton" disabled>牛頓開始畫(續二十七步)</button>
+  <div id="verdict"></div>
+</div>
+
+<div class="card" id="galleryCard" style="display:none">
+  <h2>觀摩:別的規矩畫滿三十步,長什麼樣</h2>
+  <p>每一條都畫完、留在紙上——錯路不是紅字,是一條你讀得懂的線。</p>
+  <div>
+    <button data-g="strong">箭太長(改太多)</button>
+    <button data-g="weak">箭太短(改太少)</button>
+    <button data-g="fixed">永遠朝同一個方向</button>
+    <button data-g="ink">朝一個固定墨點</button>
+    <button data-g="none">什麼都不改</button>
+  </div>
+  <div id="gmsg"></div>
+  <div class="msg" id="k1" style="display:none"><b>證據成立|一直改向的路</b>:切線預測紙+這張作圖紙。它支持「原有前進+持續朝當下地球改向,可以合成閉合的路」;它不能告訴你「該改多少才對」——<span class="npc">牛頓</span>在紙角寫下:「方向有了。多少,還沒有。」(那是下一場的事)</div>
+</div>
+
+</main>
+<script>
+(function(){
+  var CX=350, CY=270, R0=170, V0=36, A=7.54, EARTH_R=26;
+  var $=function(id){return document.getElementById(id);};
+  var paths=$('paths'), arrows=$('arrows'), labels=$('labels');
+  // 狀態:位置與速度(半隱式歐拉=多邊形作圖)
+  var px=520, py=270, vx=0, vy=-V0, step=0;
+  var fx=-1, fy=0; // 「照上一步的方向」= 第一步時朝地心的方向,之後不再更新
+  function unit(dx,dy){var d=Math.hypot(dx,dy);return [dx/d,dy/d];}
+  function seg(x1,y1,x2,y2,cls){
+    var l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    if(cls==='ink'){l.setAttribute('stroke','#2b2417');l.setAttribute('stroke-width','2.5');}
+    if(cls==='gold'){l.setAttribute('stroke','#b8860b');l.setAttribute('stroke-width','3');}
+    if(cls==='ghost'){l.setAttribute('stroke','#b0413e');l.setAttribute('stroke-width','2');l.setAttribute('stroke-dasharray','4 4');}
+    return l;
+  }
+  function moveMoon(){ $('moon').setAttribute('cx',px); $('moon').setAttribute('cy',py); }
+  function doStep(ux,uy){ // 施行一步:速度先改,再前進
+    var ox=px, oy=py;
+    vx+=A*ux; vy+=A*uy; px+=vx; py+=vy;
+    arrows.appendChild(seg(ox,oy,ox+ux*18,oy+uy*18,'gold'));
+    paths.appendChild(seg(ox,oy,px,py,'ink'));
+    moveMoon();
+  }
+  // ---- 玩家三步 ----
+  Array.prototype.forEach.call(document.querySelectorAll('#choices button'),function(b){
+    b.onclick=function(){
+      var eDir=unit(CX-px,CY-py);
+      if(b.dataset.c==='earth'){
+        doStep(eDir[0],eDir[1]); step++;
+        $('feedback').innerHTML = step<3 ? '<div class="msg">走到新位置了。注意——地球的方向,變了。</div>' : '<div class="msg">三步,一段短弧。</div>';
+        if(step>=3){ $('playCard').style.opacity=.6;
+          Array.prototype.forEach.call(document.querySelectorAll('#choices button'),function(x){x.disabled=true;});
+          $('newtonCard').style.display='block'; $('newtonCard').scrollIntoView({behavior:'smooth'});
+        } else { $('stepNo').textContent=step+1; }
+      }else if(b.dataset.c==='old'){
+        var g=seg(px,py,px+(vx+A*fx)*1.0+0,py+(vy+A*fy)*1.0,'ghost'); paths.appendChild(g);
+        $('feedback').innerHTML='<div class="msg bad"><span class="npc">牛頓:</span>「地球沒有跟著你的紙轉。」——那是第一步時地球的方向。重看一眼,它現在在哪?</div>';
+        setTimeout(function(){g.remove();},1600);
+      }else{
+        var od=unit(px-CX,py-CY);
+        var g2=seg(px,py,px+(vx+A*od[0]),py+(vy+A*od[1]),'ghost'); paths.appendChild(g2);
+        $('feedback').innerHTML='<div class="msg bad"><span class="npc">牛頓:</span>「你確實改了方向。只是改向了更遠的地方。」</div>';
+        setTimeout(function(){g2.remove();},1600);
+      }
+    };
+  });
+  // ---- 封存形狀預測 ----
+  var sealed=null;
+  Array.prototype.forEach.call(document.querySelectorAll('#sealChoices button'),function(b){
+    b.onclick=function(){ sealed=b.dataset.s;
+      Array.prototype.forEach.call(document.querySelectorAll('#sealChoices button'),function(x){x.classList.remove('sel');});
+      b.classList.add('sel'); $('goNewton').disabled=false; };
+  });
+  // ---- 牛頓續 27 步(動畫) ----
+  $('goNewton').onclick=function(){
+    this.disabled=true;
+    Array.prototype.forEach.call(document.querySelectorAll('#sealChoices button'),function(x){x.disabled=true;});
+    var n=0, timer=setInterval(function(){
+      var eDir=unit(CX-px,CY-py); doStep(eDir[0],eDir[1]); n++;
+      if(n>=27){ clearInterval(timer);
+        var hit = sealed==='band';
+        $('verdict').innerHTML='<div class="msg'+(hit?'':' bad')+'">三十步畫完:一條<b>首尾幾乎相接的窄帶</b>——有寬度,不假裝是完美的圓。'+
+          (hit?'與你封存的預測相符。':'你封存的預測是另一個形狀;預測紙留在桌上,不塗改。')+
+          '<br><span class="npc">牛頓</span>放下筆,活動了一下手腕。'+
+          '<br><span class="npc">旅人(心聲):</span>二十七步,一步沒亂。我第一次看見有人把耐心用成武器。</div>';
+        $('galleryCard').style.display='block'; $('galleryCard').scrollIntoView({behavior:'smooth'});
+      }
+    },90);
+  };
+  // ---- 觀摩:整條畫完的其他規矩 ----
+  var gcolors={strong:'#8a2be2',weak:'#2e7d5a',fixed:'#b0413e',ink:'#c06515',none:'#556'};
+  var gtext={
+    strong:'箭太長:每一步都切進上一圈的內側——路徑向內捲。改太多,不是「更用力就更圓」。',
+    weak:'箭太短:每一步都往外張——它留不住月亮。',
+    fixed:'永遠朝同一個方向改:這不是繞行,是拋出去的東西——一條拋物線,離開紙面。(第二章你見過這條線)',
+    ink:'朝固定墨點改:路確實彎了,可是它繞的是墨點,不是地球。彎≠繞對了中心。',
+    none:'什麼都不改:切線預測紙說對了——直線離開。'};
+  var used={};
+  Array.prototype.forEach.call(document.querySelectorAll('#galleryCard button'),function(b){
+    b.onclick=function(){
+      var kind=b.dataset.g; if(used[kind])return; used[kind]=1; b.classList.add('sel');
+      var x=520,y=270,wx=0,wy=-V0, d='M520 270', crash=false;
+      var Ax = kind==='strong'?13 : kind==='weak'?4 : kind==='none'?0 : A;
+      for(var i=0;i<30;i++){
+        var u=[0,0];
+        if(kind==='strong'||kind==='weak') u=unit(CX-x,CY-y);
+        else if(kind==='fixed') u=[-1,0];
+        else if(kind==='ink') u=unit(430-x,150-y);
+        wx+=Ax*u[0]; wy+=Ax*u[1]; x+=wx; y+=wy;
+        if(x<-40||x>740||y<-40||y>580){ d+=' L'+x.toFixed(1)+' '+y.toFixed(1); break; }
+        d+=' L'+x.toFixed(1)+' '+y.toFixed(1);
+        if(Math.hypot(CX-x,CY-y)<EARTH_R){ crash=true; break; }
+      }
+      var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',d); p.setAttribute('fill','none');
+      p.setAttribute('stroke',gcolors[kind]); p.setAttribute('stroke-width','2'); p.setAttribute('stroke-dasharray','7 4');
+      paths.appendChild(p);
+      if(kind==='ink'){ var dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('cx',430);dot.setAttribute('cy',150);dot.setAttribute('r',4);dot.setAttribute('fill','#c06515');
+        labels.appendChild(dot); }
+      $('gmsg').innerHTML='<div class="msg" style="border-left-color:'+gcolors[kind]+'">'+gtext[kind]+(crash?'(這一條撞進了地球。撞點留在紙上。)':'')+'</div>';
+      if(Object.keys(used).length>=3){ $('k1').style.display='block'; }
+    };
+  });
+})();
+</script>
+</body>
+</html>
