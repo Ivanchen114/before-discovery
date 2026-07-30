@@ -145,10 +145,10 @@
     var s = Narrative.initialState("explore");
     var r = run(s); s = r.state;                    /* P0-1 q1 */
     eq(r.view.nodeId, "q1");
-    s = pick(s, "b"); r = run(s); s = r.state;      /* +1 → P0-2 q1 */
-    eq(s.rep, 4, "P0-1.b 信譽+1");
+    s = pick(s, "b"); r = run(s); s = r.state;      /* 誠實觀察會被記住，但不是答題加分 → P0-2 q1 */
+    eq(s.rep, 3, "P0-1.b 不把感官答對當信譽");
     s = pick(s, "a"); r = run(s); s = r.state;      /* 脫口而出 −1 */
-    eq(s.rep, 3, "P0-2.a 信譽−1");
+    eq(s.rep, 2, "P0-2.a 信譽−1");
     /* A1-3 三選單:先踩鉛+木，再由玩家診斷混淆 */
     eq(r.view.scene, "A1-3");
     s = pick(s, "b"); r = run(s); s = r.state;      /* 鉛+木 → 判讀三選 */
@@ -168,8 +168,8 @@
     s = pick(s, "a"); r = run(s); s = r.state;      /* 綁縛 a 支 */
     s = pick(s, "a"); r = run(s); s = r.state;      /* 更重 → 匯流;探索模式跳過學者加問 → INT-1 q1 */
     eq(r.view.scene, "INT-1");
-    s = pick(s, "b"); r = run(s); s = r.state;      /* +1 → 幕間收束,接第二幕 */
-    eq(s.rep, 4, "INT-1.b 信譽+1");
+    s = pick(s, "b"); r = run(s); s = r.state;      /* 記得主線不是研究誠實加分 → 幕間收束 */
+    eq(s.rep, 2, "INT-1.b 無信譽變動");
     eq(r.view.scene, "A2-1", "幕間接第二幕(M2)");
     eq([!!s.evidence.S2, !!s.evidence.S1, !!s.evidence.E1, !!s.evidence.E2], [true, true, true, true], "四證據入袋");
   });
@@ -373,7 +373,7 @@
   t("R-REP-01|信譽夾制 0–5:連續加減不越界", function () {
     var s = Narrative.initialState("explore");
     s.rep = 5;
-    s.cursor = { scene: "P0-1", node: "nb2" };  /* +1 節點 */
+    s.cursor = { scene: "P0-2", node: "nB3" };  /* 程序誠實 +1 節點 */
     var r = Narrative.advance(s);
     eq(r.state.rep, 5, "上限夾制");
     var s2 = Narrative.initialState("explore");
@@ -409,11 +409,11 @@
   t("R-NAR-06|事件log:rep/evidence/flag/choice 皆留痕", function () {
     var s = Narrative.initialState("explore");
     var r = run(s); s = pick(r.state, "b"); r = run(s); s = r.state;
+    s = pick(s, "b"); r = run(s); s = r.state; /* P0-2.b → qB */
+    s = pick(s, "b1"); r = run(s); s = r.state; /* 程序誠實 +1 → 進第一幕取證 */
     var kinds = {};
     s.eventLog.forEach(function (e) { kinds[e.t] = 1; });
     ok(kinds.rep && kinds.choice, "rep/choice 事件在log");
-    s = pick(s, "b"); r = run(s); s = r.state; /* P0-2.b → qB */
-    s = pick(s, "b1"); r = run(s); s = r.state; /* 進第一幕取證 */
     var hasEvidence = s.eventLog.some(function (e) { return e.t === "evidence" && e.id === "S2"; });
     ok(hasEvidence, "evidence 事件在log");
   });

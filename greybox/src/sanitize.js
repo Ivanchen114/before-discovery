@@ -42,8 +42,6 @@
   }
 
   function isInt(x) { return typeof x === "number" && isFinite(x) && Math.floor(x) === x; }
-
-  /* 關鍵欄位白名單(需要 patterns/scenes 資料提供 enum) */
   function ch3Close(a, b, tolerance) {
     return typeof a === "number" && isFinite(a) &&
       typeof b === "number" && isFinite(b) &&
@@ -192,6 +190,561 @@
     if (lab.publicDemo) lab.publicDemo.complete = false;
   }
 
+  /*
+   * 信譽生命週期只守本系統保留欄位；未知舊 flags／event 仍交由各章既有
+   * 相容層處理。這裡不替存檔「補故事」，只拒絕不可能由 runtime 原子動作
+   * 產生的鎖定、修復游標與本輪首次旗標。
+   */
+  function sanitizeReputationLifecycle(state, scenes, chapterId) {
+    var flags = state && state.flags;
+    var events = state && state.eventLog;
+    if (!flags || typeof flags !== "object" || Array.isArray(flags))
+      return fail("信譽旗標格式錯誤");
+    if (!Array.isArray(events) || events.length > 3000)
+      return fail("信譽事件紀錄格式錯誤");
+    /*
+     * 現行事件的理由是玩家可見契約；少數在 GB-ADR-030 前已能寫入
+     * 存檔的來源允許舊紀錄沒有 reason，但只要有 reason 仍須逐字吻合。
+     * 新來源一律不接受「拿掉 reason 就假裝成舊存檔」。
+     */
+    var reasonRules = {
+      ch1: {
+        /*
+         * 兩筆 2026-07-29 前已寫入的答題獎勵不再由現行 runtime 產生，
+         * 但舊存檔仍可憑原本的玩家選擇鏈證明它們不是憑空加分。
+         */
+        "P0-1/nb2": {
+          expectedDelta: 1, legacyOptional: true,
+          requiresBefore: [{ t:"choice", at:"P0-1/q1", pick:"b" }],
+          values: []
+        },
+        "INT-1/nb2": {
+          expectedDelta: 1, legacyOptional: true,
+          requiresBefore: [{ t:"choice", at:"INT-1/q1", pick:"b" }],
+          values: []
+        },
+        "P0-2/nA4": {
+          expectedDelta: -1, legacyOptional: true,
+          requiresBefore: [{ t:"choice", at:"P0-2/q1", pick:"a" }],
+          values: [
+          "把沒有證據的未來答案說成大家都知道的事"
+        ] },
+        "P0-2/nB3": {
+          expectedDelta: 1, legacyOptional: true,
+          requiresBefore: [
+            { t:"choice", at:"P0-2/q1", pick:"b" },
+            { t:"choice", at:"P0-2/qB", pick:"b1" }
+          ],
+          values: [
+          "同意讓斷言接受證據檢查，也把同一規矩用在同行身上"
+        ] },
+        "SC-R1/n3": {
+          expectedDelta: 1, legacyOptional: true, requiresRepairCycle: true,
+          requiresBefore: [{ t:"embedDone", at:"SC-R1/e1" }],
+          values: [
+          "用一筆新紀錄修復合作資格"
+        ] },
+        /* 舊常數 sourceId 只供既有存檔；現行 runtime 使用選項級 ID。 */
+        "debate.pressChoice": { expectedDelta: -1, legacyOptional: true, values: [
+          "拿未來物理學的名聲替代現場可查的證據"
+        ] },
+        "debate.pressChoice.a": { expectedDelta: -1, values: [
+          "拿未來物理學的名聲替代現場可查的證據"
+        ] },
+        "debate.trap": { expectedDelta: -1, legacyOptional: true, values: [
+          "聲稱量過垂直落下，卻拿不出任何原始紀錄"
+        ] },
+        "debate.trap.lied": { expectedDelta: -1, values: [
+          "聲稱量過垂直落下，卻拿不出任何原始紀錄"
+        ] }
+      },
+      ch2: {
+        "B0-2/q1.a": {
+          expectedDelta: -1,
+          legacyOptionalWithoutEvent: {
+            t:"flag", k:"ch2BallisticsScopeBlurted",
+            v:"1", at:"B0-2/q1.a"
+          },
+          legacyOptionalWithEvent: {
+            t:"flag", k:"ch2BallisticsScopeBlurted",
+            v:"1", at:"B0-2/q1.a",
+            migratedFrom:"ch2-v1-reasonless"
+          },
+          requiresBefore: [{ t:"choice", at:"B0-2/q1", pick:"a" }],
+          values: [
+          "尚未檢查砲術圖就宣稱舊規律一定管得到飛行"
+        ] },
+        "B0-2/s1": {
+          expectedDelta: 1, legacyOptional: true,
+          requiresBefore: [{ t:"choice", at:"B0-2/q1", pick:"b" }],
+          values: [
+          "先讀對手的圖，也保留它真正能支持的範圍"
+        ] },
+        "SC-R1/n3": {
+          expectedDelta: 1, legacyOptional: true, requiresRepairCycle: true,
+          requiresBefore: [{ t:"embedDone", at:"SC-R1/e1" }],
+          values: [
+          "用一筆新紀錄修復合作資格"
+        ] },
+        "debate.fr2.over": { expectedDelta: -1, legacyOptional: true, values: [
+          "把低速短程的桌上結果擴張到已顯示不同軌跡的遠砲"
+        ] },
+        "debate.fr2.sky": { expectedDelta: -1, legacyOptional: true, values: [
+          "把未測的高空與星辰寫成已由桌上實驗證明"
+        ] }
+      },
+      ch3: {
+        "C0-3/c1.all": { expectedDelta: -1, values: [
+          "把還沒有原紙支持的答案當成事實"
+        ] },
+        "C0-3/c1.bounded": {
+          expectedDelta: 1,
+          requiresBefore: [{ t:"choice", at:"C0-3/c1", pick:"bounded" }],
+          values: [
+          "主動把斷言收回到原紙能支持的範圍"
+        ] },
+        "SC3-R1/c1.withdraw": {
+          expectedDelta: 1, requiresRepairCycle: true,
+          requiresBefore: [{ t:"choice", at:"SC3-R1/c1", pick:"withdraw" }],
+          values: [
+          "主動撤回越過原紙的斷言，重新標明資料邊界"
+        ] },
+        "ship3.setDossierFinalBoundary": {
+          expectedDelta: -1, legacyOptional: true, values: [
+          "把沒有量到的地球運動說成已經證明",
+          "把船艙對照擴大到沒有測過的變速船況"
+        ] },
+        /* 舊公開演示終局的 action 名稱，僅供 schema 1 既有存檔。 */
+        "ship3.setBoundary": { expectedDelta: -1, legacyOptional: true, values: [
+        ] }
+      },
+      ch4: {
+        "orbit4.setHookeScope": { expectedDelta: -1, values: [
+          "把虎克的一封信擴張成整套證明，超過來源能支持的範圍",
+          "把虎克已留下的問題方向從來源線抹去"
+        ] },
+        "orbit4.removeTravelerFromAuthorField": {
+          expectedDelta: 1,
+          linkedAfter: [{
+            match: { t:"lab", action:"removeTravelerFromAuthorField" },
+            eventField: "sequence",
+            statePath: ["lab","proof","authorField","removedAt"],
+            adjacent: true,
+            unique: true
+          }],
+          requiresState: [
+            { path:["lab","proof","authorField","travelerRemoved"], equals:true },
+            { path:["lab","proof","authorField","removedAt"], type:"integer", min:1 }
+          ],
+          values: [
+          "主動退出沒有完成之作品的作者欄，沒有把參與操作冒充成作者身分"
+        ] },
+        "orbit4.setProofBoundary": { expectedDelta: -1, values: [
+          "把這批資料沒有量到的作用機制寫成已經證明",
+          "把多人留下的概念、觀測與出版來源改寫成牛頓一人完成"
+        ] },
+        "SC4-R1/c1.withdraw": {
+          expectedDelta: 1, requiresRepairCycle: true,
+          requiresBefore: [{ t:"choice", at:"SC4-R1/c1", pick:"withdraw" }],
+          values: [
+          "主動撤回越過來源的署名與機制結論，恢復可查的邊界"
+        ] }
+      },
+      ch5: {
+        "E1-1/q1.ledger": {
+          expectedDelta: 1,
+          requiresBefore: [{ t:"choice", at:"E1-1/q1", pick:"ledger" }],
+          values: [
+          "先把兩本帳各自改寫成可驗的問題，沒有先替任何一邊宣布勝負"
+        ] },
+        "E1-1/q1.authority": { expectedDelta: -1, values: [
+          "拿前輩的名聲替代可驗資料"
+        ] },
+        "E3-2/j4": {
+          expectedDelta: 1,
+          /*
+           * J4 在最後反撲由玩家完成重寫時先成立；E3-2 只負責公開承認。
+           * 因此來源鏈須從三份工作台證據、三柱擊破一路接到勝辯，不能
+           * 只靠一組自報的 won/J4 尾段狀態。
+           */
+          requiresBefore: [
+            { t:"evidence", id:"J1", at:"collision5" },
+            { t:"evidence", id:"J2", at:"collision5" },
+            { t:"evidence", id:"J3", at:"collision5" },
+            { t:"debateInit" },
+            { t:"pillarBroken", pid:"P2" },
+            { t:"pillarBroken", pid:"P1" },
+            { t:"pillarBroken", pid:"P3" },
+            { t:"evidence", id:"J4", at:"debate.fr5" },
+            { t:"debateWon" }
+          ],
+          requiresState: [
+            { path:["evidence","J1"], equals:true },
+            { path:["evidence","J2"], equals:true },
+            { path:["evidence","J3"], equals:true },
+            { path:["evidence","J4"], equals:true },
+            { path:["lab","evidence","j1"], equals:true },
+            { path:["lab","evidence","j2"], equals:true },
+            { path:["lab","evidence","j3"], equals:true },
+            { path:["debate","idx"], equals:3 },
+            { path:["debate","pillars","P2","broken"], equals:true },
+            { path:["debate","pillars","P1","broken"], equals:true },
+            { path:["debate","pillars","P3","broken"], equals:true },
+            { path:["debate","fr","opened"], equals:true },
+            { path:["debate","status"], equals:"won" },
+            { path:["debate","fr","resolved"], equals:true }
+          ],
+          uniqueEvents: [
+            { t:"evidence", id:"J1", at:"collision5" },
+            { t:"evidence", id:"J2", at:"collision5" },
+            { t:"evidence", id:"J3", at:"collision5" },
+            { t:"debateInit" },
+            { t:"pillarBroken", pid:"P2" },
+            { t:"pillarBroken", pid:"P1" },
+            { t:"pillarBroken", pid:"P3" },
+            { t:"evidence", id:"J4", at:"debate.fr5" },
+            { t:"debateWon" }
+          ],
+          values: [
+          "承認兩本帳記的是不同事情，也保留尚未對平的去向"
+        ] },
+        "debate.fr5.step.vanished": {
+          expectedDelta: -1, legacyOptional: true, values: [
+          "看見黏土坑仍宣稱短少完全消失，抹去不利的可量痕跡"
+        ] },
+        "debate.fr5.step.in-momentum": {
+          expectedDelta: -1, legacyOptional: true, values: [
+          "動量帳沒有多出一截，仍宣稱已在其中找到短少的去向"
+        ] },
+        "debate.fr5.momentum-only": {
+          expectedDelta: -1, legacyOptional: true, values: [
+          "把活力帳的短少直接當成無效，抹去黏土坑留下的可量痕跡"
+        ] },
+        "debate.fr5.vis-viva-only": {
+          expectedDelta: -1, legacyOptional: true, values: [
+          "只保留活力帳，隱去非彈性碰撞尚未對平的短少"
+        ] },
+        "SC5-R1/c1.withdraw": {
+          expectedDelta: 1, requiresRepairCycle: true,
+          requiresBefore: [{ t:"choice", at:"SC5-R1/c1", pick:"withdraw" }],
+          values: [
+          "撤回權威與單一帳結論，重新保留兩本帳及未解缺口"
+        ] }
+      }
+    }[chapterId] || {};
+    var replayRep = 3;
+    var replayLocked = false;
+    var latestZeroRepIndex = -1;
+    var latestRepLockIndex = -1;
+    var latestRepairEnterIndex = -1;
+    var seenPositiveRepSources = {};
+    function matchesRepTrace(event, expected) {
+      if (!event || !expected) return false;
+      return Object.keys(expected).every(function (key) {
+        return event[key] === expected[key];
+      });
+    }
+    function findRepTrace(expected, start, end) {
+      for (var traceIndex = Math.max(0, start); traceIndex < Math.min(events.length, end); traceIndex++) {
+        if (matchesRepTrace(events[traceIndex], expected)) return traceIndex;
+      }
+      return -1;
+    }
+    function countRepTrace(expected) {
+      var count = 0;
+      for (var traceIndex = 0; traceIndex < events.length; traceIndex++) {
+        if (matchesRepTrace(events[traceIndex], expected)) count += 1;
+      }
+      return count;
+    }
+    function getRepState(path) {
+      var value = state;
+      if (!Array.isArray(path) || !path.length)
+        return { found: false, value: undefined };
+      for (var pathIndex = 0; pathIndex < path.length; pathIndex++) {
+        if (!value || typeof value !== "object" ||
+            !Object.prototype.hasOwnProperty.call(value, path[pathIndex]))
+          return { found: false, value: undefined };
+        value = value[path[pathIndex]];
+      }
+      return { found: true, value: value };
+    }
+    function matchesRepState(spec) {
+      var resolved = getRepState(spec && spec.path);
+      if (!resolved.found) return false;
+      var value = resolved.value;
+      if (Object.prototype.hasOwnProperty.call(spec, "equals"))
+        return value === spec.equals;
+      if (spec.type === "integer")
+        return isInt(value) &&
+          (!isFinite(spec.min) || value >= spec.min) &&
+          (!isFinite(spec.max) || value <= spec.max);
+      return false;
+    }
+    for (var rei = 0; rei < events.length; rei++) {
+      var repEvent = events[rei];
+      if (!repEvent) continue;
+      if (repEvent.t === "rep") {
+        if (!isInt(repEvent.d) || !isInt(repEvent.from) || !isInt(repEvent.to) ||
+            repEvent.from < 0 || repEvent.from > 5 ||
+            repEvent.to < 0 || repEvent.to > 5 ||
+            repEvent.to !== Math.min(5, Math.max(0, repEvent.from + repEvent.d)) ||
+            typeof repEvent.at !== "string" || !repEvent.at ||
+            repEvent.from !== replayRep)
+          return fail("信譽事件紀錄前後矛盾");
+        if ("reason" in repEvent &&
+            (typeof repEvent.reason !== "string" || !repEvent.reason.trim() ||
+              repEvent.reason.length > 240))
+          return fail("信譽事件理由格式錯誤");
+        var reasonRule = reasonRules[repEvent.at];
+        if (!reasonRule)
+          return fail("信譽事件來源未登錄:" + repEvent.at);
+        if (repEvent.d !== reasonRule.expectedDelta)
+          return fail("信譽事件增量與來源不一致:" + repEvent.at);
+        var missingReasonAllowed = !!reasonRule.legacyOptional ||
+          !!(reasonRule.legacyOptionalWithoutEvent &&
+            countRepTrace(reasonRule.legacyOptionalWithoutEvent) === 0) ||
+          !!(reasonRule.legacyOptionalWithEvent &&
+            countRepTrace(reasonRule.legacyOptionalWithEvent) === 1);
+        if (!repEvent.reason && !missingReasonAllowed ||
+            repEvent.reason &&
+            reasonRule.values.indexOf(repEvent.reason) < 0)
+          return fail("信譽事件理由與來源不一致:" + repEvent.at);
+        if (repEvent.d > 0 && !reasonRule.requiresRepairCycle) {
+          if (seenPositiveRepSources[repEvent.at])
+            return fail("信譽正向來源重複兌領:" + repEvent.at);
+          seenPositiveRepSources[repEvent.at] = true;
+        }
+        var stateRules = reasonRule.requiresState || [];
+        for (var sri = 0; sri < stateRules.length; sri++) {
+          if (!matchesRepState(stateRules[sri]))
+            return fail("信譽事件與目前狀態不一致:" + repEvent.at);
+        }
+        var uniqueRules = reasonRule.uniqueEvents || [];
+        for (var uri = 0; uri < uniqueRules.length; uri++) {
+          if (countRepTrace(uniqueRules[uri]) !== 1)
+            return fail("信譽事件的來源操作不是唯一一筆:" + repEvent.at);
+        }
+        if (repEvent.d > 0) {
+          if (reasonRule.requiresRepairCycle &&
+              (replayRep !== 0 || !replayLocked ||
+                latestRepairEnterIndex <= latestRepLockIndex))
+            return fail("信譽修復加分缺少本輪歸零與進場:" + repEvent.at);
+        }
+        var beforeCursor = reasonRule.requiresRepairCycle
+          ? latestRepairEnterIndex + 1 : 0;
+        var beforeRules = reasonRule.requiresBefore || [];
+        for (var bri = 0; bri < beforeRules.length; bri++) {
+          var beforeIndex = findRepTrace(beforeRules[bri], beforeCursor, rei);
+          if (beforeIndex < 0)
+            return fail("信譽事件缺少依序的玩家操作:" + repEvent.at);
+          beforeCursor = beforeIndex + 1;
+        }
+        var afterCursor = rei + 1;
+        var afterRules = reasonRule.requiresAfter || [];
+        for (var ari = 0; ari < afterRules.length; ari++) {
+          var afterIndex = findRepTrace(afterRules[ari], afterCursor, events.length);
+          if (afterIndex < 0)
+            return fail("信譽事件缺少依序的後續操作:" + repEvent.at);
+          afterCursor = afterIndex + 1;
+        }
+        var linkedAfterRules = reasonRule.linkedAfter || [];
+        for (var lai = 0; lai < linkedAfterRules.length; lai++) {
+          var linkedRule = linkedAfterRules[lai];
+          var linkedIndex = findRepTrace(
+            linkedRule.match, rei + 1, events.length);
+          if (linkedIndex < 0 ||
+              (linkedRule.unique &&
+                countRepTrace(linkedRule.match) !== 1))
+            return fail("信譽事件缺少唯一的後續操作:" + repEvent.at);
+          if (linkedRule.adjacent && linkedIndex !== rei + 1)
+            return fail("信譽事件與後續操作不是同一步:" + repEvent.at);
+          var linkedState = getRepState(linkedRule.statePath);
+          if (!linkedState.found ||
+              events[linkedIndex][linkedRule.eventField] !== linkedState.value)
+            return fail("信譽事件的後續操作與目前狀態不一致:" + repEvent.at);
+        }
+        replayRep = repEvent.to;
+        if (repEvent.d < 0 && repEvent.to === 0)
+          latestZeroRepIndex = rei;
+      } else if (repEvent.t === "repLock") {
+        var zeroEvent = events[rei - 1];
+        if (!zeroEvent || zeroEvent.t !== "rep" ||
+            zeroEvent.d >= 0 || zeroEvent.to !== 0 ||
+            zeroEvent.at !== repEvent.at || replayRep !== 0)
+          return fail("信譽歸零鎖缺少同來源扣分");
+        replayLocked = true;
+        latestRepLockIndex = rei;
+      } else if (repEvent.t === "flagClear" &&
+          repEvent.k === "repLocked") {
+        if (!replayLocked || replayRep <= 0)
+          return fail("信譽鎖定清除時序錯誤");
+        replayLocked = false;
+      } else if (repEvent.t === "repairEnter") {
+        if (!replayLocked || replayRep !== 0 ||
+            latestZeroRepIndex < 0 || latestRepLockIndex < latestZeroRepIndex)
+          return fail("信譽修復入口前缺少歸零與鎖定");
+        latestRepairEnterIndex = rei;
+      }
+    }
+    if (replayRep !== state.rep)
+      return fail("信譽事件帳與目前數值不一致");
+    if (replayRep === 0 && !replayLocked)
+      return fail("信譽歸零但未鎖定修復");
+    if (replayLocked !== (flags.repLocked === "1"))
+      return fail("信譽鎖定旗標與事件帳不一致");
+
+    var repairScene = {
+      ch1: "SC-R1", ch2: "SC-R1", ch3: "SC3-R1",
+      ch4: "SC4-R1", ch5: "SC5-R1"
+    }[chapterId];
+    var sceneNodes = {};
+    (scenes && scenes.scenes || []).forEach(function (scene) {
+      sceneNodes[scene.id] = {};
+      (scene.nodes || []).forEach(function (node) {
+        sceneNodes[scene.id][node.id] = true;
+      });
+    });
+    var inRepair = !!(state.cursor && state.cursor.scene === repairScene);
+    var hasReturnScene = Object.prototype.hasOwnProperty.call(flags, "returnScene");
+    var hasReturnNode = Object.prototype.hasOwnProperty.call(flags, "returnNode");
+    var hasBaseline = Object.prototype.hasOwnProperty.call(flags, "scr1_baseline");
+    if (flags.repLocked != null && flags.repLocked !== "1")
+      return fail("信譽鎖定旗標格式錯誤");
+    if (state.rep > 0 && flags.repLocked === "1")
+      return fail("信譽尚未歸零卻被鎖定");
+
+    var effectiveCursor = state.cursor;
+    if (inRepair) {
+      if (!hasReturnScene || !hasReturnNode ||
+          !sceneNodes[flags.returnScene] ||
+          !sceneNodes[flags.returnScene][flags.returnNode] ||
+          flags.returnScene === repairScene)
+        return fail("信譽修復缺少有效返回游標");
+      var latestRepairEnter = null;
+      for (var eri = events.length - 1; eri >= 0; eri--) {
+        if (events[eri] && events[eri].t === "repairEnter") {
+          latestRepairEnter = events[eri];
+          break;
+        }
+      }
+      if (!latestRepairEnter ||
+          latestRepairEnter.from !== flags.returnScene + "/" + flags.returnNode ||
+          latestRepairEnterIndex < latestRepLockIndex)
+        return fail("信譽修復入口與返回游標不一致");
+      effectiveCursor = { scene: flags.returnScene, node: flags.returnNode };
+
+      if (chapterId === "ch1" || chapterId === "ch2") {
+        if (["n1", "n2", "e1", "n3"].indexOf(state.cursor.node) < 0 ||
+            state.rep !== 0 || flags.repLocked !== "1" ||
+            !hasBaseline || !/^(0|[1-9][0-9]*)$/.test(flags.scr1_baseline))
+          return fail("第一、二章信譽修復狀態不一致");
+      } else {
+        if (hasBaseline ||
+            ["n1", "n2", "c1", "w1", "w2", "n3"].indexOf(state.cursor.node) < 0)
+          return fail("信譽修復場含不相容欄位");
+        if (state.cursor.node === "n3") {
+          if (state.rep !== 1 || flags.repLocked != null)
+            return fail("信譽修復撤回後的數值或鎖定狀態錯誤");
+          var choiceAt = repairScene + "/c1";
+          var effectAt = choiceAt + ".withdraw";
+          var choiceIndex = events.findIndex(function (event) {
+            return event && event.t === "choice" &&
+              event.at === choiceAt && event.pick === "withdraw";
+          });
+          var repairRepIndex = events.findIndex(function (event, index) {
+            return index > choiceIndex && event && event.t === "rep" &&
+              event.at === effectAt && event.d === 1 &&
+              event.from === 0 && event.to === 1;
+          });
+          var clearIndex = events.findIndex(function (event, index) {
+            return index > repairRepIndex && event && event.t === "flagClear" &&
+              event.k === "repLocked" && event.at === effectAt;
+          });
+          if (choiceIndex < 0 || repairRepIndex < 0 || clearIndex < 0)
+            return fail("信譽修復撤回缺少完整玩家操作紀錄");
+        } else if (state.rep !== 0 || flags.repLocked !== "1") {
+          return fail("信譽修復完成前的數值或鎖定狀態錯誤");
+        }
+      }
+    } else if (hasReturnScene || hasReturnNode || hasBaseline) {
+      return fail("非修復場殘留返回游標");
+    }
+
+    var reserved = {
+      ch2: [{
+        flag: "ch2BallisticsScopeBlurted", value: "1",
+        choiceAt: "B0-2/q1", pick: "a", effectAt: "B0-2/q1.a", delta: -1,
+        legacyReasonOptional: true, legacyWithoutFlag: true,
+        reason: "尚未檢查砲術圖就宣稱舊規律一定管得到飛行"
+      }],
+      ch3: [{
+        flag: "oldPaperAnswerBlurted", value: "1",
+        choiceAt: "C0-3/c1", pick: "all", effectAt: "C0-3/c1.all", delta: -1,
+        reason: "把還沒有原紙支持的答案當成事實"
+      }, {
+        flag: "oldPaperScoped", value: "bounded",
+        choiceAt: "C0-3/c1", pick: "bounded",
+        effectAt: "C0-3/c1.bounded", delta: 1,
+        reason: "主動把斷言收回到原紙能支持的範圍",
+        /*
+         * 2026-07-29 前的第三章已寫入同名旗標與 choice→flag，
+         * 但當時「縮限主張」尚未納入全域信譽，所以沒有 rep 事件。
+         * 只接受這一個可驗證的舊事件形狀；空手自報旗標仍拒絕。
+         */
+        legacyWithoutRep: true
+      }],
+      ch5: [{
+        flag: "ch5AuthoritySubstitutionTried", value: "1",
+        choiceAt: "E1-1/q1", pick: "authority",
+        effectAt: "E1-1/q1.authority", delta: -1,
+        reason: "拿前輩的名聲替代可驗資料"
+      }]
+    }[chapterId] || [];
+    for (var rsi = 0; rsi < reserved.length; rsi++) {
+      var spec = reserved[rsi];
+      var flagIndex = events.findIndex(function (event) {
+        return event && event.t === "flag" && event.k === spec.flag &&
+          event.v === spec.value && event.at === spec.effectAt;
+      });
+      var repIndex = events.findIndex(function (event) {
+        return event && event.t === "rep" &&
+          event.at === spec.effectAt && event.d === spec.delta &&
+          (event.reason === spec.reason ||
+            (spec.legacyReasonOptional && !event.reason));
+      });
+      var pickIndex = events.findIndex(function (event) {
+        return event && event.t === "choice" &&
+          event.at === spec.choiceAt && event.pick === spec.pick;
+      });
+      var flagPresent = Object.prototype.hasOwnProperty.call(flags, spec.flag);
+      var tracePresent = flagIndex >= 0 || repIndex >= 0 || pickIndex >= 0;
+      if (flagPresent && flags[spec.flag] !== spec.value)
+        return fail("信譽首次旗標值錯誤:" + spec.flag);
+      var completeCurrentTrace =
+        flagPresent && pickIndex >= 0 && repIndex > pickIndex &&
+        flagIndex > repIndex;
+      var completeLegacyTrace =
+        !!spec.legacyWithoutRep && flagPresent && pickIndex >= 0 &&
+        repIndex < 0 && flagIndex > pickIndex;
+      var completeLegacyFlagless =
+        !!spec.legacyWithoutFlag && !flagPresent && pickIndex >= 0 &&
+        repIndex > pickIndex && flagIndex < 0;
+      if ((flagPresent || tracePresent) &&
+          !completeCurrentTrace && !completeLegacyTrace &&
+          !completeLegacyFlagless)
+        return fail("信譽首次旗標缺少完整玩家操作紀錄:" + spec.flag);
+      if (completeLegacyFlagless) {
+        flags[spec.flag] = spec.value;
+        events.push({
+          t: "flag", k: spec.flag, v: spec.value, at: spec.effectAt,
+          migratedFrom: "ch2-v1-reasonless"
+        });
+      }
+    }
+    return { ok: true, effectiveCursor: effectiveCursor };
+  }
+
   /* 關鍵欄位白名單(需要 patterns/scenes 資料提供 enum) */
   function sanitizeImport(state, patterns, scenes) {
     if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
@@ -204,6 +757,8 @@
     var sceneIds = {};
     (scenes && scenes.scenes || []).forEach(function (s) { sceneIds[s.id] = 1; });
     if (!state.cursor || !sceneIds[state.cursor.scene]) return fail("存檔中的故事位置無法辨識");
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch1");
+    if (!reputation.ok) return reputation;
 
     var lab = state.lab;
     if (!lab || typeof lab !== "object") return fail("實驗紀錄缺失");
@@ -271,6 +826,8 @@
     }
     if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
       return fail("存檔中的故事位置無法辨識");
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch2");
+    if (!reputation.ok) return reputation;
 
     var lab = state.lab, parts = engine2 && engine2._PARTS || {}, slots = engine2 && engine2._SLOTS || [];
     if (!lab || typeof lab !== "object") return fail("實驗紀錄缺失");
@@ -331,6 +888,8 @@
     });
     if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
       return fail("存檔中的故事位置無法辨識");
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch3");
+    if (!reputation.ok) return reputation;
     var lab = state.lab;
     if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999) return fail("航船實驗紀錄格式錯誤");
     if ([null, "hand", "string", "latch"].indexOf(lab.release) < 0 || typeof lab.plumbCalibrated !== "boolean")
@@ -802,7 +1361,9 @@
     });
     if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
       return fail("存檔中的故事位置無法辨識");
-    var milestoneCursor = state.cursor;
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch4");
+    if (!reputation.ok) return reputation;
+    var milestoneCursor = reputation.effectiveCursor;
     function cursorPastMilestone(gateScene, gateNode) {
       var currentSceneIndex = sceneOrder[milestoneCursor.scene];
       var gateSceneIndex = sceneOrder[gateScene];
@@ -2759,6 +3320,8 @@
     });
     if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
       return fail("存檔中的故事位置無法辨識");
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch5");
+    if (!reputation.ok) return reputation;
     var lab = state.lab;
     if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
         !lab.draft || !Array.isArray(lab.collisionRuns) || !Array.isArray(lab.clayRuns) ||

@@ -148,13 +148,21 @@
         "id": "vanished",
         "text": "「找不到，它消失了。」",
         "correct": false,
-        "reply": "「消失，是句太滿的話。那盤黏土上的坑，怎麼說？」"
+        "reply": "「消失，是句太滿的話。那盤黏土上的坑，怎麼說？」",
+        "penalty": {
+         "rep": -1,
+         "reason": "看見黏土坑仍宣稱短少完全消失，抹去不利的可量痕跡"
+        }
        },
        {
         "id": "in-momentum",
         "text": "「找齊了，在動量帳裡。」",
         "correct": false,
-        "reply": "「動量帳平得剛剛好，一截都沒多。」"
+        "reply": "「動量帳平得剛剛好，一截都沒多。」",
+        "penalty": {
+         "rep": -1,
+         "reason": "動量帳沒有多出一截，仍宣稱已在其中找到短少的去向"
+        }
        }
       ]
      }
@@ -171,7 +179,9 @@
       "reason": "single-ledger",
       "reply": "（看著黏土盤）「那這些坑，記在哪一本？」",
       "penalty": {
-       "persuasion": -1
+       "persuasion": -1,
+       "rep": -1,
+       "reason": "把活力帳的短少直接當成無效，抹去黏土坑留下的可量痕跡"
       }
      },
      {
@@ -181,7 +191,9 @@
       "reason": "single-ledger",
       "reply": "（指非彈性那列）「短少的那截，你要跟院士怎麼交代？」",
       "penalty": {
-       "persuasion": -1
+       "persuasion": -1,
+       "rep": -1,
+       "reason": "只保留活力帳，隱去非彈性碰撞尚未對平的短少"
       }
      },
      {

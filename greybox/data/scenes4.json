@@ -2166,6 +2166,20 @@
      "type": "end"
     }
    ]
+  },
+  {
+   "id": "SC4-R1",
+   "title": "修復：把來源接回去",
+   "historyTag": "dramatic-reconstruction",
+   "nodes": [
+    {"id":"n1","type":"line","speaker":"stage","text":"（信譽歸零。哈雷把來源袋壓在校樣上；作者欄、虎克書信和機制空白都仍留在桌面。）","next":"n2"},
+    {"id":"n2","type":"line","speaker":"哈雷","text":"算錯可以重算。把沒量到的寫成已證，或把別人的紙擦掉，才會讓整本書失去可查的路。你要撤回哪一部分？","next":"c1"},
+    {"id":"c1","type":"choice","text":"哪一種改法真的把來源與證據邊界接回去？","options":[{"id":"withdraw","text":"「我撤回超過來源的署名與機制結論；只保留這批紙真正接得起來的部分。」","effects":[{"rep":1,"reason":"主動撤回越過來源的署名與機制結論，恢復可查的邊界"},{"flagClear":"repLocked"}],"next":"n3"},{"id":"erase-source","text":"「保留最後的證明就好；虎克的信不必再列。」","next":"w1"},{"id":"fill-mechanism","text":"「機制欄不能留白；先寫成已證明，日後再補來源。」","next":"w2"}]},
+    {"id":"w1","type":"line","speaker":"哈雷","text":"那不是撤回，是再擦掉一次來源。信沒有完成證明，但它留下的問題方向不能消失。","next":"c1"},
+    {"id":"w2","type":"line","speaker":"牛頓","text":"空白正是這批紙沒有回答的地方。先填滿它，只會把未知印成事實。","next":"c1"},
+    {"id":"n3","type":"line","speaker":"牛頓","text":"那就把線一條一條接回去。空白也留著。","next":"r1"},
+    {"id":"r1","type":"return"}
+   ]
   }
  ]
 }

@@ -1831,7 +1831,9 @@
     return {
       state: s,
       ok: true,
-      names: field.names.slice()
+      names: field.names.slice(),
+      repDelta: 1,
+      repReason: "主動退出沒有完成之作品的作者欄，沒有把參與操作冒充成作者身分"
     };
   }
 
@@ -1846,6 +1848,9 @@
         MAX_LONG_HISTORY))
       return err(state0, "proof-attempt-limit");
     var s = ensureProofFields(clone(state0));
+    var firstScopeAttempt = !s.proof.hookeScopeAttempts.some(function (row) {
+      return row && row.choice === choice;
+    });
     if (s.proof.hookeScope !== choice || (s.evidence && s.evidence.k5))
       revokeEvidence(s, ["k5"]);
     s.proof.hookeScope = choice;
@@ -1859,6 +1864,13 @@
       consequence: choice === "hookeComplete" ? "hooke-overcredit" :
         (choice === "newtonAlone" ? "hooke-erasure" : null)
     };
+    if (firstScopeAttempt && choice === "hookeComplete") {
+      out.repDelta = -1;
+      out.repReason = "把虎克的一封信擴張成整套證明，超過來源能支持的範圍";
+    } else if (firstScopeAttempt && choice === "newtonAlone") {
+      out.repDelta = -1;
+      out.repReason = "把虎克已留下的問題方向從來源線抹去";
+    }
     return out;
   }
 
@@ -1943,6 +1955,9 @@
         MAX_LONG_HISTORY))
       return err(state0, "proof-attempt-limit");
     var s = ensureProofFields(clone(state0));
+    var firstBoundaryAttempt = !s.proof.boundaryAttempts.some(function (row) {
+      return row && row.choice === choice;
+    });
     if (s.proof.boundaryChoice !== choice || (s.evidence && s.evidence.k5))
       revokeEvidence(s, ["k5"]);
     s.proof.boundaryChoice = choice;
@@ -1956,6 +1971,13 @@
       consequence: choice === "mechanismSolved" ? "mechanism-slot-empty" :
         (choice === "newtonAlone" ? "credit-lines-break" : null)
     };
+    if (firstBoundaryAttempt && choice === "mechanismSolved") {
+      out.repDelta = -1;
+      out.repReason = "把這批資料沒有量到的作用機制寫成已經證明";
+    } else if (firstBoundaryAttempt && choice === "newtonAlone") {
+      out.repDelta = -1;
+      out.repReason = "把多人留下的概念、觀測與出版來源改寫成牛頓一人完成";
+    }
     return out;
   }
 

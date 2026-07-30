@@ -120,6 +120,12 @@
       {
        "id": "ledger",
        "text": "「一本問帶方向的 mv 前後變不變；一本問 mv² 前後變不變。」",
+       "effects": [
+        {
+         "rep": 1,
+         "reason": "先把兩本帳各自改寫成可驗的問題，沒有先替任何一邊宣布勝負"
+        }
+       ],
        "next": "n1"
       },
       {
@@ -130,6 +136,32 @@
       {
        "id": "authority",
        "text": "「先比哪一位前輩的名聲更大。」",
+       "require": {
+        "flagAbsent": "ch5AuthoritySubstitutionTried"
+       },
+       "effects": [
+        {
+         "rep": -1,
+         "reason": "拿前輩的名聲替代可驗資料"
+        },
+        {
+         "flag": [
+          "ch5AuthoritySubstitutionTried",
+          "1"
+         ]
+        }
+       ],
+       "next": "bad2"
+      },
+      {
+       "id": "authority-again",
+       "text": "「先比哪一位前輩的名聲更大。」",
+       "require": {
+        "flag": [
+         "ch5AuthoritySubstitutionTried",
+         "1"
+        ]
+       },
        "next": "bad2"
       }
      ]
@@ -318,7 +350,13 @@
      "speaker": "system",
      "text": "取得 J4：兩本帳的重寫。它不宣稱短少的完整去向已經對平。",
      "effects": [
-      { "evidence": "J4" }
+      {
+       "evidence": "J4"
+      },
+      {
+       "rep": 1,
+       "reason": "承認兩本帳記的是不同事情，也保留尚未對平的去向"
+      }
      ],
      "next": "g1"
     },
@@ -375,6 +413,82 @@
     {
      "id": "end",
      "type": "end"
+    }
+   ]
+  },
+  {
+   "id": "SC5-R1",
+   "title": "修復：讓兩本帳各自說話",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "（信譽歸零。杜夏特萊把兩本帳重新攤開；短少的那一列沒有被撕掉，院士的閉合帳也沒有被蓋住。）",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "先別替任何一本宣布勝負。說清楚各自記到什麼，也說清楚哪一截還沒有去向。",
+     "next": "c1"
+    },
+    {
+     "id": "c1",
+     "type": "choice",
+     "text": "撤回以名聲或單一帳代替資料的結論。",
+     "options": [
+      {
+       "id": "withdraw",
+       "text": "「我撤回剛才過大的結論。兩本帳都保留；還沒對平的去向也不補寫。」",
+       "effects": [
+        {
+         "rep": 1,
+         "reason": "撤回權威與單一帳結論，重新保留兩本帳及未解缺口"
+        },
+        {
+         "flagClear": "repLocked"
+        }
+       ],
+       "next": "n3"
+      },
+      {
+       "id": "momentum-only",
+       "text": "「那就只留每次都對平的動量帳，另一本文字劃掉。」",
+       "next": "w1"
+      },
+      {
+       "id": "vis-viva-only",
+       "text": "「那就只留能解釋黏土坑的活力帳，短少先不提。」",
+       "next": "w2"
+      }
+     ]
+    },
+    {
+     "id": "w1",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "你又把坑的痕跡擦掉了。一本帳對平，不等於另一把尺量到的事可以消失。",
+     "next": "c1"
+    },
+    {
+     "id": "w2",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "你又把短少藏起來了。要留下這本帳，就得連它還沒對平的地方一起留下。",
+     "next": "c1"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "好。現在讓同一批數字重新回答問題。",
+     "next": "r1"
+    },
+    {
+     "id": "r1",
+     "type": "return"
     }
    ]
   }

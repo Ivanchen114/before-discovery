@@ -342,6 +342,15 @@
     }
   }
   function renderStatus() {
+    var latestRepEvent = null;
+    for (var repEventIndex = state.eventLog.length - 1; repEventIndex >= 0; repEventIndex--) {
+      if (state.eventLog[repEventIndex].t === "rep") {
+        latestRepEvent = state.eventLog[repEventIndex];
+        break;
+      }
+    }
+    $("repVal").setAttribute("data-rep-reason",
+      latestRepEvent && latestRepEvent.reason ? latestRepEvent.reason : "");
     $("repVal").textContent = state.rep;
     $("dayVal").textContent = state.lab.days;
     if (CHAPTER_ID === "ch2") {

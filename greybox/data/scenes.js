@@ -89,12 +89,7 @@
      "id": "nb2",
      "type": "system",
      "speaker": "system",
-     "text": "信譽 +1。",
-     "effects": [
-      {
-       "rep": 1
-      }
-     ],
+     "text": "年輕人記住了你剛才照實說出的觀察。",
      "next": "m1"
     },
     {
@@ -179,10 +174,11 @@
      "id": "nA4",
      "type": "system",
      "speaker": "system",
-     "text": "信譽 −1。",
+     "text": "信譽 −1｜把沒有證據的未來答案說成大家都知道的事。",
      "effects": [
       {
-       "rep": -1
+       "rep": -1,
+       "reason": "把沒有證據的未來答案說成大家都知道的事"
       }
      ],
      "next": "g1"
@@ -223,10 +219,11 @@
      "id": "nB3",
      "type": "system",
      "speaker": "system",
-     "text": "信譽 +1。",
+     "text": "信譽 +1｜同意讓斷言接受證據檢查，也把同一規矩用在同行身上。",
      "effects": [
       {
-       "rep": 1
+       "rep": 1,
+       "reason": "同意讓斷言接受證據檢查，也把同一規矩用在同行身上"
       }
      ],
      "next": "g1"
@@ -1001,12 +998,7 @@
      "id": "nb2",
      "type": "system",
      "speaker": "system",
-     "text": "信譽 +1。",
-     "effects": [
-      {
-       "rep": 1
-      }
-     ],
+     "text": "伽利略把你帶回十一年前沒有答完的問題。",
      "next": "m1"
     },
     {
@@ -2032,7 +2024,8 @@
      "text": "信譽回復至 1。筆記:「話說錯了可以收回;數據不會。所以他們只信數據。」",
      "effects": [
       {
-       "rep": 1
+       "rep": 1,
+       "reason": "用一筆新紀錄修復合作資格"
       },
       {
        "flagClear": "repLocked"

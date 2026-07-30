@@ -2779,11 +2779,22 @@
       "all-motion-hidden": "船艙裡分不出停泊與走穩，所以船上連加速、減速也都分不出來。"
     }[choice] || "";
     if (choice !== "honest") {
+      var repeatedBoundary = db.attempts.some(function (attempt) {
+        return attempt.pillar === "final" && attempt.step === "boundary" &&
+          attempt.choice === choice && attempt.ok === false;
+      });
       db.lastReply = choice === "overclaim"
         ? "伽桑狄：「停。我們沒有量地球。」"
         : "維達爾船長：「你在船上已經分出起步和收槳。這句把自己的紙也抹掉了。」";
       db.attempts.push({ pillar: "final", step: "boundary", choice: choice, ok: false });
-      return { state: s, ok: false, reason: "overclaim" };
+      var failed = { state: s, ok: false, reason: "overclaim" };
+      if (!repeatedBoundary) {
+        failed.repDelta = -1;
+        failed.repReason = choice === "overclaim"
+          ? "把沒有量到的地球運動說成已經證明"
+          : "把船艙對照擴大到沒有測過的變速船況";
+      }
+      return failed;
     }
     db.boundary = "honest";
     d.complete = true;
@@ -2804,6 +2815,11 @@
     return { state: s, ok: true, sealed: questionId };
   }
   function setBoundary(state0, choice) {
+    /*
+     * 舊公開演示相容入口；目前 canonical 只走 setDossierFinalBoundary。
+     * 不再由這條舊路徑改動全域信譽，避免同一個「證明地球運動」
+     * 越界在新、舊 API 各扣一次。
+     */
     var redesignedComplete = !!(state0.publicDemo && state0.publicDemo.complete &&
       state0.publicDemo.screened && state0.publicDemo.revealed);
     var legacyComplete = !!(state0.audit.wind && state0.audit.acceleration && state0.audit.paths);
@@ -2811,7 +2827,7 @@
     if (choice !== "overclaim" && choice !== "honest") return err(state0, "unknown-boundary-choice");
     if (choice === "overclaim") {
       var bad = clone(state0); bad.audit.overclaimTried = true;
-      return { state: bad, ok: false, repDelta: -1, reason: "overclaim" };
+      return { state: bad, ok: false, reason: "overclaim" };
     }
     var s = clone(state0); s.audit.boundary = true; s.evidence.g5 = true;
     return { state: s, ok: true, evidence: "G5" };

@@ -19,7 +19,13 @@
   var CHAPTER_ID = /^ch[1-5]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : (CHAPTER_ID === "ch4" ? 2 : 1);
   var REP_MIN = 0, REP_MAX = 5;
-  var REPAIR_SCENE = "SC-R1";
+  var REPAIR_SCENE = {
+    ch1: "SC-R1",
+    ch2: "SC-R1",
+    ch3: "SC3-R1",
+    ch4: "SC4-R1",
+    ch5: "SC5-R1"
+  }[CHAPTER_ID];
   var CH = (DEBATE && DEBATE.chapter) || {};
 
   var sceneMap = {};
@@ -95,14 +101,24 @@
   function passMode(state, node) { return !node.mode || node.mode === "all" || node.mode === state.mode; }
   function visible(state, x) { return passMode(state, x) && passRequire(state, x.require); }
 
-  function applyRep(state, delta, sourceId) {
+  function applyRep(state, delta, sourceId, reason) {
     var before = state.rep;
     state.rep = Math.min(REP_MAX, Math.max(REP_MIN, state.rep + delta));
-    state.eventLog.push({ t: "rep", d: delta, from: before, to: state.rep, at: sourceId });
+    var event = { t: "rep", d: delta, from: before, to: state.rep, at: sourceId };
+    if (reason) event.reason = reason;
+    state.eventLog.push(event);
     if (state.rep === 0 && delta < 0) {
       state.flags.repLocked = "1";
       state.eventLog.push({ t: "repLock", at: sourceId });
     }
+  }
+  function applyRepOnce(state, delta, sourceId, reason) {
+    var alreadyApplied = state.eventLog.some(function (event) {
+      return event && event.t === "rep" && event.at === sourceId;
+    });
+    if (alreadyApplied) return false;
+    applyRep(state, delta, sourceId, reason);
+    return true;
   }
   function grantEvidence(state, id, at) {
     if (!state.evidence[id]) {
@@ -112,7 +128,7 @@
   }
   function applyEffects(state, effects, sourceId) {
     (effects || []).forEach(function (e) {
-      if ("rep" in e) applyRep(state, e.rep, sourceId);
+      if ("rep" in e) applyRep(state, e.rep, sourceId, e.reason);
       if (e.evidence) grantEvidence(state, e.evidence, sourceId);
       if (e.flag) {
         state.flags[e.flag[0]] = e.flag[1];
@@ -272,7 +288,8 @@
     say(state, opponentSpeaker(), opt.reply || "");
     if (opt.penalty) {
       rememberMistake(d, { kind: "answer", label: "你用『未來的物理學』交換權威,反而走進了他的規則。" });
-      if (opt.penalty.rep) applyRep(state, opt.penalty.rep, "debate.pressChoice");
+      if (opt.penalty.rep)
+        applyRepOnce(state, opt.penalty.rep, "debate.pressChoice." + opt.id, opt.penalty.reason);
       if (opt.penalty.persuasion) debatePersuasion(state, opt.penalty.persuasion, "debate.pressChoice");
     }
     if (!opt.retry) d.pressChoice = null;
@@ -416,7 +433,8 @@
         if (t.id === "over") d.fr.overTried = true; /* 舊存檔／回顧相容欄位 */
         rememberMistake(d, { kind: "boundary", optionId: t.id, label: t.mistake || CH.fr.claim.overMistake });
         say(state, "辛普里奧", t.reply);
-        if (t.penalty && t.penalty.rep) applyRep(state, t.penalty.rep, "debate.fr2." + t.id);
+        if (t.penalty && t.penalty.rep)
+          applyRepOnce(state, t.penalty.rep, "debate.fr2." + t.id, t.penalty.reason);
         if (t.penalty && t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.fr2." + t.id);
         if (d.status !== "pending") return { state: state, outcome: "suspended" };
         return { state: state, outcome: "retry" };
@@ -480,6 +498,9 @@
         say(state, coachSpeaker(), pick.reply || "");
         rememberMistake(d, { kind: "rewrite-step", optionId: pick.id,
           label: pick.reason || "同一批紀錄讀錯了一欄。" });
+        if (pick.penalty && pick.penalty.rep)
+          applyRepOnce(state, pick.penalty.rep,
+            "debate.fr5.step." + pick.id, pick.penalty.reason);
         return { state: state, outcome: "retry" };
       }
       d.fr.step += 1;
@@ -500,7 +521,8 @@
         reason: claim.reason || null, label: claim.reason || "問題仍沒有拆成兩本帳。" });
       say(state, coachSpeaker(), claim.reply || "");
       if (claim.penalty && claim.penalty.rep)
-        applyRep(state, claim.penalty.rep, "debate.fr5." + claim.id);
+        applyRepOnce(state, claim.penalty.rep,
+          "debate.fr5." + claim.id, claim.penalty.reason);
       if (claim.penalty && claim.penalty.persuasion)
         debatePersuasion(state, claim.penalty.persuasion, "debate.fr5." + claim.id);
       return { state: state, outcome: d.status === "suspended" ? "suspended" : "retry" };
@@ -536,7 +558,8 @@
       if (t.id === "lied") {
         rememberMistake(d, { kind: "boundary", label: "你聲稱量過垂直落下,卻拿不出任何紀錄。" });
         say(state, "辛普里奧", t.reply);
-        if (t.penalty.rep) applyRep(state, t.penalty.rep, "debate.trap");
+        if (t.penalty.rep)
+          applyRepOnce(state, t.penalty.rep, "debate.trap." + t.id, t.penalty.reason);
         if (t.penalty.persuasion) debatePersuasion(state, t.penalty.persuasion, "debate.trap");
         return { state: state, outcome: d.status === "pending" ? "retry" : "suspended" };
       }
@@ -1010,7 +1033,12 @@
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
         grantEvidence(state, id, "collision5");
     });
-    if (r.repDelta) applyRep(state, r.repDelta, "ship3." + action);
+    if (r.repDelta) {
+      var repSource = CHAPTER_ID === "ch3" ? "ship3." :
+        (CHAPTER_ID === "ch4" ? "orbit4." :
+          (CHAPTER_ID === "ch5" ? "collision5." : "lab."));
+      applyRep(state, r.repDelta, repSource + action, r.repReason);
+    }
     if (action === "judge") {
       if ((r.claim && !r.claim.ok) || r.rejected) {
         state.flags.hadFailure = "1";
@@ -1063,9 +1091,13 @@
     var state = clone(state0);
     state.flags.returnScene = state.cursor.scene;
     state.flags.returnNode = state.cursor.node;
-    state.flags.scr1_baseline = String(state.lab.series
-      ? state.lab.series.reduce(function (a, sr) { return a + (sr.profile === "clean" ? Object.keys(sr.readings).length : 0); }, 0)
-      : state.lab.evidence.runs.length);
+    if (CHAPTER_ID === "ch1" || CHAPTER_ID === "ch2") {
+      state.flags.scr1_baseline = String(state.lab.series
+        ? state.lab.series.reduce(function (a, sr) {
+          return a + (sr.profile === "clean" ? Object.keys(sr.readings).length : 0);
+        }, 0)
+        : state.lab.evidence.runs.length);
+    }
     state.eventLog.push({ t: "repairEnter", from: state.cursor.scene + "/" + state.cursor.node });
     moveTo(state, REPAIR_SCENE);
     return { state: state, redirected: true };

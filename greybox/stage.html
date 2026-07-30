@@ -2362,7 +2362,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   <section id="game-screen" style="display:none" aria-label="遊戲畫面">
     <div id="srLine" class="srOnly" role="log" aria-live="polite"></div>
     <div id="hud">
-      <span class="chip" tabindex="0" title="信譽 0–5:空口斷言、被抓到說謊會扣;歸零時關鍵人物暫時拒談,需經修復事件贖回——沒有 game over,只有代價。">信譽 <b id="repVal">3</b>/5</span>
+      <span class="chip" tabindex="0" title="信譽 0–5：猜錯與實驗失敗不扣；把未驗證答案說成事實、隱瞞資料或越過證據邊界才扣。主動補正並守住證據範圍可以恢復。">信譽 <b id="repVal">3</b>/5</span>
       <span class="chip" tabindex="0" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
       <span class="chip" tabindex="0" id="e3Val"></span>
       <span class="chip" tabindex="0" id="perVal" title="說服力:辯論中的氣勢量表;錯誤出示會扣,歸零=辯論中止。與伽利略複盤後可從未破的支柱再入。"></span>
@@ -2470,7 +2470,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
       </div>
     </div>
 
-    <div id="repToast" role="status" aria-live="polite" hidden>信譽動了——這座城市在替你的話記帳。點一下「信譽」可看規則。</div>
+    <div id="repToast" role="status" aria-live="polite" hidden>信譽變動。點一下「信譽」可看規則。</div>
     <div id="hudTip" role="status" aria-live="polite" hidden></div>
 
     <div id="debIntro" role="dialog" aria-modal="true" aria-label="辯論備忘" hidden>
@@ -2631,28 +2631,28 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 <script src="data/series.js"></script>
 <script src="data/patterns.js"></script>
-<script src="data/debate.js"></script>
-<script src="data/debate2.js?v=20260724-dialogue-natural-v2"></script>
-<script src="data/debate5.js?v=20260727-ch05-v1"></script>
+<script src="data/debate.js?v=asset-9afadd0ae79b"></script>
+<script src="data/debate2.js?v=asset-0c63280d5b1a"></script>
+<script src="data/debate5.js?v=asset-7bde7921725c"></script>
 <script src="data/histfacts.js"></script>
 <script src="data/histfacts2.js"></script>
 <script src="data/histfacts3.js?v=20260730-ch03-p1"></script>
 <script src="data/histfacts4.js"></script>
 <script src="data/histfacts5.js?v=20260727-ch05-v1"></script>
-<script src="data/assets.js?v=asset-1360bcf28f08"></script>
-<script src="src/sanitize.js?v=asset-8eb37afbb03f"></script>
+<script src="data/assets.js?v=asset-75f9117e9ae3"></script>
+<script src="src/sanitize.js?v=asset-bdef07bd1dae"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js?v=asset-e18483fa309a"></script>
-<script src="src/engine4.js?v=asset-c835d851f05b"></script>
+<script src="src/engine3.js?v=asset-54dbd8e0c687"></script>
+<script src="src/engine4.js?v=asset-321ebec4e356"></script>
 <script src="src/engine5.js?v=20260727-ch05-v1"></script>
-<script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
-<script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
-<script src="data/scenes3.js?v=asset-9cb304e067f8"></script>
-<script src="data/scenes4.js?v=asset-18a5ed19550b"></script>
-<script src="data/scenes5.js?v=20260727-ch05-v1"></script>
+<script src="data/scenes.js?v=asset-660fa9b2d036"></script>
+<script src="data/scenes2.js?v=asset-134e03d8992f"></script>
+<script src="data/scenes3.js?v=asset-1b20ba129a69"></script>
+<script src="data/scenes4.js?v=asset-7191490a5755"></script>
+<script src="data/scenes5.js?v=asset-8e63ab0d4695"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
 (function () {
@@ -2691,8 +2691,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-cdd9fdc31216"></script>
-<script src="src/chapter-ui.js?v=asset-2be7d616d771"></script>
-<script src="src/stage-ui.js?v=asset-cd9ed5e5b26f"></script>
+<script src="src/narrative.js?v=asset-326626f98e67"></script>
+<script src="src/chapter-ui.js?v=asset-88182bcd33fc"></script>
+<script src="src/stage-ui.js?v=asset-68e80083d402"></script>
 </body>
 </html>

@@ -50,15 +50,20 @@
     ev.preventDefault();
     showHudTip(chip.title);
   });
-  var repHinted = false, repPrev = null;
+  var repPrev = $("repVal").textContent, repToastTimer = null;
   try {
     new MutationObserver(function () {
       var v = $("repVal").textContent;
       if (repPrev === null) { repPrev = v; return; }
-      if (v !== repPrev && !repHinted) { /* 信譽第一次變動:一次性提示(just-in-time,不是開場說明書) */
-        repHinted = true;
+      if (v !== repPrev) {
+        var latestReason = $("repVal").getAttribute("data-rep-reason");
+        var delta = Number(v) - Number(repPrev);
+        var label = delta > 0 ? "信譽 +" + delta : "信譽 " + delta;
+        $("repToast").textContent = label + "｜" +
+          (latestReason || "人物正在根據你怎麼使用證據，調整對你的信任。");
         $("repToast").hidden = false;
-        setTimeout(function () { $("repToast").hidden = true; }, 5000);
+        if (repToastTimer) clearTimeout(repToastTimer);
+        repToastTimer = setTimeout(function () { $("repToast").hidden = true; }, 5000);
       }
       repPrev = v;
     }).observe($("repVal"), { childList: true, characterData: true, subtree: true });

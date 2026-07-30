@@ -322,12 +322,33 @@
       {
        "id": "a",
        "text": "「管得到。」",
+       "require": {
+        "flagAbsent": "ch2BallisticsScopeBlurted"
+       },
        "next": "na1",
        "effects": [
         {
-         "rep": -1
+         "rep": -1,
+         "reason": "尚未檢查砲術圖就宣稱舊規律一定管得到飛行"
+        },
+        {
+         "flag": [
+          "ch2BallisticsScopeBlurted",
+          "1"
+         ]
         }
        ]
+      },
+      {
+       "id": "a-again",
+       "text": "「管得到。」",
+       "require": {
+        "flag": [
+         "ch2BallisticsScopeBlurted",
+         "1"
+        ]
+       },
+       "next": "na1"
       },
       {
        "id": "b",
@@ -368,11 +389,12 @@
      "id": "s1",
      "type": "system",
      "speaker": "system",
-     "text": "信譽 +1。取得證據：塔爾塔利亞砲術圖。",
+     "text": "信譽 +1｜先讀對手的圖，也保留它真正能支持的範圍。取得證據：塔爾塔利亞砲術圖。",
      "next": "n2",
      "effects": [
       {
-       "rep": 1
+       "rep": 1,
+       "reason": "先讀對手的圖，也保留它真正能支持的範圍"
       },
       {
        "evidence": "S3"
@@ -1345,7 +1367,8 @@
      "next": "r1",
      "effects": [
       {
-       "rep": 1
+       "rep": 1,
+       "reason": "用一筆新紀錄修復合作資格"
       },
       {
        "flagClear": "repLocked"

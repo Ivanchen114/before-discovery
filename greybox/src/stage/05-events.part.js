@@ -174,7 +174,7 @@
     pendingEmbarkView = null;
     pendingEmbarkScene = null;
     apparatusSurveySeen = {}; apparatusSurveyActive = null; apparatusSurveyDone = null;
-    repHinted = false; repPrev = null;
+    repPrev = null;
     lastLineScene = null;
     $("labIntro").hidden = true;
     $("apparatusSurvey").hidden = true;

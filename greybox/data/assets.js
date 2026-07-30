@@ -67,6 +67,7 @@
   "C3-4": "bg_ch03_public_demonstration",
   "CE-1": "bg_ch03_print_room_1642",
   "CE-2": "bg_ch03_print_room_1642",
+  "SC3-R1": "bg_ch03_public_demonstration",
   "D0-1": "bg_ch03_print_room_1642",
   "D0-2": "bg_ch04_woolsthorpe_orchard_1665",
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
@@ -79,6 +80,7 @@
   "D4-2": "bg_ch04_london_printshop_1687",
   "DE-1": "bg_ch04_london_printshop_1687",
   "DE-2": "bg_ch04_typecase_collision_epilogue",
+  "SC4-R1": "bg_ch04_london_printshop_1687",
   "ch5:E0-1": "bg_ch05_cirey_library_day",
   "ch5:E0-2": "bg_ch05_cirey_library_day",
   "ch5:E1-1": "bg_ch05_cirey_library_day",
@@ -90,6 +92,7 @@
   "ch5:E3-2": "bg_ch05_cirey_debate_evening",
   "ch5:EE-1": "bg_ch05_cirey_epilogue_night",
   "ch5:EE-2": "bg_ch05_cirey_epilogue_night",
+  "ch5:SC5-R1": "bg_ch05_cirey_debate_evening",
   "INT-C1": "bg_ch03_marseille_harbor_dawn",
   "INT-C2": "bg_ch03_public_demonstration"
  },
@@ -2127,6 +2130,10 @@
   "CE-2": {
    "伽桑狄": "dialogue_gassendi48"
   },
+  "SC3-R1": {
+   "伽桑狄": "dialogue_gassendi48",
+   "維達爾船長": "dialogue_captain50"
+  },
   "D0-1": {},
   "D0-2": {
    "Newton": "dialogue_newton22",
@@ -2177,6 +2184,15 @@
    "哈雷": "dialogue_halley28"
   },
   "DE-2": {},
+  "SC4-R1": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
+  },
+  "SC5-R1": {
+   "杜夏特萊": "dialogue_du_chatelet34"
+  },
   "INT-C1": {
    "伽桑狄": "dialogue_gassendi48"
   },
@@ -2818,6 +2834,7 @@
   "C3-4": "ch3Public",
   "CE-1": "ch3Print",
   "CE-2": "ch3Print",
+  "SC3-R1": "ch3Public",
   "D0-1": "ch3Print",
   "D0-2": "ch4Orchard",
   "D1-1": "ch4Orbit",
@@ -2830,6 +2847,8 @@
   "D4-2": "ch4Press",
   "DE-1": "ch4Principia",
   "DE-2": "ch4Principia",
+  "SC4-R1": "ch4Press",
+  "ch5:SC5-R1": "silence",
   "INT-C1": "ch3Harbor",
   "INT-C2": "ch3Public"
  },
