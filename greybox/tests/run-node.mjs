@@ -475,6 +475,8 @@ tests.push({
     ]))
       throw new Error("B0-1 應以翻頁／工作室／舊證據回返三拍完成第二章交棒");
     const c0 = assets.sceneFx["C0-1"];
+    if (c0.triggerMatch !== "頁面自己動了")
+      throw new Error("C0-1 蒙太奇應在翻頁舞台動作發生時才播放，不得搶在場景開頭");
     if (c0.steps[c0.steps.length - 1].plate !== "ch03_transition_1640_gassendi_handoff_v01")
       throw new Error("C0-1 最後一拍應完成伽桑狄交棒");
     const d0 = assets.sceneFx["D0-2"];
@@ -499,6 +501,10 @@ tests.push({
       throw new Error("章首／時間跳躍仍以固定秒數自動換拍");
     if (!sui.includes('$("fxJump").addEventListener("click", advanceSceneFx)'))
       throw new Error("時代轉場應由整張場景承接手點，不再放置底部按鈕");
+    if (!sui.includes('document.addEventListener("bd:line"') ||
+        !sui.includes("fx.triggerMatch") ||
+        !sui.includes("playSceneFx(d.scene)"))
+      throw new Error("指定台詞觸發的蒙太奇缺 line-level 接線");
     if (sui.includes('if (!$("fxJump").hidden) { ev.preventDefault(); endSceneFx(); return; }'))
       throw new Error("Esc 仍可跳過整段時代轉場");
     if (sui.includes('$("prologueCard").addEventListener("click"'))
@@ -1980,7 +1986,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章資料鏡像與場景圖|8 場主線、scenes/histfacts 雙載體一致",
+  name: "第三章資料鏡像與敘事圖|10 場 209 節點、全可達、舊游標相容",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts3.json"), "utf-8"));
@@ -1989,7 +1995,9 @@ tests.push({
     if (JSON.stringify(hs) !== JSON.stringify(hj)) throw new Error("histfacts3 鏡像漂移");
     if (scenes3.title !== "船艙裡的靜止") throw new Error("第三章正式章名漂移");
     if (!JSON.stringify(scenes3).includes("船艙裡的靜止")) throw new Error("第三章題名選項未同步");
-    if (scenes3.scenes.length !== 8) throw new Error("第三章主線場景數不是 8");
+    if (scenes3.scenes.length !== 10) throw new Error("第三章主線場景數不是 10(E-2 展開:8+INT-C1+INT-C2,總監 20260728)");
+    const allNodes = scenes3.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
+    if (allNodes !== 209) throw new Error("第三章節點數不是 209，實得:" + allNodes);
     if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
       throw new Error("第三章場景 id 重複");
     for (const s of scenes3.scenes) {
@@ -2005,6 +2013,52 @@ tests.push({
       if (n.next && !sm.get(s.id).has(n.next)) throw new Error("next 不存在:" + s.id + "/" + n.id + "→" + n.next);
       if (n.scene && !sm.has(n.scene)) throw new Error("goto 場景不存在:" + n.scene);
       for (const o of n.options || []) if (!sm.get(s.id).has(o.next)) throw new Error("option.next 不存在:" + s.id + "/" + o.id);
+    }
+    const sceneDefs = new Map(scenes3.scenes.map((scene) => [scene.id, scene]));
+    const visited = new Set();
+    const pending = [[scenes3.startScene, sceneDefs.get(scenes3.startScene)?.nodes[0]?.id]];
+    while (pending.length) {
+      const [sceneId, nodeId] = pending.shift();
+      const key = sceneId + "/" + nodeId;
+      if (!nodeId || visited.has(key)) continue;
+      visited.add(key);
+      const scene = sceneDefs.get(sceneId);
+      const node = scene?.nodes.find((item) => item.id === nodeId);
+      if (!node) throw new Error("可達性走查遇到不存在節點:" + key);
+      if (node.next) pending.push([sceneId, node.next]);
+      for (const option of node.options || []) pending.push([sceneId, option.next]);
+      if (node.scene) pending.push([node.scene, sceneDefs.get(node.scene)?.nodes[0]?.id]);
+    }
+    if (visited.size !== allNodes) {
+      const unreachable = scenes3.scenes.flatMap((scene) =>
+        scene.nodes.map((node) => scene.id + "/" + node.id))
+        .filter((key) => !visited.has(key));
+      throw new Error("第三章仍有不可達節點:" + unreachable.join("、"));
+    }
+    /* 2026-07-28 前最後一個可由 Git 追溯的 8 場／71 游標清單。
+       展開只插新節點；每一個舊 scene+node 都須能被 v1 載入、淨化並顯示。 */
+    const legacyCursors = {
+      "C0-1": "n1,n1b,n2,n3,n4,n5,n6,s1,g1",
+      "C0-2": "n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12,n12b,n13,g1",
+      "C0-3": "n1,c1,a1,f1,f2,n2,n3,g1",
+      "C1-1": "n1,n2,n3,n4,n5,e1,g1",
+      "C3-1": "n1,n2,n3,n4,n5,n6,n7,n8,n9,g1",
+      "C3-2": "n1,c1,s1,g1",
+      "CE-1": "n1,n2,n3,n4,n5,n6,g1",
+      "CE-2": "n1,n2,t1,t2,t3,r1,n3,n4,h1,s1,end"
+    };
+    const legacyCount = Object.values(legacyCursors)
+      .reduce((sum, ids) => sum + ids.split(",").length, 0);
+    if (legacyCount !== 71) throw new Error("第三章舊游標 fixture 數量漂移:" + legacyCount);
+    const N3 = Narrative._factory(scenes3, Engine3, {});
+    const San = require("../src/sanitize.js");
+    for (const [sceneId, ids] of Object.entries(legacyCursors)) for (const nodeId of ids.split(",")) {
+      const state = N3.initialState("explore");
+      state.cursor = { scene: sceneId, node: nodeId };
+      const clean = San.sanitizeImport3(state, scenes3);
+      if (!clean.ok) throw new Error("第三章舊游標無法淨化:" + sceneId + "/" + nodeId);
+      try { N3.view(clean.state); }
+      catch (error) { throw new Error("第三章舊游標無法顯示:" + sceneId + "/" + nodeId + ":" + error.message); }
     }
     const allowed = new Set(hs.labels);
     for (const row of hs.rows) if (!allowed.has(row.label)) throw new Error("第三章史實 label 越界:" + row.label);
@@ -2058,358 +2112,124 @@ tests.push({
       throw new Error("甲板實驗沒有完成「執行→看動畫→收卷→回到下一回」捲動迴圈");
     if (/if \(pendingReturnTop != null\)[^;]+;\s*else if \(nextRunButton\)/.test(doShipUi))
       throw new Error("收卷後只恢復舊捲動位置，沒有再確認下一回按鈕仍在可見範圍");
-    for (const phrase of ["解纜起步", "收槳", "這兩趟都在封閉船艙裡做；停泊和平駛時，看到的結果仍很接近",
+    for (const phrase of ["解纜起步", "收槳", "這六回都在封閉船艙裡做；停泊三回與平駛三回的水面、落球結果仍很接近",
       "肯把『分不出來』寫下去"])
       if (!script2.includes(phrase) && !ui2.includes(phrase) && !engine2.includes(phrase))
         throw new Error("v0.7.1 對抗審修正未落地:" + phrase);
-    return;
-    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const shipUi = ui.slice(ui.indexOf("第三章航船實驗"));
-    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    const script = readFileSync(path.join(here, "../../04_劇本/第三章完整劇本_不推也會走_v0.1.1.md"), "utf-8");
-    const chapter3Spec = readFileSync(path.join(here, "../../03_規格/發現之前_第三章功能規格書_v0.1.md"), "utf-8");
-    const dialogueReview = readFileSync(path.join(here, "../../05_審核/發現之前_第一至第四章_角色對話審稿本_20260723.md"), "utf-8");
-    const voices = readFileSync(path.join(here, "../../02_設計/發現之前_角色聲線與對話規範_v0.1.md"), "utf-8");
-    const principles = readFileSync(path.join(here, "../../02_設計/發現之前_設計原則手冊_v0.1.md"), "utf-8");
-
-    for (const frag of ["第 \" + (i + 1) + \" 問", "q[1] + \"的質詢\"", "公開驗證：先把條件鎖死", "甲板有風。怎麼知道不是風把石頭帶回桅腳？", "既然穩速船艙裡看不出差別，第一回為什麼仍落在桅後？", "船上看見直落，岸上看見彎曲。到底哪一張才是真的？", "明日告示的最後一行", "墨已落下", "出示這份紀錄"])
-      if (!ui.includes(frag)) throw new Error("第三章終局缺少可見攻防:" + frag);
-    for (const frag of ["shipCrossExam", "shipCrossExamQuote", "shipCrossExamReply"])
-      if (!html.includes(frag)) throw new Error("公開質詢視覺層級缺失:" + frag);
-    if (!script.includes("CH3-CR-004") || !script.includes("CH3-CR-006") ||
-        !script.includes("CH3-CR-007") || !script.includes("CH3-CR-009") ||
-        !script.includes("CH3-CR-010") || !script.includes("CH3-CR-011") ||
-        !script.includes("CH3-CR-012") || !script.includes("CH3-CR-013") ||
-        !script.includes("CH3-CR-014") ||
-        !chapter3Spec.includes("CH3-CR-012") || !chapter3Spec.includes("CH3-CR-013") ||
-        !chapter3Spec.includes("CH3-CR-014") ||
-        !script.includes("【質詢一・基準】"))
-      throw new Error("第三章劇本未同步公開質詢重做");
-    const c21 = scenes3.scenes.find((s) => s.id === "C2-1");
-    const c21Reply = c21?.nodes.find((n) => n.id === "r1")?.text;
-    const steadyReply = "岸上的旗號正等距掠過——船在前進，而且走得很穩。你不能只看船艙，就忽略甲板上的紀錄。";
-    if (c21Reply !== steadyReply || !script.includes(steadyReply) ||
-        JSON.stringify(scenes3).includes("岸上的旗號已經顯示船速在變"))
-      throw new Error("CH3-CR-007 穩速段駁斥台詞未同步或物理語意回歸");
-    const conditionScene = scenes3.scenes.find((s) => s.id === "C0-3");
-    const conditionChoice = conditionScene?.nodes.find((n) => n.id === "q1");
-    const mixedOption = conditionChoice?.options?.find((o) => o.id === "mix");
-    const mixedReply = conditionScene?.nodes.find((n) => n.id === mixedOption?.next)?.text || "";
-    const practicalGap = "你還沒告訴我，船要不要走穩、放手的人能不能多推";
-    if (mixedOption?.text !== "船近似直線前進、海面完全無風、船一定向東" ||
-        mixedOption?.next !== "r2" || !mixedReply.includes(practicalGap) ||
-        !script.includes(practicalGap) || !dialogueReview.includes(practicalGap))
-      throw new Error("C0-3 混合錯誤選項仍接到不相干的航向駁斥，或三份文字未同步");
-    const publicScene = scenes3.scenes.find((s) => s.id === "C3-1");
-    const publicText = (publicScene?.nodes || []).map((n) => n.text || n.hint || "").join("\n");
-    if (!scenes3.publicDemo || scenes3.publicDemo.steps.length !== 5 ||
-        JSON.stringify(scenes3.publicDemo.steps.map((s) => s.id)) !== JSON.stringify(Engine3._PUBLIC_STEPS))
-      throw new Error("公開驗證資料源與引擎程序順序漂移");
-    if (!ui.includes("SCENES.publicDemo") || ui.includes("停船時本來就落在桅腳。船動之後，拿什麼比較？"))
-      throw new Error("公開驗證 UI 未由第三章資料源供應台詞");
-    if (!publicText.includes(scenes3.publicDemo.tokenRule) || !script.includes(scenes3.publicDemo.tokenRule))
-      throw new Error("預測木籌的非投票規則未同步到劇本與 runtime");
-    for (const step of scenes3.publicDemo.steps) {
-      const reply = step.reply.replace(/^[^：]+：/, "");
-      if (!script.includes(step.question) || !script.includes(reply))
-        throw new Error("公開驗證劇本／runtime 台詞漂移:" + step.id);
+    /* 括號動作不是密度 KPI：鎖住「場面真的改變→有人回應→有人確認」，
+       並確認核心體感會把玩家送回親手操作，而不是靠補括號湊比例。 */
+    const causalBeats = [
+      ["C0-2", ["x18", "x19", "n8"], ["把裝貨箱最底下那一層翻開", "箱底", "以前也有人做過"]],
+      ["C1-1", ["x4", "x5", "x6"], ["碼頭在往後退", "什麼時候開的", "剛剛"]],
+      ["INT-C2", ["x3", "x4", "x5"], ["沒有了", "沒有了", "我問完了"]],
+      ["C3-1", ["x13", "x14", "x15"], ["洛朗・維達爾", "你辯到一半", "我沒有說謊"]],
+      ["CE-1", ["x3", "x4", "x5"], ["門外有人送信", "阿爾切特里", "一月八號"]]
+    ];
+    for (const [sceneId, nodeIds, fragments] of causalBeats) {
+      const scene = scenes3.scenes.find((item) => item.id === sceneId);
+      const nodes = nodeIds.map((id) => scene?.nodes.find((item) => item.id === id));
+      if (nodes.some((node) => !node)) throw new Error("動作因果節點遺失:" + sceneId);
+      for (let i = 0; i < nodes.length - 1; i++)
+        if (nodes[i].next !== nodes[i + 1].id)
+          throw new Error("動作因果鏈斷裂:" + sceneId + "/" + nodes[i].id);
+      fragments.forEach((fragment, index) => {
+        if (!(nodes[index].text || "").includes(fragment))
+          throw new Error("動作因果拍漂移:" + sceneId + "/" + nodeIds[index] + "/" + fragment);
+      });
     }
-    if (!scenes3.publicDemo.purpose.includes("岸上已有人只傳") ||
-        new Set(scenes3.publicDemo.steps.map((s) => s.speaker)).size < 4)
-      throw new Error("公開驗證缺少前段因果，或仍退化成艦長一人逐條報流程");
-    const sceneText = (id) => {
-      const scene = scenes3.scenes.find((s) => s.id === id);
-      return (scene?.nodes || []).map((n) => n.text || "").join("\n");
-    };
-    for (const [id, phrase] of [
-      ["C0-2", "做出什麼，就寫什麼"],
-      ["C1-2", "可我不知道船走穩了會怎樣"],
-      ["C2-1", "同一艘船，同一天"],
-      ["C2-2", "奔馬會忽快忽慢"],
-      ["C2-2", "我錯在把加速那一回"],
-      ["C2-2B", "回來已經被你們傳成兩艘了"],
-      ["C2-2B", "鼓點、岸標、門閂，全掛出來"],
-      ["C2-4", "這樣夠清楚了吧"],
-      ["C3-1", "馬蒂厄抽門閂"],
-      ["C3-3", "我的船只替今天量到的事作證。這句，我簽"]
-    ]) {
-      if (!sceneText(id).includes(phrase) || !script.includes(phrase))
-        throw new Error("CH3-CR-009 人物轉折未同步:" + id + "/" + phrase);
-    }
-    for (const betting of ["下注", "押錢", "賭注", "改注", "彩金"])
-      if (JSON.stringify(scenes3).includes(betting) || script.includes(betting) || shipUi.includes(betting))
-        throw new Error("預測木籌仍被寫成賭博:" + betting);
-    if (!sceneText("C0-2").includes("不賭錢") || !scenes3.publicDemo.tokenRule.includes("不是賭錢"))
-      throw new Error("木籌約定未清楚區分事前記錄與賭博");
-    for (const role of ["### 伽桑狄", "### 艦長", "### 馬蒂厄", "### 艾蒂安", "### 非法庭型終局攻防"])
-      if (!voices.includes(role)) throw new Error("角色聲線規範缺失:" + role);
-    if (voices.includes("### 加桑迪")) throw new Error("伽桑狄姓名仍有舊錯字");
-
-    const visible = JSON.stringify(scenes3);
-    const dialogueLines = scenes3.scenes.flatMap((s) =>
-      s.nodes.filter((n) => n.type === "line" && n.speaker !== "stage" && n.speaker !== "system"));
-    const actedLines = dialogueLines.filter((n) => /[（(][^）)]{2,}[）)]/.test(n.text || ""));
-    if (actedLines.length / dialogueLines.length < 0.5)
-      throw new Error("CH3-CR-010 第三章角色動作密度回歸，台詞再次退化成純說明句");
-    for (const action of [
-      "把裝貨單捲起，仍擋在踏板前",
-      "用繩圈住三個落點",
-      "把同號鼓點一一連直",
-      "接過紙，逐字讀完，才落筆"
-    ]) {
-      if (!visible.includes(action) || !script.includes(action) || !dialogueReview.includes(action))
-        throw new Error("CH3-CR-010 劇本／runtime／對話審稿本動作漂移:" + action);
-    }
-    for (const bridge of [
-      "鼓點穩定還不夠。等連續三段岸標走得差不多",
-      "放手的人若暗中推一下，也能做出漂亮結果",
-      "三個問題都回答了。最後還有一個更難的問題"
-    ]) {
-      if (!visible.includes(bridge) || !script.includes(bridge) || !dialogueReview.includes(bridge))
-        throw new Error("CH3-CR-010 劇本／runtime／對話審稿本承接句漂移:" + bridge);
-    }
-    const c12 = scenes3.scenes.find((s) => s.id === "C1-2");
-    if (c12?.nodes.find((n) => n.id === "n3")?.speaker !== "旅人(你)" ||
-        c12?.nodes.find((n) => n.id === "n3")?.text !== "放手前後，船的速度一樣嗎？" ||
-        c12?.nodes.find((n) => n.id === "n3a")?.speaker !== "艦長" ||
-        !c12?.nodes.find((n) => n.id === "n3a")?.text.includes("一段比一段長"))
-      throw new Error("CH3-CR-011 旅人仍搶替艦長讀船速資料");
-    if (c12?.nodes.find((n) => n.id === "n4")?.speaker !== "stage" ||
-        c12?.nodes.find((n) => n.id === "n4")?.text !== "伽桑狄在落點紙上方補寫「加速中」。" ||
-        visible.includes("那就等船走穩，再做") || script.includes("那就等船走穩，再做") ||
-        dialogueReview.includes("那就等船走穩，再做"))
-      throw new Error("CH3-CR-013 伽桑狄仍替艦長下達下一輪指令");
-    const c22 = scenes3.scenes.find((s) => s.id === "C2-2");
-    if (c22?.nodes.some((n) => ["n3", "n3a", "n4"].includes(n.id) && n.speaker !== "艦長"))
-      throw new Error("CH3-CR-011 艦長的奔馬發現仍被其他角色代講");
-    const c02 = scenes3.scenes.find((s) => s.id === "C0-2");
-    if (c02?.nodes.find((n) => n.id === "n2a")?.speaker !== "伽桑狄" ||
-        c02?.nodes.find((n) => n.id === "n2b")?.speaker !== "艦長" ||
-        c02?.nodes.find((n) => n.id === "n2c")?.speaker !== "伽桑狄")
-      throw new Error("CH3-CR-012 落石反地動論證的知識與追問分配回歸");
-    for (const stakes of [
-      "地球若在轉，塔也跟著走",
-      "可塔頂放下的石頭，一向落在塔腳",
-      "若這句話不對，就不能再拿它反對地球運動",
-      "告示總得讓人一眼看懂，馬賽明天要做成什麼"
-    ])
-      if (!visible.includes(stakes) || !script.includes(stakes) || !dialogueReview.includes(stakes))
-        throw new Error("CH3-CR-012 地球運動前提或官員動機未同步:" + stakes);
-    for (const overheated of ["羅馬那邊", "伽利略受審", "教會會"])
-      if (visible.includes(overheated))
-        throw new Error("CH3-CR-012 低政治溫度裁決回歸:" + overheated);
-    for (const stale of ["待驗的條件單", "少一項，別再跟我談公開", "書只談穩速",
-      "人群要的是一個夠大的結論", "這句話最像勝利", "可它沒有忘記"])
-      if (visible.includes(stale) || script.includes(stale) || dialogueReview.includes(stale) || shipUi.includes(stale))
-        throw new Error("CH3-CR-011 角色仍替設計目標說話:" + stale);
-    for (const ink of ["「馬賽港，落石實驗，證——」", "墨已經在紙上暈開", "手掌壓上紙面，墨在掌下暈開"])
-      if (!shipUi.includes(ink) && !script.includes(ink) && !dialogueReview.includes(ink))
-        throw new Error("CH3-CR-011 過強主張未先留下可見墨跡:" + ink);
-    for (const phrase of ["把甲板刪掉", "更凶的測試", "最危險的字", "一句話若", "船若正在前進", "若不先問"])
-      if (visible.includes(phrase)) throw new Error("第三章仍有隱喻代替因果或突兀書面句:" + phrase);
-    if (!principles.includes("終局對抗不能退化成流程清單"))
-      throw new Error("第三章踩坑未沉澱為設計原則");
-    if (!principles.includes("合理反對者必須被證據改變") ||
-        !principles.includes("公開不是宣傳、投票或自動製造高潮"))
-      throw new Error("第三章公開因果與人物轉向未沉澱為設計原則");
-    if (!principles.includes("角色不能替設計目標說話") ||
-        !principles.includes("知識與動機要各歸其位"))
-      throw new Error("CH3-CR-011 角色知識與動機分配未沉澱為設計原則");
-    if (!principles.includes("終局要拒絕的主張必須先進入玩家世界") ||
-        !principles.includes("最低充分脈絡"))
-      throw new Error("CH3-CR-012 終局主張前置與政治溫度未沉澱為設計原則");
-    if (!principles.includes("玩家看見的操作動詞必須在模型裡真的發生") ||
-        !principles.includes("錯誤選擇先完整呈現可觀察後果") ||
-        !principles.includes("可逆的科學操作必須允許重試"))
-      throw new Error("G4 程式紙帶踩坑未沉澱為設計原則");
+    const embodied = scenes3.scenes.find((scene) => scene.id === "C1-1");
+    if (embodied?.nodes.find((node) => node.id === "x12")?.next !== "e1" ||
+        embodied?.nodes.find((node) => node.id === "e1")?.type !== "embed")
+      throw new Error("玩家察覺船已開動後，沒有交回卷宗操作");
   }
 });
 
 tests.push({
-  name: "第三章引擎重構|有限資源設計→獨立分工→調查順序→雙視角→遮結果複驗",
+  name: "第三章引擎重構|導引鎖定→實際分類→船艙三加三→有效雙紙",
   fn: () => {
     let n = Engine3.initialState();
-    let out = Engine3.choosePilotFocus(n, "release"); n = out.state;
-    out = Engine3.runPilot(n); n = out.state;
-    if (out.rows.length !== 1 || out.missing.join(",") !== "speed,repeat")
-      throw new Error("試航沒有依設計留下可診斷缺口");
-    if (Engine3.diagnosePilot(n, "release").ok !== false)
-      throw new Error("玩家可把已控制的項目誤當缺口");
-    n = Engine3.diagnosePilot(n, "speed").state;
-    const roles = {
-      release:"mathieu", clock:"sailor", shore:"etienne",
-      ship:"gassendi", vessel:"captain"
+    const takeCurrent = (result, label) => {
+      if (!result || result.error || result.ok === false)
+        throw new Error(label + ":" + (result && (result.error || result.reason) || "no-result"));
+      n = result.state;
+      return result;
     };
-    for (const [slot, person] of Object.entries(roles))
-      n = Engine3.setProtocolAssignment(n, slot, person).state;
-    const wrongRole = Engine3.setProtocolAssignment(n, "ship", "mathieu").state;
-    if (Engine3.lockProtocol(wrongRole).ok !== false)
-      throw new Error("同一人分身仍可封存分工");
-    n = Engine3.lockProtocol(n).state;
-    n = Engine3.runDesignedProtocol(n).state;
-    if (n.evidence.g1) throw new Error("完成實驗後自動取得 G1");
-    n = Engine3.assertG1Designed(n, "steady-shares-motion").state;
-    if (!n.evidence.g1) throw new Error("完整獨立分工未取得 G1");
+    const setCurrent = (field, value) =>
+      takeCurrent(Engine3.setDossierDraft(n, field, value), "set:" + field);
+    const runAndFileCurrent = (requestedStage, requestedPosition) => {
+      setCurrent("stage", requestedStage);
+      setCurrent("positionRecord", requestedPosition);
+      takeCurrent(Engine3.runDossierExperiment(n), "run:" + requestedStage + ":" + requestedPosition);
+      const pending = n.caseFile.dossier.pendingRecord;
+      takeCurrent(Engine3.fileDossierRecord(n), "file:" + requestedStage + ":" + requestedPosition);
+      return pending;
+    };
+    const selectCurrent = (assertionId, rows) => {
+      rows.forEach((row) =>
+        takeCurrent(Engine3.selectDossierSource(n, assertionId, "R" + row.id),
+          assertionId + ":R" + row.id));
+    };
 
-    n = Engine3.chooseInvestigationOrder(n, "wind").state;
-    n = Engine3.runCabinBlindPair(n, "drip").state;
-    if (Engine3.judgeCabinBlind(n, "a-dock").ok !== false)
-      throw new Error("局部盲測可被硬猜出停船");
-    n = Engine3.judgeCabinBlind(n, "indistinguishable").state;
-    if (Engine3.runWindAudit(n, "single-heading").ok !== false)
-      throw new Error("單一航向錯被當成可靠風向設計");
-    n = Engine3.runWindAudit(n, "relative-roundtrip").state;
-    if (n.design.wind.runs.find((r) => r.id === "W3").shipState !== "unclassified")
-      throw new Error("風先行時，異常筆未保留為未分類");
-    n = Engine3.setSpeedPrediction(n, "behind", "ahead").state;
-    n = Engine3.runSpeedChange(n, "accelerating").state;
-    n = Engine3.runSpeedChange(n, "decelerating").state;
-    n = Engine3.assertG3(n, ["accelerating", "decelerating"], "speed-change-breaks-shared-motion").state;
-    if (!n.evidence.g3 || n.design.wind.runs.find((r) => r.id === "W3").shipState !== "accelerating")
-      throw new Error("變速指紋沒有替先前異常補上分類");
-    n = Engine3.assertG2Designed(n, "local-common-motion-wind-below-spread").state;
-    if (!n.evidence.g2) throw new Error("盲測＋往返風向＋變速分類未取得 G2");
+    setCurrent("release", "latch");
+    setCurrent("speedRecord", "beats");
+    setCurrent("repeats", 3);
+    setCurrent("vesselId", "small");
+    setCurrent("speedBand", "slow");
+    setCurrent("forceBand", "soft");
+    setCurrent("beatBand", "fast");
+    const guided = runAndFileCurrent("brake", "dual");
+    if (guided.stage !== "depart" || guided.positionRecord !== "shore" ||
+        guided.vesselId !== "captain" || guided.speedBand !== "mid" ||
+        guided.forceBand !== "hard" || guided.beatBand !== "mid" ||
+        guided.repeats !== 1 || guided.dualPapers)
+      throw new Error("導引任務沒有鎖住船況、船隻、操船強度、鼓拍、觀察位置與單次執行");
 
-    if (Engine3.setDualDesign(n, {
-      shoreOrigin:"quay", shipOrigin:"mast", clock:"shared-drum", shipObserver:"mathieu"
-    }).ok !== false) throw new Error("抽閂者兼任船上觀察仍可封存");
-    n = Engine3.setDualDesign(n, {
-      shoreOrigin:"quay", shipOrigin:"mast", clock:"shared-drum", shipObserver:"gassendi"
-    }).state;
-    for (let beat = 0; beat < 4; beat++) n = Engine3.inspectRecordBeat(n).state;
-    n = Engine3.alignRecords(n, "sameBeats").state;
-    n = Engine3.transformRecords(n, "subtractMast").state;
-    n = Engine3.assertG4(n, ["shore", "ship"], "same-event-different-reference").state;
-    if (!n.evidence.g4) throw new Error("自行安排雙視角後未取得 G4");
-
-    n = Engine3.sealPublicCriteria(n, {
-      equalSegments:3, repeats:3, release:"latch", requireDual:true
-    }).state;
-    for (const id of ["A","D","F"]) n = Engine3.screenPublicRecord(n, id, true).state;
-    for (const id of ["B","C","E"]) n = Engine3.screenPublicRecord(n, id, false).state;
-    n = Engine3.finalizePublicScreen(n).state;
-    if (!n.publicDemo.screened || n.publicDemo.revealed)
-      throw new Error("公開複驗未在揭曉前完成條件篩選");
-    n = Engine3.revealPublicResults(n).state;
-    if (!n.publicDemo.complete || n.publicDemo.runs !== 3)
-      throw new Error("公開複驗揭曉後未完成三筆合格重複");
-    const beforeBoundary = JSON.stringify(n);
-    const overclaim2 = Engine3.setBoundary(n, "overclaim");
-    if (overclaim2.ok !== false || JSON.stringify(n) !== beforeBoundary)
-      throw new Error("過強主張沒有留下可逆失敗，或變異輸入狀態");
-    n = Engine3.setBoundary(n, "honest").state;
-    if (!n.evidence.g5) throw new Error("有限主張未取得 G5");
-    return;
-    let s = Engine3.initialState();
-    if (Engine3.runBaseline(s).error !== "plumb-required") throw new Error("未校準可跑基準");
-    s = Engine3.setRelease(s, "hand").state; s = Engine3.calibratePlumb(s).state;
-    for (let i = 0; i < 3; i++) s = Engine3.runBaseline(s).state;
-    if (Engine3.baselineReady(s)) throw new Error("手放基準誤判為乾淨");
-    s = Engine3.setRelease(s, "latch").state;
-    for (let i = 0; i < 3; i++) s = Engine3.runBaseline(s).state;
-    if (!Engine3.baselineReady(s)) throw new Error("門閂三次基準未過");
-    s = Engine3.runMast(s, "depart").state;
-    if (!(s.mastRuns[0].offset < 0)) throw new Error("加速時應相對偏後");
-    for (let i = 0; i < 3; i++) s = Engine3.runMast(s, "stable").state;
-    if (s.evidence.g1) throw new Error("只做完落石就自動取得 G1");
-    let claim = Engine3.assertG1(s, [1,2,3], [1,2,3,4], "steady-shares-motion");
-    if (claim.ok || claim.state.evidence.g1) throw new Error("混入加速紀錄仍可取得 G1");
-    claim = Engine3.assertG1(s, [], [2,3,4], "steady-shares-motion");
-    if (claim.ok || claim.state.evidence.g1) throw new Error("只選穩速紀錄、缺停船基準仍可取得 G1");
-    claim = Engine3.assertG1(s, [1,2,3], [2,3,4], "mast-pulls-stone");
-    if (claim.ok || claim.state.evidence.g1) throw new Error("錯誤 G1 概念仍可成立");
-    s = Engine3.assertG1(s, [1,2,3], [2,3,4], "steady-shares-motion").state;
-    if (!s.evidence.g1) throw new Error("玩家選對資料與概念後未取得 G1");
-    for (const vs of ["dock", "steady"]) for (const t of ["drip", "toss"]) s = Engine3.runCabin(s, vs, t).state;
-    if (s.evidence.g2) throw new Error("船艙四格完成後自動取得 G2");
-    const cabinDay = s.days;
-    const repeatedCabin = Engine3.runCabin(s, "dock", "drip");
-    if (repeatedCabin.noop || repeatedCabin.error) throw new Error("船艙四格完成後不能自由重做");
-    s = repeatedCabin.state;
-    if (!Array.isArray(s.cabinResults.dock.drip) || s.cabinResults.dock.drip.length !== 2 || s.days !== cabinDay + 1)
-      throw new Error("船艙重做未保存新紀錄或未計入成本");
-    const cabinCells = ["dock:drip", "dock:toss", "steady:drip", "steady:toss"];
-    claim = Engine3.assertG2(s, cabinCells.slice(0, 3), "steady-matches-dock");
-    if (claim.ok || claim.state.evidence.g2) throw new Error("船艙資料不足仍可取得 G2");
-    claim = Engine3.assertG2(s, cabinCells, "ship-too-slow");
-    if (claim.ok || claim.state.evidence.g2) throw new Error("錯誤 G2 概念仍可成立");
-    s = Engine3.assertG2(s, cabinCells, "steady-matches-dock").state;
-    if (!s.evidence.g2) throw new Error("船艙四格斷言未取得 G2");
-    s = Engine3.setSpeedPrediction(s, "behind", "ahead").state;
-    s = Engine3.runSpeedChange(s, "accelerating").state; s = Engine3.runSpeedChange(s, "decelerating").state;
-    if (s.evidence.g3) throw new Error("變速對照完成後自動取得 G3");
-    if (!Array.isArray(s.speedRuns.accelerating) || !Array.isArray(s.speedRuns.decelerating) ||
-        !s.speedRuns.accelerating[0].matched || !s.speedRuns.decelerating[0].matched)
-      throw new Error("變速預測未押中或未改成可重做紀錄");
-    const speedDay = s.days;
-    const repeatedSpeed = Engine3.runSpeedChange(s, "accelerating");
-    if (repeatedSpeed.noop || repeatedSpeed.error) throw new Error("變速對照完成後不能自由重做");
-    s = repeatedSpeed.state;
-    if (s.speedRuns.accelerating.length !== 2 || s.speedRuns.accelerating[1].offset !== -0.66 ||
-        s.days !== speedDay + 1)
-      throw new Error("變速重做未保存新紀錄、循環 fixture 或計入成本");
-    claim = Engine3.assertG3(s, ["accelerating"], "speed-change-breaks-shared-motion");
-    if (claim.ok || claim.state.evidence.g3) throw new Error("只引用單一船況仍可取得 G3");
-    claim = Engine3.assertG3(s, ["accelerating", "decelerating"], "stone-loses-force");
-    if (claim.ok || claim.state.evidence.g3) throw new Error("錯誤 G3 概念仍可成立");
-    s = Engine3.assertG3(s, ["accelerating", "decelerating"], "speed-change-breaks-shared-motion").state;
-    if (!s.evidence.g3) throw new Error("變速斷言未取得 G3");
-    const pristineOverlay = JSON.stringify(s);
-    if (Engine3.alignRecords(s, "sameBeats").error !== "records-unread" || JSON.stringify(s) !== pristineOverlay)
-      throw new Error("未逐拍讀完兩張紙仍可直接配對，或錯誤動作污染狀態");
-    for (let beat = 0; beat < 4; beat++) {
-      const read = Engine3.inspectRecordBeat(s);
-      if (read.error || read.beat !== beat || read.state.overlay.inspectionBeat !== beat)
-        throw new Error("逐拍閱讀沒有依序亮起 0、1、2、3");
-      s = read.state;
+    while (n.caseFile.dossier.records.filter((row) =>
+      row.stage === "depart" && row.classification === "正在變快").length < 3) {
+      if (n.caseFile.dossier.records.length > 12)
+        throw new Error("無法用實際原紙累積三張正在變快紀錄");
+      runAndFileCurrent("steady", "shore");
     }
-    if (!s.overlay.inspected || s.overlay.preview !== "inspection")
-      throw new Error("四拍讀完後沒有解鎖時間配對");
-    const beforeOverlay = JSON.stringify(s);
-    let wrongAlign = Engine3.alignRecords(s, "endpoints");
-    if (wrongAlign.ok !== false || wrongAlign.state.overlay.preview !== "endpoints" ||
-        wrongAlign.state.overlay.aligned || wrongAlign.state.overlay.transformed)
-      throw new Error("疊終點沒有留下可見預覽，或污染正確旗標");
-    if (JSON.stringify(s) !== beforeOverlay) throw new Error("疊終點變異輸入狀態");
-    wrongAlign = Engine3.alignRecords(wrongAlign.state, "endpoints");
-    if (wrongAlign.ok !== false || wrongAlign.state.overlay.preview !== "endpoints")
-      throw new Error("疊終點不能自由重試");
-    s = Engine3.alignRecords(wrongAlign.state, "sameBeats").state;
-    if (!s.overlay.aligned || s.overlay.transformed || s.overlay.preview !== "sameBeats")
-      throw new Error("逐拍對齊未留下正確狀態");
-    let wrongTransform = Engine3.transformRecords(s, "scaleOnly");
-    if (wrongTransform.ok !== false || wrongTransform.state.overlay.preview !== "scaleOnly" ||
-        !wrongTransform.state.overlay.aligned || wrongTransform.state.overlay.transformed)
-      throw new Error("等比例縮放沒有留下可見預覽，或污染正確旗標");
-    wrongTransform = Engine3.transformRecords(wrongTransform.state, "scaleOnly");
-    if (wrongTransform.ok !== false || wrongTransform.state.overlay.preview !== "scaleOnly")
-      throw new Error("等比例縮放不能自由重試");
-    let restarted = Engine3.resetOverlay(wrongTransform.state);
-    if (restarted.state.overlay.preview !== "initial" || restarted.state.overlay.aligned ||
-        restarted.state.overlay.transformed || restarted.state.overlay.inspected ||
-        restarted.state.overlay.inspectionBeat !== -1)
-      throw new Error("雙紙帶不能自由重置");
-    for (let beat = 0; beat < 4; beat++) restarted = Engine3.inspectRecordBeat(restarted.state);
-    s = Engine3.alignRecords(restarted.state, "sameBeats").state;
-    s = Engine3.transformRecords(s, "subtractMast").state;
-    if (!s.overlay.aligned || !s.overlay.transformed || s.overlay.preview !== "subtractMast")
-      throw new Error("扣除桅杆位移未留下轉換狀態");
-    if (s.evidence.g4) throw new Error("換算兩張紙後自動取得 G4");
-    claim = Engine3.assertG4(s, ["ship"], "same-event-different-reference");
-    if (claim.ok || claim.state.evidence.g4) throw new Error("只引用單一參考系仍可取得 G4");
-    claim = Engine3.assertG4(s, ["shore", "ship"], "one-record-false");
-    if (claim.ok || claim.state.evidence.g4) throw new Error("錯誤 G4 概念仍可成立");
-    s = Engine3.assertG4(s, ["shore", "ship"], "same-event-different-reference").state;
-    if (!s.evidence.g4) throw new Error("雙紙帶斷言未取得 G4");
-    for (const step of Engine3._PUBLIC_STEPS) s = Engine3.runPublicStep(s, step).state;
-    if (!s.publicDemo.predictionsSealed || !s.publicDemo.complete || s.publicDemo.runs !== 3)
-      throw new Error("公開演示未獨立封存預測或完成三次重複");
-    for (const [q, e] of [["wind", "G2"], ["acceleration", "G3"], ["paths", "G4"]]) s = Engine3.answerAudit(s, q, e).state;
-    const before = JSON.stringify(s);
-    const over = Engine3.setBoundary(s, "overclaim");
-    if (over.ok !== false || over.repDelta !== -1 || JSON.stringify(s) !== before) throw new Error("誇大結論的代價／純函式失效");
-    s = Engine3.setBoundary(s, "honest").state;
-    if (!s.evidence.g5) throw new Error("誠實邊界未取得 G5");
+    while (n.caseFile.dossier.records.filter((row) =>
+      row.stage === "steady" && row.classification === "近似穩速").length < 3) {
+      if (n.caseFile.dossier.records.length > 20)
+        throw new Error("無法用實際原紙累積三張近似穩速紀錄");
+      runAndFileCurrent("brake", "dual");
+    }
+
+    const steadyRowsCurrent = n.caseFile.dossier.records.filter((row) =>
+      row.stage === "steady" && row.classification === "近似穩速").slice(0, 3);
+    const departRowsCurrent = n.caseFile.dossier.records.filter((row) =>
+      row.stage === "depart" && row.classification === "正在變快").slice(0, 3);
+    selectCurrent("A1", steadyRowsCurrent);
+    takeCurrent(Engine3.setDossierScope(n, "A1", "controlled-three"), "A1-scope");
+    selectCurrent("A3", departRowsCurrent.concat(steadyRowsCurrent));
+    takeCurrent(Engine3.setDossierScope(n, "A3", "today-comparison"), "A3-scope");
+
+    setCurrent("stage", "dock");
+    for (let i = 0; i < 3; i++)
+      takeCurrent(Engine3.runDossierCabinComparison(n), "cabin-dock:" + i);
+    setCurrent("stage", "steady");
+    for (let i = 0; i < 3; i++)
+      takeCurrent(Engine3.runDossierCabinComparison(n), "cabin-steady:" + i);
+    const cabinRowsCurrent = n.caseFile.dossier.blind.records;
+    if (cabinRowsCurrent.length !== 6 ||
+        cabinRowsCurrent.filter((row) => row.stage === "dock").length !== 3 ||
+        cabinRowsCurrent.filter((row) => row.stage === "steady").length !== 3)
+      throw new Error("船艙原紙不是停泊三張加走穩三張");
+    cabinRowsCurrent.forEach((row) =>
+      takeCurrent(Engine3.selectDossierSource(n, "A2", row.id), "A2:" + row.id));
+    takeCurrent(Engine3.setDossierScope(n, "A2", "local-only"), "A2-scope");
+
+    const dualCurrent = runAndFileCurrent("brake", "shore");
+    if (dualCurrent.stage !== "steady" || dualCurrent.positionRecord !== "dual" ||
+        !dualCurrent.dualPapers || !dualCurrent.papers ||
+        !dualCurrent.papers.shore || !dualCurrent.papers.ship)
+      throw new Error("雙視角任務沒有產生一筆可逐拍換尺的真實雙紙來源");
+    const debateCurrent = Engine3.enterDossierDebate(n);
+    if (debateCurrent.error || !debateCurrent.ok ||
+        !debateCurrent.state.caseFile.dossier.debate.active)
+      throw new Error("完成實際分類、船艙三加三與有效雙紙後仍不能進碼頭辯論");
   }
 });
 
@@ -2453,10 +2273,21 @@ tests.push({
     const San = require("../src/sanitize.js");
     let s = N3.initialState("explore"), guard = 0;
     const pick = { "C0-3": "bounded", "C3-2": "cabin" };
+    const SPOKEN_RT = /^([\u4e00-\u9fff·・A-Za-z]{1,8})：(?:（([^）]*)）)?\s*「([\s\S]*?)」\s*$/;
+    const RT_WL = new Set(["維達爾船長","槳手","商人","艾蒂安","馬蒂厄","伽桑狄","官員"]);
     const act = (name, args) => {
       const r = N3.labAction(s, name, args || {});
       if (r.error || r.ok === false) throw new Error(name + ":" + (r.error || r.reason));
       s = r.state;
+      /* WB-CR-025 動態契約:每個真的會進對話框的 lastReply,逐行拆得動且講者可查立繪 */
+      const db = s.lab && s.lab.caseFile && s.lab.caseFile.dossier && s.lab.caseFile.dossier.debate;
+      if (db && db.lastReply) {
+        for (const line of String(db.lastReply).split("\n").filter((t) => t.trim())) {
+          const hit = line.match(SPOKEN_RT);
+          if (!hit) throw new Error("runtime lastReply 拆不動:" + line.slice(0, 40));
+          if (!RT_WL.has(hit[1])) throw new Error("runtime lastReply 講者不在白名單:" + hit[1]);
+        }
+      }
     };
     const draft = (field, value) => act("setDossierDraft", { field, value });
     const run = (stage, positionRecord) => {
@@ -2500,6 +2331,11 @@ tests.push({
         act("enterDossierDebate");
 
         act("selectDossierPillar", { pillar:"p1" });
+        /* E-2b|A⁺ 劑量:先故意答錯一次,檢查「第一次被駁」的心聲會出現 */
+        const wrongTry = N3.labAction(s, "answerDossierDebate", { pillar:"p1", step:"source", choice:"A3" });
+        if (!wrongTry.state || !wrongTry.state.lab.caseFile.dossier.debate.lastOS)
+          throw new Error("E-2b 第一柱被駁未播旅人心聲");
+        s = wrongTry.state;
         act("answerDossierDebate", { pillar:"p1", step:"source", choice:"A1" });
         act("answerDossierDebate", { pillar:"p1", step:"concept", choice:"shared-motion" });
         act("answerDossierDebate", { pillar:"p1", step:"cabin", choice:"A2" });
@@ -2539,10 +2375,59 @@ tests.push({
     for (const id of ["S5","G1","G2","G3","G4","G5"]) if (!s.evidence[id]) throw new Error("缺證據:" + id);
     if (!s.lab.caseFile.dossier.complete || !Object.values(s.lab.caseFile.dossier.debate.pillars).every(Boolean))
       throw new Error("卷宗或三柱未完成");
+    /* E-2b|旅人心聲層:三柱各自的關鍵時刻都必須播過,且每句只播一次 */
+    {
+      const fired = s.lab.caseFile.dossier.debate.osFired || [];
+      for (const key of ["p1-bad", "p1-done", "p2-mine", "p2-done", "p3-align", "p3-done"])
+        if (fired.indexOf(key) < 0) throw new Error("E-2b 心聲未播:" + key);
+      if (new Set(fired).size !== fired.length) throw new Error("E-2b 同一句心聲重複播出");
+      if (fired.length > 10) throw new Error("E-2b 心聲超過 A⁺ 劑量上限 10 句:" + fired.length);
+    }
     if (!s.review.q1 || !s.review.q2) throw new Error("章末回顧未保存");
     const saved = JSON.parse(N3.serialize(s));
     const clean = San.sanitizeImport3(saved, scenes3);
     if (!clean.ok) throw new Error("完整通關存檔遭拒:" + clean.reason);
+  }
+});
+
+tests.push({
+  name: "工作台對話框化|辯論台詞格式可拆、講者在白名單、橋與讓位規則存在(WB-CR-025)",
+  fn: () => {
+    const read = (f) => readFileSync(path.join(here, "..", f), "utf-8");
+    /* ① 格式契約:engine3 內所有 lastReply/dossierMissing 的說話字串,逐行必須拆得動。
+       拆不動=chapter-ui 的 parseSpokenLine 會把它當旁白播,立繪與名牌全失效。 */
+    const SPOKEN = /^([\u4e00-\u9fff·・A-Za-z]{1,8})：(?:（([^）]*)）)?\s*「([\s\S]*?)」\s*$/;
+    const WHITELIST = new Set(["維達爾船長","槳手","商人","艾蒂安","馬蒂厄","伽桑狄","官員","牛頓","哈雷","旅人","旅人・心聲"]);
+    const e3 = read("src/engine3.js");
+    const spokenLines = [];
+    const strRe = /"((?:[^"\\]|\\.)*)"/g;
+    let m;
+    while ((m = strRe.exec(e3))) {
+      for (const line of m[1].replace(/\\n/g, "\n").split("\n")) {
+        const head = line.match(/^([\u4e00-\u9fff·・A-Za-z]{1,8})：/);
+        if (head && WHITELIST.has(head[1])) spokenLines.push(line);
+      }
+    }
+    if (spokenLines.length < 30) throw new Error("辯論說話行抽樣異常(僅 " + spokenLines.length + " 行),掃描器可能壞了");
+    for (const line of spokenLines) {
+      /* 字串拼接的前半段(有「無」)交給動態驗證(全章走查會驗拼好的完整句);
+         靜態只驗自足的行——抓「講者：台詞沒加引號」這類手誤。 */
+      if (line.includes("「") && !line.includes("」")) continue;
+      if (!SPOKEN.test(line))
+        throw new Error("講者行格式不完整(拆不動,將以旁白顯示、失去立繪):" + line.slice(0, 40));
+    }
+    /* ② 橋契約:chapter-ui 必須有 parser 與 doShip 掛點 */
+    const ui = read("src/chapter-ui.js");
+    for (const kw of ["function parseSpokenLine", "function sayDebateBeat", "sayDebateBeat(dbPrev, action)"])
+      if (!ui.includes(kw)) throw new Error("chapter-ui 缺對話框化掛點:" + kw);
+    /* ③ 讓位契約:stage.html 播話時工作台縮起;原「平時隱藏」規則不得被刪 */
+    const html = read("stage.html");
+    if (!html.includes('body[data-view="ship"].queue-active #panelWrap'))
+      throw new Error("stage.html 缺工作台讓位規則(對話框會壓住手牌)");
+    if (!html.includes("body.queue-active #dialogue { display: block !important; }"))
+      throw new Error("stage.html 缺 queue-active 對話框進場規則");
+    if (!/body\[data-view="ship"\] #dialogue/.test(html))
+      throw new Error("stage.html 遺失「平時隱藏」規則——對話框會恆常佔位,違反總監 20260720 裁定");
   }
 });
 
@@ -2645,7 +2530,7 @@ tests.push({
       return pending;
     };
 
-    /* 第一輪先重現艦長舊紙：任意輸入都收回解纜起步、單一岸紙。 */
+    /* 第一輪先重現維達爾船長舊紙：任意輸入都收回解纜起步、單一岸紙。 */
     set("release", "latch"); set("speedRecord", "beats"); set("repeats", 3);
     let row = runAndFile("brake", "dual");
     if (row.stage !== "depart" || row.positionRecord !== "shore" || row.dualPapers ||
@@ -2706,7 +2591,8 @@ tests.push({
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     for (const phrase of [
-      "船的狀態", "停泊（繫纜不動）", "出港平駛（先等船走穩）", "解纜起步（從靜止離岸）", "收槳（開始減槳）",
+      "船的狀態", "停泊（繫纜不動）", "出港平駛（先等船走穩）",
+      "船況固定為解纜後第一段",
       "徒手鬆開", "剪斷細繩", "抽開門閂", "不記船速", "舵手只用嘴說",
       "水手等拍敲鼓；若安排岸上記錄，艾蒂安每拍點一次船位", "船上的伽桑狄以桅腳為零點",
       "岸上的艾蒂安以碼頭繫船柱為零點", "岸、船各記一張紙", "一回", "二回", "三回",
@@ -2754,17 +2640,25 @@ tests.push({
 
     let freeCabin = Engine3.initialState();
     Object.assign(freeCabin.caseFile.dossier.assertions, { A1:true, A2:true, A3:true });
-    freeCabin.caseFile.dossier.records.push({ id:999, dualPapers:true });
+    const realDual = Engine3.runDossierExperiment(freeCabin);
+    if (realDual.error || !realDual.record.dualPapers ||
+        !realDual.record.papers.shore || !realDual.record.papers.ship)
+      throw new Error("自由補強前沒有產生可驗證的真實雙紙來源");
+    const filedDual = Engine3.fileDossierRecord(realDual.state);
+    if (filedDual.error) throw new Error("真實雙紙來源無法收卷:" + filedDual.error);
+    freeCabin = filedDual.state;
     freeCabin = set(freeCabin, "positionRecord", "dual");
-    freeCabin = set(freeCabin, "location", "cabin");
-    if (Engine3.runDossierExperiment(freeCabin).error !== "deck-experiment-required")
-      throw new Error("自由補強的船艙配置仍能誤跑桅頂落石");
+    const fakeCabinSetting = Engine3.setDossierDraft(freeCabin, "location", "cabin");
+    if (fakeCabinSetting.error !== "dossier-location-fixed" ||
+        fakeCabinSetting.state.caseFile.dossier.draft.location !== "deck")
+      throw new Error("已移除的實驗地點假變因仍可把桅頂落石改進船艙");
 
     let cabin = Engine3.initialState();
     cabin = set(cabin, "positionRecord", "dual");
-    cabin = set(cabin, "location", "cabin");
-    if (cabin.caseFile.dossier.draft.positionRecord !== "deck")
-      throw new Error("改到船艙後仍保留看不見的岸上位置紀錄");
+    const cabinSetting = Engine3.setDossierDraft(cabin, "location", "cabin");
+    if (cabinSetting.error !== "dossier-location-fixed" ||
+        cabinSetting.state.caseFile.dossier.draft.positionRecord !== "dual")
+      throw new Error("船艙獨立任務沒有鎖住桅頂落石的地點假變因");
     if (Engine3.runDossierCabinComparison(cabin).error !== "steady-assertion-required")
       throw new Error("第一句斷言尚未成立，船艙主線卻能提前執行");
     cabin.caseFile.dossier.assertions.A1 = true;
@@ -2855,6 +2749,17 @@ tests.push({
     for (let i = 0; i < 3; i++) s = Engine3.runDossierCabinComparison(s).state;
     s = set(s, "stage", "steady");
     for (let i = 0; i < 3; i++) s = Engine3.runDossierCabinComparison(s).state;
+    const tamperedCabin = JSON.parse(JSON.stringify(s));
+    tamperedCabin.caseFile.dossier.blind.records[0].water = "水面固定偏向左舷";
+    let tamperedSelection = tamperedCabin;
+    for (const sourceId of ["C1","C2","C3","C4","C5","C6"])
+      tamperedSelection = Engine3.selectDossierSource(tamperedSelection, "A2", sourceId).state;
+    const tamperedClaim = Engine3.setDossierScope(tamperedSelection, "A2", "local-only");
+    if (tamperedClaim.ok !== false || tamperedClaim.reason !== "dossier-cabin-paper-mismatch")
+      throw new Error("內容遭竄改的船艙原紙仍能成立斷言");
+    const San = require("../src/sanitize.js");
+    if (San.sanitizeImport3(tamperedCabin, scenes3).ok)
+      throw new Error("匯入閘接受了內容與船況不一致的船艙原紙");
     for (const sourceId of ["C1","C2","C3","C4","C5"])
       s = Engine3.selectDossierSource(s, "A2", sourceId).state;
     const half = Engine3.setDossierScope(s, "A2", "local-only");
@@ -2886,7 +2791,7 @@ tests.push({
     };
     const runAndFile = (positionRecord) => {
       let state = Engine3.initialState();
-      /* 先依本章新順序重現艦長的解纜起步，再測指定的走穩記錄方案。 */
+      /* 先依本章新順序重現維達爾船長的解纜起步，再測指定的走穩記錄方案。 */
       for (let i = 0; i < 3; i++) {
         for (const [field, value] of Object.entries({
           stage:"depart", release:"latch", speedRecord:"beats",
@@ -2916,12 +2821,11 @@ tests.push({
     if (deckOnly.caseFile.dossier.records[3].classification !== "有等拍鼓點・缺岸上船位・未分類" ||
         deckOnly.caseFile.dossier.records.slice(3).some((row) => row.papers.shore))
       throw new Error("只有船上紙仍暗用岸上船速資料分類");
-    let deckSelected = deckOnly;
-    for (const sourceId of ["R4","R5","R6"])
-      deckSelected = Engine3.selectDossierSource(deckSelected, "A1", sourceId).state;
-    const deckClaim = Engine3.setDossierScope(deckSelected, "A1", "controlled-three");
-    if (deckClaim.ok !== false || deckClaim.reason !== "dossier-speed-paper-missing")
-      throw new Error("只有船上紙仍能冒充可見的岸上船速資料");
+    if (deckOnly.caseFile.dossier.candidates.A1)
+      throw new Error("只有船上紙竟浮出可提交的走穩斷言");
+    const deckClaim = Engine3.selectDossierSource(deckOnly, "A1", "R4");
+    if (deckClaim.error !== "dossier-candidate-required")
+      throw new Error("只有船上紙沒有在選紙前就被候選門檻擋下");
 
     let shore = runAndFile("shore");
     if (shore.caseFile.dossier.records[3].classification !== "近似穩速" ||
@@ -3032,7 +2936,7 @@ tests.push({
       take(Engine3.selectDossierSource(state, "A1", sourceId), "A1:" + sourceId);
     take(Engine3.setDossierScope(state, "A1", "controlled-three"), "A1-scope");
 
-    /* 模擬舊存檔：已有 A1 與三張走穩紙，但當時尚未要求先重現艦長航程。 */
+    /* 模擬舊存檔：已有 A1 與三張走穩紙，但當時尚未要求先重現維達爾船長航程。 */
     state.caseFile.dossier.records = state.caseFile.dossier.records.filter((row) => row.stage === "steady");
     state.caseFile.dossier.assertions.A3 = false;
     state.caseFile.dossier.draft.location = "cabin";
@@ -3069,7 +2973,13 @@ tests.push({
       let state = Engine3.initialState();
       if (explore) {
         Object.assign(state.caseFile.dossier.assertions, { A1:true, A2:true, A3:true });
-        state.caseFile.dossier.records.push({ id:0, dualPapers:true });
+        const dualRun = Engine3.runDossierExperiment(state);
+        if (dualRun.error || !dualRun.record.dualPapers ||
+            !dualRun.record.papers.shore || !dualRun.record.papers.ship)
+          throw new Error("自由探索前沒有產生有效雙紙來源");
+        const dualFile = Engine3.fileDossierRecord(dualRun.state);
+        if (dualFile.error) throw new Error("有效雙紙來源無法收卷:" + dualFile.error);
+        state = dualFile.state;
       }
       const base = {
         location:"deck", stage:"steady", release:"latch", speedRecord:"beats",
@@ -3103,6 +3013,8 @@ tests.push({
       throw new Error("慢拍與快拍沒有留下不同點數");
     if (!(slow.record.papers.shore.readingError < fast.record.papers.shore.readingError))
       throw new Error("快拍沒有承擔較大的讀值誤差");
+    if (fast.record.classification !== "船速無法判讀・未分類")
+      throw new Error("快鼓高誤差原紙竟被判成可分類船況:" + fast.record.classification);
     if (!slow.record.papers.ship || !fast.record.papers.ship)
       throw new Error("雙觀察沒有各自留下兩張原紙");
 
@@ -3110,11 +3022,90 @@ tests.push({
     const hard = Engine3.runDossierExperiment(prepare({ stage:"depart", forceBand:"hard" }, true));
     if (!(Math.abs(soft.record.offsets[0]) < Math.abs(hard.record.offsets[0])))
       throw new Error("輕／重加槳沒有改變可觀察偏移量");
+    const steadyControl = Engine3.runDossierExperiment(prepare({ stage:"steady" }, true));
+    if (hard.record.animation.path.length !== steadyControl.record.animation.path.length ||
+        hard.record.animation.path.some((point, index) =>
+          Math.abs(point.stoneX - steadyControl.record.animation.path[index].stoneX) > 0.001))
+      throw new Error("起步／走穩比較同時改變了石頭離手瞬間的向前速度");
+    const weakBrake = Engine3.runDossierExperiment(prepare({
+      vesselId:"large", stage:"brake", forceBand:"soft"
+    }, true));
+    if (weakBrake.record.classification === "近似穩速")
+      throw new Error("讀值不足以辨認的弱減速原紙被錯收成近似穩速");
+    const forgedBrake = weakBrake.state;
+    forgedBrake.caseFile.dossier.assertions.A1 = false;
+    forgedBrake.caseFile.dossier.pendingRecord.classification = "近似穩速";
+    const forgedFiled = Engine3.fileDossierRecord(forgedBrake);
+    const forgedA1 = forgedFiled.state.caseFile.dossier.candidates.A1;
+    if (forgedFiled.error || (forgedA1 &&
+        forgedA1.records.includes(weakBrake.record.id)))
+      throw new Error("非走穩且落在桅前的原紙可冒充 A1 候選");
     const slowShip = Engine3.runDossierExperiment(prepare({ speedBand:"slow" }, true));
     const fastShip = Engine3.runDossierExperiment(prepare({ speedBand:"fast" }, true));
     if (slowShip.record.landing !== fastShip.record.landing ||
         Math.abs(slowShip.record.offsets[0] - fastShip.record.offsets[0]) > 0.001)
       throw new Error("穩速快慢錯誤改變了理想相對落點");
+    for (const stage of ["depart", "brake"]) {
+      const slowMotion = Engine3.runDossierExperiment(
+        prepare({ stage, speedBand:"slow" }, true));
+      const fastMotion = Engine3.runDossierExperiment(
+        prepare({ stage, speedBand:"fast" }, true));
+      if (slowMotion.error || fastMotion.error)
+        throw new Error(stage + " 航速三檔無法執行");
+      const slowPath = slowMotion.record.animation.path;
+      const fastPath = fastMotion.record.animation.path;
+      const sample = Math.min(2, slowPath.length - 1, fastPath.length - 1);
+      if (!(fastPath[sample].stoneX > slowPath[sample].stoneX))
+        throw new Error(stage + " 的航速選項沒有改變岸上看到的共同前行速度");
+      if (slowMotion.record.landing !== fastMotion.record.landing ||
+          Math.abs(slowMotion.record.offsets[0] - fastMotion.record.offsets[0]) > 0.001)
+        throw new Error(stage + " 的航速錯誤改變相對桅杆落點");
+    }
+
+    /* 三態斷言不能在尚未做過減速實驗時搶先出現。 */
+    let beforeBrake = prepare({}, true);
+    if (beforeBrake.caseFile.dossier.candidates.S4)
+      throw new Error("尚未取得減速原紙，三種船況斷言已提前出現");
+    const oneBrakeRun = Engine3.runDossierExperiment(
+      prepare({ stage:"brake" }, true));
+    const oneBrakeFile = Engine3.fileDossierRecord(oneBrakeRun.state);
+    if (oneBrakeRun.error || oneBrakeFile.error ||
+        !oneBrakeFile.state.caseFile.dossier.candidates.S4)
+      throw new Error("第一張合格減速原紙出現後，三態候選沒有浮出");
+    const oneBrakeId = "R" + oneBrakeFile.record.id;
+    const oneBrakePicked = Engine3.selectDossierSource(
+      oneBrakeFile.state, "S4", oneBrakeId);
+    const tooEarly = Engine3.setDossierScope(
+      oneBrakePicked.state, "S4", "today-three-states");
+    if (tooEarly.ok !== false ||
+        !["dossier-too-few-records","dossier-comparison-missing"].includes(tooEarly.reason))
+      throw new Error("只有一張減速原紙竟能成立三態斷言");
+
+    /* 徒手／剪繩的固定差異序列須依同一完整設定的重做次數輪替，
+       不能被中間插入的其他原紙或全域 R 編號打亂。 */
+    let repeated = prepare({ release:"hand" }, true);
+    const handRows = [];
+    for (let trial = 0; trial < 3; trial++) {
+      let handRun = Engine3.runDossierExperiment(repeated);
+      if (handRun.error) throw new Error("徒手重做失敗:" + handRun.error);
+      handRows.push(handRun.record);
+      let handFile = Engine3.fileDossierRecord(handRun.state);
+      if (handFile.error) throw new Error("徒手原紙收卷失敗:" + handFile.error);
+      repeated = handFile.state;
+      if (trial === 0) {
+        repeated = set(repeated, "release", "string");
+        const otherRun = Engine3.runDossierExperiment(repeated);
+        if (otherRun.error) throw new Error("插入剪繩原紙失敗:" + otherRun.error);
+        const otherFile = Engine3.fileDossierRecord(otherRun.state);
+        if (otherFile.error) throw new Error("插入剪繩原紙收卷失敗:" + otherFile.error);
+        repeated = set(otherFile.state, "release", "hand");
+      }
+    }
+    if (handRows.map((row) => row.sameSetupTrial).join(",") !== "1,2,3")
+      throw new Error("徒手差異序列仍受全域原紙編號干擾:" +
+        JSON.stringify(handRows.map((row) => row.sameSetupTrial)));
+    if (new Set(handRows.map((row) => row.offsets[0])).size !== 3)
+      throw new Error("同一徒手設定重做三回沒有留下三種固定手勢差異");
   }
 });
 
@@ -3127,10 +3118,17 @@ tests.push({
       if (result.error) throw new Error(field + ":" + result.error);
       return result.state;
     };
-    const configureDepart = (state, vesselId, forceBand = "hard") => {
+    const unlockExplore = (state) => {
       Object.assign(state.caseFile.dossier.assertions, { A1:true, A2:true, A3:true });
-      if (!state.caseFile.dossier.records.some((row) => row.dualPapers))
-        state.caseFile.dossier.records.push({ id:0, dualPapers:true });
+      const dualRun = Engine3.runDossierExperiment(state);
+      if (dualRun.error || !dualRun.record.dualPapers ||
+          !dualRun.record.papers.shore || !dualRun.record.papers.ship)
+        throw new Error("換船測試前沒有產生有效雙紙來源");
+      const dualFile = Engine3.fileDossierRecord(dualRun.state);
+      if (dualFile.error) throw new Error("換船測試的雙紙來源無法收卷:" + dualFile.error);
+      return dualFile.state;
+    };
+    const configureDepart = (state, vesselId, forceBand = "hard") => {
       const patch = {
         location:"deck", vesselId, stage:"depart", release:"latch", speedRecord:"beats",
         positionRecord:"shore", repeats:3, forceBand, beatBand:"mid",
@@ -3158,11 +3156,11 @@ tests.push({
       return { state, rows, runs };
     };
 
-    let s = Engine3.initialState();
+    let s = unlockExplore(Engine3.initialState());
     const startDay = s.days;
     const captain = runThree(s, "captain"); s = captain.state;
     if (captain.runs.some((run) => run.dayCost !== 1 || run.borrowedNow))
-      throw new Error("艦長的船不應另收借船時間");
+      throw new Error("維達爾船長的船不應另收借船時間");
     const small = runThree(s, "small"); s = small.state;
     if (small.runs[0].dayCost !== 2 || !small.runs[0].borrowedNow)
       throw new Error("第一次借小艇沒有多花一天");
@@ -3185,11 +3183,19 @@ tests.push({
     const ratios = rows.map((row) => Math.round(magnitudes[rows.indexOf(row)] / row.mastHeight * 10000));
     if (new Set(ratios).size === 1)
       throw new Error("偏移仍被做成桅高的固定比例，混淆只存在台詞裡");
-    const accelerationSigns = rows.map((row) => row.shoreGaps[1] - row.shoreGaps[0]);
-    if (!(accelerationSigns[0] > accelerationSigns[1] && accelerationSigns[1] > accelerationSigns[2]))
-      throw new Error("岸紙沒有留下不同操船條件造成的加速度差異");
+    if (rows.some((row) => row.classification !== "正在變快" ||
+        !Array.isArray(row.shoreGaps) ||
+        !(row.shoreGaps[row.shoreGaps.length - 1] > row.shoreGaps[0])))
+      throw new Error("岸紙沒有留下各船正在加速的可判讀趨勢");
 
-    const one = runThree(Engine3.initialState(), "captain").state;
+    const one = runThree(unlockExplore(Engine3.initialState()), "captain").state;
+    const forgedRange = JSON.parse(JSON.stringify(one));
+    forgedRange.caseFile.dossier.records[0].stage = "steady";
+    forgedRange.caseFile.dossier.records[1].landing = "foot";
+    if (Engine3.getDossierScopeOptions(forgedRange).some((option) =>
+      option.choice === "tested-vessels-only" && option.text.includes("維達爾船長的船")
+    ))
+      throw new Error("船況或落點與原紙不一致的紀錄仍被算進已測船隻範圍");
     one.caseFile.dossier.debate.active = true;
     one.caseFile.dossier.debate.current = "p2";
     const prematureScope = Engine3.answerDossierDebate(one, "p2", "scope", "tested-vessels-only");
@@ -3204,7 +3210,7 @@ tests.push({
       throw new Error("只做一艘時，把結論寫到卷宗外竟可通過");
     const oneScope = Engine3.answerDossierDebate(one, "p2", "scope", "tested-vessels-only");
     if (oneScope.error || !oneScope.ok || !oneScope.state.caseFile.dossier.debate.pillars.p2)
-      throw new Error("只做艦長一艘船不能完成第二柱主線");
+      throw new Error("只做維達爾船長一艘船不能完成第二柱主線");
 
     s.caseFile.dossier.debate.active = true;
     s.caseFile.dossier.debate.current = "p2";
@@ -3264,7 +3270,7 @@ tests.push({
       if (!scopeTexts.some((text) => text.includes(phrase)))
         throw new Error("範圍選項缺少平行的資料射程:" + phrase);
 
-    let mixed = Engine3.initialState();
+    let mixed = unlockExplore(Engine3.initialState());
     mixed = runThree(mixed, "small", "hard").state;
     mixed = runThree(mixed, "captain", "soft").state;
     mixed = runThree(mixed, "large", "soft").state;
@@ -3290,7 +3296,8 @@ tests.push({
     if (hiddenHeightClaim.error !== "dossier-scope-choice-unavailable")
       throw new Error("資料不支持的桅高誘答仍可繞過介面直接提交");
     for (const phrase of [
-      "用哪一艘船", "換船不只換了桅高", "scope-diagnosis", "getDossierScopeOptions",
+      "用哪一艘船", "換船後，把不同原紙上的船名、桅高、船員與槳法逐欄比較",
+      "scope-diagnosis", "getDossierScopeOptions",
       "這句因果還不能成立。回到原紙條件欄",
       "這句話寫到了卷宗以外；先把範圍收回實際做過的船"
     ])
@@ -3365,20 +3372,36 @@ tests.push({
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const x of ['src="data/series.js"', 'src="src/engine3.js', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
-    if (!html.includes("src/engine3.js?v=20260727-ch03-flow-v5") ||
-        !html.includes("data/scenes3.js?v=20260727-ch03-flow-v5"))
-      throw new Error("第三章專屬腳本的快取鍵遭第四章遷移覆蓋");
-    for (const asset of ["src/sanitize.js", "src/narrative.js", "src/chapter-ui.js", "src/stage-ui.js"]) {
+    for (const asset of [
+      "data/assets.js",
+      "src/sanitize.js",
+      "src/engine3.js",
+      "data/scenes3.js",
+      "src/narrative.js",
+      "src/chapter-ui.js",
+      "src/stage-ui.js"
+    ]) {
       const digest = createHash("sha256")
         .update(readFileSync(path.join(here, "..", asset)))
         .digest("hex").slice(0, 12);
       if (!html.includes(asset + "?v=asset-" + digest))
-        throw new Error("第四章共用檔更新後未使用內容雜湊快取鍵:" + asset);
+        throw new Error("共享殼更新後未使用內容雜湊快取鍵:" + asset);
     }
     const chapterHtml = readFileSync(path.join(here, "../chapter3.html"), "utf-8");
-    for (const asset of ["src/sanitize.js", "src/engine3.js", "data/scenes3.js", "src/narrative.js", "src/chapter-ui.js"])
-      if (!chapterHtml.includes(asset + "?v=20260727-ch03-flow-v5"))
-        throw new Error("第三章獨立入口缺少新快取鍵:" + asset);
+    for (const asset of [
+      "data/assets.js",
+      "src/sanitize.js",
+      "src/engine3.js",
+      "data/scenes3.js",
+      "src/narrative.js",
+      "src/chapter-ui.js"
+    ]) {
+      const digest = createHash("sha256")
+        .update(readFileSync(path.join(here, "..", asset)))
+        .digest("hex").slice(0, 12);
+      if (!chapterHtml.includes(asset + "?v=asset-" + digest))
+        throw new Error("第三章獨立入口缺少內容雜湊快取鍵:" + asset);
+    }
     if (!ui.includes('"卷宗：原紙"') || ui.includes('"共同運動：桅落"'))
       throw new Error("第三章 HUD 仍顯示已退役的五步證據清單");
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
@@ -3391,7 +3414,17 @@ tests.push({
     if (!series.chapters.some((chapter) => chapter.id === "ch3" && chapter.title === scenes3.title))
       throw new Error("玩家入口缺第三章正式章名");
     const openingText = (opening && opening.nodes || []).map((n) => n.text || "").join("\n");
-    for (const phrase of ["它為什麼還會往前", "伽利略八年前出版", "我還來不及道別"])
+    const previousQuestion = scenes2.scenes.find((scene) => scene.id === "BE-2")
+      ?.nodes.find((node) => node.id === "n4")?.text || "";
+    const currentQuestion = opening?.nodes.find((node) => node.id === "n1")?.text || "";
+    const extractSeamQuestion = (text) => {
+      const normalized = TextFormat.normalizeZhPunctuation(text);
+      return normalized.match(/沒有東西繼續推它，它為什麼還在走？/)?.[0] || "";
+    };
+    if (extractSeamQuestion(previousQuestion) !== extractSeamQuestion(currentQuestion) ||
+        extractSeamQuestion(currentQuestion) !== "沒有東西繼續推它，它為什麼還在走？")
+      throw new Error("第二章→第三章核心問題未在標點正規化後逐字接棒");
+    for (const phrase of ["伽利略八年前出版", "我還來不及道別"])
       if (!openingText.includes(phrase)) throw new Error("第二章→第三章同行者接棒缺句:" + phrase);
   }
 });
@@ -3466,23 +3499,21 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章正式美術與音樂|8 場專屬背景、四角色肖像與里程碑配樂",
+  name: "第三章正式美術與音樂|10 場背景全映射、四角色肖像與里程碑配樂",
   fn: () => {
     const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
     const ids = new Map(assets.entries.map((e) => [e.id, e]));
-    const expected = {
-      "C0-1": "bg_ch03_marseille_harbor_dawn", "C0-2": "bg_ch03_marseille_harbor_dawn", "C0-3": "bg_ch03_marseille_harbor_dawn",
-      "C1-1": "bg_ch03_moored_mast_deck",
-      "C3-1": "bg_ch03_public_demonstration", "C3-2": "bg_ch03_public_demonstration",
-      "CE-1": "bg_ch03_print_room_1642", "CE-2": "bg_ch03_print_room_1642"
-    };
-    for (const [scene, id] of Object.entries(expected)) {
-      if (assets.sceneBg[scene] !== id) throw new Error("第三章背景映射錯誤:" + scene);
+    for (const scene of scenes3.scenes) {
+      const id = assets.sceneBg[scene.id];
+      if (!id) throw new Error("第三章場景缺背景映射:" + scene.id);
       const e = ids.get(id);
       if (!e || !e.path || !e.path.startsWith("ch03/backgrounds/") || e.w !== 1920 || e.h !== 1080)
         throw new Error("第三章背景資產宣告錯誤:" + id);
     }
-    for (const [speaker, id] of Object.entries({ "伽桑狄":"dialogue_gassendi48", "艦長":"dialogue_captain50", "馬蒂厄":"dialogue_mathieu32", "艾蒂安":"dialogue_etienne17" })) {
+    if (assets.sceneBg["INT-C1"] !== assets.sceneBg["C0-2"] ||
+        assets.sceneBg["INT-C2"] !== assets.sceneBg["C3-1"])
+      throw new Error("第三章幕間背景沒有承接前後空間");
+    for (const [speaker, id] of Object.entries({ "伽桑狄":"dialogue_gassendi48", "維達爾船長":"dialogue_captain50", "馬蒂厄":"dialogue_mathieu32", "艾蒂安":"dialogue_etienne17" })) {
       if (assets.speakerDialoguePortrait[speaker] !== id) throw new Error("第三章角色預設映射缺失:" + speaker);
       const e = ids.get(id);
       if (!e || !e.path.startsWith("ch03/characters/") || e.w !== 900 || e.h !== 1200) throw new Error("第三章角色資產宣告錯誤:" + id);
@@ -3527,6 +3558,14 @@ tests.push({
         throw new Error("第三章實驗資產宣告錯誤:" + id);
       if (!existsSync(path.join(here, "../../public/assets/", e.path))) throw new Error("第三章實驗資產檔不存在:" + e.path);
     }
+    const cabinVisual = ids.get("ship3_g2_cabin");
+    const cabinBackground = ids.get("bg_ch03_enclosed_cabin");
+    for (const entry of [cabinVisual, cabinBackground]) {
+      if (!entry?.path?.endsWith("_v02.webp") || !entry?.sourceMaster?.endsWith("_v02.png"))
+        throw new Error("封閉船艙仍指向開窗的 v01 圖像");
+      if (!existsSync(path.join(here, "../../", entry.sourceMaster)))
+        throw new Error("封閉船艙 v02 母版不存在:" + entry.sourceMaster);
+    }
     const perspectiveMap = assets.shipPerspectiveIntro;
     if (!perspectiveMap || perspectiveMap.shore !== "ship3_g4_shore_perspective" || perspectiveMap.ship !== "ship3_g1_mast_steady")
       throw new Error("G4 岸上／船上視角前導映射缺失");
@@ -3569,6 +3608,10 @@ tests.push({
       throw new Error("G4 鼓點數字對比仍不足");
     for (const frag of ["再請馬蒂厄抽閂，接著加槳", "再請馬蒂厄抽閂，接著收槳", "平均相對桅腳", "仍可重做"])
       if (!ui.includes(frag)) throw new Error("G3 自由重做／累積摘要契約缺失:" + frag);
+    for (const frag of [
+      'missionId === "steady"', 'missionId === "speed"', 'missionId === "cabin"',
+      'missionId === "explore"', "ship3DossierCurrentAssertionId(d, mission.id)"
+    ]) if (!ui.includes(frag)) throw new Error("第三章斷言未依當前任務鎖定:" + frag);
     for (const frag of ["先用紀錄組成一個公平比較", "單看行船紀錄夠嗎", "還無法回答它『和什麼相同』",
       "一次接近可能只是巧合", "cfg.selectionReady", 'typeof cfg.incomplete === "function"'])
       if (!ui.includes(frag)) throw new Error("G1 兩組資料比較提示缺失:" + frag);
@@ -5145,6 +5188,297 @@ tests.push({
       if (!hit(s)) throw new Error("取得句未命中儀式:" + s);
     for (const s of ["第二幕終。船桅待驗預測已分開收入旅人筆記。", "他把紙留在桌上。", "第三章已封存。"])
       if (re1.test(s) || re2.test(s)) throw new Error("非取得句誤觸儀式(開頭型):" + s);
+  }
+});
+
+tests.push({
+  name: "第三章解纜起步物理|放手時船已在動：石頭共同前行、桅距遞增、相對落點不變(CH3-CR-021)",
+  fn: () => {
+    const set = (state, field, value) => {
+      const r = Engine3.setDossierDraft(state, field, value);
+      if (r.error) throw new Error(field + ":" + r.error);
+      return r.state;
+    };
+    let s = Engine3.initialState();
+    s = set(s, "stage", "depart");
+    s = set(s, "release", "latch");
+    s = set(s, "speedRecord", "beats");
+    s = set(s, "positionRecord", "shore");
+    const ran = Engine3.runDossierExperiment(s);
+    if (ran.error) throw new Error("run:" + ran.error);
+    const rec = ran.record;
+    const beats = rec.papers.shore.beats;
+    if (beats.length < 4) throw new Error("岸紙點數不足:" + beats.length);
+    /* 共同前行：石頭鬆手後帶著鬆手瞬間的船速，岸紙上逐拍前進且近似等間距 */
+    const stoneGaps = beats.slice(1).map((b, i) => b.stoneX - beats[i].stoneX);
+    for (const g of stoneGaps)
+      if (!(g > 0.3)) throw new Error("石頭在岸紙上沒有前進（垂直下落回歸）:" + JSON.stringify(stoneGaps));
+    const stoneSpread = Math.max(...stoneGaps) - Math.min(...stoneGaps);
+    if (stoneSpread > 0.15) throw new Error("石頭間距不近似等距:" + JSON.stringify(stoneGaps));
+    /* 變速可判讀：桅位間距逐拍遞增，且首段間距不得再擠成一團 */
+    if (!rec.shoreGaps || rec.shoreGaps[0] < 0.3)
+      throw new Error("桅位首段間距過小，船速欄不可判讀:" + JSON.stringify(rec.shoreGaps));
+    if (!(rec.shoreGaps[rec.shoreGaps.length - 1] > rec.shoreGaps[0]))
+      throw new Error("桅位間距未遞增:" + JSON.stringify(rec.shoreGaps));
+    /* 落在桅後：末拍桅杆超前石頭；相對落點與斷言判定不受初速影響 */
+    const last = beats[beats.length - 1];
+    if (!(last.mastX > last.stoneX)) throw new Error("末拍桅杆未超前石頭");
+    if (rec.landing !== "aft") throw new Error("落點分類改變:" + rec.landing);
+    if (Math.abs(rec.offsets[0] + 0.698) > 0.12)
+      throw new Error("相對落點偏離既有物理值:" + rec.offsets[0]);
+    if (rec.classification !== "正在變快") throw new Error("分類改變:" + rec.classification);
+    /* 任務卡文案契約：本輪不得承諾玩家沒有的船況自由 */
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (ui.includes("什麼船況會讓石頭落後"))
+      throw new Error("實驗一標題仍在問本輪回答不了的跨船況問題");
+    if (ui.includes("選一種船況"))
+      throw new Error("實驗一 goal 仍給出被鎖定的假選項");
+    if (!ui.includes("先重做舊紙記的第一段：它漏了什麼？"))
+      throw new Error("實驗一新標題缺失");
+    if (!ui.includes("船況固定為解纜後第一段"))
+      throw new Error("實驗一 goal 未標明已固定變因與理由");
+  }
+});
+
+tests.push({
+  name: "第三章物理鏈收官|隱藏變因歸零、第三柱只收走穩雙紙、範圍進度使用正式閘門(CH3-CR-023)",
+  fn: () => {
+    const set = (state, field, value) => {
+      const result = Engine3.setDossierDraft(state, field, value);
+      if (result.error) throw new Error(field + ":" + result.error);
+      return result.state;
+    };
+
+    /*
+     * 不適用的控制不得藏在 state 裡繼續影響指紋：停泊沒有航速檔，
+     * 平駛沒有加減槳力，不記等拍鼓時也沒有鼓拍快慢。
+     */
+    let normalized = Engine3.initialState();
+    normalized = set(normalized, "stage", "dock");
+    normalized = set(normalized, "speedBand", "fast");
+    if (normalized.caseFile.dossier.draft.speedBand !== "mid")
+      throw new Error("停泊仍保留看不見的航速檔");
+    normalized = set(normalized, "stage", "steady");
+    normalized = set(normalized, "forceBand", "soft");
+    if (normalized.caseFile.dossier.draft.forceBand !== "hard")
+      throw new Error("平駛仍保留看不見的加減槳力");
+    normalized = set(normalized, "speedRecord", "none");
+    normalized = set(normalized, "beatBand", "fast");
+    if (normalized.caseFile.dossier.draft.beatBand !== "mid")
+      throw new Error("未使用等拍鼓時仍保留看不見的鼓拍快慢");
+    normalized = set(normalized, "stage", "depart");
+    normalized = set(normalized, "speedBand", "fast");
+    if (normalized.caseFile.dossier.draft.speedBand !== "fast")
+      throw new Error("起步時玩家真正選擇的航速檔被錯誤清除");
+
+    /* 第三柱來源必須是走穩、門閂、中拍、雙視角且已收卷的同一趟。 */
+    let dualState = Engine3.initialState();
+    Object.assign(dualState.caseFile.dossier.assertions, { A1:true, A2:true, A3:true });
+    const dualRun = Engine3.runDossierExperiment(dualState);
+    if (dualRun.error) throw new Error("雙紙執行失敗:" + dualRun.error);
+    const dualFile = Engine3.fileDossierRecord(dualRun.state);
+    if (dualFile.error || !Engine3.isDossierP3Record(dualFile.record))
+      throw new Error("合法走穩雙紙沒有通過第三柱閘門");
+    for (const [field, value] of [
+      ["stage", "depart"], ["classification", "正在變快"],
+      ["release", "hand"], ["beatBand", "fast"], ["filed", false]
+    ]) {
+      const forged = JSON.parse(JSON.stringify(dualFile.record));
+      forged[field] = value;
+      if (Engine3.isDossierP3Record(forged))
+        throw new Error("第三柱錯收不合格雙紙:" + field + "=" + value);
+    }
+
+    /*
+     * 進度圈不能只數「有三張紙」；必須與正式斷言相同，真的分類成功、
+     * 落點方向正確、放手乾淨且條件相同，才算測過一個範圍。
+     */
+    const shorePaper = { beats:[{ beat:0, t:0, stoneX:0, mastX:0 }] };
+    const steadyRow = (id, patch = {}) => Object.assign({
+      id, filed:true, location:"deck", vesselId:"captain",
+      stage:"steady", classification:"近似穩速", landing:"foot",
+      release:"latch", speedRecord:"beats", positionRecord:"shore",
+      speedBand:"slow", forceBand:"hard", beatBand:"mid",
+      sameStone:true, sameHeight:true, papers:{ shore:shorePaper }
+    }, patch);
+    const unclassified = {
+      records:[1,2,3].map((id) => steadyRow(id, {
+        classification:"船速無法判讀・未分類", beatBand:"fast"
+      }))
+    };
+    if (Engine3.getDossierScopeProgress(unclassified).speedBands.length)
+      throw new Error("未分類快拍原紙誤亮船速範圍");
+    const cleanSteady = { records:[1,2,3].map((id) => steadyRow(id)) };
+    if (Engine3.getDossierScopeProgress(cleanSteady).speedBands.join(",") !== "slow")
+      throw new Error("三張合格慢槳平駛原紙沒有點亮船速範圍");
+
+    const departRow = (id, patch = {}) => Object.assign({
+      id, filed:true, location:"deck", vesselId:"captain",
+      stage:"depart", classification:"正在變快", landing:"aft",
+      release:"latch", speedRecord:"beats", positionRecord:"shore",
+      speedBand:"mid", forceBand:"hard", beatBand:"mid",
+      sameStone:true, sameHeight:true, papers:{ shore:shorePaper }
+    }, patch);
+    const cleanDepart = { records:[1,2,3].map((id) => departRow(id)) };
+    if (Engine3.getDossierScopeProgress(cleanDepart).vesselIds.join(",") !== "captain")
+      throw new Error("三張合格起步原紙沒有點亮換船範圍");
+    cleanDepart.records[2].classification = "未記船速・未分類";
+    if (Engine3.getDossierScopeProgress(cleanDepart).vesselIds.length)
+      throw new Error("混入未分類原紙仍誤亮換船範圍");
+
+    /*
+     * S4 回答的是三種甲板船況；A2 是正常流程前置，不是證據前提。
+     * 沒有 A2 時可以因資料不足被退件，但不得被錯判為斷言順序錯誤。
+     */
+    const noCabin = JSON.parse(JSON.stringify(dualFile.state));
+    noCabin.caseFile.dossier.assertions.A2 = false;
+    noCabin.caseFile.dossier.assertions.A1 = true;
+    noCabin.caseFile.dossier.assertions.A3 = true;
+    noCabin.caseFile.dossier.candidates.S4 = { records:[] };
+    const s4 = Engine3.setDossierScope(noCabin, "S4", "today-three-states");
+    if (s4.error === "dossier-assertion-order-required")
+      throw new Error("S4 仍把船艙 A2 當成物理必要證據");
+
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const phrase of [
+      "放手前船走多快", "放手前船速", "加減槳力", "計時方法",
+      "位置原紙", "操船／記錄"
+    ]) if (!ui.includes(phrase)) throw new Error("原紙漏印真正參與判定的條件:" + phrase);
+    if (!ui.includes("getDossierScopeProgress(d)"))
+      throw new Error("UI 範圍進度仍自行使用較鬆的判定");
+
+    const sanitize = readFileSync(path.join(here, "../src/sanitize.js"), "utf-8");
+    for (const fragment of [
+      'record.stage === "steady"', 'record.classification === "近似穩速"',
+      'record.release === "latch"', 'record.positionRecord === "dual"',
+      "dualData.p3Eligible"
+    ]) if (!sanitize.includes(fragment))
+      throw new Error("存檔淨化缺第三柱嚴格雙紙閘門:" + fragment);
+  }
+});
+
+tests.push({
+  name: "第三章試玩修正|落點不飛出船、證據全攤開、當前原紙明示、柱數不寫死、換尺表移除(20260729)",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const css = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const assets = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
+
+    /* -0.7 公尺是甲板內的偏移，不得因自動撐滿圖幅被畫成落海。 */
+    if (!ui.includes("var relativeSpan = Math.max(4, Math.abs(minX), Math.abs(maxX));"))
+      throw new Error("船上視角沒有固定甲板尺度，微小偏移可能再次被放大成落海");
+    const shownDx = Math.abs(-0.70) / (4 * 2) * 650;
+    if (!(shownDx < 72))
+      throw new Error("既定顯示尺度仍把 0.70 公尺偏移畫到船身外:" + shownDx);
+
+    /* A2 錯項必須把真正錯誤寫明：範圍從停泊／平駛偷渡到所有運動。 */
+    if (ui.includes("所以船艙裡分不出船的運動"))
+      throw new Error("船艙錯項仍使用容易被理解成局部結論的含混舊句");
+    for (const phrase of [
+      "封閉船艙裡連加速、減速也都分不出來",
+      "這六回只比較「停泊」和「近似平駛」",
+      "加速、減速會留下不同結果"
+    ]) if (!ui.includes(phrase))
+      throw new Error("船艙錯答缺精確範圍回饋:" + phrase);
+
+    /* 辯論來源選擇要像第一章：全部已取得證據包同時可見，卡上有條件、變因與範圍。 */
+    for (const phrase of [
+      "ship3DossierDebateEvidenceCatalog(d).forEach",
+      "getDossierEvidenceCatalog",
+      "卷宗裡目前可用的資料全部攤開",
+      "shipDossierEvidenceCondition",
+      "shipDossierEvidenceVariables",
+      "shipDossierEvidenceScope",
+      "現在判讀的紙",
+      "岸標間距："
+    ]) if (!ui.includes(phrase))
+      throw new Error("第三章辯論缺全證據桌或當前原紙標示:" + phrase);
+    if (!ui.includes('["A6", "A1", "A3", "A2", "S1", "S4"]'))
+      throw new Error("舊紙 A6 被 HUD 計入斷言，卻沒有在已成立斷言區攤開");
+    if (!ui.includes("ship3DossierPacketSourceIds(d, id).join"))
+      throw new Error("已成立斷言沒有沿用同一份來源 catalog，舊紙可能顯示成未記");
+
+    /* 沒有綁定來源時必須 fail closed，不能把同類所有紙靜默攤成這題的證據。 */
+    const packetIdsStart = ui.indexOf("function ship3DossierPacketSourceIds");
+    const packetIdsEnd = ui.indexOf("function ship3DossierDebateEvidenceCatalog", packetIdsStart);
+    const packetIdsHelper = ui.slice(packetIdsStart, packetIdsEnd);
+    if (!packetIdsHelper.includes("return [];") ||
+        packetIdsHelper.includes("record.stage ===") ||
+        packetIdsHelper.includes('return "R" + record.id'))
+      throw new Error("來源 ID helper 仍按船況臨時製造一批原紙");
+    const sourceStart = ui.indexOf("function ship3DossierRecordsForQuestion");
+    const sourceEnd = ui.indexOf("function renderShipDossierQuestionPapers", sourceStart);
+    const sourceHelper = ui.slice(sourceStart, sourceEnd);
+    if (!sourceHelper.includes("if (!ids.length) return [];") ||
+        sourceHelper.includes("!ids.length ||"))
+      throw new Error("未綁來源的題目仍可能退回全 stage 原紙");
+    const helperContext = {};
+    new Script(
+      ui.slice(packetIdsStart, sourceEnd) +
+      "\nglobalThis.packetIds = ship3DossierPacketSourceIds;" +
+      "\nglobalThis.questionRecords = ship3DossierRecordsForQuestion;"
+    ).runInNewContext(helperContext);
+    const paperState = {
+      assertionSources:{ A1:[] }, claimSelections:{ A1:[] },
+      records:[
+        { id:1, filed:true, stage:"steady" },
+        { id:2, filed:true, stage:"steady" },
+        { id:3, filed:true, stage:"depart" }
+      ]
+    };
+    if (helperContext.packetIds(paperState, "A1").length ||
+        helperContext.questionRecords(paperState, "steady", "A1").length)
+      throw new Error("未綁來源時 helper 仍替玩家挑了同類紙");
+    paperState.assertionSources.A1 = ["R2"];
+    if (helperContext.questionRecords(paperState, "steady", "A1")
+      .map((row) => row.id).join(",") !== "2")
+      throw new Error("已綁 A1:R2 時沒有只顯示 R2");
+    paperState.assertionSources.A1 = ["R999"];
+    if (helperContext.questionRecords(paperState, "steady", "A1").length)
+      throw new Error("綁定不存在的 R999 時竟 fallback 到其他紙");
+    paperState.assertionSources.A1 = ["R3"];
+    if (helperContext.questionRecords(paperState, "steady", "A1").length)
+      throw new Error("A1 綁到不同船況的紙時竟混入本題");
+    if (!ui.includes("這一題的原紙尚未綁定，請先在卷宗選紙。"))
+      throw new Error("來源未綁定時沒有給玩家可修正的明示");
+
+    /* 第三柱保留兩張圖，但數值換算表不再佔據中段。 */
+    const p3Start = ui.indexOf("function ship3DossierP3PaperMath");
+    const p3End = ui.indexOf("function ship3DossierRunView", p3Start);
+    if (p3Start < 0 || p3End < 0) throw new Error("找不到第三柱紙張呈現函式");
+    const p3 = ui.slice(p3Start, p3End);
+    if (p3.includes("ship3Table("))
+      throw new Error("第三柱仍顯示逐拍數值表");
+    if (!p3.includes("ship3DossierPaperPlot(plots, shore") ||
+        !p3.includes("ship3DossierPaperPlot(plots, ship"))
+      throw new Error("移除表格時連兩張原紙圖也被刪掉");
+
+    /* 柱列由定義陣列驅動；第三章現況三柱不等於跨章固定三柱。 */
+    if (!ui.includes("SHIP3_DOSSIER_PILLARS.every") ||
+        !ui.includes("SHIP3_DOSSIER_PILLARS.find") ||
+        !css.includes(".shipDossierDebateTrack { display: flex; flex-wrap: wrap;"))
+      throw new Error("第三章柱列仍把三柱寫死在完成判定或版面");
+    const debateLaw = readFileSync(path.join(here,
+      "../../02_設計/發現之前_工作台與辯論架構_一二章實證規格_v0.1.md"), "utf-8");
+    for (const phrase of [
+      "柱數不寫死",
+      "引擎的預設值",
+      "正規化／補欄",
+      "存檔 sanitizer",
+      "schema 遷移"
+    ]) if (!debateLaw.includes(phrase))
+      throw new Error("跨章辯論柱數契約缺施工層:" + phrase);
+
+    const oldAsset = assets.entries.find((item) => item.id === "ch03_focus_old_paper_dossier_v01");
+    const oldFocus = assets.lineFocusVisual.find((item) =>
+      item.scene === "C0-3" && item.match === "舊紙已收入卷宗");
+    if (!oldAsset || !oldFocus)
+      throw new Error("舊紙特寫未同時登錄資產與 C0-3 台詞掛點");
+    if (!existsSync(path.join(here, "../../public/assets/", oldAsset.path)) ||
+        !existsSync(path.join(here, "../../", oldAsset.sourceMaster)) ||
+        !existsSync(path.join(here,
+          "../../art/source/production/ch03/props/PROMPT_OLD_PAPER_DOSSIER_20260729.md")))
+      throw new Error("舊紙特寫缺 runtime、母版或生成紀錄");
   }
 });
 

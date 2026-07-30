@@ -1841,10 +1841,22 @@
   }
   $("fxJump").addEventListener("click", advanceSceneFx);
   var lastFxScene = null; /* 蒙太奇只在「場景切換」那一刻放一次——bd:scene 每句都廣播,不去重會逐句重播 */
+  document.addEventListener("bd:start", function () { lastFxScene = null; });
   document.addEventListener("bd:scene", function (ev) {
     var sid = ev.detail.sceneId;
     if (sid === lastFxScene) return;
+    var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[sid];
+    /* 有 triggerMatch 的蒙太奇要等到那句舞台動作真的發生，不能在場景標題剛出現時搶先播完。 */
+    if (fx && fx.triggerMatch) return;
     if (playSceneFx(sid)) lastFxScene = sid;
+  });
+  document.addEventListener("bd:line", function (ev) {
+    var d = ev.detail || {};
+    if (d.replay || !d.scene || d.scene === lastFxScene) return;
+    var fx = ASSETS && ASSETS.sceneFx && ASSETS.sceneFx[d.scene];
+    if (!fx || !fx.triggerMatch ||
+        String(d.text || "").indexOf(String(fx.triggerMatch)) < 0) return;
+    if (playSceneFx(d.scene)) lastFxScene = d.scene;
   });
 
   /* ---------- 支柱破裂(bd:debate 差分) ---------- */

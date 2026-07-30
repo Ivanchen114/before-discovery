@@ -202,6 +202,10 @@
   body[data-view="review"] #dialogue, body[data-view="histfacts"] #dialogue,
   body[data-view="debate"] #dialogue { display: none; } /* 辯論:台詞演完即退場,讓出證據手牌(總監實玩:對話框壓住手牌) */
   body.queue-active #dialogue { display: block !important; }
+  /* 工作台對話框化(WB-CR-025):播話時工作台縮起讓位,對話框不壓住正在被質疑的紙;
+     ack 收隊後 queue-active 移除,工作台回滿版(尊重總監 20260720 實玩裁定:平時不佔位)。 */
+  body[data-view="ship"].queue-active #panelWrap,
+  body[data-view="lab"].queue-active #panelWrap,
   body[data-view="orbit"].queue-active #panelWrap { bottom: 33%; transition: bottom .25s ease; }
   /* 雙肖像槽(Sol 審核 20260720):位置+明暗+名牌文字+色彩=四線索;站位由 speakerSide 資料決定,永不鏡像 */
   .bslot { position: absolute; bottom: 0; height: clamp(170px, 26vh, 220px);
@@ -1829,15 +1833,38 @@
   .shipDossierLedgerPick input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .48; }
   .shipDossierNotebookPage .shipCandidateCard { background: rgba(255,252,238,.7); }
   .shipDossierDebateBoard { color: #38291d; }
+  .shipDossierDebateTrack { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .shipDossierDebateTrack .debatePillar { flex: 1 1 180px; min-width: 150px; }
+  .shipDossierDebateTrack .debateMeter { flex: 0 1 190px; min-width: 150px; }
   .shipDossierDebateTrack .debatePillar.isLocked { opacity: .5; border-style: dashed; filter: grayscale(.25); }
   .shipDossierDebateTrack .debatePillar.isLocked b { color: #746554; }
-  .shipDossierEvidenceHand { margin: 8px 0 12px; }
+  .shipDossierEvidenceInstruction { margin-bottom: 5px; }
+  .shipDossierEvidenceHand { margin: 5px 0 12px; scroll-padding-inline: 2px; }
   #controls.shipCaseLab .shipDossierEvidenceCard { flex-basis: 220px; min-height: 132px !important;
     justify-content: flex-start; gap: 5px; color: #38291d; border-color: rgba(104,76,46,.48) !important;
     background: linear-gradient(145deg,rgba(255,252,239,.98),rgba(225,207,170,.92)) !important; }
   .shipDossierEvidenceCard small { color: #7b5b38; font: 800 11px/1.3 var(--font-ui); letter-spacing: .06em; }
   .shipDossierEvidenceCard b { color: #3b2b1d; font-size: 16px; line-height: 1.35; }
-  .shipDossierEvidenceCard span { color: #65513d; font: 650 13px/1.45 var(--font-ui); }
+  .shipDossierEvidenceCard span { display: block; color: #65513d; font: 650 13px/1.45 var(--font-ui); }
+  .shipDossierEvidenceCard .shipDossierEvidenceVariables { padding-top: 4px; border-top: 1px dotted rgba(111,78,44,.34); }
+  .shipDossierEvidenceCard .shipDossierEvidenceScope { color: #315e54; font-weight: 800; }
+  .shipDossierEvidenceCard .shipDossierEvidenceIds { color: #765b3e; font-size: 11px; }
+  .shipDossierEvidenceCard.isCurrent { border: 2px solid #4f7f71 !important;
+    background: linear-gradient(145deg,rgba(245,255,246,.98),rgba(205,230,213,.94)) !important;
+    box-shadow: inset 5px 0 #4f7f71; }
+  .shipDossierActiveEvidence, .shipDossierQuestionPapers { margin: 8px 0 12px; padding: 10px 12px;
+    border: 1px solid rgba(85,112,91,.42); background: rgba(240,247,236,.5); }
+  .shipDossierActiveEvidence > small, .shipDossierQuestionPapers > small { color: #37685b;
+    font: 850 12px/1.3 var(--font-ui); letter-spacing: .06em; }
+  .shipDossierActiveEvidence .shipDossierEvidenceCard { margin-top: 6px; padding: 9px 11px; }
+  .shipDossierQuestionPapers h4 { margin: 3px 0 8px; color: #3e3022; font-size: 17px; }
+  .shipDossierQuestionPaperList { display: grid; grid-template-columns: repeat(auto-fit,minmax(225px,1fr)); gap: 7px; }
+  .shipDossierQuestionPaper { padding: 9px 11px; border: 1px solid rgba(113,78,42,.42);
+    background: linear-gradient(150deg,rgba(255,252,239,.96),rgba(233,218,184,.86)); }
+  .shipDossierQuestionPaper b, .shipDossierQuestionPaper span { display: block; }
+  .shipDossierQuestionPaper b { margin-bottom: 5px; color: #49331f; font-size: 15px; }
+  .shipDossierQuestionPaper span { color: #64503b; font: 700 13px/1.45 var(--font-ui); }
+  .shipDossierP3Summary { font-weight: 750; }
   @keyframes ship-paper-draw { to { stroke-dashoffset: 0; } }
   @keyframes ship-beat-appear { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
   .shipCandidateCard, .shipPillarCard { margin: 10px 0; padding: 10px 12px; border: 1px solid rgba(115,78,41,.48);
@@ -1878,6 +1905,9 @@
   .shipDossierPlayerLine { margin: 8px 0 5px; padding: 10px 12px; color: #263d44; border-left: 4px solid #4f8797; background: rgba(80,137,151,.1); }
   .shipDossierPlayerLine b { display: block; color: #315f6b; font: 800 13px var(--font-ui); }
   .shipDossierPlayerLine p { margin: 3px 0 0; font: 750 17px/1.5 var(--font-dialogue); }
+  .shipDossierOS { margin: 4px 0 10px; padding: 8px 12px; border-left: 2px dotted #6f9fc4; background: rgba(63,108,158,.07); }
+  .shipDossierOS b { display: block; color: #3d6f96; font: 800 12px var(--font-ui); }
+  .shipDossierOS p { margin: 3px 0 0; color: #1F5C8B; font: 600 italic 16px/1.55 var(--font-dialogue); }
   .shipDebateIntro { margin: 4px 0 10px; padding: 10px 12px; border: 1px solid rgba(118,79,42,.32); background: rgba(255,251,237,.42); }
   .shipDebateIntro p { margin: 5px 0; color: #3d3024; font-size: 16px; line-height: 1.5; }
   .shipDebateBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1948,6 +1978,7 @@
     .shipBlindPaper span { margin: 7px 0; }.shipDossierPillars { gap: 5px; margin: 8px 0; }
     .shipDossierPillar { min-height: 45px; padding: 6px 8px; }.shipDossierOpponent { padding: 8px; font-size: 14px; }
     .shipDossierPlayerLine { margin: 5px 0 3px; padding: 7px 9px; }.shipDossierPlayerLine p { font-size: 15px; line-height: 1.4; }
+    .shipDossierOS { margin: 3px 0 6px; padding: 6px 9px; }.shipDossierOS p { font-size: 14px; line-height: 1.45; }
     .shipDebateIntro { margin: 3px 0 6px; padding: 6px 8px; }.shipDebateIntro p { margin: 3px 0; font-size: 14px; line-height: 1.4; }
     .shipCandidateCard, .shipPillarCard { margin: 6px 0; padding: 7px 8px; }.shipCandidateCard h4 { font-size: 15px; }
     .shipCandidateSources { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
@@ -2605,21 +2636,21 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/debate5.js?v=20260727-ch05-v1"></script>
 <script src="data/histfacts.js"></script>
 <script src="data/histfacts2.js"></script>
-<script src="data/histfacts3.js"></script>
+<script src="data/histfacts3.js?v=20260730-ch03-p1"></script>
 <script src="data/histfacts4.js"></script>
 <script src="data/histfacts5.js?v=20260727-ch05-v1"></script>
-<script src="data/assets.js?v=asset-5d5169548cf5"></script>
-<script src="src/sanitize.js?v=asset-ba2947d8137a"></script>
+<script src="data/assets.js?v=asset-1360bcf28f08"></script>
+<script src="src/sanitize.js?v=asset-8eb37afbb03f"></script>
 <script src="src/save-envelope.js"></script>
 <script src="src/text-format.js?v=20260724-zh-character-names"></script>
 <script src="src/engine.js"></script>
 <script src="src/engine2.js"></script>
-<script src="src/engine3.js?v=20260727-ch03-flow-v5"></script>
+<script src="src/engine3.js?v=asset-e18483fa309a"></script>
 <script src="src/engine4.js?v=asset-c835d851f05b"></script>
 <script src="src/engine5.js?v=20260727-ch05-v1"></script>
 <script src="data/scenes.js?v=20260725-ch04-companion-v1"></script>
 <script src="data/scenes2.js?v=20260725-ch04-companion-v1"></script>
-<script src="data/scenes3.js?v=20260727-ch03-flow-v5"></script>
+<script src="data/scenes3.js?v=asset-9cb304e067f8"></script>
 <script src="data/scenes4.js?v=asset-18a5ed19550b"></script>
 <script src="data/scenes5.js?v=20260727-ch05-v1"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
@@ -2661,7 +2692,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/narrative.js?v=asset-cdd9fdc31216"></script>
-<script src="src/chapter-ui.js?v=asset-84453d2ebac2"></script>
-<script src="src/stage-ui.js?v=asset-8d452d38d498"></script>
+<script src="src/chapter-ui.js?v=asset-2be7d616d771"></script>
+<script src="src/stage-ui.js?v=asset-cd9ed5e5b26f"></script>
 </body>
 </html>

@@ -44,6 +44,155 @@
   function isInt(x) { return typeof x === "number" && isFinite(x) && Math.floor(x) === x; }
 
   /* 關鍵欄位白名單(需要 patterns/scenes 資料提供 enum) */
+  function ch3Close(a, b, tolerance) {
+    return typeof a === "number" && isFinite(a) &&
+      typeof b === "number" && isFinite(b) &&
+      Math.abs(a - b) <= tolerance;
+  }
+  function ch3CabinRowConsistent(row) {
+    if (!row || ["dock", "steady"].indexOf(row.stage) < 0 ||
+        row.water !== "水面沒有固定偏向" ||
+        row.ball !== "小球落在放手點正下方" ||
+        !Array.isArray(row.shoreGaps) || row.shoreGaps.length !== 3 ||
+        row.shoreGaps.some(function (gap) {
+          return typeof gap !== "number" || !isFinite(gap);
+        }))
+      return false;
+    if (row.stage === "dock") {
+      return row.classification === "岸標位置不變" &&
+        row.shoreGaps.every(function (gap) { return Math.abs(gap) <= 0.05; });
+    }
+    var maxGap = Math.max.apply(null, row.shoreGaps);
+    var minGap = Math.min.apply(null, row.shoreGaps);
+    var meanGap = row.shoreGaps.reduce(function (sum, gap) { return sum + gap; }, 0) /
+      row.shoreGaps.length;
+    return row.classification === "岸標間距近乎相同" &&
+      meanGap > 0.5 && maxGap - minGap <= 0.08;
+  }
+  function ch3PaperReadingError(paper) {
+    return paper && typeof paper.readingError === "number" && isFinite(paper.readingError)
+      ? Math.max(0, Math.abs(paper.readingError)) : 0;
+  }
+  function ch3DualPaperData(record) {
+    var shore = record && record.papers && record.papers.shore;
+    var ship = record && record.papers && record.papers.ship;
+    var shoreBeats = shore && Array.isArray(shore.beats) ? shore.beats : [];
+    var shipBeats = ship && Array.isArray(ship.beats) ? ship.beats : [];
+    if (!shore || !ship || shoreBeats.length < 2 || shoreBeats.length !== shipBeats.length)
+      return { ok: false, reason: "dual-paper-missing" };
+    var tolerance = Math.max(
+      0.006,
+      Math.max(ch3PaperReadingError(shore), ch3PaperReadingError(ship)) * 2.6
+    );
+    var transformedPoints = [];
+    for (var i = 0; i < shoreBeats.length; i++) {
+      var shorePoint = shoreBeats[i], shipPoint = shipBeats[i];
+      if (!shorePoint || !shipPoint ||
+          shorePoint.beat !== shipPoint.beat ||
+          !ch3Close(shorePoint.t, shipPoint.t, 0.002) ||
+          !ch3Close(shorePoint.y, shipPoint.y, 0.002) ||
+          !ch3Close(shipPoint.mastX, 0, 0.002))
+        return { ok: false, reason: "beats-mismatch" };
+      var shoreRelativeX = shorePoint.stoneX - shorePoint.mastX;
+      var shipX = shipPoint.stoneX;
+      var residual = shoreRelativeX - shipX;
+      if (!ch3Close(shoreRelativeX, shipX, tolerance))
+        return { ok: false, reason: "paper-transform-mismatch" };
+      transformedPoints.push({
+        beat: shorePoint.beat,
+        t: shorePoint.t,
+        y: shorePoint.y,
+        shoreRelativeX: shoreRelativeX,
+        shipX: shipX,
+        residual: residual
+      });
+    }
+    var p3Eligible = record && record.filed !== false &&
+      record.stage === "steady" && record.classification === "近似穩速" &&
+      record.release === "latch" && record.speedRecord === "beats" &&
+      (record.beatBand == null || record.beatBand === "mid") &&
+      record.positionRecord === "dual" &&
+      record.sameStone !== false && record.sameHeight !== false &&
+      shoreBeats.length >= 4;
+    return {
+      ok: true,
+      p3Eligible: !!p3Eligible,
+      tolerance: tolerance,
+      transformedPoints: transformedPoints,
+      maxResidual: Math.max.apply(null, transformedPoints.map(function (point) {
+        return Math.abs(point.residual);
+      }))
+    };
+  }
+  function ch3AnimationConsistent(animation) {
+    if (!animation || !Array.isArray(animation.path)) return false;
+    return animation.path.every(function (point) {
+      return point && ch3Close(point.relativeX, point.stoneX - point.mastX, 0.003);
+    });
+  }
+  function ch3TransformedPointsConsistent(p3, dualData) {
+    var saved = p3 && p3.transformedPoints;
+    if (saved == null) return true; /* 舊存檔尚未保存逐拍衍生表，仍可沿用原紙重建。 */
+    if (!dualData || !dualData.ok || !dualData.p3Eligible ||
+        !Array.isArray(saved) || saved.length !== dualData.transformedPoints.length)
+      return false;
+    for (var i = 0; i < saved.length; i++) {
+      var actual = saved[i], expected = dualData.transformedPoints[i];
+      if (!actual || actual.beat !== expected.beat ||
+          !ch3Close(actual.t, expected.t, 0.002) ||
+          !ch3Close(actual.y, expected.y, 0.002) ||
+          !ch3Close(actual.shoreRelativeX, expected.shoreRelativeX, 0.003) ||
+          !ch3Close(actual.shipX, expected.shipX, 0.003) ||
+          !ch3Close(actual.residual, actual.shoreRelativeX - actual.shipX, 0.003) ||
+          !ch3Close(actual.residual, expected.residual, 0.003))
+        return false;
+    }
+    if (p3.transformTolerance != null &&
+        !ch3Close(p3.transformTolerance, dualData.tolerance, 0.002))
+      return false;
+    if (p3.maxResidual != null &&
+        !ch3Close(p3.maxResidual, dualData.maxResidual, 0.002))
+      return false;
+    return true;
+  }
+  function ch3ResetP3Derived(lab, cf, dossier, keepAlignment) {
+    var p3 = dossier.debate.p3;
+    if (!keepAlignment) {
+      p3.source = null;
+      p3.sourceRecordId = null;
+      p3.question = false;
+      p3.concept = false;
+      p3.aligned = false;
+      dossier.assertions.A4 = false;
+      if (lab.overlay) {
+        lab.overlay.aligned = false;
+        lab.overlay.preview = "initial";
+      }
+    }
+    p3.transformed = false;
+    delete p3.transformedPoints;
+    delete p3.transformTolerance;
+    delete p3.maxResidual;
+    dossier.assertions.A5 = false;
+    dossier.debate.pillars.p3 = false;
+    dossier.debate.boundary = null;
+    dossier.complete = false;
+    if (dossier.debate.active) dossier.debate.current = "p3";
+    else dossier.debate.current = null;
+    cf.transformProgress = 0;
+    if (lab.overlay) {
+      lab.overlay.transformed = false;
+      if (keepAlignment) lab.overlay.preview = "sameBeats";
+    }
+    if (lab.evidence) {
+      lab.evidence.g4 = false;
+      lab.evidence.g5 = false;
+    }
+    if (lab.audit) lab.audit.boundary = false;
+    if (lab.publicDemo) lab.publicDemo.complete = false;
+  }
+
+  /* 關鍵欄位白名單(需要 patterns/scenes 資料提供 enum) */
   function sanitizeImport(state, patterns, scenes) {
     if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
     var generic = scrub(state, 0, { n: LIMITS.maxNodes });
@@ -412,10 +561,53 @@
             (dossier.debate.p2.scope != null && typeof dossier.debate.p2.scope !== "boolean") ||
             (dossier.debate.p2.scopeDiagnosis != null &&
               ["not-required", "required", "complete"].indexOf(dossier.debate.p2.scopeDiagnosis) < 0) ||
+            (dossier.debate.p3.sourceRecordId != null &&
+              (!isInt(dossier.debate.p3.sourceRecordId) || dossier.debate.p3.sourceRecordId < 1)) ||
+            (dossier.debate.p3.transformedPoints != null &&
+              (!Array.isArray(dossier.debate.p3.transformedPoints) ||
+                dossier.debate.p3.transformedPoints.length > 20)) ||
+            (dossier.debate.p3.transformTolerance != null &&
+              (typeof dossier.debate.p3.transformTolerance !== "number" ||
+                !isFinite(dossier.debate.p3.transformTolerance) ||
+                dossier.debate.p3.transformTolerance < 0 ||
+                dossier.debate.p3.transformTolerance > 10)) ||
+            (dossier.debate.p3.maxResidual != null &&
+              (typeof dossier.debate.p3.maxResidual !== "number" ||
+                !isFinite(dossier.debate.p3.maxResidual) ||
+                dossier.debate.p3.maxResidual < 0 ||
+                dossier.debate.p3.maxResidual > 10)) ||
             !Array.isArray(dossier.debate.p3.alignAttempts) ||
             !Array.isArray(dossier.debate.p3.transformAttempts) ||
             typeof dossier.complete !== "boolean")
           return fail("第三章自由實驗卷宗格式錯誤");
+        /*
+         * 舊存檔曾把「船艙／甲板」「換石頭」「改高度」畫成可調變因，
+         * 但自由落石模型並沒有對應的物理變化。載入後正規化為目前真正
+         * 可執行的甲板流程，避免存檔把已移除的假選項帶回介面。
+         */
+        dossier.draft.location = "deck";
+        dossier.draft.sameStone = true;
+        dossier.draft.sameHeight = true;
+        if (dossier.debate.p3.transformedPoints != null) {
+          for (var savedTransformPoint of dossier.debate.p3.transformedPoints) {
+            if (!savedTransformPoint || !isInt(savedTransformPoint.beat) ||
+                savedTransformPoint.beat < 0 || savedTransformPoint.beat > 20 ||
+                typeof savedTransformPoint.t !== "number" || !isFinite(savedTransformPoint.t) ||
+                savedTransformPoint.t < 0 || savedTransformPoint.t > 10 ||
+                typeof savedTransformPoint.y !== "number" || !isFinite(savedTransformPoint.y) ||
+                savedTransformPoint.y < 0 || savedTransformPoint.y > 100 ||
+                typeof savedTransformPoint.shoreRelativeX !== "number" ||
+                !isFinite(savedTransformPoint.shoreRelativeX) ||
+                Math.abs(savedTransformPoint.shoreRelativeX) > 100 ||
+                typeof savedTransformPoint.shipX !== "number" ||
+                !isFinite(savedTransformPoint.shipX) ||
+                Math.abs(savedTransformPoint.shipX) > 100 ||
+                typeof savedTransformPoint.residual !== "number" ||
+                !isFinite(savedTransformPoint.residual) ||
+                Math.abs(savedTransformPoint.residual) > 10)
+              return fail("第三章逐拍換尺資料格式錯誤");
+          }
+        }
         /*
          * C1、C2… 是目前逐回船艙原紙；C-dock／C-steady 是舊存檔
          * 在遷移前留下的兩組合併代號。兩者都須可安全匯入。
@@ -434,6 +626,7 @@
         }
         var dossierRows = dossier.records.slice();
         if (dossier.pendingRecord != null) dossierRows.push(dossier.pendingRecord);
+        var validP3Records = [], validP3ById = {};
         for (var dr of dossierRows) {
           if (!dr || !isInt(dr.id) || dr.id < 1 ||
               (dr.location != null && dr.location !== "deck") ||
@@ -453,6 +646,8 @@
               (dr.speedBand != null && ["slow", "mid", "fast"].indexOf(dr.speedBand) < 0) ||
               (dr.forceBand != null && ["soft", "hard"].indexOf(dr.forceBand) < 0) ||
               (dr.beatBand != null && ["slow", "mid", "fast"].indexOf(dr.beatBand) < 0) ||
+              (dr.dualPapers != null && typeof dr.dualPapers !== "boolean") ||
+              (dr.filed != null && typeof dr.filed !== "boolean") ||
               !Array.isArray(dr.offsets) || dr.offsets.length < 1 || dr.offsets.length > 3 ||
               dr.offsets.some(function (n) { return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 10; }))
             return fail("第三章自由實驗卷宗含無法辨識的原始紀錄");
@@ -465,6 +660,9 @@
                   typeof paper.origin !== "string" || paper.origin.length > 80 ||
                   !Array.isArray(paper.beats) || paper.beats.length > 20 ||
                   !Array.isArray(paper.landings) || paper.landings.length > 3 ||
+                  (paper.readingError != null &&
+                    (typeof paper.readingError !== "number" || !isFinite(paper.readingError) ||
+                      paper.readingError < 0 || paper.readingError > 1)) ||
                   paper.landings.some(function (n) {
                     return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 10;
                   }))
@@ -491,6 +689,60 @@
                 return fail("第三章落石動畫含無法辨識的座標");
             }
           }
+          var animationWasInconsistent = dr.animation != null && !ch3AnimationConsistent(dr.animation);
+          if (animationWasInconsistent) delete dr.animation;
+          var dualData = ch3DualPaperData(dr);
+          /*
+           * 原紙不一致時不替玩家補畫或改數字：只取消這筆的雙紙資格。
+           * 原始紀錄與兩張紙仍留在卷宗供查核，其他章節進度也不受影響。
+           */
+          if (dr.dualPapers == null && dualData.ok && !animationWasInconsistent &&
+              dr.release === "latch" && dr.speedRecord === "beats")
+            dr.dualPapers = true; /* 舊存檔兼容：由可驗證的兩張原紙恢復資格。 */
+          if (dr.dualPapers && (!dualData.ok || animationWasInconsistent)) dr.dualPapers = false;
+          if (dr !== dossier.pendingRecord && dr.filed !== false && dr.dualPapers &&
+              dualData.ok && dualData.p3Eligible) {
+            if (Object.prototype.hasOwnProperty.call(validP3ById, dr.id))
+              validP3ById[dr.id] = null; /* 重複編號不可作第三柱來源。 */
+            else {
+              var validP3Entry = { record: dr, dualData: dualData };
+              validP3ById[dr.id] = validP3Entry;
+              validP3Records.push(validP3Entry);
+            }
+          }
+        }
+        validP3Records = validP3Records.filter(function (entry) {
+          return validP3ById[entry.record.id] === entry;
+        });
+        var p3 = dossier.debate.p3;
+        var p3HasProgress = p3.sourceRecordId != null || p3.source === "dual-papers" ||
+          p3.question || p3.concept ||
+          p3.aligned || p3.transformed || dossier.assertions.A4 || dossier.assertions.A5 ||
+          dossier.debate.pillars.p3;
+        /*
+         * 舊存檔只有泛稱 dual-papers，沒有 sourceRecordId。若實際卷宗裡仍有
+         * 合格雙紙，綁定最後一筆已簽收原紙；若沒有，只退回第三柱，不清空全章。
+         */
+        if (p3.sourceRecordId == null && p3HasProgress && validP3Records.length)
+          p3.sourceRecordId = validP3Records[validP3Records.length - 1].record.id;
+        var sourceEntry = p3.sourceRecordId == null ? null : validP3ById[p3.sourceRecordId];
+        if (sourceEntry && p3.source == null) p3.source = "dual-papers";
+        if (p3HasProgress && !sourceEntry) {
+          ch3ResetP3Derived(lab, cf, dossier, false);
+        } else if (sourceEntry) {
+          if (p3.transformed && p3.transformedPoints == null) {
+            /* v1 舊存檔尚無逐拍衍生表；不信任孤立的彙總數字。 */
+            delete p3.transformTolerance;
+            delete p3.maxResidual;
+          }
+          var transformDataOk = ch3TransformedPointsConsistent(p3, sourceEntry.dualData);
+          if (!p3.transformed) {
+            delete p3.transformedPoints;
+            delete p3.transformTolerance;
+            delete p3.maxResidual;
+          } else if (!transformDataOk) {
+            ch3ResetP3Derived(lab, cf, dossier, true);
+          }
         }
         for (var cabinRow of dossier.blind.records || []) {
           if (!cabinRow || !/^C[1-9][0-9]*$/.test(cabinRow.id || "") ||
@@ -503,7 +755,8 @@
                 return typeof n !== "number" || !isFinite(n) || Math.abs(n) > 20;
               }) ||
               typeof cabinRow.water !== "string" || cabinRow.water.length > 80 ||
-              typeof cabinRow.ball !== "string" || cabinRow.ball.length > 80)
+              typeof cabinRow.ball !== "string" || cabinRow.ball.length > 80 ||
+              !ch3CabinRowConsistent(cabinRow))
             return fail("第三章船艙原紙格式錯誤");
         }
         if (dossier.blind.judgment === "comparison-recorded") {

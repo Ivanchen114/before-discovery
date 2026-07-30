@@ -89,7 +89,9 @@
   "ch5:E3-1": "bg_ch05_cirey_debate_evening",
   "ch5:E3-2": "bg_ch05_cirey_debate_evening",
   "ch5:EE-1": "bg_ch05_cirey_epilogue_night",
-  "ch5:EE-2": "bg_ch05_cirey_epilogue_night"
+  "ch5:EE-2": "bg_ch05_cirey_epilogue_night",
+  "INT-C1": "bg_ch03_marseille_harbor_dawn",
+  "INT-C2": "bg_ch03_public_demonstration"
  },
  "apparatusBriefings": {
   "ch3:C1-1": {
@@ -1296,11 +1298,11 @@
    "id": "bg_ch03_enclosed_cabin",
    "kind": "bg",
    "label": "密閉船艙",
-   "path": "ch03/backgrounds/ch03_bg_enclosed_cabin_v01.webp",
+   "path": "ch03/backgrounds/ch03_bg_enclosed_cabin_v02.webp",
    "firstScreen": false,
    "w": 1920,
    "h": 1080,
-   "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_enclosed_cabin_master_v01.png"
+   "sourceMaster": "art/source/production/ch03/backgrounds/ch03_bg_enclosed_cabin_master_v02.png"
   },
   {
    "id": "bg_ch03_speed_change_deck",
@@ -1386,11 +1388,11 @@
    "id": "ship3_g2_cabin",
    "kind": "cg",
    "label": "G2 封閉船艙共同運動互動底板",
-   "path": "ch03/experiments/ch03_lab_g2_cabin_v01.webp",
+   "path": "ch03/experiments/ch03_lab_g2_cabin_v02.webp",
    "firstScreen": false,
    "w": 1920,
    "h": 1080,
-   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g2_cabin_master_v01.png"
+   "sourceMaster": "art/source/production/ch03/experiments/ch03_lab_g2_cabin_master_v02.png"
   },
   {
    "id": "ship3_g3_accelerating",
@@ -1906,6 +1908,16 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_library_day_master_v01.png"
+  },
+  {
+   "id": "ch03_focus_old_paper_dossier_v01",
+   "kind": "cg",
+   "label": "維達爾船長舊紙正面（戲劇化重建）",
+   "path": "ch03/props/ch03_focus_old_paper_dossier_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/props/ch03_focus_old_paper_dossier_master_v01.png"
   }
  ],
  "sceneDialoguePortrait": {
@@ -2084,14 +2096,14 @@
   },
   "C0-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
+   "馬蒂厄": "dialogue_mathieu32",
+   "維達爾船長": "dialogue_captain50"
   },
   "C0-3": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
    "馬蒂厄": "dialogue_mathieu32",
-   "艾蒂安": "dialogue_etienne17"
+   "艾蒂安": "dialogue_etienne17",
+   "維達爾船長": "dialogue_captain50"
   },
   "C1-1": {
    "伽桑狄": "dialogue_gassendi48",
@@ -2100,17 +2112,17 @@
   },
   "C3-1": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
+   "馬蒂厄": "dialogue_mathieu32",
+   "維達爾船長": "dialogue_captain50"
   },
   "C3-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50",
-   "馬蒂厄": "dialogue_mathieu32"
+   "馬蒂厄": "dialogue_mathieu32",
+   "維達爾船長": "dialogue_captain50"
   },
   "CE-1": {
    "伽桑狄": "dialogue_gassendi48",
-   "艦長": "dialogue_captain50"
+   "維達爾船長": "dialogue_captain50"
   },
   "CE-2": {
    "伽桑狄": "dialogue_gassendi48"
@@ -2164,14 +2176,20 @@
    "牛頓": "dialogue_newton41",
    "哈雷": "dialogue_halley28"
   },
-  "DE-2": {}
+  "DE-2": {},
+  "INT-C1": {
+   "伽桑狄": "dialogue_gassendi48"
+  },
+  "INT-C2": {
+   "伽桑狄": "dialogue_gassendi48",
+   "維達爾船長": "dialogue_captain50"
+  }
  },
  "speakerDialoguePortrait": {
   "助手": "dialogue_assistant_earnest",
   "主持": "dialogue_host_formal",
   "年輕人": "dialogue_galileo26_neutral",
   "伽桑狄": "dialogue_gassendi48",
-  "艦長": "dialogue_captain50",
   "艾蒂安": "dialogue_etienne17",
   "馬蒂厄": "dialogue_mathieu32",
   "Newton": "dialogue_newton41",
@@ -2179,7 +2197,8 @@
   "牛頓": "dialogue_newton41",
   "哈雷": "dialogue_halley28",
   "杜夏特萊": "dialogue_du_chatelet34",
-  "杜佩院士": "dialogue_dupre58"
+  "杜佩院士": "dialogue_dupre58",
+  "維達爾船長": "dialogue_captain50"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -2188,7 +2207,6 @@
   "助手": "left",
   "主持": "right",
   "伽桑狄": "right",
-  "艦長": "left",
   "艾蒂安": "left",
   "馬蒂厄": "left",
   "Newton": "right",
@@ -2196,7 +2214,8 @@
   "牛頓": "right",
   "哈雷": "left",
   "杜夏特萊": "right",
-  "杜佩院士": "left"
+  "杜佩院士": "left",
+  "維達爾船長": "left"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -2255,6 +2274,17 @@
   }
  ],
  "lineFocusVisual": [
+  {
+   "scene": "C0-3",
+   "match": "舊紙已收入卷宗",
+   "items": [
+    {
+     "asset": "ch03_focus_old_paper_dossier_v01",
+     "alt": "戲劇化重建的舊紙正面攤在馬賽碼頭石台上，三顆石子壓住紙角，第四顆剛被挪開；紙上只有模糊欄線與一大片留白，沒有可讀署名或數字"
+    }
+   ],
+   "caption": "舊紙正面（戲劇化重建）：它只留下一次落在桅後的紀錄；船速欄空白，正面也沒有署名。"
+  },
   {
    "scene": "D1-1",
    "match": "旅人沿選中的方向畫下一條直線",
@@ -2667,6 +2697,7 @@
   },
   "C0-1": {
    "fx": "montage",
+   "triggerMatch": "頁面自己動了",
    "steps": [
     {
      "plate": "ch03_transition_1609_question_departs_v01",
@@ -2798,7 +2829,9 @@
   "D4-1": "ch4Press",
   "D4-2": "ch4Press",
   "DE-1": "ch4Principia",
-  "DE-2": "ch4Principia"
+  "DE-2": "ch4Principia",
+  "INT-C1": "ch3Harbor",
+  "INT-C2": "ch3Public"
  },
  "audioBasePath": "../public/assets/audio/",
  "bgmVersion": 2,
@@ -3071,9 +3104,9 @@
   "S4": "前人的實驗筆記提供線索，但主張仍須由你自己的裝置與數據成立。",
   "S5": "書中提出船直線穩速、無額外推石頭時的待驗預測；它不是實驗結果。",
   "G1": "岸紙確認走穩的三次落石：石頭相對船集中在桅腳附近。",
-  "G2": "停船與穩速時，封閉船艙中的滴水與拋接近乎相同。",
-  "G3": "放手後加速會使落點偏後，減速會使落點偏前；運動改變會留下相對偏移。",
-  "G4": "同一事件的船上與岸上紙帶；對齊鼓點並扣除桅杆位移後可互相轉換。",
+  "G2": "關閉艙窗後，停泊與走穩各做三回；水面都沒有固定偏向，小球也落在放手點正下方。岸紙另外確認哪三回在走穩。",
+  "G3": "解纜起步時落點偏後，出港平駛時接近桅腳；一次後偏不能代表所有前進船況。",
+  "G4": "同一事件的船上與岸上紙帶；先以同號鼓點對齊，再逐拍扣掉桅杆位置，這一趟的岸紙才能換成船紙。",
   "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。",
   "K1": "沒有向內偏折時月亮沿切線離開；每一拍向地心改向，才形成閉合軌道。",
   "K2": "距離與時間同放大六十倍時，反平方律把地表一秒落下與月球六十秒偏折接到同一量級。",
@@ -3244,23 +3277,23 @@
    "items": [
     {
      "asset": "ship3_g2_cabin",
-     "alt": "封閉船艙中的滴水與拋接"
+     "alt": "關閉艙窗後，停泊與走穩時的水面和垂直落球對照"
     }
    ],
-   "caption": "取得證據：船艙共同運動。"
+   "caption": "取得證據：關閉艙窗後，停泊與走穩各做三回；水面都沒有固定偏向，小球也落在放手點正下方。"
   },
   "G3": {
    "items": [
     {
      "asset": "ship3_g3_accelerating",
-     "alt": "加速甲板落點"
+     "alt": "解纜起步時偏到桅後的落點"
     },
     {
-     "asset": "ship3_g3_decelerating",
-     "alt": "減速甲板落點"
+     "asset": "ship3_g1_mast_steady",
+     "alt": "出港平駛時集中在桅腳附近的落點"
     }
    ],
-   "caption": "取得證據：加速與減速會留下相反方向的偏移。"
+   "caption": "取得證據：解纜起步時偏後，出港平駛時接近桅腳；一次後偏不能代表所有前進船況。"
   },
   "G4": {
    "items": [
@@ -3269,7 +3302,7 @@
      "alt": "船上與岸上的雙參考物紙帶"
     }
    ],
-   "caption": "取得證據：兩份軌跡可以互相轉換。"
+   "caption": "取得證據：先以同號鼓點對齊，再逐拍扣掉桅杆位置；這一趟的岸紙可以換成船紙。"
   },
   "G5": {
    "items": [
