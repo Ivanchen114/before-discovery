@@ -2,8 +2,8 @@
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
   "registry_status": "candidate",
-  "skill_version": "3.4.5-candidate",
-  "updated": "2026-07-30",
+  "skill_version": "3.4.7-candidate",
+  "updated": "2026-07-31",
   "truth_modes": [
     "AS-IS",
     "TO-BE",
@@ -573,12 +573,18 @@
             "一、跨章只保留三項認知責任",
             "3-1 左頁「I　裝置與校準」",
             "3-2c 目的卡（每相位／每輪開頭）",
-            "五、執行實驗＝一次一筆（`:1341–1364`）",
+            "五、執行實驗：一次決策，不等於一次滑鼠點擊（`:1341–1364`）",
+            "6-1 斷言成立必須有人接住",
+            "6-2 完成後可重播，但不能重做狀態",
+            "7-1 證據必須攤開，不能只剩答案按鈕（20260729 試玩裁決）",
+            "7-3 必要點擊必須支付新的認知工作（20260731 試玩裁決）",
+            "7-4 證據卡採漸進揭露（20260731 試玩裁決）",
+            "7-5 章別備忘依認知任務改寫",
             "⭐ 終局形式不限於三追問（20260726 依第四章實查補訂）"
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "只在 task 明示 workbench／debate／evidence-interaction／workbench-interaction 時讀；一般場景互動歸 narrative，本法源不是所有章的模板。"
+          "note": "只在 task 明示 workbench／debate／evidence-interaction／workbench-interaction 時讀；一般場景互動歸 narrative。本法源 v0.1.6 同時守操作決策密度、原始紀錄、斷言回應、筆記、無副作用重播、必要點擊資格、卡片分層與章別備忘，不是所有章的外形模板。"
         }
       ]
     },
@@ -1933,6 +1939,78 @@
           "supersedes": [],
           "blocks_skill_activation": true,
           "note": "第三章信譽前置與實驗授權工作包；P3 乾淨重建完成後仍待 Claude A=0、B=0。"
+        },
+        {
+          "id": "ch3.cr-027",
+          "path": "01_治理/發現之前_CH3-CR-027_實驗系列資料包與敘事鷹架_20260730.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime"
+          ],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、試玩病灶",
+            "2.1 重複實驗的操作單位",
+            "2.2 實驗鏈的敘事鷹架",
+            "2.3 斷言成立的戲劇支付",
+            "2.4 旅人筆記與重播",
+            "四、驗收條件"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "第三章真機試玩修正：一鍵固定三回但逐張留紙、資料組斷言、實驗轉場、NPC 核紙、筆記與無副作用重播；待 Claude CONFORMANCE A=0、B=0。"
+        },
+        {
+          "id": "ch3.cr-028",
+          "path": "01_治理/發現之前_CH3-CR-028_碼頭辯論節奏與證據卡分層_20260731.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime"
+          ],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、試玩病灶",
+            "二、三柱各自只支付一次認知責任",
+            "三、必按動作的資格",
+            "四、證據卡採漸進揭露",
+            "五、章別備忘",
+            "六、存檔回饋",
+            "八、驗收"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "第三章碼頭辯論減少重複認知收費、證據卡漸進揭露、章別備忘與第一章存檔可見回饋；待 Claude CONFORMANCE A=0、B=0。"
         },
         {
           "id": "ch3.current-cr",

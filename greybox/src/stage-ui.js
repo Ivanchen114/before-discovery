@@ -899,34 +899,87 @@
 
   /* ---------- 辯論備忘卡(首次進辯論廳;? 鈕重看)+信譽首動提示 ---------- */
   var debIntroSeen = false;
+  var debIntroReturnFocus = null;
+  var defaultDebateLines = Array.prototype.map.call($("debIntro").querySelectorAll("ol li"), function (li) {
+    return li.textContent;
+  });
+  function debateMemo(chapterId) {
+    if (chapterId === "ch3") return {
+      title: "旅人筆記・碼頭辯論備忘",
+      action: "回到木板",
+      lines: [
+        "三問不是三次小考——第一問用原紙說明共同前行；第二問替舊紙守住證據邊界；第三問把同一事件的兩個參考原點換算回來。",
+        "先選真正回答當前問題的證據。卡面只放判斷所需摘要；固定、改變與原紙編號可在「查看條件與原紙」展開。",
+        "已在實驗簿完成的分類不重考。只有出現新的反例、干擾變因或適用範圍時，船長才會追問。",
+        "岸紙與船紙不是兩次實驗。兩人記同一趟、共用鼓點；先對同號鼓點，再把岸紙每拍扣掉桅杆位置。",
+        "說服力歸零會回船複盤，原紙與已答完的柱仍保留。缺紙時可以先離場補做。"
+      ]
+    };
+    if (chapterId === "ch4") return {
+      title: "旅人筆記・出版校樣備忘",
+      action: "回到印刷台",
+      lines: [
+        "這章不是三柱辯論。你的對手是同一條律必須同時接回互相獨立的資料。",
+        "每一頁先確認它回答哪個缺口，再把計算、封存、對帳或署名接回正確來源。",
+        "錯接不會被系統擦掉；壞校樣留下，讓你看見信用與證據歸屬錯在哪裡。",
+        "旅人退出作者欄。你協助程序成立，不替歷史人物取得發現。"
+      ]
+    };
+    if (chapterId === "ch5") return {
+      title: "旅人筆記・兩本帳辯論備忘",
+      action: "上場",
+      lines: [
+        "三問依序上桌——院士先亮他最強的帳，再追問短少，最後主張兩本其實相同。",
+        "先問清，再配對——點「問到底」只會把前提說滿；支柱仍要由你選證詞、選證據親手擊破。",
+        "第一個勝利是承認對手——J1 證明院士的帳沒有錯；你要說的是它沒有記到全部問題。",
+        "配錯不刪紙——第一次失準免扣；之後說服力下降，歸零就和杜夏特萊複盤，已破支柱照舊保留。",
+        "最後不是選贏家——重讀同一批帳，再決定題目究竟該怎麼問。"
+      ]
+    };
+    return {
+      title: "旅人筆記・辯論備忘",
+      action: "上場",
+      lines: defaultDebateLines
+    };
+  }
+  function applyDebateMemo(chapterId) {
+    var memo = debateMemo(chapterId || CHAPTER_ID);
+    var list = $("debIntro").querySelector("ol");
+    $("debIntro").setAttribute("aria-label", memo.title);
+    $("debIntroTitle").textContent = memo.title;
+    $("btnDebIntroGo").textContent = memo.action;
+    while (list.firstChild) list.removeChild(list.firstChild);
+    memo.lines.forEach(function (line) {
+      var li = document.createElement("li");
+      li.textContent = line;
+      list.appendChild(li);
+    });
+    return memo;
+  }
+  function showDebateMemo(chapterId) {
+    applyDebateMemo(chapterId);
+    debIntroReturnFocus = document.activeElement;
+    $("debIntro").hidden = false;
+    $("btnDebIntroGo").focus();
+  }
   $("btnDebIntroGo").addEventListener("click", function () {
     $("debIntro").hidden = true;
-    $("btnDebHelp").focus();
+    if (debIntroReturnFocus && typeof debIntroReturnFocus.focus === "function")
+      debIntroReturnFocus.focus();
+    else $("btnDebHelp").focus();
   });
   (function mountDebHelp() {
     var b = document.createElement("button");
     b.id = "btnDebHelp"; b.type = "button";
     b.setAttribute("aria-label", "重看辯論備忘");
     b.textContent = "?";
-    b.addEventListener("click", function () { $("debIntro").hidden = false; $("btnDebIntroGo").focus(); });
+    b.addEventListener("click", function () { showDebateMemo(CHAPTER_ID); });
     $("panelWrap").appendChild(b);
   })();
-  if (CHAPTER_ID === "ch5") {
-    var ch5DebateList = $("debIntro").querySelector("ol");
-    var ch5DebateLines = [
-      "三問依序上桌——院士先亮他最強的帳，再追問短少，最後主張兩本其實相同。",
-      "先問清，再配對——點「問到底」只會把前提說滿；支柱仍要由你選證詞、選證據親手擊破。",
-      "第一個勝利是承認對手——J1 證明院士的帳沒有錯；你要說的是它沒有記到全部問題。",
-      "配錯不刪紙——第一次失準免扣；之後說服力下降，歸零就和杜夏特萊複盤，已破支柱照舊保留。",
-      "最後不是選贏家——重讀同一批帳，再決定題目究竟該怎麼問。"
-    ];
-    while (ch5DebateList.firstChild) ch5DebateList.removeChild(ch5DebateList.firstChild);
-    ch5DebateLines.forEach(function (text) {
-      var li = document.createElement("li");
-      li.textContent = text;
-      ch5DebateList.appendChild(li);
-    });
-  }
+  document.addEventListener("bd:open-debate-help", function (event) {
+    showDebateMemo(event && event.detail && event.detail.chapter || CHAPTER_ID);
+  });
+  applyDebateMemo(CHAPTER_ID);
   /* 量表說明=點/觸碰即顯(hover title 僅桌機加菜;雙線索原則,手機平板不靠懸停) */
   var hudTipTimer = null;
   function showHudTip(text) {
@@ -1240,6 +1293,9 @@
     var parts = [["run 紀錄", $("labRunsBody")], ["主張紀錄", $("labClaimsBody")]];
     var any = false;
     snap.innerHTML = "";
+    var custom = { target: snap, handled: false };
+    document.dispatchEvent(new CustomEvent("bd:notebook-snapshot", { detail: custom }));
+    if (custom.handled) return;
     parts.forEach(function (p) {
       var tbody = p[1];
       if (!tbody || !tbody.children.length) return;
@@ -1357,6 +1413,7 @@
     resumeTyping();
     if (!silent) $("btnDrawer").focus(); /* 焦點歸還 */
   }
+  document.addEventListener("bd:notebook-close", function () { closeNotebook(true); });
   $("btnDrawer").addEventListener("click", function () {
     if ($("notebook").hidden) openNotebook(); else closeNotebook();
   });

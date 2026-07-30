@@ -507,8 +507,9 @@
     var trialNumber = Math.max(1, Number(sameSetupTrial) || Number(id) || 1);
     var releaseVelocity = releaseVelocities[(trialNumber - 1) % releaseVelocities.length];
     /*
-     * 一次按下執行，只產生一張原紙。重複性必須由玩家真的重做，
-     * 不能用「做三回」下拉選單替他省掉兩次實驗。
+     * 這裡仍只生成「一回、一張原紙」。CH3-CR-027 的系列 action
+     * 會呼叫本函式三次；因此 UI 可以一次執行固定三回，原始散布與
+     * 每張紙的編號卻不會被平均值吃掉。
      */
     var offsets = [dossierMotion(
       draft.stage, vesselSpec.id, draft.speedBand, draft.forceBand,
@@ -1973,6 +1974,25 @@
     else if (xs.length < 30) xs.push(sourceId);
     return { state: s, ok: true, assertion: assertionId, selected: xs.slice() };
   }
+  function setDossierSourceGroup(state0, assertionId, sourceIds, selected) {
+    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
+    refreshDossierCandidates(d);
+    if (!d.candidates[assertionId]) return err(state0, "dossier-candidate-required");
+    var available = dossierAvailableSourceIds(d);
+    var ids = Array.isArray(sourceIds) ? sourceIds.map(String) : [];
+    if (!ids.length || ids.some(function (id) { return available.indexOf(id) < 0; }))
+      return err(state0, "unknown-dossier-source");
+    var xs = d.claimSelections[assertionId] || (d.claimSelections[assertionId] = []);
+    ids.forEach(function (id) {
+      var at = xs.indexOf(id);
+      if (selected && at < 0 && xs.length < 30) xs.push(id);
+      if (!selected && at >= 0) xs.splice(at, 1);
+    });
+    return {
+      state: s, ok: true, assertion: assertionId,
+      selected: xs.slice(), group: ids.slice()
+    };
+  }
   function setDossierDraft(state0, field, value) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
     if (d.pendingRecord) return err(state0, "dossier-paper-pending");
@@ -2041,14 +2061,11 @@
       borrowedNow: borrowedNow, dayCost: 1 + row.borrowDays
     };
   }
-  function fileDossierRecord(state0) {
-    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
-    if (!d.pendingRecord) return err(state0, "dossier-paper-required");
-    var row = clone(d.pendingRecord);
+  function dossierAppendFiledRecord(s, d, record) {
+    var row = clone(record);
     row.filed = true;
     row.dualPapers = dossierIsP3Record(row);
     d.records.push(row);
-    d.pendingRecord = null;
     d.nextRecordId = Math.max(d.nextRecordId, row.id + 1);
     /* 舊視覺載體同步保存，不讓新規則另造一套錯誤物理圖。 */
     var visualStage = row.classification === "停泊" || row.classification === "近似穩速" ? "v3" :
@@ -2066,8 +2083,56 @@
       s.caseFile.voyages.dual = clone(CASE_RUNS.dual);
       s.caseFile.voyages.dual.stage = "dual";
     }
+    return row;
+  }
+  function fileDossierRecord(state0) {
+    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
+    if (!d.pendingRecord) return err(state0, "dossier-paper-required");
+    var row = dossierAppendFiledRecord(s, d, d.pendingRecord);
+    d.pendingRecord = null;
     refreshDossierCandidates(d);
     return { state: s, ok: true, filed: true, record: clone(row), candidates: clone(d.candidates) };
+  }
+  function runDossierSeries(state0) {
+    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
+    var mission = dossierMissionId(d);
+    if (mission === "cabin") return err(state0, "cabin-comparison-required");
+    if (mission === "speed") return err(state0, "dossier-use-existing-comparison");
+    if (d.pendingRecord) return err(state0, "dossier-paper-pending");
+    var draft = dossierNormalizeSettings(dossierApplyGuidedLocks(d, clone(d.draft)));
+    if (draft.location !== "deck") return err(state0, "deck-experiment-required");
+    if (!DOSSIER_FIXTURES[draft.stage]) return err(state0, "unknown-dossier-stage");
+    if (DOSSIER_VESSEL_IDS.indexOf(draft.vesselId) < 0) return err(state0, "unknown-dossier-vessel");
+    d.draft = clone(draft);
+    var borrowedNow = d.borrowedVessels.indexOf(draft.vesselId) < 0;
+    if (borrowedNow) d.borrowedVessels.push(draft.vesselId);
+    var fingerprint = dossierTrialFingerprint(draft);
+    var priorCount = d.records.filter(function (record) {
+      return dossierTrialFingerprint(record) === fingerprint;
+    }).length;
+    /*
+     * 引導任務補足到三回，接住舊存檔中已完成一／兩回的進度；
+     * 自由補強的每次新決策固定再產生一組三回。雙視角是一個同步
+     * 事件，只產生一對岸紙／船紙，不硬湊三回。
+     */
+    var count = mission === "dual" ? 1 :
+      (mission === "explore" ? 3 : Math.max(0, 3 - priorCount));
+    if (count < 1) return err(state0, "dossier-series-complete");
+    var rows = [];
+    for (var i = 0; i < count; i += 1) {
+      var row = buildDossierRecord(draft, d.nextRecordId, priorCount + i + 1);
+      row.borrowDays = i === 0 && borrowedNow ? dossierVessel(draft.vesselId).borrowDays : 0;
+      rows.push(dossierAppendFiledRecord(s, d, row));
+    }
+    refreshDossierCandidates(d);
+    var borrowDays = borrowedNow ? dossierVessel(draft.vesselId).borrowDays : 0;
+    s.days += count + borrowDays;
+    return {
+      state: s, ok: true, filed: true, records: clone(rows),
+      record: clone(rows[rows.length - 1]), count: count,
+      borrowedNow: borrowedNow, dayCost: count + borrowDays,
+      candidates: clone(d.candidates)
+    };
   }
   function setDossierScope(state0, assertionId, choice) {
     var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
@@ -2141,6 +2206,46 @@
     return {
       state: s, ok: true, record: clone(row), records: clone(d.blind.records),
       dockCount: dockCount, steadyCount: steadyCount
+    };
+  }
+  function runDossierCabinSeries(state0) {
+    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
+    if (!d.assertions.A1) return err(state0, "steady-assertion-required");
+    if (!d.assertions.A3) return err(state0, "speed-assertion-required");
+    if (dossierMissionId(d) !== "cabin") return err(state0, "cabin-comparison-required");
+    var stage = d.draft.stage === "dock" ? "dock" : "steady";
+    var existing = d.blind.records.filter(function (item) { return item.stage === stage; }).length;
+    var count = Math.max(0, 3 - existing);
+    if (!count) return err(state0, "dossier-cabin-series-complete");
+    var rows = [];
+    for (var i = 0; i < count; i += 1) {
+      var serial = d.blind.records.length + 1;
+      var row = {
+        id: "C" + serial,
+        stage: stage,
+        stageLabel: stage === "dock" ? "繫纜停泊" : "出港平駛",
+        observer: "船艙內由伽桑狄記水面與落球；岸上由艾蒂安記船位",
+        classification: stage === "dock" ? "岸標位置不變" : "岸標間距近乎相同",
+        shoreGaps: stage === "dock" ? [0, 0, 0] : [1.5, 1.5, 1.5],
+        water: "水面沒有固定偏向",
+        ball: "小球落在放手點正下方"
+      };
+      d.blind.records.push(row);
+      rows.push(row);
+    }
+    d.blind.ran = true;
+    d.blind.unsealed = true;
+    d.blind.scope = false;
+    var dockCount = d.blind.records.filter(function (item) { return item.stage === "dock"; }).length;
+    var steadyCount = d.blind.records.filter(function (item) { return item.stage === "steady"; }).length;
+    d.blind.judgment = dockCount >= 3 && steadyCount >= 3 ? "comparison-recorded" : null;
+    s.caseFile.voyages.cabin = clone(CASE_RUNS.cabin);
+    s.caseFile.voyages.cabin.stage = "cabin";
+    refreshDossierCandidates(d);
+    s.days += count;
+    return {
+      state: s, ok: true, records: clone(rows), record: clone(rows[rows.length - 1]),
+      count: count, dockCount: dockCount, steadyCount: steadyCount
     };
   }
   function runDossierBlind(state0) {
@@ -2399,7 +2504,7 @@
     var playerLines = {
       p1: {
         source: {
-          A1: "我先用走穩三回的原紙回答：岸紙確認船速近乎不變，落點都在桅腳附近。",
+          A1: "我先用走穩三回的原紙回答：岸紙確認船速近乎不變。石頭鬆手前已和船一起前進；鬆手後，三回都落在桅腳附近。",
           A3: "我先用解纜起步的後偏原紙回答。",
           S1: "我先用徒手放石頭的散布原紙回答。"
         },
@@ -2414,7 +2519,7 @@
           S1: "徒手放下的三回，落點散開了。"
         },
         cabin: {
-          A2: "停泊三回、平駛三回；六回都有岸紙。封閉船艙裡只記水面和落球，兩組結果仍很接近。",
+          A2: "停泊三回、平駛三回；六回都有岸紙。封閉船艙隔開甲板風後，水面與落球結果仍相近；這只能回答甲板風不是必要條件。",
           A1: "甲板上的走穩三回都落在桅腳附近。",
           A3: "解纜起步那組落在桅後。"
         },
@@ -2490,7 +2595,8 @@
           "商人：「那張紙有資料，可它沒有回答走穩時為什麼不落後。」"); }
         db.p1.source = "A1";
         db.p1.steady = true;
-        db.lastReply = "維達爾船長：「紙我收下。先別念落點。石頭鬆手前也跟船一起往前；手一鬆，這件事怎麼算？」";
+        db.p1.concept = true;
+        db.lastReply = "維達爾船長：「共同前行這句，我收。可是甲板上有風——你怎麼知道不是風把石頭推回桅腳？」";
       } else if (step === "concept") {
         if (choice !== "shared-motion") return dossierFailDebate(s, pillar, step, choice, "concept-mismatch",
           "維達爾船長：（指著放手欄）「這一欄只有『鬆手』。你說的那股力，記在哪裡？」");
@@ -2509,7 +2615,13 @@
         if (choice !== "A2") return dossierFailDebate(s, pillar, step, choice, "evidence-mismatch",
           "槳手：（指紙角）「這張是在甲板上畫的。你拿哪一張隔開甲板風？」");
         db.p1.cabin = true;
-        db.lastReply = "伽桑狄：（把自己簽名的六張船艙紙攤開）「停泊三回，平駛三回。水面都沒有固定偏向，小球也都落在放手點正下方。」";
+        db.p1.concept = true;
+        db.p1.steady = true;
+        db.p1.wind = true;
+        db.pillars.p1 = true;
+        db.current = "p2";
+        db.lastReply = "伽桑狄：（把自己簽名的六張船艙紙攤開）「停泊三回，平駛三回。隔開甲板風後，兩組結果仍相近。」\n槳手：「你只說到紙能說的地方。這一問過了。下一問，船長那張舊紙。」";
+        dossierOS(d, "p1-done");
       } else if (step === "wind") {
         if (choice !== "limited-wind") return dossierFailDebate(s, pillar, step, choice, "overclaim",
           "槳手：（指著兩組標題）「船艙隔開的是甲板風。你憑哪一欄，替甲板那一趟的風下結論？」");
@@ -2526,7 +2638,12 @@
         if (choice !== "A3") return dossierFailDebate(s, pillar, step, choice, "evidence-mismatch",
           "維達爾船長：「那張紙沒有同時回答『船速正在改』和『落點在哪裡』。」");
         db.p2.source = "A3";
-        db.lastReply = "維達爾船長：（把今天的起步原紙壓在舊紙旁）「好。先說我的舊紙少了哪一欄。」";
+        db.p2.question = true;
+        db.p2.concept = true;
+        db.p2.steady = true;
+        db.p2.depart = true;
+        db.p2.old = true;
+        db.lastReply = "維達爾船長：（把今天的起步原紙壓在舊紙旁）「今天這張同時記了船愈走愈快和落點後偏；舊紙只記後偏，沒有當趟船速。你最多敢替舊紙說到哪裡？」";
         dossierOS(d, "p2-mine");
       } else if (step === "question") {
         if (choice !== "speed-change") return dossierFailDebate(s, pillar, step, choice, "question-mismatch",
@@ -2560,8 +2677,15 @@
         db.p2.old = true;
         db.lastReply = "馬蒂厄：（指空欄）「今天不能替八年前填。」";
       } else if (step === "boundary") {
+        if (!d.assertions.A6) return dossierMissing(s, "先把八年前只記落點後偏的舊紙放回桌上",
+          "維達爾船長：「你還沒拿到我的舊紙，不能替那一趟補船況。」");
         if (choice !== "same-pattern-not-proof") return dossierFailDebate(s, pillar, step, choice, "old-paper-overread",
           "維達爾船長：（指著舊紙的船速空欄）「你說它是哪種船況。這一格的數字在哪裡？」");
+        db.p2.question = true;
+        db.p2.concept = true;
+        db.p2.steady = true;
+        db.p2.depart = true;
+        db.p2.old = true;
         db.p2.boundary = true;
         db.lastReply = "槳手：（翻到原紙的條件欄）「最後一問。你這句話，究竟是在幾艘船上驗過的？」";
       } else if (step === "scope-diagnosis") {
@@ -2616,7 +2740,7 @@
     if (!d.debate.active || d.debate.current !== "p3") return err(state0, "dossier-debate-not-active");
     if (!dossierHasDual(d)) return dossierMissing(s, "需要同一事件的岸上紙與船上紙",
       "艾蒂安：「你還沒有一組同時從岸上與船上記下的原紙。」");
-    if (!p3.source || !p3.question || !p3.concept) return err(state0, "dossier-p3-premise-required");
+    if (!p3.source) return err(state0, "dossier-p3-premise-required");
     var sourceRecord = dossierFindDualRecord(d, p3.sourceRecordId);
     if (!sourceRecord) return dossierMissing(s, "第三柱引用的雙視角原紙已失效",
       "艾蒂安：「先重新選一筆同一趟的岸紙和船紙。這兩張現在對不上卷宗編號。」");
@@ -2646,6 +2770,8 @@
       };
     }
     p3.aligned = true;
+    p3.question = true;
+    p3.concept = true;
     d.assertions.A4 = true;
     s.overlay.aligned = true;
     s.overlay.preview = "sameBeats";
@@ -2750,6 +2876,8 @@
         "艾蒂安：「這一筆缺了岸紙、船紙或共同鼓號。換一筆完整的原紙。」");
       p3.source = "dual-papers";
       p3.sourceRecordId = sourceRecord.id;
+      p3.question = true;
+      p3.concept = true;
       p3.aligned = false;
       p3.transformed = false;
       p3.transformedPoints = [];
@@ -2759,7 +2887,7 @@
       d.assertions.A5 = false;
     } else p3[step] = true;
     d.debate.lastReply = step === "source"
-      ? "維達爾船長：「兩張都收。先別挑哪張比較順眼——第一步要先確定什麼？」"
+      ? "維達爾船長：「兩張都收。同一趟、同一鼓點；岸上從碼頭量，船上從桅杆量。現在先把同號鼓點對上。」"
       : (step === "question"
       ? "維達爾船長：「同一時刻先對上。現在告訴我：岸上和船上的人，各從哪裡開始量？」"
       : "商人：「好。現在當著我們的面，把它們對上。」");
@@ -2856,14 +2984,16 @@
     setCaseTransform: setCaseTransform, assertCaseDual: assertCaseDual,
     confirmCaseCriteria: confirmCaseCriteria, setCaseBoundary: setCaseBoundary,
     setDossierDraft: setDossierDraft, copyDossierRecord: copyDossierRecord,
-    runDossierExperiment: runDossierExperiment, fileDossierRecord: fileDossierRecord,
-    selectDossierSource: selectDossierSource,
+    runDossierExperiment: runDossierExperiment, runDossierSeries: runDossierSeries,
+    fileDossierRecord: fileDossierRecord, selectDossierSource: selectDossierSource,
+    setDossierSourceGroup: setDossierSourceGroup,
     setDossierScope: setDossierScope,
     isDossierP3Record: dossierIsP3Record,
     getDossierScopeProgress: getDossierScopeProgress,
     getDossierScopeOptions: getDossierScopeOptions,
     getDossierEvidenceCatalog: getDossierEvidenceCatalog,
     runDossierCabinComparison: runDossierCabinComparison,
+    runDossierCabinSeries: runDossierCabinSeries,
     runDossierBlind: runDossierBlind, judgeDossierBlind: judgeDossierBlind,
     enterDossierDebate: enterDossierDebate, leaveDossierDebate: leaveDossierDebate,
     selectDossierPillar: selectDossierPillar, answerDossierDebate: answerDossierDebate,

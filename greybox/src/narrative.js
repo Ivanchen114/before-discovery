@@ -924,12 +924,19 @@
     else if (action === "setDossierDraft" && Engine.setDossierDraft) r = Engine.setDossierDraft(state.lab, args.field, args.value);
     else if (action === "copyDossierRecord" && Engine.copyDossierRecord) r = Engine.copyDossierRecord(state.lab, args.recordId);
     else if (action === "runDossierExperiment" && Engine.runDossierExperiment) r = Engine.runDossierExperiment(state.lab);
+    else if (action === "runDossierSeries" && Engine.runDossierSeries) r = Engine.runDossierSeries(state.lab);
     else if (action === "fileDossierRecord" && Engine.fileDossierRecord) r = Engine.fileDossierRecord(state.lab);
     else if (action === "selectDossierSource" && Engine.selectDossierSource)
       r = Engine.selectDossierSource(state.lab, args.assertionId, args.sourceId);
+    else if (action === "setDossierSourceGroup" && Engine.setDossierSourceGroup)
+      r = Engine.setDossierSourceGroup(
+        state.lab, args.assertionId, args.sourceIds, args.selected
+      );
     else if (action === "setDossierScope" && Engine.setDossierScope) r = Engine.setDossierScope(state.lab, args.assertionId, args.choice);
     else if (action === "runDossierCabinComparison" && Engine.runDossierCabinComparison)
       r = Engine.runDossierCabinComparison(state.lab);
+    else if (action === "runDossierCabinSeries" && Engine.runDossierCabinSeries)
+      r = Engine.runDossierCabinSeries(state.lab);
     else if (action === "runDossierBlind" && Engine.runDossierBlind) r = Engine.runDossierBlind(state.lab);
     else if (action === "judgeDossierBlind" && Engine.judgeDossierBlind) r = Engine.judgeDossierBlind(state.lab, args.choice);
     else if (action === "enterDossierDebate" && Engine.enterDossierDebate) r = Engine.enterDossierDebate(state.lab);

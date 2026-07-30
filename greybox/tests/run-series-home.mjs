@@ -69,6 +69,7 @@ for (const fragment of [
   'class="chapterDirectoryBackdrop"',
   "目前選擇・已完成",
   "尚未開始",
+  "有未完成進度",
   'event.key === "Escape"'
 ]) assert(html.includes(fragment), `系列首頁缺少可擴充結構:${fragment}`);
 
@@ -87,6 +88,7 @@ for (const fragment of [
   "renderChapterDirectory(progress, current)",
   "setChapterStep",
   "chapter.question",
+  "已自動儲存｜",
   'status.textContent = complete ? "✓ 已完成"'
 ]) assert(ui.includes(fragment), `系列首頁缺資料驅動行為:${fragment}`);
 

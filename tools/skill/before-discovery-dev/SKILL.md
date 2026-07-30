@@ -5,7 +5,7 @@ description: Use for review, diagnosis, design, writing, implementation, testing
 
 # 《發現之前》開發路由器
 
-**版本**：v3.4.5-candidate（2026-07-30）
+**版本**：v3.4.7-candidate（2026-07-31）
 **狀態**：候選；Claude 獨立對抗審與總監裁決前，不同步成任何 agent 生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
@@ -175,6 +175,12 @@ git status --short
 一般場景 choice／embed 使用 `--task interaction`，歸 narrative；純
 `historical-inquiry` 不自動載入工作台。柱數、卡片欄位與操作細節只維護在該法源，
 不複製進 skill。
+
+工作台／證據互動的交付包，必須依 `design.workbench` 的現行 output contract
+逐項回報操作決策密度、原始紀錄可追查性、斷言回應、筆記可見性、重播副作用，
+以及每個必按動作究竟在支付選證據、做推論、限主張或資料轉換中的哪一項；
+辯論另須回報章別備忘與證據卡第一層的認知負荷；
+本 skill 只負責把任務送到該法源，不另存一份細節規則。
 
 劇本、故事、旅人心聲、角色聲線或「古代如何做出知識」的工作，使用
 `--task narrative`；同時涉及歷史情境、探究迴路與證據資格時，再加

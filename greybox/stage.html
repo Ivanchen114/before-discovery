@@ -77,7 +77,8 @@
 
   /* 台詞情境特寫：圖像是角色正在看的實物，不是另開的百科卡。置於選項後方、對話框上方。 */
   #sceneFocus { position: absolute; z-index: 18; top: 10.5%; left: 4%;
-    width: min(48%, 780px); max-height: 50%; box-sizing: border-box; margin: 0;
+    display: flex; flex-direction: column; width: min(48%, 780px); max-height: 50%;
+    box-sizing: border-box; margin: 0; overflow: hidden;
     padding: 7px; color: #e8dbc2; background: rgba(18,12,8,.9);
     border: 1px solid rgba(220,181,111,.62); border-radius: 7px;
     box-shadow: 0 12px 34px rgba(0,0,0,.58), inset 0 0 0 1px rgba(255,245,220,.08);
@@ -90,8 +91,9 @@
   #sceneFocus.evidence-acquired::before { content: "◆ 新證據已收入旅人筆記"; display: block;
     padding: 2px 7px 7px; color: #e9c778; font: 700 clamp(13px,1vw,16px)/1.3 var(--font-ui);
     letter-spacing: .05em; }
-  #sceneFocusMedia { display: grid; place-items: center; gap: 6px; }
-  #sceneFocusMedia img { display: block; width: 100%; max-height: 39vh; object-fit: contain;
+  #sceneFocusMedia { display: grid; flex: 1 1 auto; min-height: 0; overflow: hidden;
+    place-items: center; gap: 6px; }
+  #sceneFocusMedia img { display: block; width: 100%; max-height: 100%; min-height: 0; object-fit: contain;
     border-radius: 3px; background: rgba(239,228,201,.12); }
   #sceneFocusMedia .scene-focus-evidence { display: flex; align-items: center; justify-content: center;
     width: 100%; aspect-ratio: 8 / 5; padding: clamp(12px,2vw,26px); box-sizing: border-box;
@@ -136,7 +138,8 @@
   #sceneFocus.multi #sceneFocusMedia img { max-height: 32vh; }
   #sceneFocus.quad { width: min(64%, 1020px); left: 6%; }
   #sceneFocus.quad #sceneFocusMedia img { max-height: 18vh; }
-  #sceneFocusCaption { display: block; padding: 6px 7px 2px; font: 500 clamp(13px,1.05vw,16px)/1.4 var(--font-ui);
+  #sceneFocusCaption { display: block; flex: 0 0 auto; padding: 6px 7px 2px;
+    font: 500 clamp(13px,1.05vw,16px)/1.4 var(--font-ui);
     color: rgba(239,226,201,.9); letter-spacing: .02em; }
 
   /* --- 中央面板(實驗台/辯論/回顧/史實) --- */
@@ -1907,6 +1910,29 @@
   .shipDossierLedgerPick input[type="checkbox"] { width: 22px; height: 22px; margin: 0; vertical-align: middle;
     accent-color: #76502d; cursor: pointer; }
   .shipDossierLedgerPick input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .48; }
+  .shipDossierRawDetails { margin-top: 6px; color: #5e4b37; font-size: 12px; }
+  .shipDossierRawDetails summary { cursor: pointer; font-weight: 800; }
+  .shipDossierRawDetails ul { margin: 5px 0 0; padding-left: 20px; }
+  .shipDossierDesignDecision { margin: 12px 0; padding: 13px 14px; color: #3e2d1e;
+    border: 2px solid #9a6a37; background: rgba(255,244,213,.9);
+    box-shadow: inset 5px 0 rgba(154,106,55,.2); }
+  .shipDossierDesignDecision > small { color: #82552a; font: 850 12px var(--font-ui);
+    letter-spacing: .08em; }
+  .shipDossierDesignDecision h3 { margin: 4px 0 8px !important; color: #4b321f !important; }
+  .shipDossierDesignChoices { display: grid; gap: 7px; }
+  #controls.shipCaseLab .shipDossierDesignChoices .shipAction { width: 100%; text-align: left; }
+  .shipDossierSeriesResult { margin: 12px 0; padding: 12px; color: #f4e4c4;
+    border: 1px solid rgba(215,174,105,.72); background: rgba(21,26,23,.92); }
+  .shipDossierSeriesResult > small { color: #e9be73; font: 850 12px var(--font-ui); }
+  .shipDossierSeriesResult h3 { color: #ffe2a8 !important; border-color: rgba(222,178,105,.44) !important; }
+  .shipDossierReplayButtons { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0; }
+  .shipDossierReplayButtons .shipAction.active { color: #fff4d7; background: #78502c; }
+  .shipNotebookSnapshotTitle { margin: 4px 0 8px; font-weight: 900; }
+  .shipNotebookSnapshotGroup, .shipNotebookSnapshotClaims { margin: 7px 0; padding: 8px 9px;
+    border: 1px solid rgba(93,65,39,.35); background: rgba(255,251,234,.52); }
+  .shipNotebookSnapshotGroup p { margin: 3px 0; font-size: 13px; line-height: 1.4; }
+  .shipNotebookSnapshotGroup details { margin: 4px 0; font-size: 12px; }
+  .shipNotebookSnapshotGroup .shipNotebookReplay { width: 100%; margin-top: 5px; }
   .shipDossierNotebookPage .shipCandidateCard { background: rgba(255,252,238,.7); }
   .shipDossierDebateBoard { color: #38291d; }
   .shipDossierDebateTrack { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
@@ -1916,15 +1942,27 @@
   .shipDossierDebateTrack .debatePillar.isLocked b { color: #746554; }
   .shipDossierEvidenceInstruction { margin-bottom: 5px; }
   .shipDossierEvidenceHand { margin: 5px 0 12px; scroll-padding-inline: 2px; }
+  .shipDossierEvidenceOption { flex: 0 0 220px; display: flex; flex-direction: column;
+    border: 1px solid rgba(104,76,46,.35); background: rgba(251,245,226,.72); }
   #controls.shipCaseLab .shipDossierEvidenceCard { flex-basis: 220px; min-height: 132px !important;
     justify-content: flex-start; gap: 5px; color: #38291d; border-color: rgba(104,76,46,.48) !important;
     background: linear-gradient(145deg,rgba(255,252,239,.98),rgba(225,207,170,.92)) !important; }
+  #controls.shipCaseLab .shipDossierEvidenceOption .shipDossierEvidenceCard {
+    flex: 1 1 auto; width: 100%; border: 0 !important; border-radius: 0; }
   .shipDossierEvidenceCard small { color: #7b5b38; font: 800 11px/1.3 var(--font-ui); letter-spacing: .06em; }
   .shipDossierEvidenceCard b { color: #3b2b1d; font-size: 16px; line-height: 1.35; }
   .shipDossierEvidenceCard span { display: block; color: #65513d; font: 650 13px/1.45 var(--font-ui); }
   .shipDossierEvidenceCard .shipDossierEvidenceVariables { padding-top: 4px; border-top: 1px dotted rgba(111,78,44,.34); }
   .shipDossierEvidenceCard .shipDossierEvidenceScope { color: #315e54; font-weight: 800; }
   .shipDossierEvidenceCard .shipDossierEvidenceIds { color: #765b3e; font-size: 11px; }
+  .shipDossierEvidenceDetails { margin: 0; padding: 7px 9px; color: #5d4935;
+    border-top: 1px dotted rgba(111,78,44,.42); background: rgba(255,250,233,.78);
+    font: 700 12px/1.45 var(--font-ui); }
+  .shipDossierEvidenceDetails summary { cursor: pointer; color: #684925; font-weight: 850; }
+  .shipDossierEvidenceDetails span { display: block; margin-top: 5px; }
+  .shipDossierEvidenceThumb { display: block; width: calc(100% + 20px); height: 92px;
+    margin: -10px -10px 8px; object-fit: cover; object-position: center;
+    border-bottom: 1px solid rgba(103,73,40,.32); }
   .shipDossierEvidenceCard.isCurrent { border: 2px solid #4f7f71 !important;
     background: linear-gradient(145deg,rgba(245,255,246,.98),rgba(205,230,213,.94)) !important;
     box-shadow: inset 5px 0 #4f7f71; }
@@ -2029,6 +2067,7 @@
     .shipNotebookIndex { margin: 6px 0 8px; padding: 7px 8px; }
     .shipNotebookRow { grid-template-columns: minmax(130px,.72fr) minmax(0,1.28fr); gap: 5px; padding: 5px 0; }
     .shipNotebookRow strong { font-size: 13px; }.shipNotebookRow small { font-size: 12px; }
+    .shipDossierEvidenceOption { flex-basis: 185px; }
     #controls.shipCaseLab .shipDossierEvidenceCard { flex-basis: 185px; min-height: 108px !important; }
     .shipDossierEvidenceCard b { font-size: 15px; }.shipDossierEvidenceCard span { font-size: 12px; }
     .shipDossierSettings { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
@@ -2551,7 +2590,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
     <div id="debIntro" role="dialog" aria-modal="true" aria-label="辯論備忘" hidden>
       <div id="diSheet">
-        <h2>旅人筆記・辯論備忘</h2>
+        <h2 id="debIntroTitle">旅人筆記・辯論備忘</h2>
         <ol>
           <li><b>戰場</b>——對面那位用三根支柱撐起他的理論。支柱不倒,理論不倒。</li>
           <li><b>先偵察,再開火</b>——「問到底」找出證詞真正依靠的前提;讀洞見與手牌上的白話摘要,再選一張<b>能檢驗同一件事</b>的證據。</li>
@@ -2733,7 +2772,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-1694dc709620"></script>
 <script src="src/engine2.js?v=asset-03d600b8a7d5"></script>
-<script src="src/engine3.js?v=asset-54dbd8e0c687"></script>
+<script src="src/engine3.js?v=asset-77df19c3878e"></script>
 <script src="src/engine4.js?v=asset-321ebec4e356"></script>
 <script src="src/engine5.js?v=asset-8c6a10a864ce"></script>
 <script src="data/scenes.js?v=asset-3b9253a49618"></script>
@@ -2779,8 +2818,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-aa274ee9d740"></script>
-<script src="src/chapter-ui.js?v=asset-131a3fbf5a7d"></script>
+<script src="src/narrative.js?v=asset-22ff96c2e929"></script>
+<script src="src/chapter-ui.js?v=asset-6ed24becb049"></script>
 <script>
 (function () {
   "use strict";
@@ -2861,7 +2900,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     if (previewIntro) previewIntro.textContent = current.intro || "";
     if (status) status.textContent = completedCount
       ? "旅程進度・已完成 " + completedCount + "／" + chapters.length + " 章"
-      : "旅程起點";
+      : (currentSave ? "旅程進度・" + current.label + "有未完成進度" : "旅程起點");
     if (currentSave && currentSave.ended) {
       var continueButton = document.getElementById("btnContinue");
       if (continueButton) continueButton.textContent = "查看" + current.label + "結局";
@@ -2913,6 +2952,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   refreshDirectorySemantics();
 })();
 </script>
-<script src="src/stage-ui.js?v=asset-d291b81dbd18"></script>
+<script src="src/stage-ui.js?v=asset-6609af4e7989"></script>
 </body>
 </html>

@@ -8,6 +8,9 @@
     var parts = [["run 紀錄", $("labRunsBody")], ["主張紀錄", $("labClaimsBody")]];
     var any = false;
     snap.innerHTML = "";
+    var custom = { target: snap, handled: false };
+    document.dispatchEvent(new CustomEvent("bd:notebook-snapshot", { detail: custom }));
+    if (custom.handled) return;
     parts.forEach(function (p) {
       var tbody = p[1];
       if (!tbody || !tbody.children.length) return;
@@ -125,6 +128,7 @@
     resumeTyping();
     if (!silent) $("btnDrawer").focus(); /* 焦點歸還 */
   }
+  document.addEventListener("bd:notebook-close", function () { closeNotebook(true); });
   $("btnDrawer").addEventListener("click", function () {
     if ($("notebook").hidden) openNotebook(); else closeNotebook();
   });
