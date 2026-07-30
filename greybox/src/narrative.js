@@ -726,6 +726,9 @@
     }
     if (until.orbit) {
       var ob = state.lab || {}, oe = ob.evidence || {};
+      if (until.orbit === "source-k0")
+        return !!(ob.sourceLab && ob.sourceLab.tangentPrediction &&
+          ob.sourceLab.tangentPrediction.sealed);
       if (until.orbit === "tangent") return !!(ob.orbitLab && ob.orbitLab.tangentRecord);
       if (until.orbit === "closed") return !!(ob.orbitLab && ob.orbitLab.complete);
       if (until.orbit === "k1") return !!oe.k1;
@@ -739,9 +742,6 @@
       if (until.orbit === "k5") return !!oe.k5;
       if (until.orbit === "archive-complete")
         return !!(ob.archiveLab && ob.archiveLab.complete);
-      if (until.orbit === "source-k0")
-        return !!(ob.sourceLab && ob.sourceLab.tangentPrediction &&
-          ob.sourceLab.tangentPrediction.sealed);
     }
     if (until.collision) {
       var ce = state.lab && state.lab.evidence || {};
@@ -986,17 +986,17 @@
     else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
     else if (action === "assignCredit" && Engine.assignCredit) r = Engine.assignCredit(state.lab, args.contribution, args.person);
     else if (action === "setHookeScope" && Engine.setHookeScope) r = Engine.setHookeScope(state.lab, args.choice);
-    else if (action === "submitPartialProof" && Engine.submitPartialProof) r = Engine.submitPartialProof(state.lab, args.scope);
-    else if (action === "deferPress" && Engine.deferPress) r = Engine.deferPress(state.lab, args.reason);
-    else if (action === "setProofBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
-    else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
-    else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
     else if (action === "revealShellPage" && Engine.revealShellPage)
       r = Engine.revealShellPage(state.lab);
     else if (action === "placeShellPage" && Engine.placeShellPage)
       r = Engine.placeShellPage(state.lab);
     else if (action === "removeTravelerFromAuthorField" && Engine.removeTravelerFromAuthorField)
       r = Engine.removeTravelerFromAuthorField(state.lab);
+    else if (action === "submitPartialProof" && Engine.submitPartialProof) r = Engine.submitPartialProof(state.lab, args.scope);
+    else if (action === "deferPress" && Engine.deferPress) r = Engine.deferPress(state.lab, args.reason);
+    else if (action === "setProofBoundary" && Engine.setBoundary) r = Engine.setBoundary(state.lab, args.choice);
+    else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
+    else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
     else if (action === "clipEvidence" && Engine.clipEvidence) r = Engine.clipEvidence(state.lab, args.evidenceId);
     /* 第五章：同一批碰撞的兩本帳、4／8 追一筆與黏土深度。 */
     else if (action === "setCollisionDraft" && Engine.setDraft) r = Engine.setDraft(state.lab, args.field, args.value);
@@ -1021,13 +1021,13 @@
         grantEvidence(state, id, "ship3");
     });
     ["K1", "K2", "K3", "K4", "K5"].forEach(function (id) {
+      if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
+        grantEvidence(state, id, "orbit4");
       if (CHAPTER_ID === "ch4" && state.evidence[id] &&
           !(state.lab.evidence && state.lab.evidence[id.toLowerCase()])) {
         delete state.evidence[id];
         state.eventLog.push({ t: "evidenceRevoked", id: id, at: "orbit4-state-truth" });
       }
-      if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
-        grantEvidence(state, id, "orbit4");
     });
     ["J1", "J2", "J3"].forEach(function (id) {
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])

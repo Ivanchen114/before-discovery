@@ -152,7 +152,11 @@
     background: rgba(247, 240, 223, 0.96); }
   body[data-view="choice"] #panelWrap { display: block; left: auto; right: 3%; top: auto; bottom: 31%;
     max-width: 62%; background: none; border: none; box-shadow: none; padding: 0; overflow: visible; }
-  body.held #panelWrap { visibility: hidden; }
+  /* 敘事／選項播話時暫藏中央面板；工作台播話則保留並縮到對話框上方，
+     讓被質疑的紙與台詞同屏可見（WB-CR-025）。 */
+  body.held:not([data-view="ship"]):not([data-view="lab"]):not([data-view="orbit"]) #panelWrap {
+    visibility: hidden;
+  }
 
   #panelWrap h3 { margin: 6px 0 4px; font-size: 1.05em; border-bottom: 1px solid var(--color-ink-secondary); }
   #panelWrap table { border-collapse: collapse; margin: 6px 0; font-size: clamp(16px, 1.2vw, 17px); }
@@ -1374,12 +1378,12 @@
   .chapterStatusText span { display: block; color: #cfa96b; font: 600 11px/1.2 var(--font-ui); letter-spacing: .14em; }
   .chapterStatusText strong { display: block; margin-top: 3px; color: #f2e6cf;
     font: 600 clamp(19px,2vw,25px)/1.25 var(--font-dialogue); letter-spacing: .06em; }
-  .chapterJourneyNav { display: grid; grid-template-columns: minmax(0,1fr) minmax(150px,.78fr) minmax(0,1fr);
-    align-items: stretch; gap: 7px; margin: 0 0 9px; }
+  .chapterJourneyNav { display: flex; align-items: stretch; width: 100%; margin: 0 0 7px; }
   .chapterStep, .chapterDirectory > summary { box-sizing: border-box; min-width: 0; min-height: 46px;
     display: flex; flex-direction: column; justify-content: center; padding: 6px 10px;
     border: 1px solid rgba(230,215,189,.23); border-radius: 6px;
     background: rgba(16,11,8,.5); color: rgba(230,215,189,.75); }
+  .chapterStep[hidden] { display: none !important; }
   #titleCard .chapterStep { align-items: flex-start; text-align: left; box-shadow: none; }
   #titleCard .chapterStep.next { align-items: flex-end; text-align: right; }
   #titleCard .chapterStep:hover:not(:disabled), .chapterDirectory > summary:hover {
@@ -1390,36 +1394,78 @@
     color: #cfa96b; letter-spacing: .08em; }
   .chapterStep b, .chapterDirectory > summary b { max-width: 100%; overflow: hidden;
     font: 600 13px/1.25 var(--font-dialogue); white-space: nowrap; text-overflow: ellipsis; }
-  .chapterDirectory { min-width: 0; position: static; }
-  .chapterDirectory > summary { position: relative; align-items: center; text-align: center; cursor: pointer; list-style: none; }
+  .chapterDirectory { width: 100%; min-width: 0; position: static; }
+  #titleCard .chapterDirectory > summary { position: relative; flex-direction: row; align-items: center;
+    justify-content: space-between; gap: 18px; width: 100%; padding: 6px 44px 6px 18px;
+    text-align: left; cursor: pointer; list-style: none; }
+  .chapterDirectory > summary span { flex: 0 0 auto; }
+  .chapterDirectory > summary b { flex: 0 1 auto; text-align: right; }
   .chapterDirectory > summary::-webkit-details-marker { display: none; }
-  .chapterDirectory > summary::after { content: "＋"; position: absolute; margin-left: 116px;
-    color: rgba(207,169,107,.72); font: 600 14px/1 var(--font-ui); }
-  .chapterDirectory[open] > summary::after { content: "−"; }
-  .chapterDirectoryPanel { position: absolute; z-index: 12; top: 82px; right: 0;
-    box-sizing: border-box; width: min(720px,calc(100vw - 32px)); max-height: min(58vh,500px);
-    overflow: auto; padding: 12px; border: 1px solid rgba(207,169,107,.56); border-radius: 9px;
-    background: rgba(20,14,10,.985); box-shadow: 0 18px 42px rgba(0,0,0,.62); }
-  .chapterDirectoryHead { display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
-    margin: 0 1px 9px; color: rgba(230,215,189,.7); font: 500 11px/1.3 var(--font-ui); }
-  .chapterDirectoryHead strong { color: #f2e6cf; font: 600 16px/1.2 var(--font-dialogue); letter-spacing: .06em; }
-  .chapterRail { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 8px; }
-  .chapterPick { min-width: 0; min-height: 68px; display: grid;
-    grid-template-columns: auto minmax(0,1fr) auto; grid-template-rows: auto auto;
-    align-items: center; gap: 3px 9px; padding: 8px 10px; border: 1px solid rgba(230,215,189,.23);
-    border-radius: 6px; background: rgba(16,11,8,.5); color: rgba(230,215,189,.62);
+  .chapterDirectory > summary::after { content: ""; position: absolute; right: 18px; top: 50%;
+    box-sizing: border-box; width: 8px; height: 8px;
+    border-right: 1.5px solid rgba(207,169,107,.78);
+    border-bottom: 1.5px solid rgba(207,169,107,.78);
+    transform: translateY(-65%) rotate(45deg); transform-origin: center; }
+  .chapterDirectory[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+  .chapterDirectoryBackdrop { display: none; }
+  #titleCard .chapterDirectory[open] { position: static; width: auto; padding: 0; border: 0;
+    background: none; box-shadow: none; }
+  .chapterDirectory[open] .chapterDirectoryBackdrop { display: block; position: fixed; z-index: 70;
+    inset: 0; background: rgba(6,4,3,.76); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .chapterDirectoryPanel { display: none; }
+  .chapterDirectory[open] .chapterDirectoryPanel { position: fixed; z-index: 71; top: 50%; left: 50%;
+    display: block; box-sizing: border-box; width: min(680px,calc(100vw - 28px));
+    max-height: min(82vh,620px); overflow: auto; padding: 18px;
+    border: 1px solid rgba(207,169,107,.66); border-radius: 12px;
+    background: linear-gradient(150deg,rgba(37,25,17,.995),rgba(15,11,8,.995));
+    box-shadow: 0 24px 64px rgba(0,0,0,.78), inset 0 0 0 1px rgba(255,244,218,.05);
+    transform: translate(-50%,-50%); }
+  .chapterDirectoryHead { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start;
+    margin: 0 0 5px; }
+  .chapterDirectoryHeadText { min-width: 0; }
+  .chapterDirectoryEyebrow { display: block; margin-bottom: 4px; color: #cfa96b;
+    font: 600 10px/1.2 var(--font-ui); letter-spacing: .14em; }
+  .chapterDirectoryHead strong { display: block; color: #f2e6cf;
+    font: 600 22px/1.2 var(--font-dialogue); letter-spacing: .07em; }
+  .chapterDirectoryOverview { margin: 0 0 13px; color: rgba(230,215,189,.66);
+    font: 400 12px/1.45 var(--font-ui); }
+  #titleCard .chapterDirectoryClose { min-height: 38px; padding: 7px 11px; white-space: nowrap;
+    background: transparent; color: rgba(230,215,189,.78); border-color: rgba(230,215,189,.26); }
+  #titleCard .chapterDirectoryClose:hover { background: rgba(230,215,189,.08); color: #f2e6cf; }
+  .chapterRail { display: grid; grid-template-columns: minmax(0,1fr); gap: 7px; }
+  .chapterPick { min-width: 0; min-height: 64px; display: grid;
+    grid-template-columns: 40px minmax(0,1fr) auto; grid-template-rows: auto auto;
+    align-items: center; gap: 3px 10px; padding: 9px 12px; border: 1px solid rgba(230,215,189,.2);
+    border-radius: 7px; background: rgba(12,9,7,.52); color: rgba(230,215,189,.7);
     font-family: var(--font-ui); text-align: left; }
   .chapterPick .chNo { grid-row: 1 / 3; color: #cfa96b; font-size: 11px; letter-spacing: .08em; }
-  .chapterPick b { grid-column: 2; overflow: hidden; color: inherit; font: 600 15px/1.2 var(--font-dialogue);
-    white-space: nowrap; text-overflow: ellipsis; }
-  .chapterPick .chQuestion { grid-column: 2; overflow: hidden; color: rgba(230,215,189,.54);
-    font: 400 10px/1.25 var(--font-ui); white-space: nowrap; text-overflow: ellipsis; }
+  .chapterPick b { grid-column: 2; color: inherit; font: 600 15px/1.25 var(--font-dialogue);
+    white-space: normal; }
+  .chapterPick .chQuestion { grid-column: 2; color: rgba(230,215,189,.54);
+    font: 400 10px/1.35 var(--font-ui); white-space: normal; }
   .chapterPick .chState { grid-column: 3; grid-row: 1 / 3; font-size: 10px; white-space: nowrap; }
-  .chapterPick.isActive { border-color: rgba(207,169,107,.72); color: #f2e6cf;
-    background: rgba(122,75,42,.32); box-shadow: inset 3px 0 #cfa96b; }
+  #titleCard .chapterPick:hover { border-color: rgba(207,169,107,.58); color: #f2e6cf;
+    background: rgba(122,75,42,.18); }
+  #titleCard .chapterPick.isActive { border-color: rgba(207,169,107,.82); color: #f2e6cf;
+    background: rgba(122,75,42,.3); box-shadow: inset 4px 0 #cfa96b; }
+  #titleCard .chapterPick.isComplete:not(.isActive) { border-color: rgba(132,153,104,.48);
+    background: rgba(61,76,48,.16); }
   .chapterPick.isComplete .chState { color: #d9c277; font-weight: 700; }
-  .chapterPick.isComplete:not(.isActive) { border-color: rgba(128,151,102,.58); }
+  .chapterPick.hasProgress:not(.isActive) .chState { color: #d6b37a; }
   .chapterPick:disabled { cursor: default; opacity: .72; }
+  .chapterPreview { box-sizing: border-box; width: 100%; margin: 0 0 8px; padding: 8px 11px 9px 15px;
+    border-left: 3px solid rgba(207,169,107,.72);
+    border-radius: 0 6px 6px 0; background: linear-gradient(90deg,rgba(122,75,42,.18),rgba(16,11,8,.18)); }
+  .chapterPreviewMeta { display: flex; align-items: baseline; gap: 10px; margin: 0 0 3px; min-width: 0; }
+  .chapterPreviewYears { flex: 0 0 auto; color: #cfa96b; font: 600 10px/1.2 var(--font-ui);
+    letter-spacing: .08em; }
+  .chapterPreviewQuestion { min-width: 0; color: #f2e6cf;
+    font: 600 14px/1.3 var(--font-dialogue); letter-spacing: .025em; }
+  .chapterPreviewIntro { margin: 0; color: rgba(230,215,189,.7); font: 400 11px/1.45 var(--font-ui); }
+  .chapterDirectory > summary:focus-visible, #titleCard .chapterStep:focus-visible,
+  #titleCard .chapterPick:focus-visible, #titleCard .chapterDirectoryClose:focus-visible {
+    outline: 2px solid #f0cf8a; outline-offset: 3px;
+    box-shadow: 0 0 0 1px rgba(20,14,10,.9), 0 0 0 4px rgba(240,207,138,.24); }
   #titleCard fieldset { border: 1px solid rgba(230,215,189,0.22); background: rgba(230,215,189,0.045);
     border-radius: 8px; text-align: left; padding: 8px 10px 10px; margin: 0; }
   #titleCard legend { padding: 0 6px; color: #cfa96b; font: 600 12px/1.2 var(--font-ui);
@@ -1449,13 +1495,16 @@
   label.mode input:focus-visible + .mc { outline: 3px solid var(--color-focus); outline-offset: 2px; }
   .newGameActions { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin-top: 8px; }
   /* 按鈕階層:主動作=章節棕,次動作=空心;操作字一律黑體 */
-  #titleCard button { background: var(--color-chapter-accent); color: #f3e9d5;
+  #titleCard button { background: rgba(16,11,8,.52); color: rgba(243,233,213,.84);
     border: 1px solid rgba(230,215,189,0.45); border-bottom-color: rgba(18,11,7,0.75);
     border-radius: 6px; padding: 8px 18px; font-size: 14px; cursor: pointer;
     margin: 0; min-height: 42px; letter-spacing: .06em; font-family: var(--font-ui); font-weight: 600;
     transition: background var(--motion-instant) ease, transform var(--motion-instant) ease; }
-  #titleCard button:hover { background: #935c35; }
+  #titleCard button:hover { background: rgba(122,75,42,.42); }
   #titleCard button:active { transform: translateY(1px); }
+  #titleCard #btnNew, #titleCard #btnContinue, #titleCard #btnImport {
+    background: var(--color-chapter-accent); color: #f3e9d5; }
+  #titleCard #btnNew:hover, #titleCard #btnContinue:hover, #titleCard #btnImport:hover { background: #935c35; }
   #btnExport { background: transparent; color: #cfa96b; border-color: rgba(207,169,107,0.55); }
   #btnExport:hover { background: rgba(122,75,42,0.35); color: #f3e9d5; }
   #continueWrap { min-width: 180px; text-align: right; }
@@ -1488,11 +1537,20 @@
     .titleTagline { font-size: 12px; line-height: 1.45; }
     .chapterStatus { margin-bottom: 5px; }
     .chapterStatusText strong { font-size: 18px; }
-    .chapterJourneyNav { margin-bottom: 6px; }
+    .chapterJourneyNav { margin-bottom: 5px; }
     .chapterStep, .chapterDirectory > summary { min-height: 42px; padding: 4px 7px; }
     .chapterStep b, .chapterDirectory > summary b { font-size: 12px; }
-    .chapterDirectoryPanel { top: 62px; max-height: min(72vh,390px); padding: 9px; }
-    .chapterRail { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    #titleCard .chapterDirectory > summary { gap: 12px; padding: 4px 38px 4px 16px; }
+    .chapterDirectory > summary::after { right: 15px; }
+    .chapterPreview { margin-bottom: 5px; padding: 5px 8px 6px 13px; }
+    .chapterPreviewMeta { margin-bottom: 1px; }
+    .chapterPreviewQuestion { font-size: 12px; }
+    .chapterPreviewIntro { max-height: 1.45em; overflow: hidden; font-size: 10px; }
+    .chapterDirectory[open] .chapterDirectoryPanel { width: min(680px,calc(100vw - 18px));
+      max-height: calc(100vh - 16px); padding: 11px 12px; }
+    .chapterDirectoryHead { margin-bottom: 3px; }
+    .chapterDirectoryHead strong { font-size: 18px; }
+    .chapterDirectoryOverview { margin-bottom: 8px; font-size: 10px; }
     .chapterPick { min-height: 58px; padding: 6px 8px; }
     .chapterPick b { font-size: 13px; }
     #titleCard fieldset { padding: 5px 8px 7px; }
@@ -2599,24 +2657,36 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
             <span id="continueMeta"></span>
           </div>
         </div>
-        <div class="chapterJourneyNav" aria-label="相鄰章節與章節目錄">
-          <button type="button" class="chapterStep prev" id="btnPrevChapter">
+        <div class="chapterJourneyNav" aria-label="章節目錄">
+          <button type="button" class="chapterStep prev" id="btnPrevChapter" hidden aria-hidden="true" tabindex="-1">
             <span>上一章</span><b>這是第一章</b>
           </button>
           <details class="chapterDirectory" id="chapterDirectory">
-            <summary><span>旅程目錄</span><b id="chapterDirectoryMeta">查看全部章節</b></summary>
-            <div class="chapterDirectoryPanel">
+            <summary aria-haspopup="dialog"><span>選擇章節</span><b id="chapterDirectoryMeta">第 1 章・共 5 章</b></summary>
+            <div class="chapterDirectoryBackdrop" data-chapter-directory-close aria-hidden="true"></div>
+            <section class="chapterDirectoryPanel" role="dialog" aria-modal="true" aria-labelledby="chapterDirectoryTitle">
               <div class="chapterDirectoryHead">
-                <strong>全部章節</strong>
-                <span>選一章開始或重玩</span>
+                <div class="chapterDirectoryHeadText">
+                  <small class="chapterDirectoryEyebrow">旅程目錄</small>
+                  <strong id="chapterDirectoryTitle">選擇章節</strong>
+                </div>
+                <button type="button" class="chapterDirectoryClose" id="btnCloseChapterDirectory">關閉 ✕</button>
               </div>
+              <p class="chapterDirectoryOverview" id="chapterDirectoryOverview">選擇章節後，再決定開始、繼續或重玩。</p>
               <nav class="chapterRail" id="chapterRail" aria-label="章節選擇"></nav>
-            </div>
+            </section>
           </details>
-          <button type="button" class="chapterStep next" id="btnNextChapter">
+          <button type="button" class="chapterStep next" id="btnNextChapter" hidden aria-hidden="true" tabindex="-1">
             <span>下一章</span><b>第二章</b>
           </button>
         </div>
+        <article class="chapterPreview" aria-labelledby="chapterPreviewQuestion">
+          <p class="chapterPreviewMeta">
+            <span class="chapterPreviewYears" id="chapterPreviewYears">1590–1610</span>
+            <strong class="chapterPreviewQuestion" id="chapterPreviewQuestion">重物真的落得比較快嗎？</strong>
+          </p>
+          <p class="chapterPreviewIntro" id="chapterPreviewIntro">伽利略在帕多瓦研究斜面與落體，逐步把「重物落得更快」變成可測量、可辯論的問題。</p>
+        </article>
         <fieldset>
           <legend>從第一章開始・選擇模式（中途不可換）</legend>
           <div class="modeRow">
@@ -2647,29 +2717,29 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 </div>
 
-<script src="data/series.js"></script>
-<script src="data/patterns.js"></script>
-<script src="data/debate.js?v=asset-9afadd0ae79b"></script>
-<script src="data/debate2.js?v=asset-0c63280d5b1a"></script>
+<script src="data/series.js?v=asset-492d80f30cc7"></script>
+<script src="data/patterns.js?v=asset-ee07dbab238f"></script>
+<script src="data/debate.js?v=asset-0ba9140f7471"></script>
+<script src="data/debate2.js?v=asset-8610879d3916"></script>
 <script src="data/debate5.js?v=asset-7bde7921725c"></script>
-<script src="data/histfacts.js"></script>
-<script src="data/histfacts2.js"></script>
-<script src="data/histfacts3.js?v=20260730-ch03-p1"></script>
-<script src="data/histfacts4.js"></script>
-<script src="data/histfacts5.js?v=20260727-ch05-v1"></script>
-<script src="data/assets.js?v=asset-75f9117e9ae3"></script>
+<script src="data/histfacts.js?v=asset-7dcd468b722b"></script>
+<script src="data/histfacts2.js?v=asset-06953e62421e"></script>
+<script src="data/histfacts3.js?v=asset-ff2ba03ac549"></script>
+<script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
+<script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
+<script src="data/assets.js?v=asset-2b16f430bcbe"></script>
 <script src="src/sanitize.js?v=asset-bdef07bd1dae"></script>
-<script src="src/save-envelope.js"></script>
-<script src="src/text-format.js?v=20260724-zh-character-names"></script>
-<script src="src/engine.js"></script>
-<script src="src/engine2.js"></script>
+<script src="src/save-envelope.js?v=asset-ddfa4a45c13a"></script>
+<script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
+<script src="src/engine.js?v=asset-1694dc709620"></script>
+<script src="src/engine2.js?v=asset-03d600b8a7d5"></script>
 <script src="src/engine3.js?v=asset-54dbd8e0c687"></script>
 <script src="src/engine4.js?v=asset-321ebec4e356"></script>
-<script src="src/engine5.js?v=20260727-ch05-v1"></script>
-<script src="data/scenes.js?v=asset-660fa9b2d036"></script>
-<script src="data/scenes2.js?v=asset-134e03d8992f"></script>
+<script src="src/engine5.js?v=asset-8c6a10a864ce"></script>
+<script src="data/scenes.js?v=asset-3b9253a49618"></script>
+<script src="data/scenes2.js?v=asset-52557359226f"></script>
 <script src="data/scenes3.js?v=asset-e4110397f85f"></script>
-<script src="data/scenes4.js?v=asset-7191490a5755"></script>
+<script src="data/scenes4.js?v=asset-6de423aa1dc2"></script>
 <script src="data/scenes5.js?v=asset-8e63ab0d4695"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
@@ -2709,8 +2779,140 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-326626f98e67"></script>
-<script src="src/chapter-ui.js?v=asset-cb98b4791797"></script>
-<script src="src/stage-ui.js?v=asset-c1703e35ad89"></script>
+<script src="src/narrative.js?v=asset-aa274ee9d740"></script>
+<script src="src/chapter-ui.js?v=asset-131a3fbf5a7d"></script>
+<script>
+(function () {
+  "use strict";
+  var directory = document.getElementById("chapterDirectory");
+  var rail = document.getElementById("chapterRail");
+  if (!directory || !rail) return;
+
+  var chapters = window.GB && window.GB.DATA && window.GB.DATA.series
+    ? window.GB.DATA.series.chapters || [] : [];
+  var currentId = window.GB && window.GB.Narrative
+    ? window.GB.Narrative.CHAPTER_ID : "";
+  var saveKeys = {
+    ch1: "bd_ch1_save",
+    ch2: "bd_ch2_save",
+    ch3: "bd_ch3_save",
+    ch4: "before-discovery:chapter4:v1",
+    ch5: "before-discovery:chapter5:v1"
+  };
+  var lastFocus = null;
+
+  function localValue(key) {
+    try { return key ? localStorage.getItem(key) : null; } catch (e) { return null; }
+  }
+  function seriesProgress() {
+    try {
+      var parsed = JSON.parse(localValue("bd_series_progress_v1") || "null");
+      return parsed && parsed.schemaVersion === 1 && parsed.chapters ? parsed.chapters : {};
+    } catch (e) { return {}; }
+  }
+  function savedState(id) {
+    try { return JSON.parse(localValue(saveKeys[id]) || "null"); } catch (e) { return null; }
+  }
+  function refreshDirectorySemantics() {
+    var progress = seriesProgress();
+    var currentIndex = chapters.findIndex(function (chapter) { return chapter.id === currentId; });
+    var current = chapters[currentIndex];
+    var completedCount = chapters.filter(function (chapter) {
+      return progress[chapter.id] && progress[chapter.id].completed === true;
+    }).length;
+    var directoryMeta = document.getElementById("chapterDirectoryMeta");
+    var overview = document.getElementById("chapterDirectoryOverview");
+    if (directoryMeta)
+      directoryMeta.textContent = "第 " + (currentIndex + 1) + " 章・共 " + chapters.length + " 章";
+    if (overview)
+      overview.textContent = completedCount
+        ? "已完成 " + completedCount + "／" + chapters.length + " 章。選擇章節後，再決定繼續或重玩。"
+        : "尚未完成任何章節。從想探索的問題開始。";
+
+    Array.prototype.forEach.call(rail.querySelectorAll(".chapterPick"), function (button) {
+      var chapter = chapters.find(function (item) {
+        return item.route === button.getAttribute("data-chapter");
+      });
+      if (!chapter) return;
+      var complete = !!(progress[chapter.id] && progress[chapter.id].completed === true);
+      var hasSave = !!savedState(chapter.id);
+      var active = chapter.id === currentId;
+      var state = button.querySelector(".chState");
+      button.classList.toggle("hasProgress", hasSave && !complete);
+      if (state) state.textContent = active
+        ? (complete ? "目前選擇・已完成" : (hasSave ? "目前選擇・有進度" : "目前選擇"))
+        : (complete ? "✓ 已完成" : (hasSave ? "有進度" : "尚未開始"));
+    });
+
+    if (!current) return;
+    var currentSave = savedState(current.id);
+    var currentComplete = !!(progress[current.id] && progress[current.id].completed === true);
+    var verb = currentComplete ? "重玩" : (currentSave ? "重新開始" : "開始");
+    var newButton = document.getElementById("btnNew");
+    var legend = document.querySelector("#titleCard fieldset legend");
+    var status = document.querySelector(".chapterStatusText span");
+    var previewYears = document.getElementById("chapterPreviewYears");
+    var previewQuestion = document.getElementById("chapterPreviewQuestion");
+    var previewIntro = document.getElementById("chapterPreviewIntro");
+    if (newButton) newButton.textContent = verb + current.label;
+    if (legend) legend.textContent = verb + current.label + "・選擇模式（中途不可換）";
+    if (previewYears) previewYears.textContent = current.years || "";
+    if (previewQuestion) previewQuestion.textContent = current.question || "";
+    if (previewIntro) previewIntro.textContent = current.intro || "";
+    if (status) status.textContent = completedCount
+      ? "旅程進度・已完成 " + completedCount + "／" + chapters.length + " 章"
+      : "旅程起點";
+    if (currentSave && currentSave.ended) {
+      var continueButton = document.getElementById("btnContinue");
+      if (continueButton) continueButton.textContent = "查看" + current.label + "結局";
+    }
+  }
+  function closeDirectory() {
+    directory.open = false;
+  }
+  function modalControls() {
+    return Array.prototype.slice.call(
+      directory.querySelectorAll(".chapterDirectoryPanel button:not([disabled])")
+    );
+  }
+  function onKeydown(event) {
+    if (!directory.open) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeDirectory();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    var controls = modalControls();
+    if (!controls.length) return;
+    var first = controls[0];
+    var last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first.focus();
+    }
+  }
+
+  document.getElementById("btnCloseChapterDirectory").addEventListener("click", closeDirectory);
+  directory.querySelector("[data-chapter-directory-close]").addEventListener("click", closeDirectory);
+  directory.addEventListener("toggle", function () {
+    if (directory.open) {
+      lastFocus = document.activeElement;
+      refreshDirectorySemantics();
+      document.addEventListener("keydown", onKeydown);
+      window.requestAnimationFrame(function () {
+        document.getElementById("btnCloseChapterDirectory").focus();
+      });
+    } else {
+      document.removeEventListener("keydown", onKeydown);
+      if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+      lastFocus = null;
+    }
+  });
+  refreshDirectorySemantics();
+})();
+</script>
+<script src="src/stage-ui.js?v=asset-d291b81dbd18"></script>
 </body>
 </html>

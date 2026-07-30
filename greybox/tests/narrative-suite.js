@@ -76,7 +76,8 @@
     data.scenes.forEach(function (s) {
       s.nodes.forEach(function (n) {
         if (n.type !== "line" && n.type !== "system") return; /* choice 選項=玩家認知,豁免 */
-        if (n.speaker === "旅人") return;
+        if (n.speaker === "旅人" || n.speaker === "旅人(你)" ||
+            n.speaker === "旅人・心聲") return;
         var text = n.text || "";
         banned.forEach(function (w) {
           if (text.indexOf(w) >= 0 && !wl[s.id + "/" + n.id]) {

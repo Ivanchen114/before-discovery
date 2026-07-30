@@ -2500,7 +2500,7 @@
         doShip("runCaseVoyage",{stage:"cabin"},"✓ A、B 兩筆局部痕跡已留下；真實船況仍遮住。");
       },"shipAction primary");
       else {
-        result("第一筆：水面是平的，球落在手下。第二筆……一樣。","旅人");
+        result("第一筆：水面是平的，球落在手下。第二筆……一樣。","旅人（你）");
         if (!cf.cabinJudgment) {
           ship3El("p","只憑這碗水與這顆球，能判哪一筆停泊嗎？",work,"shipNote shipStepPrompt");
           [["a-dock","A 停泊，B 在走"],["b-dock","B 停泊，A 在走"],["indistinguishable","無法可靠分辨"]].forEach(function(o){
@@ -2695,6 +2695,15 @@
       A5: "把每一拍都改成從桅杆量，岸紙上的路徑就會和船紙相符"
     }[id] || id;
   }
+  function ship3DossierQuestionText(id) {
+    return {
+      A1: "這三張走穩原紙，最多能支持到哪個條件範圍？",
+      A2: "這六張艙內原紙，最多能比較哪些船況？",
+      A3: "把起步與走穩原紙並排，最多能區分到哪裡？",
+      S1: "這組徒手原紙，能可靠支持哪一種判斷？",
+      S4: "今天三種船況的原紙，最多能寫到哪個範圍？"
+    }[id] || "這組原紙最多能支持哪一種判斷？";
+  }
   function ship3DossierHasVisibleShore(record) {
     if (!record || record.speedRecord !== "beats") return false;
     var papers = record.papers || {};
@@ -2789,8 +2798,8 @@
     if (!id) return;
     var ready = !!(d.candidates && d.candidates[id]);
     var card = ship3El("section", null, work, "shipCandidateCard");
-    ship3El("small", ready ? "可以開始選資料" : "本輪要完成的斷言", card);
-    ship3El("h4", "○ " + ship3DossierAssertionText(id), card);
+    ship3El("small", ready ? "可以開始選資料" : "本輪要完成的問題", card);
+    ship3El("h4", "○ 問題：" + ship3DossierQuestionText(id), card);
     ship3El("p", ship3ExploreMode()
       ? "先挑能回答同一問題的原紙：核對次數、控制條件與對照組，再判斷資料最多能說到哪裡。"
       : "先選原紙，再判斷資料能支持哪一個範圍；提示不會預先標出答案。",

@@ -2,6 +2,9 @@ import { createRequire } from "module";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
+import {
+  assetVersionFor, localScriptAssetRefs
+} from "../tools/build-stage.mjs";
 
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -28,25 +31,54 @@ assert(Array.isArray(seriesJson.chapters) && seriesJson.chapters.length >= 4, "�
 
 const ids = new Set();
 const routes = new Set();
+const introHistoryAnchors = {
+  ch1: "伽利略",
+  ch2: "圭多巴爾多",
+  ch3: "1632 年《對話》",
+  ch4: "1684 年哈雷",
+  ch5: "杜夏特萊"
+};
 seriesJson.chapters.forEach((chapter, index) => {
   assert(chapter.id === `ch${index + 1}`, `章節 id 次序錯誤:${chapter.id}`);
   assert(/^ch\d{2}$/.test(chapter.route), `章節 route 格式錯誤:${chapter.route}`);
   assert(!ids.has(chapter.id), `章節 id 重複:${chapter.id}`);
   assert(!routes.has(chapter.route), `章節 route 重複:${chapter.route}`);
-  assert(chapter.number && chapter.label && chapter.title && chapter.question, `章節欄位不完整:${chapter.id}`);
+  assert(chapter.number && chapter.label && chapter.title && chapter.question && chapter.intro,
+    `章節欄位不完整:${chapter.id}`);
+  assert(chapter.intro.includes(introHistoryAnchors[chapter.id]),
+    `章節簡介缺少真實歷史錨點:${chapter.id}`);
   ids.add(chapter.id);
   routes.add(chapter.route);
 });
 
 for (const fragment of [
-  'src="data/series.js"',
   'id="btnPrevChapter"',
   'id="btnNextChapter"',
+  'id="btnPrevChapter" hidden aria-hidden="true" tabindex="-1"',
+  'id="btnNextChapter" hidden aria-hidden="true" tabindex="-1"',
   'id="chapterDirectory"',
   'id="chapterRail"',
-  "repeat(auto-fit,minmax(220px,1fr))"
+  'id="chapterPreviewYears"',
+  'id="chapterPreviewQuestion"',
+  'id="chapterPreviewIntro"',
+  "current.intro",
+  '"第 " + (currentIndex + 1) + " 章・共 " + chapters.length + " 章"',
+  "#titleCard .chapterDirectory > summary { position: relative",
+  'class="chapterDirectoryPanel" role="dialog" aria-modal="true"',
+  'id="btnCloseChapterDirectory"',
+  'class="chapterDirectoryBackdrop"',
+  "目前選擇・已完成",
+  "尚未開始",
+  'event.key === "Escape"'
 ]) assert(html.includes(fragment), `系列首頁缺少可擴充結構:${fragment}`);
 
+const seriesScript = localScriptAssetRefs(html)
+  .find((ref) => ref.path === "data/series.js");
+assert(seriesScript, "系列首頁缺少 data/series.js 掛點");
+assert(seriesScript.version === assetVersionFor(seriesScript.path),
+  "系列首頁 data/series.js 快取鍵未與內容雜湊同步");
+
+assert(!html.includes('content: "＋"'), "章節選擇器仍使用容易和進度文字重疊的加號");
 assert(!html.includes("repeat(4,minmax(0,1fr))"), "系列首頁仍把章節列寫死為四欄");
 assert(!html.includes('data-chapter="ch01"'), "系列首頁仍在 HTML 寫死章節卡");
 assert(!ui.includes('completedCount + "/4"'), "系列進度仍寫死總章數");

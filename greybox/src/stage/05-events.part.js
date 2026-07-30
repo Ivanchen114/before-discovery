@@ -3,6 +3,7 @@
   document.addEventListener("bd:evidence", function (ev) {
     var d = ev.detail || {};
     showEvidenceFocus(d.code, d.name || "新證據");
+    /* 實驗引擎直接入卷、沒有取得台詞時，也要和有台詞的證據得到同一套視聽回饋。 */
     playEvidenceGain($("sceneFocus"));
   });
   var lastReplay = null;
@@ -99,9 +100,8 @@
        (d.scene === "B2-3" && d.nodeId === "e1") ||
        (d.scene === "C1-1" && d.nodeId === "e1") ||
        (d.scene === "E1-2" && d.nodeId === "lab1") ||
-       /* 第四章真正交棒給軌道工作台的是 D1-2/e1。
-          D1-1 只有切線預測選擇；若仍綁在 D1-1，進 D1-2 時會繞過轉場閘，
-          讓整章備忘在牛頓最後一句尚未收掉前直接蓋上對話。 */
+       /* D1-1/e1 的 K0 封存刻意維持短操作；第四章大型工作台轉場
+          放在 D1-2/e1 的同尺紙，避免切線紙剛封好就被整章備忘蓋住。 */
        (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
@@ -111,7 +111,7 @@
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
         : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
         : (CHAPTER_ID === "ch5" ? "▸ 攤開兩本帳"
-        : (CHAPTER_ID === "ch4" ? "▸ 和牛頓把規則寫死"
+        : (CHAPTER_ID === "ch4" ? "▸ 攤開兩張紙開始對帳"
         : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")))));
       $("btnEmbark").hidden = false;
       syncFlags();
@@ -165,6 +165,11 @@
       var b = CHAPTER_ID === "ch1" ? $("labRun") : $("controls").querySelector("button");
       if (b) b.focus();
     }
+    /* WB-CR-025b：讓工作台表現層在玩家親手跨過閘門、完成焦點交接後，
+       才播放入場教練句；bd:line 會再把焦點交給對話框的 ack。 */
+    document.dispatchEvent(new CustomEvent("bd:embark", {
+      detail: { view: target, scene: targetScene }
+    }));
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false; ackPending = false;

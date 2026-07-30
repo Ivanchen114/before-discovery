@@ -50,6 +50,7 @@
   "ch2:SC-R1": "bg_ch02_projectile_workshop",
   "C0-1": "bg_ch03_marseille_harbor_dawn",
   "C0-2": "bg_ch03_marseille_harbor_dawn",
+  "INT-C1": "bg_ch03_marseille_harbor_dawn",
   "C0-3": "bg_ch03_marseille_harbor_dawn",
   "C1-1": "bg_ch03_moored_mast_deck",
   "C1-2": "bg_ch03_steady_sailing_deck",
@@ -62,6 +63,7 @@
   "C2-3": "bg_ch03_return_to_quay",
   "C2-4": "bg_ch03_reference_tapes_table",
   "C3-1": "bg_ch03_public_demonstration",
+  "INT-C2": "bg_ch03_public_demonstration",
   "C3-2": "bg_ch03_public_demonstration",
   "C3-3": "bg_ch03_public_demonstration",
   "C3-4": "bg_ch03_public_demonstration",
@@ -73,9 +75,14 @@
   "D1-1": "bg_ch04_woolsthorpe_study_1665",
   "D1-2": "bg_ch04_woolsthorpe_study_1665",
   "D-INT-1": "bg_ch04_woolsthorpe_study_1665",
+  "D1-3": "bg_ch04_woolsthorpe_study_1665",
   "D2-1": "bg_ch04_cambridge_hooke_letter_1679",
   "D2-2": "bg_ch04_cambridge_hooke_letter_1679",
+  "D2-3": "bg_ch04_cambridge_halley_1684",
   "D3-1": "bg_ch04_cambridge_halley_1684",
+  "D3-2": "bg_ch04_greenwich_observatory_1680s",
+  "D3-3": "bg_ch04_london_printshop_1687",
+  "D3-4": "bg_ch04_london_printshop_1687",
   "D4-1": "bg_ch04_cambridge_halley_1684",
   "D4-2": "bg_ch04_london_printshop_1687",
   "DE-1": "bg_ch04_london_printshop_1687",
@@ -92,9 +99,7 @@
   "ch5:E3-2": "bg_ch05_cirey_debate_evening",
   "ch5:EE-1": "bg_ch05_cirey_epilogue_night",
   "ch5:EE-2": "bg_ch05_cirey_epilogue_night",
-  "ch5:SC5-R1": "bg_ch05_cirey_debate_evening",
-  "INT-C1": "bg_ch03_marseille_harbor_dawn",
-  "INT-C2": "bg_ch03_public_demonstration"
+  "ch5:SC5-R1": "bg_ch05_cirey_debate_evening"
  },
  "apparatusBriefings": {
   "ch3:C1-1": {
@@ -1278,6 +1283,16 @@
    "sourceMaster": "art/source/production/ch03/cards/ch03_card_S5_dialogue_ship_cabin_master_v01.png"
   },
   {
+   "id": "ch03_focus_old_paper_dossier_v01",
+   "kind": "cg",
+   "label": "維達爾船長舊紙正面（戲劇化重建）",
+   "path": "ch03/props/ch03_focus_old_paper_dossier_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/props/ch03_focus_old_paper_dossier_master_v01.png"
+  },
+  {
    "id": "bg_ch03_moored_mast_deck",
    "kind": "bg",
    "label": "繫泊船桅甲板",
@@ -1911,16 +1926,6 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_library_day_master_v01.png"
-  },
-  {
-   "id": "ch03_focus_old_paper_dossier_v01",
-   "kind": "cg",
-   "label": "維達爾船長舊紙正面（戲劇化重建）",
-   "path": "ch03/props/ch03_focus_old_paper_dossier_v01.webp",
-   "firstScreen": false,
-   "w": 1672,
-   "h": 941,
-   "sourceMaster": "art/source/production/ch03/props/ch03_focus_old_paper_dossier_master_v01.png"
   }
  ],
  "sceneDialoguePortrait": {
@@ -2099,14 +2104,14 @@
   },
   "C0-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "馬蒂厄": "dialogue_mathieu32",
-   "維達爾船長": "dialogue_captain50"
+   "維達爾船長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C0-3": {
    "伽桑狄": "dialogue_gassendi48",
+   "維達爾船長": "dialogue_captain50",
    "馬蒂厄": "dialogue_mathieu32",
-   "艾蒂安": "dialogue_etienne17",
-   "維達爾船長": "dialogue_captain50"
+   "艾蒂安": "dialogue_etienne17"
   },
   "C1-1": {
    "伽桑狄": "dialogue_gassendi48",
@@ -2115,13 +2120,13 @@
   },
   "C3-1": {
    "伽桑狄": "dialogue_gassendi48",
-   "馬蒂厄": "dialogue_mathieu32",
-   "維達爾船長": "dialogue_captain50"
+   "維達爾船長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "C3-2": {
    "伽桑狄": "dialogue_gassendi48",
-   "馬蒂厄": "dialogue_mathieu32",
-   "維達爾船長": "dialogue_captain50"
+   "維達爾船長": "dialogue_captain50",
+   "馬蒂厄": "dialogue_mathieu32"
   },
   "CE-1": {
    "伽桑狄": "dialogue_gassendi48",
@@ -2151,6 +2156,10 @@
    "Newton": "dialogue_newton22",
    "牛頓": "dialogue_newton22"
   },
+  "D1-3": {
+   "Newton": "dialogue_newton22",
+   "牛頓": "dialogue_newton22"
+  },
   "D2-1": {
    "Newton": "dialogue_newton41",
    "牛頓": "dialogue_newton41"
@@ -2159,7 +2168,30 @@
    "Newton": "dialogue_newton41",
    "牛頓": "dialogue_newton41"
   },
+  "D2-3": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
+  },
   "D3-1": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
+  },
+  "D3-2": {
+   "Newton": "dialogue_newton41",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
+  },
+  "D3-3": {
+   "Newton": "dialogue_newton41",
+   "Halley": "dialogue_halley28",
+   "牛頓": "dialogue_newton41",
+   "哈雷": "dialogue_halley28"
+  },
+  "D3-4": {
    "Newton": "dialogue_newton41",
    "Halley": "dialogue_halley28",
    "牛頓": "dialogue_newton41",
@@ -2206,6 +2238,7 @@
   "主持": "dialogue_host_formal",
   "年輕人": "dialogue_galileo26_neutral",
   "伽桑狄": "dialogue_gassendi48",
+  "維達爾船長": "dialogue_captain50",
   "艾蒂安": "dialogue_etienne17",
   "馬蒂厄": "dialogue_mathieu32",
   "Newton": "dialogue_newton41",
@@ -2213,8 +2246,7 @@
   "牛頓": "dialogue_newton41",
   "哈雷": "dialogue_halley28",
   "杜夏特萊": "dialogue_du_chatelet34",
-  "杜佩院士": "dialogue_dupre58",
-  "維達爾船長": "dialogue_captain50"
+  "杜佩院士": "dialogue_dupre58"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -2223,6 +2255,7 @@
   "助手": "left",
   "主持": "right",
   "伽桑狄": "right",
+  "維達爾船長": "left",
   "艾蒂安": "left",
   "馬蒂厄": "left",
   "Newton": "right",
@@ -2230,8 +2263,7 @@
   "牛頓": "right",
   "哈雷": "left",
   "杜夏特萊": "right",
-  "杜佩院士": "left",
-  "維達爾船長": "left"
+  "杜佩院士": "left"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -2256,9 +2288,9 @@
   {
    "scene": "A3-D",
    "speaker": "辛普里奧",
-   "match": "反而更難駁",
+   "match": "老夫反倒拿你沒辦法",
    "asset": "dialogue_simplicio72_solemn_respect",
-   "note": "trap 誠實收束:一輩子頭一回"
+   "note": "trap 誠實收束:一輩子頭一回(CH1-CR-010 台詞白話化後同步 match)"
   },
   {
    "scene": "A2-2",
@@ -2840,9 +2872,14 @@
   "D1-1": "ch4Orbit",
   "D1-2": "ch4Orbit",
   "D-INT-1": "timePassage",
+  "D1-3": "ch4Orbit",
   "D2-1": "ch4Hooke",
   "D2-2": "ch4Hooke",
+  "D2-3": "ch4Predictions",
   "D3-1": "ch4Predictions",
+  "D3-2": "ch4Greenwich",
+  "D3-3": "ch4Press",
+  "D3-4": "ch4Press",
   "D4-1": "ch4Press",
   "D4-2": "ch4Press",
   "DE-1": "ch4Principia",
