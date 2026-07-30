@@ -5,7 +5,7 @@ description: Use for review, diagnosis, design, writing, implementation, testing
 
 # 《發現之前》開發路由器
 
-**版本**：v3.4.4-candidate（2026-07-30）
+**版本**：v3.4.5-candidate（2026-07-30）
 **狀態**：候選；Claude 獨立對抗審與總監裁決前，不同步成任何 agent 生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
@@ -295,7 +295,8 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py validate --activ
 
 1. Claude 完成獨立對抗審；
 2. 流程法源已獲總監裁決且狀態為 active；
-3. registry 的 active 必讀來源已進入 HEAD commit；只存在 index 暫存區不算；
+3. registry 的 active 必讀來源已進入 HEAD commit，且 worktree 內容逐路徑等於
+   HEAD；只存在 index 暫存區、未提交修改或未追蹤子檔都不算；
 4. 鏡像一致；
 5. 三種真相模式與 R0–R4 盲測通過；
 6. `validate --activation` 全綠。

@@ -2,7 +2,7 @@
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
   "registry_status": "candidate",
-  "skill_version": "3.4.4-candidate",
+  "skill_version": "3.4.5-candidate",
   "updated": "2026-07-30",
   "truth_modes": [
     "AS-IS",

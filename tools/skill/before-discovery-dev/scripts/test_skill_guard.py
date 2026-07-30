@@ -143,6 +143,45 @@ class ActivationLifecycleTests(unittest.TestCase):
                 )
             )
 
+    def test_modified_active_source_does_not_satisfy_activation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo = self.make_git_repo(Path(temp_dir))
+            active = repo / "active.md"
+            active.write_text("# Active\n", encoding="utf-8")
+            self.assertEqual(self.git(repo, "add", "active.md").returncode, 0)
+            self.assertEqual(
+                self.git(repo, "commit", "-m", "track active").returncode,
+                0,
+            )
+
+            active.write_text("# Active\n\nLocal drift.\n", encoding="utf-8")
+            self.assertTrue(guard_module.present_in_head(active, repo))
+            self.assertFalse(guard_module.matches_head(active, repo))
+            self.assertFalse(
+                guard_module.source_versioned_for_validation(
+                    active,
+                    "active",
+                    True,
+                    repo,
+                )
+            )
+
+    def test_untracked_child_inside_active_directory_does_not_match_head(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo = self.make_git_repo(Path(temp_dir))
+            active_dir = repo / "active"
+            active_dir.mkdir()
+            (active_dir / "law.md").write_text("# Law\n", encoding="utf-8")
+            self.assertEqual(self.git(repo, "add", "active/law.md").returncode, 0)
+            self.assertEqual(
+                self.git(repo, "commit", "-m", "track active directory").returncode,
+                0,
+            )
+            self.assertTrue(guard_module.matches_head(active_dir, repo))
+
+            (active_dir / "local.md").write_text("# Local\n", encoding="utf-8")
+            self.assertFalse(guard_module.matches_head(active_dir, repo))
+
     def test_modified_skill_package_does_not_match_head(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repo = self.make_git_repo(Path(temp_dir))

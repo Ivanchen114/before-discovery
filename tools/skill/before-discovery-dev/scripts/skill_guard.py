@@ -286,7 +286,7 @@ def present_in_head(path: Path, repo_root: Path = REPO_ROOT) -> bool:
 
 
 def matches_head(path: Path, repo_root: Path = REPO_ROOT) -> bool:
-    """Return whether a package path exists in HEAD and has no local diff."""
+    """Return whether a path is reproducible from HEAD with no local additions."""
     if not present_in_head(path, repo_root):
         return False
     relative = path.relative_to(repo_root).as_posix()
@@ -297,7 +297,18 @@ def matches_head(path: Path, repo_root: Path = REPO_ROOT) -> bool:
         capture_output=True,
         text=True,
     )
-    return result.returncode == 0
+    if result.returncode != 0:
+        return False
+    if path.is_dir():
+        untracked = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "--", relative],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        return untracked.returncode == 0 and not untracked.stdout.strip()
+    return True
 
 
 def source_versioned_for_validation(
@@ -306,9 +317,9 @@ def source_versioned_for_validation(
     activation: bool,
     repo_root: Path = REPO_ROOT,
 ) -> bool:
-    """Require active sources to exist in HEAD during activation."""
+    """Require active sources to exactly match HEAD during activation."""
     if untracked_source_blocks_activation(status, activation):
-        return present_in_head(path, repo_root)
+        return matches_head(path, repo_root)
     return tracked(path, repo_root)
 
 
@@ -391,6 +402,7 @@ def validate(activation: bool) -> int:
     source_ids: set[str] = set()
     supersessions: dict[str, list[str]] = {}
     satisfaction_refs: dict[str, list[str]] = {}
+    reported_active_head_paths: set[str] = set()
 
     for route in route_list:
         route_id = route.get("id", "<missing-route-id>")
@@ -508,19 +520,30 @@ def validate(activation: bool) -> int:
                 if positions != sorted(positions):
                     errors.append(f"{source_id}: required_headings 順序與實檔不一致")
 
-            if source.get("tracked_required") and not source_versioned_for_validation(
+            version_required = bool(source.get("tracked_required")) or (
+                activation and status == "active"
+            )
+            if version_required and not source_versioned_for_validation(
                 full_path,
                 status,
                 activation,
             ):
                 if untracked_source_blocks_activation(status, activation):
-                    message = (
-                        f"{source_id}: 尚未進入 HEAD commit — {path_value}"
-                    )
+                    if present_in_head(full_path):
+                        message = (
+                            f"{source_id}: active source 本地內容與 HEAD 不同 — "
+                            f"{path_value}"
+                        )
+                    else:
+                        message = (
+                            f"{source_id}: 尚未進入 HEAD commit — {path_value}"
+                        )
                 else:
                     message = f"{source_id}: 尚未由 Git 追蹤 — {path_value}"
                 if untracked_source_blocks_activation(status, activation):
-                    errors.append(message)
+                    if path_value not in reported_active_head_paths:
+                        errors.append(message)
+                        reported_active_head_paths.add(path_value)
                 else:
                     warnings.append(message)
 
