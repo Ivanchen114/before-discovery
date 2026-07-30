@@ -2,7 +2,7 @@
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
   "registry_status": "candidate",
-  "skill_version": "3.4.2-candidate",
+  "skill_version": "3.4.3-candidate",
   "updated": "2026-07-30",
   "truth_modes": [
     "AS-IS",
@@ -92,7 +92,7 @@
         {
           "id": "core.workflow-v3",
           "path": "01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md",
-          "status": "candidate",
+          "status": "active",
           "authority": "project_decision",
           "phase": [
             "always"
@@ -112,8 +112,8 @@
             "九、交付狀態"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "v3 的新流程法源；Claude 對抗審與總監裁決前不得當成 active。"
+          "blocks_skill_activation": false,
+          "note": "active 流程法源；Claude A=0、B=0，總監以 ADR-013 接受。"
         },
         {
           "id": "core.collaboration",
@@ -160,11 +160,6 @@
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "activation_blocker": true,
-          "known_issues": [
-            "runtime canonical 的舊句需由 v3 真相模式限縮",
-            "角色互換與定點驗證的舊句需由 v3 明確化"
-          ],
           "note": "查證、洩答、dirty tree 與版本紀律。"
         },
         {
@@ -607,7 +602,7 @@
         {
           "id": "narrative.historical-inquiry",
           "path": "02_設計/發現之前_互動敘事與歷史科學探究規範_v0.1_20260730.md",
-          "status": "candidate",
+          "status": "active",
           "authority": "cross_chapter_rule",
           "phase": [
             "plan",
@@ -633,13 +628,13 @@
             "十一、驗收分工"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "候選的故事、玩家代理權與歷史科學探究單一法源；待 Claude 對抗審與總監裁決。"
+          "blocks_skill_activation": false,
+          "note": "active 的故事、玩家代理權與歷史科學探究單一法源；Claude A=0、B=0，ADR-012 接受。"
         },
         {
           "id": "narrative.series-bible",
           "path": "04_劇本/發現之前_系列聖經_小說層_v0.1.md",
-          "status": "candidate",
+          "status": "active",
           "authority": "cross_chapter_rule",
           "phase": [
             "plan",
@@ -658,12 +653,12 @@
           "required_headings": [
             "一、旅人(系列主角)",
             "三、跨章伏筆帳(埋點/回收點,新增須登記)",
-            "五、「可操作小說」格式契約(Claude 寫,Sol 轉譯)",
+            "五、「可操作小說」格式契約(工作包主筆寫,runtime 實作者轉譯)",
             "六、生產順序(裁決後生效)"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "跨章小說層、伏筆帳與 brief→小說稿→implementation spec 生產順序；v0.2.1 修訂待 Claude／總監覆核。"
+          "blocks_skill_activation": false,
+          "note": "v0.2.3 修正手機撤出第四章與角色分工漂移；Claude 於 2026-07-30 定點覆核 A=0、B=0，升為 active。"
         },
         {
           "id": "narrative.dialogue-rules",
@@ -1129,7 +1124,7 @@
         {
           "id": "save.workflow-safe-default",
           "path": "01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md",
-          "status": "candidate",
+          "status": "active",
           "authority": "project_decision",
           "phase": [
             "plan",
@@ -1147,8 +1142,8 @@
             "八、存檔與 schema 的 fail-closed 安全預設"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "跨章正式通則裁決前的候選安全預設。"
+          "blocks_skill_activation": false,
+          "note": "active 安全預設；P-7 已修改採納並併入工作包法源 §八。"
         },
         {
           "id": "save.ch4-migration-spec",
@@ -1246,7 +1241,7 @@
           "required_headings": [],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "尚無獨立的跨章存檔相容與遷移正式法源；目前以 v3 候選安全預設與章別個案處理。",
+          "gap_reason": "尚無獨立的跨章存檔相容與遷移正式法源；目前以 active workflow §八安全預設與章別個案處理。",
           "applies_when": [
             "serialized-state-change"
           ],
@@ -1276,8 +1271,8 @@
         {
           "id": "archive.candidate-policy",
           "path": "01_治理/發現之前_待裁條文候選_營運鐵則四條_20260728.md",
-          "status": "candidate",
-          "authority": "unresolved",
+          "status": "historical",
+          "authority": "reference",
           "phase": [
             "plan",
             "review",
@@ -1286,7 +1281,7 @@
           "mode_roles": {
             "AS-IS": "context",
             "TO-BE": "comparison",
-            "CONFORMANCE": "unavailable"
+            "CONFORMANCE": "comparison"
           },
           "tracked_required": true,
           "required_headings": [
@@ -1295,33 +1290,28 @@
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "非法源；裁決前不得自動搬檔、改歷史檔或加 banner。"
+          "note": "非法源；四案已於 2026-07-30 全部結案，只供原提案與風險追溯。"
         },
         {
           "id": "archive.accepted-policy",
-          "path": null,
-          "status": "missing",
-          "authority": "unresolved",
+          "path": "01_治理/發現之前_雙人共用工作守則_v0.1.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
           "phase": [
             "archive"
           ],
           "mode_roles": {
-            "AS-IS": "unavailable",
-            "TO-BE": "unavailable",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
           },
-          "tracked_required": false,
-          "required_headings": [],
+          "tracked_required": true,
+          "required_headings": [
+            "3-3 版本收斂"
+          ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "歷史檔原文、作廢 banner 與搬移邊界尚未裁決。",
-          "applies_when": [
-            "archive-mutation"
-          ],
-          "blocking_phases": [
-            "archive"
-          ],
-          "note": "R4 archive 操作 blocker。"
+          "note": "P-9 於 2026-07-30 修改採納：archive 正文不可改寫；檔頭可追加有來源的作廢／勘誤 metadata，add-only 納管不算正文改寫。"
         }
       ]
     },
@@ -1446,25 +1436,25 @@
         },
         {
           "id": "testing.reverse-red-policy",
-          "path": "01_治理/發現之前_待裁條文候選_營運鐵則四條_20260728.md",
-          "status": "candidate",
-          "authority": "unresolved",
+          "path": "01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md",
+          "status": "active",
+          "authority": "project_decision",
           "phase": [
             "plan",
             "review"
           ],
           "mode_roles": {
-            "AS-IS": "context",
-            "TO-BE": "comparison",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
           },
           "tracked_required": true,
           "required_headings": [
-            "候選三|契約測試反向驗證"
+            "六、Implementation Gate"
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "尚未裁決；v3 流程文件目前把它列為 Implementation Gate 候選條件。"
+          "note": "P-8 已採納；現行法源為開發工作包與審查閘門規範 §六-4。"
         }
       ]
     },
@@ -1887,7 +1877,7 @@
             "narrative",
             "runtime"
           ],
-          "status": "candidate",
+          "status": "active",
           "authority": "chapter_change",
           "phase": [
             "plan",
@@ -1909,8 +1899,8 @@
             "八、Design Gate"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "本輪旅人可見名牌、第三章心聲減量、舊游標相容與歷史探究敘事工作包；待 Claude 對抗審與總監裁決。"
+          "blocks_skill_activation": false,
+          "note": "active 工作包；Claude CONFORMANCE A=0、B=0。總監桌機／手機真人接受仍另待完成。"
         },
         {
           "id": "ch3.script",
@@ -2166,7 +2156,10 @@
           "required_headings": [],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "只使用索引標為 CANONICAL 的切片。"
+          "known_issues": [
+            "D1-2 同尺紙 canonical spike 尚未反映兩張紙來源分開；轉檔前須依索引末節補正，不得照抄舊 4.9 公尺文字"
+          ],
+          "note": "只使用索引標為 CANONICAL 的切片；索引、四個 canonical、五個 obsolete 與節奏 demo 必須一起追蹤。"
         },
         {
           "id": "ch4.art-appendix",

@@ -3,7 +3,7 @@
 > - repo skill canonical：`tools/skill/before-discovery-dev/SKILL.md`
 > - Claude overlay：`tools/skill/before-discovery-dev/OVERLAY-claude.md`
 > - registry：`tools/skill/before-discovery-dev/references/source-registry.json`
-> - skill 版本：3.4.2-candidate
+> - skill 版本：3.4.3-candidate
 > - registry 狀態：candidate
 > - 本鏡像由 `scripts/skill_guard.py sync-mirror` 機械產生。
 > - Claude 對抗審與總監裁決前，不同步成 Claude／Codex 生效版。
@@ -11,7 +11,7 @@
 <!-- MIRROR:COMMON:BEGIN -->
 # 《發現之前》開發路由器
 
-**版本**：v3.4.2-candidate（2026-07-30）
+**版本**：v3.4.3-candidate（2026-07-30）
 **狀態**：候選；Claude 獨立對抗審與總監裁決前，不同步成任何 agent 生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
@@ -49,7 +49,7 @@ stop_conditions:
 
 只有缺值會改變主審對象、修改權限或驗收標準時才停下詢問。指定版本不存在時先回報，不得自行拿另一版代替。
 
-角色、移交、lane 與雙 Gate 的候選正式條文見：
+角色、移交、lane 與雙 Gate 的現行正式條文見：
 
 `01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md`
 
@@ -193,7 +193,7 @@ git status --short
 
 ## 7. 驗證與 Gate
 
-R2–R4 施工前須有 `DESIGN GATE：PASS`；施工後依候選流程法源完成 Implementation Gate。
+R2–R4 施工前須有 `DESIGN GATE：PASS`；施工後依現行流程法源完成 Implementation Gate。
 
 驗證順序依實際改動選取：
 
@@ -296,8 +296,8 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py validate --activ
 只有在下列條件全成立後才可把 candidate 改成 active：
 
 1. Claude 完成獨立對抗審；
-2. 總監裁決候選流程法源；
-3. registry 的 active 必讀來源已由 Git 追蹤；
+2. 流程法源已獲總監裁決且狀態為 active；
+3. registry 的 active 必讀來源已進入 HEAD commit；只存在 index 暫存區不算；
 4. 鏡像一致；
 5. 三種真相模式與 R0–R4 盲測通過；
 6. `validate --activation` 全綠。

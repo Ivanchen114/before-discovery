@@ -60,6 +60,37 @@ def make_support_artifact(
 
 
 class ActivationLifecycleTests(unittest.TestCase):
+    @staticmethod
+    def git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["git", *args],
+            cwd=repo,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+    def make_git_repo(self, directory: Path) -> Path:
+        repo = directory / "repo"
+        repo.mkdir()
+        self.assertEqual(self.git(repo, "init").returncode, 0)
+        self.assertEqual(
+            self.git(repo, "config", "user.name", "Skill Guard Test").returncode,
+            0,
+        )
+        self.assertEqual(
+            self.git(repo, "config", "user.email", "skill-guard@example.invalid").returncode,
+            0,
+        )
+        seed = repo / "seed.txt"
+        seed.write_text("seed\n", encoding="utf-8")
+        self.assertEqual(self.git(repo, "add", "seed.txt").returncode, 0)
+        self.assertEqual(
+            self.git(repo, "commit", "-m", "seed").returncode,
+            0,
+        )
+        return repo
+
     def test_only_untracked_active_sources_block_activation(self) -> None:
         self.assertTrue(
             guard_module.untracked_source_blocks_activation("active", True)
@@ -72,6 +103,62 @@ class ActivationLifecycleTests(unittest.TestCase):
         self.assertFalse(
             guard_module.untracked_source_blocks_activation("active", False)
         )
+
+    def test_staged_only_active_source_does_not_satisfy_activation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo = self.make_git_repo(Path(temp_dir))
+            active = repo / "active.md"
+            active.write_text("# Active\n", encoding="utf-8")
+            self.assertEqual(self.git(repo, "add", "active.md").returncode, 0)
+
+            self.assertTrue(guard_module.tracked(active, repo))
+            self.assertFalse(guard_module.present_in_head(active, repo))
+            self.assertFalse(
+                guard_module.source_versioned_for_validation(
+                    active,
+                    "active",
+                    True,
+                    repo,
+                )
+            )
+
+    def test_committed_active_source_satisfies_activation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo = self.make_git_repo(Path(temp_dir))
+            active = repo / "active.md"
+            active.write_text("# Active\n", encoding="utf-8")
+            self.assertEqual(self.git(repo, "add", "active.md").returncode, 0)
+            self.assertEqual(
+                self.git(repo, "commit", "-m", "track active").returncode,
+                0,
+            )
+
+            self.assertTrue(guard_module.present_in_head(active, repo))
+            self.assertTrue(
+                guard_module.source_versioned_for_validation(
+                    active,
+                    "active",
+                    True,
+                    repo,
+                )
+            )
+
+    def test_modified_skill_package_does_not_match_head(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo = self.make_git_repo(Path(temp_dir))
+            package = repo / "package.md"
+            package.write_text("v1\n", encoding="utf-8")
+            self.assertEqual(self.git(repo, "add", "package.md").returncode, 0)
+            self.assertEqual(
+                self.git(repo, "commit", "-m", "track package").returncode,
+                0,
+            )
+            self.assertTrue(guard_module.matches_head(package, repo))
+
+            package.write_text("v2\n", encoding="utf-8")
+            self.assertFalse(guard_module.matches_head(package, repo))
+            self.assertEqual(self.git(repo, "add", "package.md").returncode, 0)
+            self.assertFalse(guard_module.matches_head(package, repo))
 
     def test_mirror_header_tracks_registry_lifecycle(self) -> None:
         candidate = guard_module.build_mirror_header(
@@ -476,7 +563,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R0",
             "--target-path",
-            "04_劇本/第四章台詞稿_v0.6_書桌章_Claude_20260727.md",
+            "04_劇本/第四章台詞稿_v0.8_Claude_20260728.md",
         )
         self.assertEqual(
             unregistered_name_conflict.returncode,
@@ -495,7 +582,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R0",
             "--target-path",
-            "04_劇本/第四章台詞稿_v0.6_書桌章_Claude_20260727.md",
+            "04_劇本/第四章台詞稿_v0.8_Claude_20260728.md",
         )
         self.assertEqual(
             inferred_chapter.returncode,

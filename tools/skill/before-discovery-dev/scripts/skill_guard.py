@@ -236,12 +236,18 @@ def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def tracked(path: Path) -> bool:
-    relative = path.relative_to(REPO_ROOT).as_posix()
+def tracked(path: Path, repo_root: Path = REPO_ROOT) -> bool:
+    """Return whether Git's index knows this path.
+
+    This intentionally includes staged-only paths for ordinary candidate
+    validation. Activation uses ``present_in_head`` instead, because a staged
+    path is not reproducible from a clean checkout.
+    """
+    relative = path.relative_to(repo_root).as_posix()
     if path.is_dir():
         result = subprocess.run(
             ["git", "ls-files", "--", relative],
-            cwd=REPO_ROOT,
+            cwd=repo_root,
             check=False,
             capture_output=True,
             text=True,
@@ -249,12 +255,61 @@ def tracked(path: Path) -> bool:
         return bool(result.stdout.strip())
     result = subprocess.run(
         ["git", "ls-files", "--error-unmatch", "--", relative],
-        cwd=REPO_ROOT,
+        cwd=repo_root,
         check=False,
         capture_output=True,
         text=True,
     )
     return result.returncode == 0
+
+
+def present_in_head(path: Path, repo_root: Path = REPO_ROOT) -> bool:
+    """Return whether HEAD contains a reproducible version of this path."""
+    relative = path.relative_to(repo_root).as_posix()
+    if path.is_dir():
+        result = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", "HEAD", "--", relative],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0 and bool(result.stdout.strip())
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"HEAD:{relative}"],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def matches_head(path: Path, repo_root: Path = REPO_ROOT) -> bool:
+    """Return whether a package path exists in HEAD and has no local diff."""
+    if not present_in_head(path, repo_root):
+        return False
+    relative = path.relative_to(repo_root).as_posix()
+    result = subprocess.run(
+        ["git", "diff", "--quiet", "HEAD", "--", relative],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def source_versioned_for_validation(
+    path: Path,
+    status: str,
+    activation: bool,
+    repo_root: Path = REPO_ROOT,
+) -> bool:
+    """Require active sources to exist in HEAD during activation."""
+    if untracked_source_blocks_activation(status, activation):
+        return present_in_head(path, repo_root)
+    return tracked(path, repo_root)
 
 
 def dependency_cycles(routes: dict[str, dict]) -> list[list[str]]:
@@ -453,8 +508,17 @@ def validate(activation: bool) -> int:
                 if positions != sorted(positions):
                     errors.append(f"{source_id}: required_headings 順序與實檔不一致")
 
-            if source.get("tracked_required") and not tracked(full_path):
-                message = f"{source_id}: 尚未由 Git 追蹤 — {path_value}"
+            if source.get("tracked_required") and not source_versioned_for_validation(
+                full_path,
+                status,
+                activation,
+            ):
+                if untracked_source_blocks_activation(status, activation):
+                    message = (
+                        f"{source_id}: 尚未進入 HEAD commit — {path_value}"
+                    )
+                else:
+                    message = f"{source_id}: 尚未由 Git 追蹤 — {path_value}"
                 if untracked_source_blocks_activation(status, activation):
                     errors.append(message)
                 else:
@@ -585,9 +649,9 @@ def validate(activation: bool) -> int:
     for package_path in package_paths:
         if not package_path.exists():
             errors.append(f"skill package 缺檔: {package_path}")
-        elif activation and not tracked(package_path):
+        elif activation and not matches_head(package_path):
             errors.append(
-                "skill package 尚未由 Git 追蹤: "
+                "skill package 尚未進入 HEAD commit，或本地內容與 HEAD 不同: "
                 + package_path.relative_to(REPO_ROOT).as_posix()
             )
 
