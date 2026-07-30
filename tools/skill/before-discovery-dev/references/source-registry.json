@@ -1,0 +1,2378 @@
+{
+  "schema_version": 4,
+  "registry_id": "before-discovery-source-registry",
+  "registry_status": "candidate",
+  "skill_version": "3.4.2-candidate",
+  "updated": "2026-07-30",
+  "truth_modes": [
+    "AS-IS",
+    "TO-BE",
+    "CONFORMANCE"
+  ],
+  "status_values": [
+    "active",
+    "candidate",
+    "superseded",
+    "obsolete",
+    "historical",
+    "missing"
+  ],
+  "authority_order_high_to_low": [
+    "constitution",
+    "project_decision",
+    "cross_chapter_rule",
+    "chapter_change",
+    "runtime_canonical",
+    "runtime_decision",
+    "test_contract",
+    "reference",
+    "unresolved"
+  ],
+  "phase_values": [
+    "always",
+    "plan",
+    "write",
+    "diagnose",
+    "implement",
+    "art",
+    "verify",
+    "review",
+    "release",
+    "archive"
+  ],
+  "mode_role_values": [
+    "constraint",
+    "primary",
+    "comparison",
+    "target",
+    "actual",
+    "evidence",
+    "context",
+    "unavailable"
+  ],
+  "impact_values": [
+    "art-change",
+    "serialized-state-change",
+    "archive-mutation",
+    "shared-engine-change"
+  ],
+  "required_route_ids": [
+    "core",
+    "runtime",
+    "design",
+    "workbench",
+    "narrative",
+    "history",
+    "art",
+    "license",
+    "browser",
+    "accessibility",
+    "save",
+    "archive",
+    "release",
+    "review",
+    "testing",
+    "chapter.ch1",
+    "chapter.ch2",
+    "chapter.ch3",
+    "chapter.ch4",
+    "chapter.ch5"
+  ],
+  "routes": [
+    {
+      "id": "core",
+      "tasks": [
+        "orientation",
+        "governance",
+        "workflow",
+        "implementation"
+      ],
+      "requires": [],
+      "sources": [
+        {
+          "id": "core.workflow-v3",
+          "path": "01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md",
+          "status": "candidate",
+          "authority": "project_decision",
+          "phase": [
+            "always"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "二、三種真相模式",
+            "三、工作包卡與角色移交",
+            "四、R0–R4 風險分流",
+            "五、Design Gate",
+            "六、Implementation Gate",
+            "九、交付狀態"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "v3 的新流程法源；Claude 對抗審與總監裁決前不得當成 active。"
+        },
+        {
+          "id": "core.collaboration",
+          "path": "01_治理/發現之前_雙模型協作流程_v0.1.1.md",
+          "status": "active",
+          "authority": "project_decision",
+          "phase": [
+            "always"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、組織原則(三條)",
+            "二、角色權責",
+            "四、審稿規格"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "作者與審查者分離、A/B/C 與驗證依據。"
+        },
+        {
+          "id": "core.shared-rules",
+          "path": "01_治理/發現之前_雙人共用工作守則_v0.1.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "always"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、十條查證紀律",
+            "二、四種洩答類型（選項不得靠形式猜中）",
+            "3-2 對抗審查輸出格式",
+            "3-4 治理鐵律（節錄，全文見架構計劃書）"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "activation_blocker": true,
+          "known_issues": [
+            "runtime canonical 的舊句需由 v3 真相模式限縮",
+            "角色互換與定點驗證的舊句需由 v3 明確化"
+          ],
+          "note": "查證、洩答、dirty tree 與版本紀律。"
+        },
+        {
+          "id": "core.constitution",
+          "path": "02_設計/發現之前_架構計劃書_v0.3.md",
+          "domains": [
+            "design",
+            "narrative",
+            "history",
+            "art"
+          ],
+          "status": "active",
+          "authority": "constitution",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "art",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "四、設計憲章(五條)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "最高設計法源。"
+        },
+        {
+          "id": "core.design-principles",
+          "path": "02_設計/發現之前_設計原則手冊_v0.1.md",
+          "domains": [
+            "design",
+            "narrative",
+            "history",
+            "art"
+          ],
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "art",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "H. 行動殼與呈現收官(Sol 行動修正輪,2026-07-20)",
+            "I. 敘事與史實",
+            "K. 戲劇完整度四律(2026-07-27,第三方五章台詞審 → 總監裁決「兩個都好」)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "跨章設計判準。"
+        },
+        {
+          "id": "core.closeout-baseline",
+          "path": "02_設計/發現之前_第一至第四章收官與後續章節製作基線_v1.0.md",
+          "domains": [
+            "design",
+            "narrative",
+            "history",
+            "art",
+            "release"
+          ],
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "art",
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "二、施工時只認這個法源順序",
+            "三、每章最低核心循環",
+            "十一、出貨門檻",
+            "開工前十一問"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "法源層級、跨章因果骨架與出貨門檻。"
+        },
+        {
+          "id": "core.project-decisions",
+          "path": "decisions.md",
+          "status": "active",
+          "authority": "project_decision",
+          "phase": [
+            "plan",
+            "implement",
+            "review",
+            "release",
+            "archive"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "決議紀錄",
+            "待總監裁決（PENDING）"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "專案級 ADR 與待裁事項。"
+        },
+        {
+          "id": "core.root-index",
+          "path": "README.md",
+          "status": "active",
+          "authority": "reference",
+          "phase": [
+            "plan"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "context",
+            "CONFORMANCE": "context"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "資料夾地圖",
+            "鐵律摘要(全文見 01_治理)",
+            "目前欠單(誰欠什麼)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "known_issues": [
+            "含易過期的章節狀態與測試數，不得單獨當現況證據"
+          ],
+          "note": "僅作導覽；現況必須實查。"
+        }
+      ]
+    },
+    {
+      "id": "runtime",
+      "tasks": [
+        "runtime",
+        "engine",
+        "ui",
+        "data",
+        "build"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "runtime.decisions",
+          "path": "greybox/decisions.md",
+          "status": "active",
+          "authority": "runtime_decision",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "GB-ADR-001|資料載入策略:.js 全域賦值 + .json 規範鏡像"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "實作級 ADR。"
+        },
+        {
+          "id": "runtime.assets",
+          "path": "greybox/data/assets.json",
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "art",
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "資產與 evidenceVisual 的人工正本。"
+        },
+        {
+          "id": "runtime.chapter-ui",
+          "path": "greybox/src/chapter-ui.js",
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "共用互動 UI。"
+        },
+        {
+          "id": "runtime.stage-sources",
+          "path": "greybox/src/stage",
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "stage-ui.js 的人工來源；生成物不可手改。"
+        },
+        {
+          "id": "runtime.stage-shell",
+          "path": "greybox/stage.html",
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "實際載入共用 stage、章別資料與互動層的頁面殼；UI 診斷不得漏讀。"
+        },
+        {
+          "id": "runtime.package",
+          "path": "greybox/package.json",
+          "status": "active",
+          "authority": "runtime_decision",
+          "phase": [
+            "implement",
+            "verify",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "evidence"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "實際可用的 build/test 指令入口。"
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "tasks": [
+        "design",
+        "evidence",
+        "assertion",
+        "historical-inquiry"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "design.evidence-ownership",
+          "path": "02_設計/發現之前_實驗證據所有權與認知進階原則_v0.1.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、不可退讓的核心",
+            "三、時代盲點與誘答設計（v0.1.4）",
+            "3.7 證據判斷可否證契約（v0.1.4）",
+            "5.1 全章證據解鎖與配圖契約",
+            "六、歷史誠實邊界"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "全章證據解鎖／配圖、證據所有權、誘答可否證契約與歷史誠實的單一法源；historical-inquiry 不因本 route 自動載入一二章工作台外形。"
+        }
+      ]
+    },
+    {
+      "id": "workbench",
+      "tasks": [
+        "workbench",
+        "debate",
+        "evidence-interaction",
+        "workbench-interaction"
+      ],
+      "requires": [
+        "design"
+      ],
+      "sources": [
+        {
+          "id": "design.workbench",
+          "path": "02_設計/發現之前_工作台與辯論架構_一二章實證規格_v0.1.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、跨章只保留三項認知責任",
+            "3-1 左頁「I　裝置與校準」",
+            "3-2c 目的卡（每相位／每輪開頭）",
+            "五、執行實驗＝一次一筆（`:1341–1364`）",
+            "⭐ 終局形式不限於三追問（20260726 依第四章實查補訂）"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "只在 task 明示 workbench／debate／evidence-interaction／workbench-interaction 時讀；一般場景互動歸 narrative，本法源不是所有章的模板。"
+        }
+      ]
+    },
+    {
+      "id": "narrative",
+      "tasks": [
+        "dialogue",
+        "voice",
+        "traveler-os",
+        "transition",
+        "script",
+        "story",
+        "plot",
+        "scene-design",
+        "interaction",
+        "historical-inquiry"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "narrative.voice",
+          "path": "02_設計/發現之前_角色聲線與對話規範_v0.1.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "diagnose",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、總原則",
+            "二、角色聲線",
+            "四、機械檢查"
+          ],
+          "supersedes": [
+            "narrative.dialogue-rules"
+          ],
+          "blocks_skill_activation": false,
+          "note": "跨章角色聲線與旅人可見／讀屏聲域；OS 留刪與用途由 narrative.historical-inquiry §六單一持有。"
+        },
+        {
+          "id": "narrative.historical-inquiry",
+          "path": "02_設計/發現之前_互動敘事與歷史科學探究規範_v0.1_20260730.md",
+          "status": "candidate",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "diagnose",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、作品定位",
+            "二、歷史探究敘事文法",
+            "三、故事與科學不能分家",
+            "六、心聲／OS",
+            "九、探究段雙軌承重測試",
+            "十、寫作與精修流程",
+            "十一、驗收分工"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "候選的故事、玩家代理權與歷史科學探究單一法源；待 Claude 對抗審與總監裁決。"
+        },
+        {
+          "id": "narrative.series-bible",
+          "path": "04_劇本/發現之前_系列聖經_小說層_v0.1.md",
+          "status": "candidate",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "diagnose",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、旅人(系列主角)",
+            "三、跨章伏筆帳(埋點/回收點,新增須登記)",
+            "五、「可操作小說」格式契約(Claude 寫,Sol 轉譯)",
+            "六、生產順序(裁決後生效)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "跨章小說層、伏筆帳與 brief→小說稿→implementation spec 生產順序；v0.2.1 修訂待 Claude／總監覆核。"
+        },
+        {
+          "id": "narrative.dialogue-rules",
+          "path": "03_規格/發現之前_台詞與角色聲線規則_v0.1.md",
+          "status": "superseded",
+          "authority": "reference",
+          "phase": [
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "二、對話節奏檢核",
+            "四、完稿前逐句檢查"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "2026-07-30 已併入 narrative.voice 與 narrative.historical-inquiry；只留版本追溯。"
+        },
+        {
+          "id": "narrative.cross-chapter",
+          "path": "02_設計/發現之前_跨章規格_旅人聲線與章際接縫_v1.0_Claude_20260728.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "diagnose",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、旅人雙聲域規格",
+            "三、章際接縫表(逐字實撈)",
+            "五、誘答鍵規格(2026-07-28 新立)",
+            "五之二、OS 篩選規則(CH3-CR-024 新立；ADR-011 增補,全系列適用)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "旅人跨章接縫、禁詞、誘答鍵與年代差異；OS 篩選正文只保留指向 narrative.historical-inquiry §六。"
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "tasks": [
+        "history",
+        "historical-claim",
+        "fact-boundary",
+        "historical-note",
+        "historical-inquiry"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "history.ch1-runtime",
+          "path": "greybox/data/histfacts.json",
+          "chapters": [
+            "ch1"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "plan",
+            "write",
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第一章玩家現見史實頁；外部主張仍須查原典。"
+        },
+        {
+          "id": "history.ch2-runtime",
+          "path": "greybox/data/histfacts2.json",
+          "chapters": [
+            "ch2"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "plan",
+            "write",
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第二章玩家現見史實頁；外部主張仍須查原典。"
+        },
+        {
+          "id": "history.ch3-runtime",
+          "path": "greybox/data/histfacts3.json",
+          "chapters": [
+            "ch3"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "plan",
+            "write",
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第三章玩家現見史實頁；外部主張仍須查原典。"
+        },
+        {
+          "id": "history.ch4-runtime",
+          "path": "greybox/data/histfacts4.json",
+          "chapters": [
+            "ch4"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "plan",
+            "write",
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章玩家現見史實頁；外部主張仍須查原典。"
+        },
+        {
+          "id": "history.ch5-runtime",
+          "path": "greybox/data/histfacts5.json",
+          "chapters": [
+            "ch5"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "plan",
+            "write",
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第五章玩家現見史實頁；外部主張仍須查原典。"
+        }
+      ]
+    },
+    {
+      "id": "art",
+      "tasks": [
+        "art",
+        "image-generation",
+        "visual",
+        "asset",
+        "master",
+        "visual-qa"
+      ],
+      "requires": [
+        "core",
+        "runtime",
+        "history",
+        "license",
+        "accessibility"
+      ],
+      "sources": [
+        {
+          "id": "art.series-spec",
+          "path": "03_規格/發現之前_全系列美術製作規格書_v0.2.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "art",
+            "implement",
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "4. 美術製作流程",
+            "5. 技術交付規格",
+            "7. 來源、授權與生成資產紀錄",
+            "9. 驗收與 Art Lock"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "正式美術在證據鏈與互動 Design Gate 後量產；精確物理資訊走 HTML/SVG/Canvas。"
+        },
+        {
+          "id": "art.per-asset-ledger",
+          "path": null,
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "art",
+            "implement",
+            "verify",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "尚無全系列逐件美術來源、母版、生成工具與輸出參數的 canonical ledger。",
+          "applies_when": [
+            "art-change"
+          ],
+          "blocking_phases": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "note": "新增正式美術時阻擋 runtime 接線、Art Lock 與 release，直到建立逐件紀錄。"
+        }
+      ]
+    },
+    {
+      "id": "license",
+      "tasks": [
+        "license",
+        "provenance",
+        "third-party-source"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "license.content",
+          "path": "LICENSE-CONTENT.md",
+          "status": "active",
+          "authority": "project_decision",
+          "phase": [
+            "plan",
+            "art",
+            "implement",
+            "verify",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、自製內容=CC BY-NC-SA 4.0",
+            "二、AI 生成資產(第三方條款約束)",
+            "三、第三方字型",
+            "四、史實聲明"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "known_issues": [
+            "AI 美術表格只明列 ch01 與 art/source，後續章 runtime 圖涵蓋範圍待補"
+          ],
+          "note": "內容與生成資產授權入口。"
+        },
+        {
+          "id": "license.visual-ledger",
+          "path": null,
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "art",
+            "implement",
+            "verify",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "美術尚無等同 audio README 的逐件授權索引。",
+          "applies_when": [
+            "art-change"
+          ],
+          "blocking_phases": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "note": "含新增正式美術的 runtime 接線與 release blocker。"
+        }
+      ]
+    },
+    {
+      "id": "browser",
+      "tasks": [
+        "browser",
+        "responsive",
+        "device",
+        "acceptance"
+      ],
+      "requires": [
+        "core",
+        "runtime"
+      ],
+      "sources": [
+        {
+          "id": "browser.checklist",
+          "path": "greybox/docs/browser-checklist.md",
+          "status": "active",
+          "authority": "test_contract",
+          "phase": [
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "evidence",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "B. 鍵盤完整通關(B-1)",
+            "C. 讀屏抽查(B-1,任一:NVDA/VoiceOver)",
+            "G. 舞台版(stage.html,2026-07-19 增)",
+            "簽核紀錄"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "known_issues": [
+            "G9 仍描述第四章 14 場舊版；使用前須與 scenes4 runtime 對照"
+          ],
+          "note": "人工驗收入口；章別過期段落不得直接簽核。"
+        }
+      ]
+    },
+    {
+      "id": "accessibility",
+      "tasks": [
+        "accessibility",
+        "keyboard",
+        "screen-reader",
+        "reduced-motion",
+        "text-scale"
+      ],
+      "requires": [
+        "core",
+        "browser"
+      ],
+      "sources": [
+        {
+          "id": "accessibility.art-rules",
+          "path": "03_規格/發現之前_全系列美術製作規格書_v0.2.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "art",
+            "implement",
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "6.1 無障礙",
+            "9.2 整合驗收"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "視覺、動效、鍵盤與文字等價資訊。"
+        }
+      ]
+    },
+    {
+      "id": "save",
+      "tasks": [
+        "save",
+        "migration",
+        "sanitizer",
+        "import-export",
+        "schema"
+      ],
+      "requires": [
+        "core",
+        "runtime",
+        "testing"
+      ],
+      "sources": [
+        {
+          "id": "save.workflow-safe-default",
+          "path": "01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md",
+          "status": "candidate",
+          "authority": "project_decision",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "八、存檔與 schema 的 fail-closed 安全預設"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "跨章正式通則裁決前的候選安全預設。"
+        },
+        {
+          "id": "save.ch4-migration-spec",
+          "path": "03_規格/發現之前_第四章v0.8存檔遷移表與契約測試_Claude_20260728.md",
+          "chapters": [
+            "ch4"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、場景層遷移(v0.7/現行 → v0.8)",
+            "二、節點層遷移策略(B-11 要求)",
+            "三、契約測試清單"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章個案遷移法源。"
+        },
+        {
+          "id": "save.ch4-runtime",
+          "path": "greybox/src/ch4-migration.js",
+          "chapters": [
+            "ch4"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章實際遷移器。"
+        },
+        {
+          "id": "save.ch4-tests",
+          "path": "greybox/tests/run-ch4-migration.mjs",
+          "chapters": [
+            "ch4"
+          ],
+          "status": "active",
+          "authority": "test_contract",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "evidence",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "evidence"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章遷移契約。"
+        },
+        {
+          "id": "save.cross-chapter-law",
+          "path": null,
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "plan",
+            "implement",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "尚無獨立的跨章存檔相容與遷移正式法源；目前以 v3 候選安全預設與章別個案處理。",
+          "applies_when": [
+            "serialized-state-change"
+          ],
+          "blocking_phases": [
+            "implement"
+          ],
+          "satisfied_by": [
+            "save.ch4-migration-spec"
+          ],
+          "note": "涉及新 schema／scene-node cursor 時必須明列個案遷移表。"
+        }
+      ]
+    },
+    {
+      "id": "archive",
+      "tasks": [
+        "archive",
+        "obsolete-banner",
+        "historical-preservation",
+        "move"
+      ],
+      "requires": [
+        "core",
+        "review"
+      ],
+      "sources": [
+        {
+          "id": "archive.candidate-policy",
+          "path": "01_治理/發現之前_待裁條文候選_營運鐵則四條_20260728.md",
+          "status": "candidate",
+          "authority": "unresolved",
+          "phase": [
+            "plan",
+            "review",
+            "archive"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "候選四|歷史檔不可竄改邊界",
+            "裁決欄(總監填)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "非法源；裁決前不得自動搬檔、改歷史檔或加 banner。"
+        },
+        {
+          "id": "archive.accepted-policy",
+          "path": null,
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "archive"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "歷史檔原文、作廢 banner 與搬移邊界尚未裁決。",
+          "applies_when": [
+            "archive-mutation"
+          ],
+          "blocking_phases": [
+            "archive"
+          ],
+          "note": "R4 archive 操作 blocker。"
+        }
+      ]
+    },
+    {
+      "id": "release",
+      "tasks": [
+        "commit",
+        "push",
+        "deploy",
+        "publish",
+        "release"
+      ],
+      "requires": [
+        "core",
+        "runtime",
+        "license",
+        "browser",
+        "accessibility",
+        "review",
+        "testing"
+      ],
+      "sources": [
+        {
+          "id": "release.github-vercel",
+          "path": "01_治理/發現之前_GitHub與Vercel發佈流程_v0.1.md",
+          "status": "active",
+          "authority": "project_decision",
+          "phase": [
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、唯一正式管線",
+            "二、先決定這次是哪一種發佈",
+            "三、發佈前盤點",
+            "七、狀態用語不可混用",
+            "八、部署失敗或需回退"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "push／deploy 需當期明示授權；發佈成功不等於正式驗收。"
+        }
+      ]
+    },
+    {
+      "id": "review",
+      "tasks": [
+        "review",
+        "adversarial-review",
+        "verification",
+        "acceptance-decision"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "review.shared-format",
+          "path": "01_治理/發現之前_雙人共用工作守則_v0.1.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "review",
+            "verify",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "constraint",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "constraint"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "3-2 對抗審查輸出格式",
+            "3-3 版本收斂"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "總裁決、A/B/C、位置、證據、直接修法與驗證條件。"
+        }
+      ]
+    },
+    {
+      "id": "testing",
+      "tasks": [
+        "test",
+        "contract",
+        "baseline",
+        "builder"
+      ],
+      "requires": [
+        "core",
+        "runtime"
+      ],
+      "sources": [
+        {
+          "id": "testing.main-suite",
+          "path": "greybox/tests/run-node.mjs",
+          "status": "active",
+          "authority": "test_contract",
+          "phase": [
+            "implement",
+            "verify",
+            "review",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "evidence",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "evidence"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "全章契約入口；實際全套命令以 package.json 為準。"
+        },
+        {
+          "id": "testing.reverse-red-policy",
+          "path": "01_治理/發現之前_待裁條文候選_營運鐵則四條_20260728.md",
+          "status": "candidate",
+          "authority": "unresolved",
+          "phase": [
+            "plan",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "候選三|契約測試反向驗證"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "尚未裁決；v3 流程文件目前把它列為 Implementation Gate 候選條件。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch1",
+      "tasks": [
+        "chapter-1",
+        "ch1",
+        "ch01"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "ch1.scenes",
+          "path": "greybox/data/scenes.json",
+          "domains": [
+            "runtime",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第一章台詞與節點人工正本。"
+        },
+        {
+          "id": "ch1.engine",
+          "path": "greybox/src/engine.js",
+          "domains": [
+            "runtime",
+            "design"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第一章引擎。"
+        },
+        {
+          "id": "ch1.spec",
+          "path": "03_規格/發現之前_第一章功能規格書_v0.1.1.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第一章功能目標。"
+        },
+        {
+          "id": "ch1.script",
+          "path": "04_劇本/第一章完整劇本_重物的渴望_v0.2.2.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "reference",
+          "phase": [
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第一章劇本對照稿；施工仍以任務指定目標與 runtime 分模式判斷。"
+        },
+        {
+          "id": "ch1.art-appendix",
+          "path": "03_規格/發現之前_第一章美術製作附錄_v0.2.md",
+          "domains": [
+            "art"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第一章美術附錄。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch2",
+      "tasks": [
+        "chapter-2",
+        "ch2",
+        "ch02"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "ch2.scenes",
+          "path": "greybox/data/scenes2.json",
+          "domains": [
+            "runtime",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第二章台詞與節點人工正本。"
+        },
+        {
+          "id": "ch2.engine",
+          "path": "greybox/src/engine2.js",
+          "domains": [
+            "runtime",
+            "design"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第二章引擎。"
+        },
+        {
+          "id": "ch2.spec",
+          "path": "03_規格/發現之前_第二章功能規格書_v0.1.1.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [
+            "ch2.spec-v010"
+          ],
+          "blocks_skill_activation": false,
+          "note": "第二章功能目標。"
+        },
+        {
+          "id": "ch2.spec-v010",
+          "path": "03_規格/發現之前_第二章功能規格書_v0.1.md",
+          "domains": [
+            "design"
+          ],
+          "status": "superseded",
+          "authority": "reference",
+          "phase": [
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "context",
+            "CONFORMANCE": "context"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "只供追溯。"
+        },
+        {
+          "id": "ch2.script",
+          "path": "04_劇本/第二章完整劇本_拋出去的東西_v0.1.3.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "reference",
+          "phase": [
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第二章劇本對照稿。"
+        },
+        {
+          "id": "ch2.art-appendix",
+          "path": "03_規格/發現之前_第二章美術製作附錄_v0.2.md",
+          "domains": [
+            "art"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "art",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第二章美術附錄。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch3",
+      "tasks": [
+        "chapter-3",
+        "ch3",
+        "ch03"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "ch3.scenes",
+          "path": "greybox/data/scenes3.json",
+          "domains": [
+            "runtime",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第三章人工正本；場數與節點數由敘事守門器即時產出，不在 registry 固定抄錄。"
+        },
+        {
+          "id": "ch3.engine",
+          "path": "greybox/src/engine3.js",
+          "domains": [
+            "runtime",
+            "design"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第三章引擎。"
+        },
+        {
+          "id": "ch3.spec",
+          "path": "03_規格/發現之前_第三章功能規格書_v0.1.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "known_issues": [
+            "runtime 後續重構較新；CONFORMANCE 必須同讀最新 CR 與 runtime"
+          ],
+          "note": "第三章早期功能規格，不能單獨指揮現行 runtime。"
+        },
+        {
+          "id": "ch3.cr-024",
+          "path": "01_治理/發現之前_CH3-CR-024_碼頭辯論旅人心聲層_20260728.md",
+          "domains": [
+            "design",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第三章碼頭辯論心聲層的既有 CR；現行旅人聲域與心聲減量另讀 NARRATIVE-CR-031。"
+        },
+        {
+          "id": "ch3.current-cr",
+          "path": "01_治理/發現之前_NARRATIVE-CR-031_旅人聲域_第三章心聲減量與歷史探究敘事規範_20260730.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime"
+          ],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "diagnose",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "三、TO-BE",
+            "七、驗收",
+            "八、Design Gate"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "本輪旅人可見名牌、第三章心聲減量、舊游標相容與歷史探究敘事工作包；待 Claude 對抗審與總監裁決。"
+        },
+        {
+          "id": "ch3.script",
+          "path": "04_劇本/第三章台詞稿_v0.9_展開版_Claude_20260728.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "reference",
+          "phase": [
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第三章台詞對照稿。"
+        },
+        {
+          "id": "ch3.art-appendix",
+          "path": null,
+          "domains": [
+            "art"
+          ],
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "第三章沒有依美術總規格附錄 A 建立的章節美術製作附錄。",
+          "applies_when": [
+            "art-change"
+          ],
+          "blocking_phases": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "note": "新增／重製第三章正式美術時 blocker。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch4",
+      "tasks": [
+        "chapter-4",
+        "ch4",
+        "ch04"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "ch4.scenes",
+          "path": "greybox/data/scenes4.json",
+          "domains": [
+            "runtime",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章場景人工正本；場數與節點數由 runtime 即時計算，不在 registry 保存快照。"
+        },
+        {
+          "id": "ch4.engine",
+          "path": "greybox/src/engine4.js",
+          "domains": [
+            "runtime",
+            "design"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章引擎。"
+        },
+        {
+          "id": "ch4.construction-baseline",
+          "path": "03_規格/發現之前_第四章v0.8施工基線_盤點與分批_Claude_20260728.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、好消息:機制層比預想近很多(實撈 engine4.js)",
+            "二、場景層:重排對映(實撈現行 14 場)",
+            "三、分批(為什麼不一口氣)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "known_issues": [
+            "基線文字保存施工前舊場次盤點；AS-IS 的場數與節點必須由現行 runtime 即時計算"
+          ],
+          "note": "第四章 v0.8 的 TO-BE 施工基線。"
+        },
+        {
+          "id": "ch4.migration-spec",
+          "path": "03_規格/發現之前_第四章v0.8存檔遷移表與契約測試_Claude_20260728.md",
+          "domains": [
+            "save"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、場景層遷移(v0.7/現行 → v0.8)",
+            "二、節點層遷移策略(B-11 要求)",
+            "三、契約測試清單"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章 schema 1→2。"
+        },
+        {
+          "id": "ch4.script-v08",
+          "path": "04_劇本/第四章台詞稿_v0.8_Claude_20260728.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "reference",
+          "phase": [
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "史實與虛構頁(章末隨附)",
+            "附錄B|玩家回述驗收"
+          ],
+          "supersedes": [
+            "ch4.script-v07"
+          ],
+          "blocks_skill_activation": false,
+          "note": "第四章 v0.8 TO-BE 台詞稿。"
+        },
+        {
+          "id": "ch4.script-v07",
+          "path": "04_劇本/第四章台詞稿_v0.7_展開版_Claude_20260727.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "superseded",
+          "authority": "reference",
+          "phase": [
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "context",
+            "CONFORMANCE": "context"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "只供版本差異追溯。"
+        },
+        {
+          "id": "ch4.spike-index",
+          "path": "spike_workshop/README_ch4_spike索引.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "只使用索引標為 CANONICAL 的切片。"
+        },
+        {
+          "id": "ch4.art-appendix",
+          "path": null,
+          "domains": [
+            "art"
+          ],
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "第四章沒有依美術總規格附錄 A 建立的章節美術製作附錄。",
+          "applies_when": [
+            "art-change"
+          ],
+          "blocking_phases": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "note": "新增／重製第四章正式美術時 blocker。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch5",
+      "tasks": [
+        "chapter-5",
+        "ch5",
+        "ch05"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "ch5.scenes",
+          "path": "greybox/data/scenes5.json",
+          "domains": [
+            "runtime",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第五章玩家現況。"
+        },
+        {
+          "id": "ch5.engine",
+          "path": "greybox/src/engine5.js",
+          "domains": [
+            "runtime",
+            "design"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第五章引擎。"
+        },
+        {
+          "id": "ch5.workbench-spec",
+          "path": "03_規格/發現之前_第五章工作台與辯論規格_v0.1_Claude.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第五章三輪工作台與三柱目標。"
+        },
+        {
+          "id": "ch5.debate-spec",
+          "path": "03_規格/發現之前_第五章debate5資料稿_v0.1_Claude.md",
+          "domains": [
+            "design"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第五章 debate5 資料契約。"
+        },
+        {
+          "id": "ch5.novel",
+          "path": "04_劇本/第五章可操作小說稿_兩本帳_v0.1-draft.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "candidate",
+          "authority": "reference",
+          "phase": [
+            "plan",
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "小說層只提供場景與聲線；機制仍以規格與 runtime 為準。"
+        },
+        {
+          "id": "ch5.art-appendix",
+          "path": null,
+          "domains": [
+            "art"
+          ],
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "第五章沒有依美術總規格附錄 A 建立的章節美術製作附錄。",
+          "applies_when": [
+            "art-change"
+          ],
+          "blocking_phases": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "note": "新增／重製第五章正式美術時 blocker。"
+        }
+      ]
+    }
+  ]
+}

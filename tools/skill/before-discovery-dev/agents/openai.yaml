@@ -1,0 +1,4 @@
+interface:
+  display_name: "《發現之前》開發守門"
+  short_description: "依真相模式、風險分流與法源登錄守住《發現之前》全流程"
+  default_prompt: "Use $before-discovery-dev to classify this 《發現之前》 task, route the current sources, and report each verified delivery state."

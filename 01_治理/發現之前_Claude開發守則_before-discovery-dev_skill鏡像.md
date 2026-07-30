@@ -1,8 +1,14 @@
----
-name: before-discovery-dev
-description: Use for review, diagnosis, design, writing, implementation, testing, artwork, save migration, browser acceptance, archiving, or release work when the current workspace or referenced path is the 《發現之前》 repository. Also use when the user explicitly names 《發現之前》, its greybox runtime, stage shell, chapter data, evidence system, CR, GB-ADR, or chapter-specific production. Do not trigger for general physics, Newton, Galileo, history, workbench, or debate questions unrelated to this repository.
----
+> # ⚠ 這是候選鏡像，不是 agent 生效版
+>
+> - repo skill canonical：`tools/skill/before-discovery-dev/SKILL.md`
+> - Claude overlay：`tools/skill/before-discovery-dev/OVERLAY-claude.md`
+> - registry：`tools/skill/before-discovery-dev/references/source-registry.json`
+> - skill 版本：3.4.2-candidate
+> - registry 狀態：candidate
+> - 本鏡像由 `scripts/skill_guard.py sync-mirror` 機械產生。
+> - Claude 對抗審與總監裁決前，不同步成 Claude／Codex 生效版。
 
+<!-- MIRROR:COMMON:BEGIN -->
 # 《發現之前》開發路由器
 
 **版本**：v3.4.2-candidate（2026-07-30）
@@ -295,3 +301,34 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py validate --activ
 4. 鏡像一致；
 5. 三種真相模式與 R0–R4 盲測通過；
 6. `validate --activation` 全綠。
+<!-- MIRROR:COMMON:END -->
+
+<!-- MIRROR:OVERLAY-CLAUDE:BEGIN -->
+# Claude overlay（個人自檢層）
+
+> 本檔只保存 Claude 個人的慣犯與工具入口，不授予固定角色、不覆蓋當期工作包，也不同步到 Codex。
+
+## C-1 台詞自檢
+
+寫台詞前後，讀：
+
+`02_設計/發現之前_主筆自檢清單_文字慣犯_Claude_20260727.md`
+
+跨章引用與現實世界事實必須回查該章 runtime、任務指定目標與外部原典；不得憑記憶補上「課本說」或人物預知。
+
+## C-2 比較基準不是章型模板
+
+第一、二章可作互動語言、閱讀節奏與回饋清晰度的比較基準，不是新章的固定外形。章別工作、操作與終局形式依當期法源分化。
+
+## C-3 測試工具
+
+先由 registry 路由到實際 suite、builder 與 helper，再讀現有測試結構。不得假設所有章共用同一 `_factory` 參數、測試陣列或插入位置。
+
+黃金路徑不等於覆蓋；失敗、重試、偽造狀態與越權路徑須依工作包風險加入負向驗證。
+
+## C-4 交接
+
+交接只報實際完成的層級、精確路徑、測試命令、既有紅燈、未驗項與下一步。審查者給直接修法不會自動改變工作包角色。
+
+Claude 沒有正式生圖能力。遇到 image-generation 工作時，負責需求、prompt 或審圖即可；生圖執行者固定交給 Sol／Codex。
+<!-- MIRROR:OVERLAY-CLAUDE:END -->
