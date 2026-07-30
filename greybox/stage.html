@@ -671,10 +671,10 @@
     40% { transform: translate(5px, -3px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(3px, 2px); } }
   #panelWrap.fx-shake { animation: bdShake 500ms ease; }
   @keyframes bdPulse { 0% { box-shadow: 0 0 0 0 rgba(207, 169, 107, 0.7); } 100% { box-shadow: 0 0 0 18px rgba(207, 169, 107, 0); } }
-  #dialogue.fx-gain { animation: bdPulse 700ms ease; }
+  #dialogue.fx-gain, #sceneFocus.fx-gain { animation: bdPulse 700ms ease; }
   .evcard svg { width: 100%; height: auto; margin-top: 4px; }
   @media (prefers-reduced-motion: reduce) {
-    #panelWrap.fx-shake, #dialogue.fx-gain { animation: none; }
+    #panelWrap.fx-shake, #dialogue.fx-gain, #sceneFocus.fx-gain { animation: none; }
   }
   /* 實驗台 v2:左頁是可操作裝置,右頁是會逐步寫滿的實驗簿。引擎資料零改動。 */
   body[data-view="lab"] #panelWrap { top: 10vh; bottom: auto; max-height: 84vh;
@@ -2662,6 +2662,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 </script>
 <script src="src/narrative.js?v=asset-cdd9fdc31216"></script>
 <script src="src/chapter-ui.js?v=asset-84453d2ebac2"></script>
-<script src="src/stage-ui.js?v=asset-42feb6afc5dc"></script>
+<script src="src/stage-ui.js?v=asset-8d452d38d498"></script>
 </body>
 </html>

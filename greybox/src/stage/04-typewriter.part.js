@@ -98,19 +98,17 @@
     /* 誰在說話・雙線索:旅人=靛藍名牌+對手立繪壓暗;角色=棕名牌+立繪亮(色彩外仍有文字+明暗) */
     np.className = (TRAVELER[item.speaker] || item.cls === "player") ? "np-player" : "";
     $("dialogue").dataset.speaker = item.speaker || ""; /* 字體三聲部:CSS 據此讓「旅人筆記」句用手寫楷體 */
-    /* RUNTIME-CR-019 文案契約:凡「取得證據/斷言成立/筆記解鎖」的系統行,文案須命中下列 token 之一。
-       全章通用(原本只匹配第一章句式);新章的取得句照契約寫。 */
-    var gainHit = isSys && (/^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/.test(item.text) ||
+    var structuredGain = !!(item.evidence && item.evidence.length);
+    /* 舊存量 fallback：斷言／筆記解鎖尚未都有 evidence code，暫保留文案命中；
+       新證據的可靠契約是 structuredGain，不得把新增章節綁在台詞字樣上。 */
+    var legacyGain = isSys && (/^(取得(?:證據| [A-Z]\d)|旅人筆記解鎖|E\d)/.test(item.text) ||
       /^(取得|◆ ?取得)/.test(item.text) ||
       /收入卷宗|已簽名收卷|夾回.{0,2}筆記|證據已收|斷言.{0,4}成立/.test(item.text));
+    var gainHit = structuredGain || legacyGain;
     $("dlgText").className = isNarr ? "narr"
       : (isSys ? ("sys" + (gainHit ? " gain" : ""))
       : (item.cls === "player" ? "pl" : ""));
-    if (gainHit && !instant) { /* 戰利品時刻:脈動+雙音(SFX 於檔尾定義,事件觸發時必已就緒) */
-      SFX.chime();
-      var dl = $("dialogue");
-      dl.classList.remove("fx-gain"); void dl.offsetWidth; dl.classList.add("fx-gain");
-    }
+    if (gainHit && !instant) playEvidenceGain($("dialogue"));
     setBust(item.speaker, item.cls, item.text);
     pages = paginate(item.text);
     curInstantMode = isNarr || isSys; /* 旁白/系統:整頁淡入不逐字 */
@@ -126,6 +124,16 @@
   }
   function pauseTyping() { paused = true; if (timer) clearTimeout(timer); }
   function resumeTyping() { if (!paused) return; paused = false; if (typing) timer = setTimeout(step, TYPE_MS); }
+  /* 證據解鎖儀式的唯一表現入口。取得事實由 item.evidence／bd:evidence 提供；
+     台詞正規式只保留給尚未結構化的舊筆記解鎖句。 */
+  function playEvidenceGain(target) {
+    SFX.chime();
+    var el = target || $("dialogue");
+    if (!el) return;
+    el.classList.remove("fx-gain");
+    void el.offsetWidth;
+    el.classList.add("fx-gain");
+  }
   /* 回傳 true=本次輸入已被表現層消化(跳完本頁或翻下一頁/句) */
   function advanceIntent() {
     if (typing) {

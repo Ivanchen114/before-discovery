@@ -3,6 +3,7 @@
   document.addEventListener("bd:evidence", function (ev) {
     var d = ev.detail || {};
     showEvidenceFocus(d.code, d.name || "新證據");
+    playEvidenceGain($("sceneFocus"));
   });
   var lastReplay = null;
   document.addEventListener("bd:line", function (ev) {
