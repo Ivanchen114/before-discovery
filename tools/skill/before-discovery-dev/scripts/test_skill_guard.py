@@ -801,7 +801,8 @@ class RouteGuardTests(unittest.TestCase):
             chapter_three.stdout + chapter_three.stderr,
         )
         self.assertIn("SOURCE design.reputation-lifecycle", chapter_three.stdout)
-        self.assertIn("CAUTION ch3.cr-026", chapter_three.stdout)
+        self.assertIn("SOURCE ch3.cr-026 | active", chapter_three.stdout)
+        self.assertNotIn("CAUTION ch3.cr-026", chapter_three.stdout)
 
     def test_release_routes_closeout_accessibility_and_review_sources(self) -> None:
         result = run_guard(

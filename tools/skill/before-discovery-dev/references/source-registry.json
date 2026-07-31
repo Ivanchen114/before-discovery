@@ -1,8 +1,8 @@
 {
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
-  "registry_status": "candidate",
-  "skill_version": "3.4.7-candidate",
+  "registry_status": "active",
+  "skill_version": "3.4.7",
   "updated": "2026-07-31",
   "truth_modes": [
     "AS-IS",
@@ -1936,7 +1936,7 @@
             "narrative",
             "runtime"
           ],
-          "status": "candidate",
+          "status": "active",
           "authority": "chapter_change",
           "phase": [
             "plan",
@@ -1956,11 +1956,11 @@
             "正向路徑",
             "失準與修復路徑",
             "施工自驗",
-            "IMPLEMENTATION GATE：待獨立覆核"
+            "IMPLEMENTATION GATE：PASS"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "第三章信譽前置與實驗授權工作包；P3 乾淨重建完成後仍待 Claude A=0、B=0。"
+          "blocks_skill_activation": false,
+          "note": "第三章信譽前置與實驗授權工作包；Claude 後續定點覆核 A=0、B=0，總監 2026-07-31 授權 activation。"
         },
         {
           "id": "ch3.cr-027",
@@ -1970,7 +1970,7 @@
             "narrative",
             "runtime"
           ],
-          "status": "candidate",
+          "status": "active",
           "authority": "chapter_change",
           "phase": [
             "plan",
@@ -1994,8 +1994,8 @@
             "四、驗收條件"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "第三章真機試玩修正：一鍵固定三回但逐張留紙、資料組斷言、實驗轉場、NPC 核紙、筆記與無副作用重播；待 Claude CONFORMANCE A=0、B=0。"
+          "blocks_skill_activation": false,
+          "note": "第三章真機試玩修正：一鍵固定三回但逐張留紙、資料組斷言、實驗轉場、NPC 核紙、筆記與無副作用重播；Claude 2026-07-31 定點覆核 A=0、B=0。"
         },
         {
           "id": "ch3.cr-028",
@@ -2005,7 +2005,7 @@
             "narrative",
             "runtime"
           ],
-          "status": "candidate",
+          "status": "active",
           "authority": "chapter_change",
           "phase": [
             "plan",
@@ -2031,8 +2031,8 @@
             "八、驗收"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "第三章碼頭辯論減少重複認知收費、證據卡漸進揭露、章別備忘與第一章存檔可見回饋；待 Claude CONFORMANCE A=0、B=0。"
+          "blocks_skill_activation": false,
+          "note": "第三章碼頭辯論減少重複認知收費、證據卡漸進揭露、章別備忘與第一章存檔可見回饋；Claude 2026-07-31 定點覆核 A=0、B=0。"
         },
         {
           "id": "ch3.cr-029",
@@ -2042,7 +2042,7 @@
             "narrative",
             "runtime"
           ],
-          "status": "candidate",
+          "status": "active",
           "authority": "chapter_change",
           "phase": [
             "plan",
@@ -2063,11 +2063,11 @@
             "三、狀態與舊存檔",
             "四、互動與敘事支付",
             "六、驗收",
-            "七、IMPLEMENTATION GATE：待獨立覆核"
+            "七、IMPLEMENTATION GATE：PASS"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "第三章風變因的玩家承諾前移、狀態化與舊存檔補問分流；待 Claude CONFORMANCE A=0、B=0。"
+          "blocks_skill_activation": false,
+          "note": "第三章風變因的玩家承諾前移、狀態化與舊存檔補問分流；Claude 2026-07-31 定點覆核 A=0、B=0。"
         },
         {
           "id": "ch3.current-cr",
@@ -2535,7 +2535,7 @@
             "narrative",
             "runtime"
           ],
-          "status": "candidate",
+          "status": "active",
           "authority": "chapter_change",
           "phase": [
             "plan",
@@ -2557,11 +2557,11 @@
             "四、相容與不變量",
             "五、敘事接縫",
             "六、驗收",
-            "七、IMPLEMENTATION GATE：待獨立覆核"
+            "七、IMPLEMENTATION GATE：PASS"
           ],
           "supersedes": [],
-          "blocks_skill_activation": true,
-          "note": "第五章 E-3 敘事展開、十個玩家發言與舊游標相容；待 Claude CONFORMANCE A=0、B=0。"
+          "blocks_skill_activation": false,
+          "note": "第五章 E-3 敘事展開、十個玩家發言與舊游標相容；Claude 2026-07-31 定點覆核 A=0、B=0。"
         },
         {
           "id": "ch5.art-appendix",

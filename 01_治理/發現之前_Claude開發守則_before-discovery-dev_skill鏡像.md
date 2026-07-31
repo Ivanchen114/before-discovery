@@ -1,18 +1,18 @@
-> # ⚠ 這是候選鏡像，不是 agent 生效版
+> # ✅ 這是 active 治理鏡像
 >
 > - repo skill canonical：`tools/skill/before-discovery-dev/SKILL.md`
 > - Claude overlay：`tools/skill/before-discovery-dev/OVERLAY-claude.md`
 > - registry：`tools/skill/before-discovery-dev/references/source-registry.json`
-> - skill 版本：3.4.7-candidate
-> - registry 狀態：candidate
+> - skill 版本：3.4.7
+> - registry 狀態：active
 > - 本鏡像由 `scripts/skill_guard.py sync-mirror` 機械產生。
-> - Claude 對抗審與總監裁決前，不同步成 Claude／Codex 生效版。
+> - 本鏡像可作為 agent 安裝來源；各 agent 仍須明示同步並 read-back，不得把 repo 更新冒充已生效。
 
 <!-- MIRROR:COMMON:BEGIN -->
 # 《發現之前》開發路由器
 
-**版本**：v3.4.7-candidate（2026-07-31）
-**狀態**：候選；Claude 獨立對抗審與總監裁決前，不同步成任何 agent 生效版。
+**版本**：v3.4.7（2026-07-31）
+**狀態**：active；Claude 獨立對抗審 A=0、B=0，總監已授權 activation。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
 `references/source-registry.json` 管理。

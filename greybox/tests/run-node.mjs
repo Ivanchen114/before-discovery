@@ -2572,6 +2572,24 @@ tests.push({
     const dual = take(Engine3.runDossierSeries(state), "dual-series");
     if (dual.count !== 1 || dual.records.length !== 1 || !dual.record.dualPapers)
       throw new Error("雙視角被錯做成三次事件，或沒有同時產生雙紙");
+    let borrowState = JSON.parse(JSON.stringify(state));
+    for (const [field, value] of [
+      ["vesselId", "small"], ["stage", "steady"], ["release", "latch"],
+      ["speedRecord", "beats"], ["positionRecord", "shore"]
+    ]) {
+      const result = Engine3.setDossierDraft(borrowState, field, value);
+      if (!result || result.error || result.ok === false)
+        throw new Error("borrow-set:" + field + ":" +
+          (result && (result.error || result.reason) || "no-result"));
+      borrowState = result.state;
+    }
+    const borrowedSeries = Engine3.runDossierSeries(borrowState);
+    if (!borrowedSeries || borrowedSeries.error || borrowedSeries.ok === false ||
+        !borrowedSeries.borrowedNow || borrowedSeries.count !== 3 ||
+        borrowedSeries.records.filter((row) => row.borrowDays > 0).length !== 1 ||
+        borrowedSeries.records.reduce((sum, row) => sum + (row.borrowDays || 0), 0) !==
+          borrowedSeries.dayCost - borrowedSeries.count)
+      throw new Error("同一組三回沒有把借船成本只記在第一張原紙");
     const legacy = JSON.parse(JSON.stringify(state));
     delete legacy.caseFile.dossier.designCommitments;
     let legacyDebate = Engine3.enterDossierDebate(legacy);
@@ -2621,8 +2639,9 @@ tests.push({
 
     /*
      * 反向會紅：把 dual 的 1 改成 3，或把一般系列的 3 改成 1，
-     * 上面的 count／原紙編號斷言會立即失敗；刪掉 notebook 事件橋、
-     * 斷言對話或 focus containment，以下 source contract 也會失敗。
+     * 拿掉 row.borrowDays 的 i === 0 守衛，上面的逐回計時斷言會立即失敗；
+     * 刪掉 notebook 事件橋、斷言對話或 focus containment，以下 source
+     * contract 也會失敗。
      */
   }
 });

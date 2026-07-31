@@ -5,8 +5,8 @@ description: Use for review, diagnosis, design, writing, implementation, testing
 
 # 《發現之前》開發路由器
 
-**版本**：v3.4.7-candidate（2026-07-31）
-**狀態**：候選；Claude 獨立對抗審與總監裁決前，不同步成任何 agent 生效版。
+**版本**：v3.4.7（2026-07-31）
+**狀態**：active；Claude 獨立對抗審 A=0、B=0，總監已授權 activation。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
 `references/source-registry.json` 管理。
