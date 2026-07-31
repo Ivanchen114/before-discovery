@@ -11,8 +11,12 @@
 |---|---|---|
 | `ch01_styleframe_pisa_arcade_v01.png` | 無影像參考，首張風格基準 | 複核塔與迴廊視線；正式版提升至 2560×1440 以上 |
 | `ch01_char_galileo_master_v01.png` | Pisa arcade v01 | 補正／側／三分之四；做三表情差分 A/B proof |
-| `ch01_char_simplicio_master_v01.png` | 前兩張作風格參考，不沿用 Galileo 身份 | 折扇偏木牌，v02 依正確折扇結構重畫 |
-| `ch01_styleframe_debate_hall_v01.png` | 兩角色母版 | 觀眾降複製臉感；證據紙改由 runtime SVG／HTML 疊合 |
+| `ch01_char_simplicio_master_v01.png` | 前兩張作風格參考，不沿用 Galileo 身份 | **ADR-008 廢止持扇版**；檔案留歷史紀錄 |
+| `ch01_char_simplicio_master_v02.png` | master v01 作 edit target | 通過 proof：身份／版面保留，改抱《物理學》評注本 |
+| `ch01_char_simplicio_expressions_v02.png` | expressions v01＋master v02 | 通過 proof：五表情同臉，中央改翻頁停手 |
+| `ch01_styleframe_debate_hall_v01.png` | 兩角色母版 | **ADR-008 廢止持扇版**；檔案留歷史紀錄 |
+| `ch01_styleframe_debate_hall_v02.png` | debate v01＋master v02 | 通過 proof：構圖不變，講台道具改評注本；觀眾複製臉仍留正式版修補 |
+| `ch01_prop_physics_tome_detail_v01.png` | master／debate v02 | 通過 proof：厚卷、皮革、三條夾帶、無可讀文字 |
 | `ch01_styleframe_incline_study_v01.png` | Galileo 母版＋既有風格 | 水鐘、支架先做功能圖再重製；圖上偽字不得進 runtime |
 
 五張早期探索圖均為 1672×941、約 2.0–2.2MB PNG。正式 runtime 需輸出合適尺寸 WebP 並遵守美術規格 v0.2 的單檔預算。
@@ -25,8 +29,11 @@
 | 指定角色表情 | `ch01_char_galileo_expressions_v01.png`、`ch01_char_simplicio_expressions_v01.png` |
 | 空景與器材 | `ch01_bg_workshop_empty_v01.png`、`ch01_prop_ball_groove_detail_v01.png`、`ch01_prop_water_clock_detail_v01.png`、`ch01_prop_folding_fan_detail_v01.png`、`ch01_prop_manuscript_detail_v01.png` |
 | 遊戲畫面合成 | `ch01_composite_workshop_ui_v01.png` |
+| ADR-008 書版同步 | `ch01_char_simplicio_master_v02.png`、`ch01_char_simplicio_expressions_v02.png`、`ch01_styleframe_debate_hall_v02.png`、`ch01_prop_physics_tome_detail_v01.png` |
 
 上述新增圖與 A/B 差分來源的逐字提示詞、工具、seed 狀態、尺寸、放大與人工處理均記於 `PROMPTS_G1_20260719.md`。本檔下方保留五張早期探索圖的逐字提示詞，兩者合併為完整生成帳。
+
+ADR-008 後，`ch01_prop_folding_fan_detail_v01.png` 與所有 v01 持扇圖只作歷史紀錄，不得列入 runtime 或正式量產清單。
 
 ## 最終提示詞
 

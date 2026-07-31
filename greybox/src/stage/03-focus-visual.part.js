@@ -84,6 +84,32 @@
     diagram.appendChild(overlay);
     return diagram;
   }
+  function mountShellTheoremFocusVisual(item, art) {
+    var diagram = document.createElement("div");
+    diagram.className = "scene-focus-shell-theorem";
+    diagram.setAttribute("role", "img");
+    diagram.setAttribute("aria-label", item.alt || "均勻球殼、球心與殼外點的引擎繪製幾何圖");
+    var img = document.createElement("img");
+    img.src = assetUrl(art);
+    img.alt = "";
+    img.loading = "eager";
+    img.setAttribute("aria-hidden", "true");
+    diagram.appendChild(img);
+    var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "shell-theorem-overlay");
+    overlay.setAttribute("viewBox", "0 0 1672 941");
+    overlay.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML =
+      '<circle class="shell outer" cx="780" cy="500" r="275"/>' +
+      '<circle class="shell middle" cx="780" cy="500" r="190"/>' +
+      '<circle class="shell inner" cx="780" cy="500" r="105"/>' +
+      '<line class="radius" x1="780" y1="500" x2="1245" y2="500"/>' +
+      '<circle class="center" cx="780" cy="500" r="11"/>' +
+      '<circle class="external" cx="1245" cy="500" r="15"/>';
+    diagram.appendChild(overlay);
+    return diagram;
+  }
   function showFocusVisual(rule) {
     if (!rule) return;
     var fig = $("sceneFocus"), media = $("sceneFocusMedia");
@@ -106,6 +132,11 @@
       if (!e) return;
       if (item.overlay === "cannon-trajectories") {
         media.appendChild(mountCannonFocusVisual(item, e));
+        shown++;
+        return;
+      }
+      if (item.overlay === "shell-theorem") {
+        media.appendChild(mountShellTheoremFocusVisual(item, e));
         shown++;
         return;
       }

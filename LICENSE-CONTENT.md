@@ -13,7 +13,7 @@
 
 | 資產 | 生成工具 | 條款 |
 |---|---|---|
-| 美術圖(public/assets/ch01、art/source) | OpenAI 影像生成(專案協作者 Sol 產出) | 依 OpenAI 使用條款;隨本倉庫以 CC BY-NC-SA 精神散布 |
+| 美術圖(public/assets/ch01–ch05、art/source) | OpenAI 影像生成(專案協作者 Sol 產出) | 依 OpenAI 使用條款;隨本倉庫以 CC BY-NC-SA 精神散布;逐件來源與例外見 public/assets/ART-LICENSES.md |
 | 音樂(public/assets/audio) | Google Gemini(Lyria) | 依 Google 生成式 AI 條款([說明](https://support.google.com/gemini/answer/16901237));**含 SynthID 數位浮水印,不得移除**;詳見該資料夾 README 生成紀錄 |
 
 ## 三、第三方字型

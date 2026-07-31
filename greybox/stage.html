@@ -133,6 +133,22 @@
   .scene-focus-cannon .cannon-trajectory-overlay .orbiting { stroke: #9fd4e6; }
   .scene-focus-cannon .cannon-trajectory-overlay .impact { stroke: rgba(20,14,10,.72);
     stroke-width: 3; fill: #f1cf77; stroke-dasharray: none; }
+  #sceneFocusMedia .scene-focus-shell-theorem { position: relative; display: block; width: 100%;
+    aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 3px; isolation: isolate;
+    background: #c9b58d; }
+  #sceneFocusMedia .scene-focus-shell-theorem > img { position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; max-height: none; object-fit: cover; border-radius: 0; background: none; }
+  .scene-focus-shell-theorem .shell-theorem-overlay { position: absolute; inset: 0; z-index: 1;
+    display: block; width: 100%; height: 100%; pointer-events: none; }
+  .scene-focus-shell-theorem .shell-theorem-overlay .shell { fill: none; stroke: rgba(61,48,34,.82);
+    stroke-width: 5; }
+  .scene-focus-shell-theorem .shell-theorem-overlay .middle { stroke-dasharray: 14 10; opacity: .78; }
+  .scene-focus-shell-theorem .shell-theorem-overlay .inner { opacity: .58; }
+  .scene-focus-shell-theorem .shell-theorem-overlay .radius { stroke: #874d2f; stroke-width: 5;
+    stroke-linecap: round; }
+  .scene-focus-shell-theorem .shell-theorem-overlay .center { fill: #3d3022; }
+  .scene-focus-shell-theorem .shell-theorem-overlay .external { fill: #d5aa59;
+    stroke: #4c3425; stroke-width: 5; }
   #sceneFocus.multi { width: min(58%, 940px); }
   #sceneFocus.multi #sceneFocusMedia { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #sceneFocus.multi #sceneFocusMedia img { max-height: 32vh; }
@@ -688,7 +704,9 @@
   .fxplate.on { opacity: 1; transform: scale(1.035); }
   @media (max-height: 560px) {
     #fxYear { top: 16px; left: 24px; font-size: clamp(14px, 1.6vw, 20px); }
-    #fxCaption { left: 28px; bottom: 48px; max-width: 72vw; font-size: clamp(14px, 1.55vw, 20px); }
+    #fxCaption { left: 20px; right: 170px; bottom: 42px; max-width: none;
+      font-size: clamp(13px, 1.4vw, 17px); line-height: 1.35; letter-spacing: .035em;
+      white-space: nowrap; }
     #fxControls { right: 24px; bottom: 14px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -2766,20 +2784,20 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts3.js?v=asset-ff2ba03ac549"></script>
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
-<script src="data/assets.js?v=asset-2b16f430bcbe"></script>
+<script src="data/assets.js?v=asset-8e3424a9427a"></script>
 <script src="src/sanitize.js?v=asset-bdef07bd1dae"></script>
 <script src="src/save-envelope.js?v=asset-ddfa4a45c13a"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-1694dc709620"></script>
 <script src="src/engine2.js?v=asset-03d600b8a7d5"></script>
-<script src="src/engine3.js?v=asset-77df19c3878e"></script>
+<script src="src/engine3.js?v=asset-e8b2da3819d9"></script>
 <script src="src/engine4.js?v=asset-321ebec4e356"></script>
 <script src="src/engine5.js?v=asset-8c6a10a864ce"></script>
-<script src="data/scenes.js?v=asset-3b9253a49618"></script>
-<script src="data/scenes2.js?v=asset-52557359226f"></script>
-<script src="data/scenes3.js?v=asset-e4110397f85f"></script>
-<script src="data/scenes4.js?v=asset-6de423aa1dc2"></script>
-<script src="data/scenes5.js?v=asset-8e63ab0d4695"></script>
+<script src="data/scenes.js?v=asset-8595708d8c93"></script>
+<script src="data/scenes2.js?v=asset-f8ce832d4058"></script>
+<script src="data/scenes3.js?v=asset-b3cd7dc77fba"></script>
+<script src="data/scenes4.js?v=asset-9da65ec86b20"></script>
+<script src="data/scenes5.js?v=asset-1d138836354c"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
 (function () {
@@ -2818,8 +2836,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-22ff96c2e929"></script>
-<script src="src/chapter-ui.js?v=asset-6ed24becb049"></script>
+<script src="src/narrative.js?v=asset-ce350d53d557"></script>
+<script src="src/chapter-ui.js?v=asset-9681bd4038d1"></script>
 <script>
 (function () {
   "use strict";
@@ -2952,6 +2970,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   refreshDirectorySemantics();
 })();
 </script>
-<script src="src/stage-ui.js?v=asset-6609af4e7989"></script>
+<script src="src/stage-ui.js?v=asset-43efd5a1b80a"></script>
 </body>
 </html>

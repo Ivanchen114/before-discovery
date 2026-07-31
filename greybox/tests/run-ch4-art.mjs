@@ -145,6 +145,18 @@ const generatedFocus = {
   },
   ch04_focus_mountain_cannon_v01: {
     scene: "D2-1", match: "最高的山頂上", guard: "引擎 SVG 疊加"
+  },
+  ch04_focus_stirred_tea_analogy_v01: {
+    scene: "D4-1", match: "攪茶圖卡", guard: "不表示渦旋已被證明"
+  },
+  ch04_focus_lodestone_needle_analogy_v01: {
+    scene: "D4-1", match: "磁石圖卡", guard: "不能把磁力機制等同引力"
+  },
+  ch04_focus_three_observation_folios_v01: {
+    scene: "D4-1", match: "三份觀測封面", guard: "仍由引擎表格承載"
+  },
+  ch04_focus_shell_theorem_page_v01: {
+    scene: "D4-2", match: "一個均勻球殼", guard: "由引擎 SVG 疊加"
   }
 };
 for (const [id, expected] of Object.entries(generatedFocus)) {
@@ -177,6 +189,14 @@ if (cannonRule?.items?.[0]?.overlay !== "cannon-trajectories" ||
     (focusRenderer.match(/<path class=/g) || []).length < 5 ||
     !stageHtml.includes(".cannon-trajectory-overlay"))
   fail("山頂大砲的物理軌跡沒有由 runtime SVG 疊加");
+const shellRule = (assets.lineFocusVisual || []).find((rule) =>
+  rule.items?.some((item) => item.asset === "ch04_focus_shell_theorem_page_v01"));
+if (shellRule?.items?.[0]?.overlay !== "shell-theorem" ||
+    !focusRenderer.includes("function mountShellTheoremFocusVisual") ||
+    !focusRenderer.includes('overlay.setAttribute("class", "shell-theorem-overlay")') ||
+    (focusRenderer.match(/class="shell /g) || []).length !== 3 ||
+    !stageHtml.includes(".shell-theorem-overlay"))
+  fail("球殼定理紙頁的幾何沒有由 runtime SVG 疊加");
 
 const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
 for (const fragment of [
@@ -302,4 +322,27 @@ for (const fragment of [
 ])
   if (!stageUi.includes(fragment)) fail("第四章三段式音樂缺里程碑切換:" + fragment);
 
-console.log("  ✓ 第四章正式美術與音樂交接|12 場背景、3 張去邊肖像、8 張台詞特寫、5 張證據圖、3 張新增 focus、SVG 物理疊圖、11 首 BGM");
+const artGovernanceFiles = {
+  prompts: path.join(here, "../../art/source/production/ch04/focus/PROMPTS_CH04_FOCUS_V02_20260731.md"),
+  ledger: path.join(here, "../../art/source/production/ASSET_LEDGER.md"),
+  licenses: path.join(here, "../../public/assets/ART-LICENSES.md"),
+  appendix: path.join(here, "../../03_規格/發現之前_第四章美術製作附錄_v0.1.md")
+};
+for (const [label, file] of Object.entries(artGovernanceFiles))
+  if (!existsSync(file)) fail("第四章補圖缺治理紀錄:" + label);
+const governanceText = Object.fromEntries(Object.entries(artGovernanceFiles).map(
+  ([label, file]) => [label, readFileSync(file, "utf-8")]
+));
+for (const id of Object.keys(generatedFocus).filter((id) =>
+  id.includes("stirred_tea") || id.includes("lodestone") ||
+  id.includes("three_observation") || id.includes("shell_theorem"))) {
+  for (const label of ["prompts", "ledger", "licenses", "appendix"])
+    if (!governanceText[label].includes(id))
+      fail("第四章補圖治理紀錄未逐件收錄:" + label + " → " + id);
+}
+const rootLicense = readFileSync(path.join(here, "../../LICENSE-CONTENT.md"), "utf-8");
+if (!rootLicense.includes("public/assets/ch01–ch05") ||
+    !rootLicense.includes("public/assets/ART-LICENSES.md"))
+  fail("根內容授權仍未涵蓋後續章美術或未連到逐件授權帳");
+
+console.log("  ✓ 第四章正式美術與音樂交接|12 場背景、3 張去邊肖像、12 張台詞特寫、5 張證據圖、7 張新增 focus、2 組 SVG 物理疊圖、11 首 BGM");

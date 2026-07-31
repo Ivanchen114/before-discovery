@@ -113,8 +113,8 @@
      "id": "releaseRig",
      "label": "桅頂放手裝置",
      "asset": "ship3_apparatus_survey",
-     "x": 47,
-     "y": 72,
+     "x": 38,
+     "y": 7,
      "function": "石頭可以徒手鬆開、剪斷吊繩，或抽開門閂。不同做法會留下不同程度的手推與擺動干擾。",
      "line": "別只問石頭落在哪裡。先問：它究竟是怎麼離手的。"
     },
@@ -897,13 +897,44 @@
    "h": 941
   },
   {
+   "id": "ch03_transition_1610_jupiter_observation_v01",
+   "kind": "bg",
+   "label": "章首轉場・1610 木星觀測",
+   "path": "ch03/transitions/ch03_transition_1610_jupiter_observation_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/transitions/ch03_transition_1610_jupiter_observation_master_v01.png"
+  },
+  {
+   "id": "ch03_transition_1616_roman_admonition_v01",
+   "kind": "bg",
+   "label": "章首轉場・1616 羅馬告誡",
+   "path": "ch03/transitions/ch03_transition_1616_roman_admonition_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/transitions/ch03_transition_1616_roman_admonition_master_v01.png"
+  },
+  {
    "id": "ch03_transition_1632_dialogue_ship_page_v01",
    "kind": "bg",
    "label": "章首轉場・1632 對話船頁",
    "path": "ch03/transitions/ch03_transition_1632_dialogue_ship_page_v01.png",
    "firstScreen": false,
    "w": 1672,
-   "h": 941
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/transitions/ch03_transition_1632_dialogue_ship_page_v01.png"
+  },
+  {
+   "id": "ch03_transition_1633_roman_statement_v01",
+   "kind": "bg",
+   "label": "章首轉場・1633 羅馬聲明",
+   "path": "ch03/transitions/ch03_transition_1633_roman_statement_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/transitions/ch03_transition_1633_roman_statement_master_v01.png"
   },
   {
    "id": "ch03_transition_1640_gassendi_handoff_v01",
@@ -1663,6 +1694,46 @@
    "sourceMaster": "art/source/production/ch04/focus/ch04_focus_mountain_cannon_master_v01.png"
   },
   {
+   "id": "ch04_focus_stirred_tea_analogy_v01",
+   "kind": "cg",
+   "label": "1684 攪茶渦旋類比焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_stirred_tea_analogy_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_stirred_tea_analogy_master_v01.png"
+  },
+  {
+   "id": "ch04_focus_lodestone_needle_analogy_v01",
+   "kind": "cg",
+   "label": "1684 磁石與鐵針類比焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_lodestone_needle_analogy_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_lodestone_needle_analogy_master_v01.png"
+  },
+  {
+   "id": "ch04_focus_three_observation_folios_v01",
+   "kind": "cg",
+   "label": "1684 三份觀測封面焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_three_observation_folios_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_three_observation_folios_master_v01.png"
+  },
+  {
+   "id": "ch04_focus_shell_theorem_page_v01",
+   "kind": "cg",
+   "label": "1687 球殼定理紙頁焦點鏡頭",
+   "path": "ch04/focus/ch04_focus_shell_theorem_page_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_shell_theorem_page_master_v01.png"
+  },
+  {
    "id": "card_K1",
    "kind": "card",
    "label": "K1 一直改向的路",
@@ -2412,6 +2483,51 @@
    "caption": "觀測仍在封口裡：先留下預測，才有資格拆開火星與木星的資料。"
   },
   {
+   "scene": "D4-1",
+   "match": "攪茶圖卡",
+   "items": [
+    {
+     "asset": "ch04_focus_stirred_tea_analogy_v01",
+     "alt": "1684 年劍橋書桌上的茶碗正被湯匙攪動，茶葉隨茶水形成自然旋流；畫面沒有行星、軌跡或結論標記"
+    }
+   ],
+   "caption": "攪茶只幫玩家看懂「流帶著東西轉」的類比；它不是天空觀測，也不表示渦旋已被證明。"
+  },
+  {
+   "scene": "D4-1",
+   "match": "磁石圖卡",
+   "items": [
+    {
+     "asset": "ch04_focus_lodestone_needle_analogy_v01",
+     "alt": "1684 年劍橋書桌上的天然磁石與一根分開放置的鐵針；兩者尚未接觸，畫面沒有磁力線或箭頭"
+    }
+   ],
+   "caption": "磁石只借「隔空」與「距離越遠、作用越弱」兩點；不能把磁力機制等同引力。"
+  },
+  {
+   "scene": "D4-1",
+   "match": "三份觀測封面",
+   "items": [
+    {
+     "asset": "ch04_focus_three_observation_folios_v01",
+     "alt": "劍橋書桌上並列三份獨立封好的觀測卷宗，封面分別以月牙、兩顆圓點與彗星符號區分，沒有可讀數據"
+    }
+   ],
+   "caption": "三份封面只標示待過帳的資料類別；距離、週期、日期與星位仍由引擎表格承載。"
+  },
+  {
+   "scene": "D4-2",
+   "match": "一個均勻球殼",
+   "items": [
+    {
+     "asset": "ch04_focus_shell_theorem_page_v01",
+     "overlay": "shell-theorem",
+     "alt": "1687 年印刷台上的空白證明紙頁，疊有引擎繪製的同心球殼、球心、殼外點與連線"
+    }
+   ],
+   "caption": "球殼頁的紙張與印刷台是情境底圖；同心殼、殼外點與球心關係由引擎 SVG 疊加。"
+  },
+  {
    "scene": "D4-2",
    "match": "作者欄沒有旅人的名條",
    "items": [
@@ -2750,17 +2866,32 @@
     {
      "plate": "ch03_transition_1609_question_departs_v01",
      "label": "1609｜帕多瓦",
-     "caption": "伽利略把目光轉向天空，問題留在筆記裡。"
+     "caption": "伽利略轉向天空，船艙問題留在筆記裡。"
+    },
+    {
+     "plate": "ch03_transition_1610_jupiter_observation_v01",
+     "label": "1610｜帕多瓦",
+     "caption": "鏡筒對準木星，四顆伴星改變了天空的秩序。"
+    },
+    {
+     "plate": "ch03_transition_1616_roman_admonition_v01",
+     "label": "1616｜羅馬",
+     "caption": "一份告誡送到羅馬；他收下，沒有回話。"
     },
     {
      "plate": "ch03_transition_1632_dialogue_ship_page_v01",
      "label": "1632｜《對話》出版",
-     "caption": "二十三年後，他把問題寫進一艘想像的船。"
+     "caption": "他把未完的問題，寫進一艘想像的船。"
+    },
+    {
+     "plate": "ch03_transition_1633_roman_statement_v01",
+     "label": "1633｜羅馬",
+     "caption": "他在羅馬讀完聲明，之後回到阿爾切特里。"
     },
     {
      "plate": "ch03_transition_1640_gassendi_handoff_v01",
      "label": "1640｜法國・馬賽",
-     "caption": "又過八年，書頁抵達港口；這次接住它的人，不是伽利略。"
+     "caption": "八年後，馬賽有人接住了那一頁。"
     }
    ]
   },
