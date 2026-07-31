@@ -52,6 +52,7 @@ seriesJson.chapters.forEach((chapter, index) => {
 });
 
 for (const fragment of [
+  '<link rel="icon" type="image/svg+xml" sizes="any" href="../public/assets/icons/favicon-v2.svg">',
   'id="btnPrevChapter"',
   'id="btnNextChapter"',
   'id="btnPrevChapter" hidden aria-hidden="true" tabindex="-1"',
@@ -79,6 +80,8 @@ assert(seriesScript, "系列首頁缺少 data/series.js 掛點");
 assert(seriesScript.version === assetVersionFor(seriesScript.path),
   "系列首頁 data/series.js 快取鍵未與內容雜湊同步");
 
+assert(!ui.includes("（舞台版）"), "正式玩家分頁標題仍含內部用的「舞台版」");
+assert(ui.includes('current.title + "｜互動物理史遊戲"'), "正式玩家分頁標題缺少產品定位");
 assert(!html.includes('content: "＋"'), "章節選擇器仍使用容易和進度文字重疊的加號");
 assert(!html.includes("repeat(4,minmax(0,1fr))"), "系列首頁仍把章節列寫死為四欄");
 assert(!html.includes('data-chapter="ch01"'), "系列首頁仍在 HTML 寫死章節卡");

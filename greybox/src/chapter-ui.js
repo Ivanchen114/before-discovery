@@ -7160,7 +7160,7 @@
   }
   function configureSeriesTitle() {
     var current = chapterMeta(CHAPTER_ID);
-    document.title = "《發現之前》" + current.label + "：" + current.title + "（舞台版）";
+    document.title = "《發現之前》" + current.label + "：" + current.title + "｜互動物理史遊戲";
     var progress = readSeriesProgress();
     var completedCount = SERIES_CHAPTERS.filter(function (chapter) {
       return progress.chapters[chapter.id];
