@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>E-2b 劑量原型|第三章碼頭辯論・旅人 OS 三種劑量</title>
+<style>
+  :root{--bg:#141c26;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#1F5C8B;--ok:#3e7d5a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.75;}
+  .banner{background:#2a2340;color:#d9d0f0;padding:6px 14px;font-size:12.5px;border-bottom:1px solid #4a3f6b;}
+  header{padding:12px 16px 4px;max-width:900px;margin:0 auto;}
+  header h1{font-size:16px;margin:0 0 3px;color:#c9a227;}
+  header p{margin:0;font-size:12.5px;color:var(--dim);}
+  main{max-width:900px;margin:0 auto;padding:8px 12px 60px;}
+  .doses{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px;}
+  .doses button{flex:1;min-width:150px;}
+  .card{background:var(--paper);color:var(--ink);border-radius:10px;padding:13px 15px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .card h2{font-size:14.5px;margin:0 0 8px;color:#6b4f1d;}
+  button{min-height:44px;min-width:44px;padding:8px 14px;font-size:14.5px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:4px 6px 2px 0;text-align:left;}
+  button:hover{background:#f1e3c2;} button:disabled{opacity:.4;cursor:default;}
+  button:focus-visible{outline:3px solid #3e6c9e;outline-offset:2px;}
+  button.sel{background:#e7d29a;font-weight:700;box-shadow:inset 0 0 0 2px #8a6b1f;}
+  .log p{margin:0 0 10px;font-size:15px;}
+  .stage{color:#5b5344;font-style:italic;font-size:14px;}
+  .opp{border-left:4px solid #8a6b1f;background:#fbf4e2;padding:7px 11px;margin:0 0 10px;font-size:15px;}
+  .opp.bad{border-left-color:var(--bad);background:#f7e8e6;}
+  .me{background:#eef3f8;border:1px solid #c4d3e2;border-radius:8px;padding:7px 11px;margin:0 0 10px;font-size:15px;}
+  .me b{color:#2c5578;display:block;font-size:12.5px;margin-bottom:2px;}
+  .os{color:var(--blue);font-style:italic;font-size:14.5px;margin:0 0 10px;padding-left:10px;border-left:2px dotted #7fa8cc;}
+  .os::before{content:"旅人（心聲）";font-style:normal;font-weight:700;font-size:12px;color:#4a7fa8;display:block;}
+  .q{font-size:13px;color:#6a5f4a;margin:10px 0 4px;border-top:1px dashed #c9bda0;padding-top:9px;}
+  .meta{font-size:12.5px;color:#6a5f4a;margin-top:10px;border-top:1px dashed #c9bda0;padding-top:8px;}
+  .pill{display:inline-block;background:#efe3c6;border:1px solid #b9a98a;border-radius:20px;padding:1px 10px;font-size:12px;margin-right:6px;}
+  footer{max-width:900px;margin:0 auto;padding:4px 16px 40px;font-size:12.5px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:13.5px;margin:14px 0 4px;}
+  @media (max-height:460px) and (orientation:landscape){
+    header p{display:none;} header{padding:6px 12px 2px;} .card{padding:9px 11px;}
+  }
+  @media (prefers-reduced-motion:reduce){ * {transition:none!important;animation:none!important;} }
+</style>
+</head>
+<body>
+<div class="banner">🧪 <b>劑量原型(非施工來源)</b>|E-2b:第三章碼頭辯論要不要加旅人 OS、加多少。三種劑量各走一次第一柱,再決定。台詞與判定完全照 <code>engine3.js</code> 現行內容,只增 OS。</div>
+<header>
+  <h1>第三章|碼頭辯論・第一柱(走穩時為什麼不落後)</h1>
+  <p>對手台詞、玩家選項、通過條件皆與現行 runtime 相同。差別只有藍色那層。</p>
+</header>
+<main>
+
+<div class="card">
+  <h2>選一種劑量,然後走一次</h2>
+  <div class="doses">
+    <button data-d="A" class="sel">A|現狀:完全沒有 OS</button>
+    <button data-d="P">A⁺|最低有效劑量(2 句)</button>
+    <button data-d="B">B|情緒點(6 句)</button>
+    <button data-d="C">C|每一拍都有 OS</button>
+  </div>
+  <div class="meta" id="doseNote"></div>
+</div>
+
+<div class="card">
+  <h2>碼頭<span class="pill" id="osCount">OS 0 句</span><span class="pill" id="stepTag">第 1 問 / 共 5</span></h2>
+  <div class="log" id="log"></div>
+  <div class="q" id="q"></div>
+  <div id="opts"></div>
+  <button id="reset" style="margin-top:10px">從頭再走一次</button>
+</div>
+
+</main>
+<footer>
+  <h3>這份原型在問什麼</h3>
+  <b>不是</b>「要不要加 OS」——那個總監已經決定要。是<b>加多少</b>。<br>
+  A 是現況:玩家的話已經標了「旅人(你)」(<code>chapter-ui.js:3620</code> 既有),但整場零心聲。<br>
+  <b>A⁺</b>(總監 2026-07-28 追加)只留兩句,篩選規則:<b>OS 只在「沒有第二個人能講這句話」的時候上</b>。對手台詞、動作指示或系統訊息已經表達過的,OS 就是重複。<br>
+  B 只在六個時刻上 OS:進場、第一次被駁、對方收下紙、被追問概念、一柱過關、被退回補做。<br>
+  C 每一拍都上,用來示範為什麼不該這樣做——辯論的緊張感會被碎念稀釋,玩家開始跳過。
+  <h3>技術註記</h3>
+  ①<code>lastPlayerLine</code> 與 <code>lastReply</code> 在 engine3 已是分開欄位、分開渲染;加 <code>lastOS</code> 是平行新增。<br>
+  ②這些欄位不在 <code>sanitize.js</code>,由 engine3 自己的 <code>ensureNewFields</code> 正規化 → <b>不需要存檔遷移</b>,舊檔預設空字串。<br>
+  ③<b>每句 OS 只播一次</b>。玩家答錯可重試,若不記錄已播集合,同一句會重複出現,讀起來像 bug。本原型已實作 <code>fired</code> 集合。<br>
+  ④全章共 28 個回覆點 + 30 個失敗/退回分支。<b>A⁺ 估全章 8–10 句;B 估 20–26 句</b>。<br>⑤「下一個是他自己那張舊紙」這句在 A⁺ 被移出第一柱收束——它該放在<b>第二柱開場</b>,那裡才是它發揮的位置。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var dose='A', step=0, fired={}, osN=0;
+
+  /* 台詞完全照 engine3.js 現行內容(2026-07-28 撈)。OS 為本原型新增。 */
+  var INTRO=[
+    {t:'stage',x:'船靠回石碼頭。馬蒂厄把封好的原紙一張張掛上木板；商人和槳手已在舊紙前爭了起來。'},
+    {t:'npc',x:'商人：「第一張明明落在後面。」'},
+    {t:'npc',x:'槳手：「後來那幾張又在桅腳。總不能都算對吧？」'},
+    {t:'npc',x:'維達爾船長：（把舊紙壓在木板中央）「這幾天我留在岸上，也沒先看結果。今天你說的每一句，我都會追問。」'},
+    {t:'npc',x:'伽桑狄：（把卷宗交回旅人）「紙都在。照他的問題，一張一張拿紙回答。」'}
+  ];
+  var OS_INTRO=[
+    '三個人站在木板前面等我開口。伽桑狄把卷宗交回來就退開了——他不打算幫我講。',
+    '也對。紙是我排的。'
+  ];
+
+  var STEPS=[
+    { q:'第一問|走穩的時候，石頭為什麼不落後？先拿一張紙。',
+      opts:[
+        {ok:1,me:'我先用走穩三回的原紙回答：岸紙確認船速近乎不變，落點都在桅腳附近。',
+         reply:'維達爾船長：「紙我收下。先別念落點。石頭鬆手前也跟船一起往前；手一鬆，這件事怎麼算？」',
+         os:'他收下了。可是下一句馬上就來——原來「收下」不等於「同意」。'},
+        {ok:0,me:'我先用解纜起步的後偏原紙回答。',
+         reply:'商人：「那張紙有資料，可它沒有回答走穩時為什麼不落後。」', bad:1,
+         os:'……他沒有說我錯。他說我那張紙沒有回答他問的事。這兩件事不一樣，而且第二件比較難救。'},
+        {ok:0,me:'我先用徒手放石頭的散布原紙回答。',
+         reply:'商人：「那張紙有資料，可它沒有回答走穩時為什麼不落後。」', bad:1,
+         os:'……他沒有說我錯。他說我那張紙沒有回答他問的事。這兩件事不一樣，而且第二件比較難救。'}
+      ]},
+    { q:'第二問|手一鬆的那一瞬間，怎麼算？',
+      opts:[
+        {ok:1,me:'石頭鬆手以前，已經和船一起往前；鬆手後，它仍照原來的方向走。',
+         reply:'維達爾船長：「一句話不算數。把走穩那組拿來。」',
+         os:'他要的不是我知道這件事。他要我把鬆手那一瞬間發生了什麼，講到他能追問為止。'},
+        {ok:0,me:'石頭離手後，會自己追著往前的桅杆。',
+         reply:'維達爾船長：（指著放手欄）「這一欄只有『鬆手』。你說的那股力，記在哪裡？」', bad:1,
+         os:'我剛剛替石頭加了一個紙上沒有的動作。'},
+        {ok:0,me:'石頭需要甲板風持續往前推，才會回到桅腳。',
+         reply:'維達爾船長：（指著放手欄）「這一欄只有『鬆手』。你說的那股力，記在哪裡？」', bad:1,
+         os:'我剛剛替石頭加了一個紙上沒有的動作。'}
+      ]},
+    { q:'第三問|把走穩那組拿出來。',
+      opts:[
+        {ok:1,me:'走穩的三回都用同一顆石頭、同一高度和門閂放手；岸紙也確認船速近乎不變。落點都在桅腳附近。',
+         reply:'槳手：「甲板上有風。你怎麼知道不是風把石頭推回桅腳？」',
+         os:'風。我完全沒想到風。'},
+        {ok:0,me:'解纜起步那組落在桅後。',
+         reply:'商人：「那張紙回答的不是走穩時落在哪裡。」', bad:1, os:''},
+        {ok:0,me:'徒手放下的三回，落點散開了。',
+         reply:'商人：「那張紙回答的不是走穩時落在哪裡。」', bad:1, os:''}
+      ]},
+    { q:'第四問|你拿哪一張把甲板風隔開？',
+      opts:[
+        {ok:1,me:'停泊三回、平駛三回；六回都有岸紙。封閉船艙裡只記水面和落球，兩組結果仍很接近。',
+         reply:'伽桑狄：（把自己簽名的六張船艙紙攤開）「停泊三回，平駛三回。水面都沒有固定偏向，小球也都落在放手點正下方。」',
+         os:'還好我們有進艙做那六回。當時只覺得麻煩。'},
+        {ok:0,me:'甲板上的走穩三回都落在桅腳附近。',
+         reply:'槳手：（指紙角）「這張是在甲板上畫的。你拿哪一張隔開甲板風？」', bad:1, os:''},
+        {ok:0,me:'解纜起步那組落在桅後。',
+         reply:'槳手：（指紙角）「這張是在甲板上畫的。你拿哪一張隔開甲板風？」', bad:1, os:''}
+      ]},
+    { q:'第五問|那甲板上那一趟的風，你要怎麼說？',
+      opts:[
+        {ok:1,me:'甲板那一趟的風影響多少，我還不能說；但把甲板風隔開後，石頭仍不一定落後。',
+         reply:'槳手：「這一問過了。下一問，船長那張舊紙。」',
+         os:'過了一問。（頓）而且我剛剛親口說了一句「我還不能說」——在比薩的時候，我最怕的就是這句。'},
+        {ok:0,me:'甲板風在這類落石裡不會改變結果。',
+         reply:'槳手：（指著兩組標題）「船艙隔開的是甲板風。你憑哪一欄，替甲板那一趟的風下結論？」', bad:1,
+         os:'我又多說了。艙裡量到的事，被我拿去替艙外作證。'},
+        {ok:0,me:'這兩趟足以排除風的影響。',
+         reply:'槳手：（指著兩組標題）「船艙隔開的是甲板風。你憑哪一欄，替甲板那一趟的風下結論？」', bad:1,
+         os:'我又多說了。艙裡量到的事，被我拿去替艙外作證。'}
+      ]}
+  ];
+  /* B 劑量:只在這些時刻上 OS。key = 'intro' | 'sN-ok' | 'first-bad' | 'done' */
+  var B_SET={'intro':1,'s0-ok':1,'s1-ok':1,'first-bad':1,'s4-ok':1,'done':1};
+  /* A⁺ 最低有效劑量:只留「沒有第二個人能講這句」的兩句。
+     篩掉的三句都被別人的台詞講過了:進場(伽桑狄已說「照他的問題一張一張拿紙回答」)、
+     收下≠同意(對手台詞本身就是收下後馬上追問)、講到能追問(「一句話不算數」已表達)。 */
+  var P_SET={'first-bad':1,'done':1};
+
+  function el(cls,txt,html){
+    var p=document.createElement('p'); p.className=cls;
+    if(html) p.innerHTML=txt; else p.textContent=txt;
+    $('log').appendChild(p); return p;
+  }
+  function addOS(text,key){
+    if(!text) return;
+    if(dose==='A') return;
+    if(dose==='B' && !B_SET[key]) return;
+    if(dose==='P' && !P_SET[key]) return;
+    if(fired[key]) return;             /* 每句只播一次:避免重試時重複 */
+    fired[key]=1; osN++; $('osCount').textContent='OS '+osN+' 句';
+    el('os',text);
+  }
+  function render(){
+    $('stepTag').textContent='第 '+Math.min(step+1,5)+' 問 / 共 5';
+    var s=STEPS[step];
+    if(!s){ $('q').textContent=''; $('opts').innerHTML=''; return; }
+    $('q').textContent=s.q;
+    $('opts').innerHTML='';
+    s.opts.forEach(function(o,i){
+      var b=document.createElement('button');
+      b.textContent='「'+o.me+'」';
+      b.onclick=function(){ choose(o,i); };
+      $('opts').appendChild(b);
+    });
+  }
+  function choose(o){
+    var d=document.createElement('div'); d.className='me';
+    d.innerHTML='<b>旅人（你）</b>「'+o.me+'」'; $('log').appendChild(d);
+    var r=document.createElement('p'); r.className='opp'+(o.bad?' bad':''); r.textContent=o.reply;
+    $('log').appendChild(r);
+    if(o.bad){ addOS(o.os,'first-bad'); }
+    else { addOS(o.os,'s'+step+'-ok'); step++; }
+    if(step>=STEPS.length){
+      el('stage','（三個人都沒有再說話。維達爾船長把第一張紙翻過來，在背面畫了一個記號。）');
+      addOS('第一柱過了。還有兩個——而且我知道下一個，是他自己那張舊紙。','done');
+      $('q').textContent='第一柱結束。'; $('opts').innerHTML='';
+    } else render();
+    $('log').lastChild.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function start(){
+    $('log').innerHTML=''; step=0; fired={}; osN=0; $('osCount').textContent='OS 0 句';
+    INTRO.forEach(function(x){ el(x.t==='stage'?'stage':'opp',x.x); });
+    if(dose!=='A' && dose!=='P'){ OS_INTRO.forEach(function(t,i){
+      if(dose==='B' && i>0) return;   /* B 只給第一句 */
+      osN++; fired['intro']=1; el('os',t);
+    }); $('osCount').textContent='OS '+osN+' 句'; }
+    render();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.doses button'),function(b){
+    b.onclick=function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.doses button'),function(x){x.classList.remove('sel');});
+      b.classList.add('sel'); dose=b.dataset.d;
+      $('doseNote').textContent={
+        A:'現狀。玩家的話有標「旅人（你）」，但整場零心聲——你在被三個人輪流追問，卻沒有任何內心反應。',
+        B:'建議劑量。六個情緒點：進場、第一次被駁、對方收下紙、被追問概念、一柱過關、被退回補做。其餘保持安靜。',
+        C:'每一拍都上。刻意做給你感覺「太多」是什麼樣子——每答一次就被打斷一次。'
+      }[dose];
+      start();
+    };
+  });
+  $('reset').onclick=start;
+  $('doseNote').textContent='現狀。玩家的話有標「旅人（你）」，但整場零心聲——你在被三個人輪流追問，卻沒有任何內心反應。';
+  start();
+})();
+</script>
+</body>
+</html>

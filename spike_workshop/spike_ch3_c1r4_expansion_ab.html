@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>展開原型 A/B|第三章 C1-R4「三回乾淨穩速」</title>
+<style>
+  :root{--bg:#141c26;--paper:#f4ecd8;--ink:#2b2417;--gold:#b8860b;--dim:#8a94a6;--bad:#b0413e;--blue:#3e6c9e;--sea:#22384d;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#e8e4da;font-family:"Noto Sans TC","PingFang TC",sans-serif;line-height:1.75;}
+  header{padding:14px 18px 6px;max-width:1120px;margin:0 auto;}
+  header h1{font-size:17px;margin:0 0 4px;color:#c9a227;}
+  header p{margin:0;font-size:13px;color:var(--dim);}
+  main{max-width:1120px;margin:0 auto;padding:8px 14px 60px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:900px){ main{grid-template-columns:1fr;} }
+  .col{background:var(--paper);color:var(--ink);border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .col h2{font-size:15px;margin:0 0 2px;color:#6b4f1d;}
+  .col .tag{font-size:12.5px;color:#6a5f4a;margin-bottom:10px;}
+  .stage{min-height:330px;}
+  .line{margin:0 0 10px;font-size:15px;opacity:0;transform:translateY(4px);animation:in .28s ease forwards;}
+  @keyframes in{to{opacity:1;transform:none;}}
+  .who{font-weight:700;}
+  .dir{color:#5b5344;font-style:italic;font-size:14px;}
+  .os{color:#1F5C8B;font-style:italic;}
+  .sys{color:#7A5C1E;font-size:13.5px;border-left:3px solid #d8cbaa;padding-left:8px;}
+  .card{background:#fff8ea;border:1.5px solid #d8cbaa;border-radius:8px;padding:8px 10px;font-size:14px;margin:6px 0 10px;}
+  .card b{color:#6b4f1d;}
+  button{min-height:44px;padding:8px 16px;font-size:15px;border-radius:8px;border:2px solid #6b4f1d;background:#fff8ea;color:#2b2417;cursor:pointer;margin:6px 8px 2px 0;}
+  button:hover{background:#f1e3c2;} button:disabled{opacity:.4;cursor:default;}
+  .beats{font-size:12.5px;color:#6a5f4a;margin-top:10px;border-top:1px dashed #c9bda0;padding-top:8px;}
+  footer{max-width:1120px;margin:0 auto;padding:4px 16px 40px;font-size:13px;color:var(--dim);}
+  footer h3{color:#aeb8c8;font-size:14px;margin:14px 0 4px;}
+  .count{float:right;font-size:12px;color:#6a5f4a;font-weight:400;}
+</style>
+</head>
+<body>
+<header>
+  <h1>展開原型 A/B|第三章 C1-R4「三回乾淨穩速」——同一場,兩種寫法</h1>
+  <p>左=現況(節點級壓縮);右=戲劇完整度四律展開版。物理、證據、判定、正解**完全相同**,只差場面。兩邊都點完,問自己:哪一邊比較想繼續玩?哪一邊比較不耐煩?</p>
+</header>
+<main>
+
+<div class="col">
+  <h2>A|現況(壓縮版)<span class="count" id="ca">0 拍</span></h2>
+  <div class="tag">三個人依序報完三個控制欄位 → 出斷言選項。</div>
+  <div class="stage" id="sa"></div>
+  <button id="ba">推進</button>
+  <div class="beats" id="beatA"></div>
+</div>
+
+<div class="col">
+  <h2>B|展開版(四律)<span class="count" id="cb">0 拍</span></h2>
+  <div class="tag">三拍展開律 · 認知停頓 · 角色反應權 · 轉場不得不。</div>
+  <div class="stage" id="sb"></div>
+  <button id="bb">推進</button>
+  <div class="beats" id="beatB"></div>
+</div>
+
+</main>
+<footer>
+  <h3>四律在右欄的落點(對照用)</h3>
+  <b>三拍展開律</b>:艾蒂安先喊出異常(數字一樣)→ 水手用自己的方式回應(節奏,不是數字)→ 馬蒂厄拿原紙確認。三個人不再各報各的欄位,而是接住彼此。<br>
+  <b>認知停頓</b>:旅人先以為成功(「這樣就成了吧」)→ 伽桑狄沒有恭喜,只把紙翻面 → 甲板的風被注意到 → 玩家才發現證據還沒閉合。<br>
+  <b>角色反應權</b>:水手聽不懂學者的說法但相信自己的鼓;艾蒂安對數字敏感、會自己算差;馬蒂厄務實、只認紙上有沒有。<br>
+  <b>轉場不得不</b>:結尾不是「進入下一場」,是艦長的影子出現在碼頭——他等著看的那張紙,現在少一欄。<br>
+  <h3>成本</h3>
+  A=6 拍;B=15 拍(約 2.5 倍)。全章比照展開,節點數會明顯增加,須動 scenes3 結構=展開批次,不搭台詞級 CR 順風車。
+</footer>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function L(cls,who,txt){ return {cls:cls,who:who,txt:txt}; }
+
+  var A = [
+    L('dir', null, '(第三趟。船走穩,馬蒂厄抽開門閂,石球落下。)'),
+    L('d','艾蒂安(從岸上回報)','「桅杆每一拍走的距離,差不多一樣。」'),
+    L('d','水手','「鼓我照同一拍敲。」'),
+    L('d','馬蒂厄','「門閂是我抽的。三次都沒有人碰石頭。」'),
+    L('sys',null,'原紙三張已收進卷宗。可提出斷言。'),
+    L('q',null,'【斷言|適用範圍】A「所有向前的船,不論怎麼放手、怎麼變速,都落在完全同一點。」 / B「在同石、同高、門閂放手,且岸標確認走穩的三回中,落點集中在桅腳附近。」✓')
+  ];
+
+  var B = [
+    L('dir', null, '(第三趟。鼓聲穩了很久。馬蒂厄的手扣在門閂上,眼睛盯著岸。)'),
+    L('d','艾蒂安(從岸上,聲音先到)','「等一下——這三段,我量出來一樣長。」(把岸標紙舉高)「不是差不多。是一樣。」'),
+    L('d','水手(沒有看紙)','「那當然。鼓是我敲的,一拍一拍都同一個力氣。」(頓)「船穩不穩,我用手就知道。」'),
+    L('d','艾蒂安','「你用手,我用紙。」(把紙轉向他)「這回兩個都說穩。」'),
+    L('dir', null, '(馬蒂厄這才抽開門閂。石球落下——砸進桅腳邊的沙盤,和前兩回擠在同一片手掌大的範圍裡。)'),
+    L('d','馬蒂厄(蹲下量,才開口)','「三回。門閂是我抽的,沒有人碰過石頭。」(把三個點抄上紀錄板)「照原樣。」'),
+    L('os','旅人','(心聲)成了。落在桅腳、船在走、三回都一樣——這不就是我們要的?'),
+    L('d','旅人','「這樣就成了吧?」'),
+    L('dir', null, '(伽桑狄沒有回答。他把紀錄紙翻面,鉛筆停在空白的那一欄上。)'),
+    L('d','伽桑狄','「你說『成了』的時候,眼睛看的是沙盤。」(抬眼)「甲板上,有風。」'),
+    L('d','水手(這才注意到自己的衣領在動)','「……今天是有風。可風哪有那麼準,回回把石頭吹回同一隻手掌?」'),
+    L('d','伽桑狄','「你說得對。但『不太可能』不是紀錄。」(把筆遞給旅人)「這一欄,今天填不了。」'),
+    L('os','旅人','(心聲)紙上明明什麼都對。就差一個沒人量過的東西——而它現在正吹在我臉上。'),
+    L('sys',null,'原紙三張已收進卷宗;甲板風未量,列為待答。'),
+    L('q',null,'【斷言|適用範圍】A「所有向前的船,不論怎麼放手、怎麼變速,都落在完全同一點。」 / B「在同石、同高、門閂放手,且岸標確認走穩的三回中,落點集中在桅腳附近。」✓')
+  ];
+
+  function mk(item){
+    var p=document.createElement('p');
+    if(item.cls==='dir'){ p.className='line dir'; p.textContent=item.txt; }
+    else if(item.cls==='sys'){ p.className='line sys'; p.textContent='【系統】'+item.txt; }
+    else if(item.cls==='os'){ p.className='line os'; p.textContent=item.who+item.txt; }
+    else if(item.cls==='q'){ p.className='line card'; p.innerHTML='<b>'+item.txt+'</b>'; }
+    else { p.className='line'; p.innerHTML='<span class="who">'+item.who+':</span>'+item.txt; }
+    return p;
+  }
+  function wire(list, stageId, btnId, cntId, beatId){
+    var i=0;
+    $(btnId).onclick=function(){
+      if(i>=list.length) return;
+      $(stageId).appendChild(mk(list[i])); i++;
+      $(cntId).textContent=i+' 拍';
+      $(stageId).scrollTop=$(stageId).scrollHeight;
+      if(i>=list.length){ this.disabled=true; this.textContent='完';
+        $(beatId).textContent='共 '+list.length+' 拍。'; }
+    };
+  }
+  wire(A,'sa','ba','ca','beatA');
+  wire(B,'sb','bb','cb','beatB');
+})();
+</script>
+</body>
+</html>
