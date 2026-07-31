@@ -1742,6 +1742,12 @@ def main() -> int:
         help="optional schema-1 four-law beat contract JSON",
     )
     narrative_parser.add_argument(
+        "--runtime-source",
+        action="append",
+        default=[],
+        help="runtime JS containing injected speaker/action/text objects; repeat as needed",
+    )
+    narrative_parser.add_argument(
         "--require-contract",
         action="store_true",
         help="warn when no explicit four-law beat contract is supplied",
@@ -1799,6 +1805,9 @@ def main() -> int:
             contract_path=(
                 resolve_target_path(args.contract) if args.contract else None
             ),
+            runtime_sources=[
+                resolve_target_path(path) for path in args.runtime_source
+            ],
             require_contract=args.require_contract,
             fail_on_warnings=args.fail_on_warnings,
         )

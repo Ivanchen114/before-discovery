@@ -95,6 +95,26 @@ CONTRACT_SECTIONS = (
     "forced_transitions",
 )
 
+RUNTIME_DIALOGUE_OBJECT = re.compile(
+    r"\{\s*speaker:\s*(?P<speaker_quote>[\"'])"
+    r"(?P<speaker>(?:\\.|(?!\1).)*?)\1"
+    r"(?P<body>[^{}]*?)"
+    r"text:\s*(?P<text_quote>[\"'])"
+    r"(?P<text>(?:\\.|(?!\4).)*?)\4\s*\}",
+    re.DOTALL,
+)
+RUNTIME_ACTION = re.compile(
+    r"action:\s*(?P<quote>[\"'])(?P<action>(?:\\.|(?!\1).)*?)\1",
+    re.DOTALL,
+)
+RUNTIME_NARRATIVE_CHOICE = re.compile(
+    r"narrativeChoice\s*:\s*[\"'](?P<chapter>ch[1-5])[\"']"
+)
+GAP_TERMS = re.compile(r"還不能代表|不足以|因此需要|下一步要")
+PROCESS_TERMS = re.compile(r"沿用|安排|記錄|再做一(?:組|回)|一併|依序")
+PHYSICAL_ACTION_TERMS = re.compile(r"封|簽|寫|推|壓|攤")
+PAREN_ACTION = re.compile(r"[（(][^）)]{1,80}[）)]")
+
 
 class NarrativeInputError(ValueError):
     """Raised when a narrative source cannot be parsed deterministically."""
@@ -123,6 +143,7 @@ def _node_visible_entries(scene_id: str, node: dict) -> list[dict]:
                 "node_type": str(node.get("type", "")),
                 "legacy_only": node.get("legacyOnly") is True,
                 "os_purpose": node.get("osPurpose"),
+                "action": node.get("action"),
             }
         )
     options = node.get("options", [])
@@ -144,6 +165,7 @@ def _node_visible_entries(scene_id: str, node: dict) -> list[dict]:
                     "node_type": "option",
                     "legacy_only": node.get("legacyOnly") is True,
                     "os_purpose": None,
+                    "action": None,
                 }
             )
     return entries
@@ -280,6 +302,7 @@ def parse_draft_markdown(path: Path) -> dict:
                 "text": cleaned,
                 "dialogue": False,
                 "metric": True,
+                "action": cleaned,
             }
         elif cleaned.startswith("【") and "】" in cleaned:
             entry = {
@@ -288,6 +311,7 @@ def parse_draft_markdown(path: Path) -> dict:
                 "text": cleaned,
                 "dialogue": False,
                 "metric": True,
+                "action": None,
             }
         elif cleaned.startswith(("▸", "▶")):
             option_text = re.split(r"→", cleaned, maxsplit=1)[0].strip()
@@ -297,6 +321,7 @@ def parse_draft_markdown(path: Path) -> dict:
                 "text": option_text,
                 "dialogue": True,
                 "metric": False,
+                "action": None,
             }
         else:
             speaker_candidate = cleaned.lstrip("→").strip()
@@ -311,6 +336,7 @@ def parse_draft_markdown(path: Path) -> dict:
                         "text": text,
                         "dialogue": True,
                         "metric": True,
+                        "action": None,
                     }
         if entry is not None:
             current["entries"].append(entry)
@@ -335,6 +361,214 @@ def parse_draft_markdown(path: Path) -> dict:
         "scenes": scenes,
         "scene_map": {scene["id"]: scene for scene in scenes},
     }
+
+
+def _decode_js_string(raw: str) -> str:
+    """Decode the small JS string-literal subset used by dialogue objects.
+
+    `unicode_escape` cannot be used here: it treats the UTF-8 bytes of already
+    decoded Chinese as Latin-1 and corrupts every non-ASCII character whenever
+    the same string also contains an escape such as ``\n``.
+    """
+    out: list[str] = []
+    index = 0
+    simple = {
+        "n": "\n",
+        "r": "\r",
+        "t": "\t",
+        "b": "\b",
+        "f": "\f",
+        "v": "\v",
+        "0": "\0",
+        "\\": "\\",
+        "'": "'",
+        '"': '"',
+    }
+    while index < len(raw):
+        char = raw[index]
+        if char != "\\" or index + 1 >= len(raw):
+            out.append(char)
+            index += 1
+            continue
+        escaped = raw[index + 1]
+        if escaped in simple:
+            out.append(simple[escaped])
+            index += 2
+            continue
+        if escaped == "x" and index + 3 < len(raw):
+            token = raw[index + 2 : index + 4]
+            if re.fullmatch(r"[0-9A-Fa-f]{2}", token):
+                out.append(chr(int(token, 16)))
+                index += 4
+                continue
+        if escaped == "u":
+            brace = re.match(r"\\u\{([0-9A-Fa-f]{1,6})\}", raw[index:])
+            if brace:
+                out.append(chr(int(brace.group(1), 16)))
+                index += len(brace.group(0))
+                continue
+            token = raw[index + 2 : index + 6]
+            if len(token) == 4 and re.fullmatch(r"[0-9A-Fa-f]{4}", token):
+                out.append(chr(int(token, 16)))
+                index += 6
+                continue
+        if escaped in "\n\r":
+            index += 2
+            if escaped == "\r" and index < len(raw) and raw[index] == "\n":
+                index += 1
+            continue
+        # JavaScript identity escape: preserve the escaped character, not the
+        # backslash. This matches the non-strict string literals used here.
+        out.append(escaped)
+        index += 2
+    return "".join(out)
+
+
+def parse_runtime_dialogue(path: Path) -> list[dict]:
+    """Extract simple speaker/action/text objects used by runtime dialogue bridges."""
+    try:
+        source = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise NarrativeInputError(f"cannot read runtime dialogue source: {exc}") from exc
+    entries: list[dict] = []
+    for match in RUNTIME_DIALOGUE_OBJECT.finditer(source):
+        body = match.group("body")
+        action_match = RUNTIME_ACTION.search(body)
+        line_number = source.count("\n", 0, match.start()) + 1
+        entries.append(
+            {
+                "location": f"{path}:{line_number}",
+                "speaker": _decode_js_string(match.group("speaker")),
+                "text": _decode_js_string(match.group("text")),
+                "action": (
+                    _decode_js_string(action_match.group("action"))
+                    if action_match
+                    else ""
+                ),
+            }
+        )
+    return entries
+
+
+def count_runtime_narrative_choices(path: Path, chapter: str) -> int:
+    """Count explicitly chapter-scoped choices injected outside scenes JSON."""
+    try:
+        source = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise NarrativeInputError(f"cannot read runtime choice source: {exc}") from exc
+    return sum(
+        match.group("chapter") == chapter
+        for match in RUNTIME_NARRATIVE_CHOICE.finditer(source)
+    )
+
+
+def _has_embodied_action(entry: dict) -> bool:
+    action = entry.get("action")
+    return bool(
+        (isinstance(action, str) and action.strip())
+        or PAREN_ACTION.search(str(entry.get("text", "")))
+        or entry.get("speaker") == "stage"
+        or entry.get("node_type") == "stage"
+    )
+
+
+def _character_overlap(left: str, right: str) -> float:
+    """Return overlap against the shorter unique-character inventory."""
+    normalize = lambda text: {
+        char
+        for char in re.sub(r"[\s，。！？；：「」『』（）()、,.!?;:—…]", "", text)
+        if char
+    }
+    left_chars = normalize(left)
+    right_chars = normalize(right)
+    if not left_chars or not right_chars:
+        return 0.0
+    return len(left_chars & right_chars) / min(len(left_chars), len(right_chars))
+
+
+def _narrative_exemptions(
+    parsed: dict,
+    warn: Callable[[str, str], None],
+) -> list[dict]:
+    if parsed["kind"] != "scenes":
+        return []
+    raw = parsed["data"].get("narrativeExemptions", [])
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        warn("NAR-CONTRACT", "narrativeExemptions must be an array")
+        return []
+    accepted: list[dict] = []
+    for index, record in enumerate(raw):
+        if not isinstance(record, dict):
+            warn(
+                "NAR-CONTRACT",
+                f"narrativeExemptions[{index}] must be an object",
+            )
+            continue
+        rule = record.get("rule")
+        scene_id = record.get("scene")
+        nodes = record.get("nodes")
+        reason = record.get("reason")
+        if not (
+            isinstance(rule, str)
+            and isinstance(scene_id, str)
+            and isinstance(nodes, list)
+            and nodes
+            and all(isinstance(node_id, str) and node_id for node_id in nodes)
+            and isinstance(reason, str)
+            and reason.strip()
+        ):
+            warn(
+                "NAR-CONTRACT",
+                f"narrativeExemptions[{index}] requires rule, scene, nodes and reason",
+            )
+            continue
+        scene = parsed["scene_map"].get(scene_id)
+        if scene is None:
+            warn(
+                "NAR-CONTRACT",
+                f"narrativeExemptions[{index}] names unknown scene {scene_id!r}",
+            )
+            continue
+        missing_nodes = sorted(set(nodes) - set(scene["node_map"]))
+        if missing_nodes:
+            warn(
+                "NAR-CONTRACT",
+                f"narrativeExemptions[{index}] names unknown nodes {missing_nodes}",
+            )
+            continue
+        accepted.append(record)
+    return accepted
+
+
+def _is_exempt(
+    exemptions: list[dict],
+    rule: str,
+    scene_id: str,
+    node_ids: list[str] | tuple[str, ...],
+) -> bool:
+    requested = set(node_ids)
+    return any(
+        record.get("rule") == rule
+        and record.get("scene") == scene_id
+        and requested.issubset(set(record.get("nodes", [])))
+        for record in exemptions
+    )
+
+
+def _all_scenes_exempt(
+    exemptions: list[dict],
+    rule: str,
+    scenes: list[dict],
+) -> bool:
+    return bool(scenes) and all(
+        any(
+            record.get("rule") == rule and record.get("scene") == scene["id"]
+            for record in exemptions
+        )
+        for scene in scenes
+    )
 
 
 def _contains_gold_phrase(text: str) -> bool:
@@ -721,6 +955,7 @@ def check_narrative(
     chapter: str,
     previous_scenes: Path | None,
     contract_path: Path | None,
+    runtime_sources: list[Path],
     require_contract: bool,
     fail_on_warnings: bool,
 ) -> int:
@@ -736,6 +971,10 @@ def check_narrative(
     if contract_path is not None and not contract_path.is_file():
         print(f"ERROR narrative contract not found: {contract_path}")
         return 1
+    missing_runtime = [path for path in runtime_sources if not path.is_file()]
+    if missing_runtime:
+        print(f"ERROR runtime dialogue source not found: {missing_runtime[0]}")
+        return 1
 
     try:
         parsed = (
@@ -743,15 +982,29 @@ def check_narrative(
             if source_kind == "scenes"
             else parse_draft_markdown(source_path)
         )
+        runtime_entries = [
+            entry
+            for path in runtime_sources
+            for entry in parse_runtime_dialogue(path)
+        ]
+        runtime_choice_count = sum(
+            count_runtime_narrative_choices(path, chapter)
+            for path in runtime_sources
+        )
     except NarrativeInputError as exc:
         print(f"ERROR {exc}")
         return 1
 
     warnings: list[tuple[str, str]] = []
+    errors: list[tuple[str, str]] = []
 
     def warn(code: str, message: str) -> None:
         warnings.append((code, message))
 
+    def error(code: str, message: str) -> None:
+        errors.append((code, message))
+
+    exemptions = _narrative_exemptions(parsed, warn)
     scenes = parsed["scenes"]
     total_spoken = 0
     total_inner = 0
@@ -840,6 +1093,12 @@ def check_narrative(
                         _is_traveler_inner(node.get("speaker"))
                         and target.get("legacyOnly") is not True
                         and _is_traveler_inner(target.get("speaker"))
+                        and not _is_exempt(
+                            exemptions,
+                            "NAR-09",
+                            scene["id"],
+                            (node_id, target_id),
+                        )
                     ):
                         warn(
                             "NAR-09",
@@ -863,7 +1122,17 @@ def check_narrative(
             for entry in scene["entries"]
             if entry["dialogue"] and _contains_gold_phrase(entry["text"])
         ]
-        if len(hits) > 1:
+        hit_node_ids = [
+            location.split("/", 1)[1].split("/", 1)[0]
+            for location in hits
+            if "/" in location
+        ]
+        if len(hits) > 1 and not _is_exempt(
+            exemptions,
+            "NAR-03",
+            scene["id"],
+            hit_node_ids,
+        ):
             warn(
                 "NAR-03",
                 f"scene {scene['id']} has {len(hits)} aphorism/contrast candidates: "
@@ -918,11 +1187,225 @@ def check_narrative(
             f"{MIN_NODES_PER_SCENE:.0f}; the narrative layer may be a shell",
         )
     for scene in scenes:
-        if scene["text_beat_count"] <= 1:
+        scene_node_ids = [
+            str(node.get("id", ""))
+            for node in scene["nodes"]
+            if isinstance(node.get("id"), str) and node.get("id")
+        ]
+        if (
+            scene["text_beat_count"] <= 1
+            and not _is_exempt(
+                exemptions,
+                "NAR-08",
+                scene["id"],
+                scene_node_ids,
+            )
+        ):
             warn(
                 "NAR-08",
                 f"scene {scene['id']} has only {scene['text_beat_count']} visible text beat(s)",
             )
+
+    # R-TXT-1/2: runtime bridge objects are opt-in because their structure is
+    # outside scenes JSON. Scene lines still participate in R-TXT-2.
+    for entry in runtime_entries:
+        speaker = str(entry.get("speaker", ""))
+        text = str(entry.get("text", ""))
+        if (
+            speaker not in {"stage", "system", ""}
+            and not entry.get("action")
+            and GAP_TERMS.search(text)
+        ):
+            warn(
+                "R-TXT-1",
+                f"{entry['location']} is a gap-driven runtime line with no embodied action",
+            )
+    process_entries = [
+        entry
+        for scene in scenes
+        for entry in scene["entries"]
+        if not entry.get("legacy_only", False)
+    ] + runtime_entries
+    for entry in process_entries:
+        speaker = str(entry.get("speaker", ""))
+        text = str(entry.get("text", ""))
+        if (
+            _is_traveler_spoken(speaker)
+            and PROCESS_TERMS.search(text)
+            and len(re.sub(r"\s+", "", text)) > 25
+        ):
+            warn(
+                "R-TXT-2",
+                f"{entry['location']} makes the Traveler recite procedure: {text[:90]}",
+            )
+
+    # R-TXT-3: actions may be independent stage beats or actions embedded in
+    # character lines. The floor is diagnostic, never a quality score.
+    total_character_lines = 0
+    total_embodied_actions = 0
+    choice_count = runtime_choice_count
+    for scene in scenes:
+        active_entries = [
+            entry for entry in scene["entries"] if not entry.get("legacy_only", False)
+        ]
+        character_entries = [
+            entry
+            for entry in active_entries
+            if entry.get("dialogue")
+            and entry.get("metric")
+            and entry.get("speaker") not in SYSTEM_SPEAKERS
+        ]
+        stage_entries = [
+            entry
+            for entry in active_entries
+            if entry.get("speaker") == "stage" or entry.get("node_type") == "stage"
+        ]
+        embedded_actions = sum(
+            _has_embodied_action(entry) for entry in character_entries
+        )
+        action_count = len(stage_entries) + embedded_actions
+        total_character_lines += len(character_entries)
+        total_embodied_actions += action_count
+        if (
+            len(character_entries) >= 4
+            and action_count == 0
+            and not _is_exempt(exemptions, "R-TXT-3", scene["id"], ())
+        ):
+            warn(
+                "R-TXT-3",
+                f"scene {scene['id']} has {len(character_entries)} character lines "
+                "but no embodied action",
+            )
+        if parsed["kind"] == "scenes":
+            choice_count += sum(
+                node.get("legacyOnly") is not True and node.get("type") == "choice"
+                for node in scene["nodes"]
+            )
+    action_density = (
+        total_embodied_actions / total_character_lines
+        if total_character_lines
+        else 0.0
+    )
+    if (
+        total_character_lines
+        and action_density < 0.35
+        and not _all_scenes_exempt(exemptions, "R-TXT-3", scenes)
+    ):
+        warn(
+            "R-TXT-3",
+            f"chapter embodied-action density {action_density:.2f} is below 0.35 "
+            f"({total_embodied_actions}/{total_character_lines})",
+        )
+
+    # R-TXT-4 can be measured reliably only from runtime scenes JSON.
+    choice_density: float | None = None
+    if parsed["kind"] == "scenes" and scenes:
+        choice_density = choice_count / len(scenes)
+        if choice_density < 0.40 and not _all_scenes_exempt(
+            exemptions, "R-TXT-4", scenes
+        ):
+            warn(
+                "R-TXT-4",
+                f"choice/scene {choice_density:.2f} is below 0.40 "
+                f"({choice_count}/{len(scenes)}, including "
+                f"{runtime_choice_count} annotated runtime choice(s)); "
+                "human review must still reject "
+                "non-relationship/order/scope/commitment buttons",
+            )
+
+    # R-TXT-5: direct evidence effects get a conservative local runway check.
+    # Engine-owned evidence remains covered by the explicit beat contract.
+    if parsed["kind"] == "scenes":
+        for scene in scenes:
+            nodes = scene["nodes"]
+            for index, node in enumerate(nodes):
+                if node.get("legacyOnly") is True:
+                    continue
+                evidence_ids = _evidence_effect_ids(node.get("effects", []))
+                option_evidence: list[tuple[str, str]] = []
+                options = node.get("options", [])
+                if isinstance(options, list):
+                    for option in options:
+                        if not isinstance(option, dict):
+                            continue
+                        ids = _evidence_effect_ids(option.get("effects", []))
+                        evidence_ids |= ids
+                        if ids and isinstance(option.get("text"), str):
+                            option_evidence.append(
+                                (option["text"], str(option.get("id", "")))
+                            )
+                if not evidence_ids or _is_exempt(
+                    exemptions,
+                    "R-TXT-5",
+                    scene["id"],
+                    (str(node.get("id", "")),),
+                ):
+                    continue
+                receipt_kind = str(node.get("receiptKind", "assertion"))
+                runway = [
+                    candidate
+                    for candidate in nodes[max(0, index - 6) : min(len(nodes), index + 5)]
+                    if candidate.get("legacyOnly") is not True
+                ]
+                player_text = option_evidence[-1][0] if option_evidence else ""
+                if not player_text:
+                    for candidate in reversed(nodes[max(0, index - 6) : index + 1]):
+                        if _is_traveler_spoken(candidate.get("speaker")) and isinstance(
+                            candidate.get("text"), str
+                        ):
+                            player_text = candidate["text"]
+                            break
+                npc_candidates = [
+                    candidate
+                    for candidate in runway
+                    if isinstance(candidate.get("text"), str)
+                    and isinstance(candidate.get("speaker"), str)
+                    and candidate.get("speaker") not in SYSTEM_SPEAKERS
+                    and not str(candidate.get("speaker")).startswith(TRAVELER_PREFIX)
+                ]
+                npc = npc_candidates[0] if npc_candidates else None
+                action_ok = any(
+                    PHYSICAL_ACTION_TERMS.search(
+                        str(candidate.get("action", ""))
+                        + str(candidate.get("text", ""))
+                    )
+                    for candidate in runway
+                )
+                problems: list[str] = []
+                if receipt_kind not in {"assertion", "source"}:
+                    problems.append(f"unknown receiptKind {receipt_kind!r}")
+                if receipt_kind == "assertion" and not player_text:
+                    problems.append("missing player claim")
+                if npc is None:
+                    problems.append("missing NPC receipt")
+                if not action_ok:
+                    problems.append("missing physical receipt action")
+                if receipt_kind == "assertion" and player_text and npc is not None:
+                    overlap = _character_overlap(player_text, npc["text"])
+                    if overlap >= 0.40:
+                        problems.append(f"NPC overlap {overlap:.0%} >= 40%")
+                if problems:
+                    warn(
+                        "R-TXT-5",
+                        f"{scene['id']}/{node.get('id')} grants "
+                        f"{sorted(evidence_ids)}: " + "; ".join(problems),
+                    )
+
+    # R-TXT-6 is the only hard error in this family.
+    if parsed["kind"] == "scenes":
+        for scene in scenes:
+            for node in scene["nodes"]:
+                if (
+                    node.get("legacyOnly") is not True
+                    and node.get("type") == "line"
+                    and node.get("speaker") not in SYSTEM_SPEAKERS
+                    and isinstance(node.get("text"), str)
+                    and node["text"].lstrip().startswith("「")
+                ):
+                    error(
+                        "R-TXT-6",
+                        f"{scene['id']}/{node.get('id')} character line starts with 「",
+                    )
 
     if parsed["kind"] == "scenes":
         acquisition_count = 0
@@ -993,6 +1476,17 @@ def check_narrative(
         f"inventory_nodes={total_nodes} chars/node={chars_per_node:.1f} "
         f"nodes/scene={nodes_per_scene:.1f}"
     )
+    print(
+        f"COVERAGE R-TXT runtime_entries={len(runtime_entries)} "
+        f"runtime_choices={runtime_choice_count} "
+        f"action_density={action_density:.2f} "
+        f"choice_per_scene={choice_density:.2f}"
+        if choice_density is not None
+        else f"COVERAGE R-TXT runtime_entries={len(runtime_entries)} "
+        f"action_density={action_density:.2f} choice_per_scene=unavailable(draft)"
+    )
+    for code, message in errors:
+        print(f"ERROR {code} {message}")
     for code, message in warnings:
         print(f"WARN {code} {message}")
     print(
@@ -1012,7 +1506,10 @@ def check_narrative(
         "that the prose semantically discovers, responds, pauses or creates pressure"
     )
     print(
-        f"RESULT NARRATIVE_CHECKED: 0 parser errors, {len(warnings)} warning(s), "
+        f"RESULT NARRATIVE_CHECKED: {len(errors)} error(s), "
+        f"{len(warnings)} warning(s), "
         f"strict={'ON' if fail_on_warnings else 'OFF'}"
     )
+    if errors:
+        return 1
     return 2 if warnings and fail_on_warnings else 0

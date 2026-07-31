@@ -669,6 +669,33 @@
           "note": "active 的故事、玩家代理權與歷史科學探究單一法源；Claude A=0、B=0，ADR-012 接受。"
         },
         {
+          "id": "narrative.dialogue-spec",
+          "path": "02_設計/發現之前_文字與對白規範_v0.1.md",
+          "status": "candidate",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "write",
+            "review",
+            "verify"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "三、六條可機檢規則",
+            "四、四條只能人工判讀",
+            "五、必須保護的既有段落",
+        "七、機檢實作規格(給 `narrative_guard.py`)"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "台詞與轉場的可機檢規範；基線數字由工具即時計算，不得抄死。"
+        },
+        {
           "id": "narrative.series-bible",
           "path": "04_劇本/發現之前_系列聖經_小說層_v0.1.md",
           "status": "active",
@@ -950,9 +977,9 @@
         },
         {
           "id": "art.per-asset-ledger",
-          "path": null,
-          "status": "missing",
-          "authority": "unresolved",
+          "path": "art/source/production/ASSET_LEDGER.md",
+          "status": "candidate",
+          "authority": "cross_chapter_rule",
           "phase": [
             "art",
             "implement",
@@ -960,24 +987,23 @@
             "release"
           ],
           "mode_roles": {
-            "AS-IS": "unavailable",
-            "TO-BE": "unavailable",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
           },
-          "tracked_required": false,
-          "required_headings": [],
+          "tracked_required": true,
+          "required_headings": [
+            "一、欄位與狀態",
+            "二、2026-07-31｜第四章 D4-1／D4-2 焦點鏡頭",
+            "三、母版與 runtime 邊界",
+            "四、既有資產回填缺口"
+          ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "尚無全系列逐件美術來源、母版、生成工具與輸出參數的 canonical ledger。",
-          "applies_when": [
-            "art-change"
+          "known_issues": [
+            "2026-07-30 以前既有資產仍待逐件回填；本批四件已完成。"
           ],
-          "blocking_phases": [
-            "art",
-            "implement",
-            "release"
-          ],
-          "note": "新增正式美術時阻擋 runtime 接線、Art Lock 與 release，直到建立逐件紀錄。"
+          "note": "逐件美術來源、母版、生成工具與輸出參數的 canonical 候選帳。"
         }
       ]
     },
@@ -1018,16 +1044,13 @@
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "known_issues": [
-            "AI 美術表格只明列 ch01 與 art/source，後續章 runtime 圖涵蓋範圍待補"
-          ],
           "note": "內容與生成資產授權入口。"
         },
         {
           "id": "license.visual-ledger",
-          "path": null,
-          "status": "missing",
-          "authority": "unresolved",
+          "path": "public/assets/ART-LICENSES.md",
+          "status": "candidate",
+          "authority": "cross_chapter_rule",
           "phase": [
             "art",
             "implement",
@@ -1035,24 +1058,23 @@
             "release"
           ],
           "mode_roles": {
-            "AS-IS": "unavailable",
-            "TO-BE": "unavailable",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
           },
-          "tracked_required": false,
-          "required_headings": [],
+          "tracked_required": true,
+          "required_headings": [
+            "一、適用範圍",
+            "二、OpenAI 生成資產｜2026-07-31 第四章補圖",
+            "三、衍生檔",
+            "四、既有資產回填缺口"
+          ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "美術尚無等同 audio README 的逐件授權索引。",
-          "applies_when": [
-            "art-change"
+          "known_issues": [
+            "2026-07-30 以前既有美術授權紀錄仍待從各章 README／PROMPTS 回填。"
           ],
-          "blocking_phases": [
-            "art",
-            "implement",
-            "release"
-          ],
-          "note": "含新增正式美術的 runtime 接線與 release blocker。"
+          "note": "逐件美術授權與第三方來源索引的 canonical 候選帳。"
         }
       ]
     },
@@ -2013,6 +2035,41 @@
           "note": "第三章碼頭辯論減少重複認知收費、證據卡漸進揭露、章別備忘與第一章存檔可見回饋；待 Claude CONFORMANCE A=0、B=0。"
         },
         {
+          "id": "ch3.cr-029",
+          "path": "01_治理/發現之前_CH3-CR-029_風變因承諾前移與舊存檔相容_20260731.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime"
+          ],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、試玩病灶",
+            "二、DESIGN GATE：PASS",
+            "三、狀態與舊存檔",
+            "四、互動與敘事支付",
+            "六、驗收",
+            "七、IMPLEMENTATION GATE：待獨立覆核"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "第三章風變因的玩家承諾前移、狀態化與舊存檔補問分流；待 Claude CONFORMANCE A=0、B=0。"
+        },
+        {
           "id": "ch3.current-cr",
           "path": "01_治理/發現之前_NARRATIVE-CR-031_旅人聲域_第三章心聲減量與歷史探究敘事規範_20260730.md",
           "domains": [
@@ -2070,36 +2127,33 @@
         },
         {
           "id": "ch3.art-appendix",
-          "path": null,
+          "path": "03_規格/發現之前_第三章美術製作附錄_v0.1.md",
           "domains": [
             "art"
           ],
-          "status": "missing",
-          "authority": "unresolved",
+          "status": "candidate",
+          "authority": "chapter_change",
           "phase": [
             "art",
             "implement",
             "release"
           ],
           "mode_roles": {
-            "AS-IS": "unavailable",
-            "TO-BE": "unavailable",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
           },
-          "tracked_required": false,
-          "required_headings": [],
+          "tracked_required": true,
+          "required_headings": [
+            "一、章節定位",
+            "四、2026-07-31 年代轉場補圖",
+            "五、構圖與手機橫屏",
+            "六、來源、授權與查核",
+            "七、預算與驗收"
+          ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "第三章沒有依美術總規格附錄 A 建立的章節美術製作附錄。",
-          "applies_when": [
-            "art-change"
-          ],
-          "blocking_phases": [
-            "art",
-            "implement",
-            "release"
-          ],
-          "note": "新增／重製第三章正式美術時 blocker。"
+          "note": "2026-07-31 年代轉場補圖候選；三張新增圖與沿用的 1632 圖待 Claude 對抗審及總監實機驗收。"
         }
       ]
     },
@@ -2306,36 +2360,34 @@
         },
         {
           "id": "ch4.art-appendix",
-          "path": null,
+          "path": "03_規格/發現之前_第四章美術製作附錄_v0.1.md",
           "domains": [
             "art"
           ],
-          "status": "missing",
-          "authority": "unresolved",
+          "status": "candidate",
+          "authority": "chapter_change",
           "phase": [
             "art",
             "implement",
             "release"
           ],
           "mode_roles": {
-            "AS-IS": "unavailable",
-            "TO-BE": "unavailable",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
           },
-          "tracked_required": false,
-          "required_headings": [],
+          "tracked_required": true,
+          "required_headings": [
+            "一、章節定位",
+            "四、2026-07-31 新增焦點鏡頭",
+            "五、程式動畫需求",
+            "六、來源、授權與查核",
+            "七、預算與驗收",
+            "八、Art Lock 開放項"
+          ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "第四章沒有依美術總規格附錄 A 建立的章節美術製作附錄。",
-          "applies_when": [
-            "art-change"
-          ],
-          "blocking_phases": [
-            "art",
-            "implement",
-            "release"
-          ],
-          "note": "新增／重製第四章正式美術時 blocker。"
+          "note": "依全系列美術規格附錄 A 建立；本批待 Claude 對抗審與總監瀏覽器驗收後升 active。"
         }
       ]
     },
@@ -2474,6 +2526,42 @@
           "supersedes": [],
           "blocks_skill_activation": false,
           "note": "小說層只提供場景與聲線；機制仍以規格與 runtime 為準。"
+        },
+        {
+          "id": "ch5.cr-002",
+          "path": "01_治理/發現之前_CH5-CR-002_E-3敘事展開與玩家發言權_20260731.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime"
+          ],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、試玩病灶",
+            "二、DESIGN GATE：PASS",
+            "三、玩家發言與認知支付",
+            "四、相容與不變量",
+            "五、敘事接縫",
+            "六、驗收",
+            "七、IMPLEMENTATION GATE：待獨立覆核"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "第五章 E-3 敘事展開、十個玩家發言與舊游標相容；待 Claude CONFORMANCE A=0、B=0。"
         },
         {
           "id": "ch5.art-appendix",

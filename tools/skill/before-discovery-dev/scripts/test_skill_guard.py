@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 import skill_guard as guard_module
+import narrative_guard as narrative_module
 from test_mechanics_guard import make_valid_contract
 
 
@@ -1433,6 +1434,38 @@ class NarrativeGuardTests(unittest.TestCase):
             "chapter": "ch5",
             "title": "fixture",
             "startScene": "S1",
+            "narrativeExemptions": [
+                {
+                    "rule": "R-TXT-3",
+                    "scene": "S1",
+                    "nodes": ["n1"],
+                    "reason": "minimal guard fixture; action-density behavior has a dedicated mutation test",
+                },
+                {
+                    "rule": "R-TXT-3",
+                    "scene": "S2",
+                    "nodes": ["n1"],
+                    "reason": "minimal guard fixture; action-density behavior has a dedicated mutation test",
+                },
+                {
+                    "rule": "R-TXT-4",
+                    "scene": "S1",
+                    "nodes": ["n1"],
+                    "reason": "minimal guard fixture; choice-density behavior has a dedicated mutation test",
+                },
+                {
+                    "rule": "R-TXT-4",
+                    "scene": "S2",
+                    "nodes": ["n1"],
+                    "reason": "minimal guard fixture; choice-density behavior has a dedicated mutation test",
+                },
+                {
+                    "rule": "R-TXT-5",
+                    "scene": "S1",
+                    "nodes": ["n3"],
+                    "reason": "the fixture isolates four-law contracts; receipt behavior has a dedicated mutation test",
+                },
+            ],
             "scenes": [
                 {
                     "id": "S1",
@@ -1927,6 +1960,232 @@ class NarrativeGuardTests(unittest.TestCase):
             )
         self.assertEqual(failing.returncode, 2, failing.stdout + failing.stderr)
         self.assertIn("WARN NAR-04", failing.stdout)
+
+    def test_runtime_gap_and_traveler_procedure_turn_strict_red(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            scenes_path = root / "scenes.json"
+            runtime_path = root / "runtime.js"
+            scenes_path.write_text(
+                json.dumps(self.make_scenes(), ensure_ascii=False),
+                encoding="utf-8",
+            )
+            runtime_path.write_text(
+                "var beats = [\n"
+                '  { speaker: "甲", text: "這還不能代表船走穩以後。" },\n'
+                '  { speaker: "旅人(你)", text: "那就先安排同一顆石頭、同一號鼓點，依序記錄兩邊位置，再做一組對照。" }\n'
+                "];\n",
+                encoding="utf-8",
+            )
+            result = run_guard(
+                "check-narrative",
+                "--scenes",
+                str(scenes_path),
+                "--chapter",
+                "ch5",
+                "--runtime-source",
+                str(runtime_path),
+                "--fail-on-warnings",
+            )
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("WARN R-TXT-1", result.stdout)
+        self.assertIn("WARN R-TXT-2", result.stdout)
+
+    def test_action_and_choice_density_mutations_turn_strict_red(self) -> None:
+        action_scenes = self.make_scenes()
+        action_scenes["narrativeExemptions"] = [
+            item
+            for item in action_scenes["narrativeExemptions"]
+            if item["rule"] != "R-TXT-3"
+        ]
+        action_result = self.run_json(
+            action_scenes,
+            extra=("--fail-on-warnings",),
+        )
+        self.assertEqual(
+            action_result.returncode,
+            2,
+            action_result.stdout + action_result.stderr,
+        )
+        self.assertIn("WARN R-TXT-3", action_result.stdout)
+
+        choice_scenes = self.make_scenes()
+        choice_scenes["narrativeExemptions"] = [
+            item
+            for item in choice_scenes["narrativeExemptions"]
+            if item["rule"] != "R-TXT-4"
+        ]
+        choice_result = self.run_json(
+            choice_scenes,
+            extra=("--fail-on-warnings",),
+        )
+        self.assertEqual(
+            choice_result.returncode,
+            2,
+            choice_result.stdout + choice_result.stderr,
+        )
+        self.assertIn("WARN R-TXT-4", choice_result.stdout)
+
+    def test_nar08_scene_shell_exemption_is_explicit_and_reversible(self) -> None:
+        scenes = self.make_scenes()
+        scenes["scenes"][1]["nodes"] = [
+            {
+                "id": "n1",
+                "type": "line",
+                "speaker": "system",
+                "text": "辯論由嵌入引擎承載。",
+                "next": "end",
+            },
+            {"id": "end", "type": "end"},
+        ]
+        scenes["narrativeExemptions"].append(
+            {
+                "rule": "NAR-08",
+                "scene": "S2",
+                "nodes": ["n1", "end"],
+                "reason": "fixture: the embedded interaction supplies the visible beats",
+            }
+        )
+        exempt = self.run_json(scenes)
+        self.assertNotIn("scene S2 has only", exempt.stdout)
+
+        scenes["narrativeExemptions"] = [
+            item
+            for item in scenes["narrativeExemptions"]
+            if not (item["rule"] == "NAR-08" and item["scene"] == "S2")
+        ]
+        unguarded = self.run_json(scenes)
+        self.assertIn("WARN NAR-08 scene S2 has only", unguarded.stdout)
+
+    def test_single_choice_above_density_floor_is_not_a_quality_score(self) -> None:
+        scenes = self.make_scenes()
+        scenes["narrativeExemptions"] = [
+            item
+            for item in scenes["narrativeExemptions"]
+            if item["rule"] != "R-TXT-4"
+        ]
+        scenes["scenes"][0]["nodes"].insert(
+            -1,
+            {
+                "id": "density-only-choice",
+                "type": "choice",
+                "text": "機械檢查只量密度。",
+                "options": [{"id": "continue", "text": "繼續", "next": "g1"}],
+            },
+        )
+        result = self.run_json(scenes)
+        self.assertNotIn("WARN R-TXT-4", result.stdout)
+
+    def test_chapter_scoped_runtime_choice_counts_without_cross_chapter_leak(self) -> None:
+        scenes = self.make_scenes()
+        scenes["narrativeExemptions"] = [
+            item
+            for item in scenes["narrativeExemptions"]
+            if item["rule"] != "R-TXT-4"
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            scenes_path = root / "scenes.json"
+            runtime_path = root / "runtime.js"
+            scenes_path.write_text(
+                json.dumps(scenes, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            runtime_path.write_text(
+                'renderDecision({ id: "scope", narrativeChoice: "ch5" });',
+                encoding="utf-8",
+            )
+            result = run_guard(
+                "check-narrative",
+                "--scenes",
+                str(scenes_path),
+                "--chapter",
+                "ch5",
+                "--runtime-source",
+                str(runtime_path),
+            )
+            self.assertNotIn("WARN R-TXT-4", result.stdout)
+            self.assertIn("runtime_choices=1", result.stdout)
+
+            wrong_chapter = run_guard(
+                "check-narrative",
+                "--scenes",
+                str(scenes_path),
+                "--chapter",
+                "ch3",
+                "--runtime-source",
+                str(runtime_path),
+            )
+            self.assertIn("WARN R-TXT-4", wrong_chapter.stdout)
+            self.assertIn("runtime_choices=0", wrong_chapter.stdout)
+
+    def test_evidence_receipt_and_dialogue_quote_mutations_fail(self) -> None:
+        receipt_scenes = self.make_scenes()
+        receipt_scenes["narrativeExemptions"] = [
+            item
+            for item in receipt_scenes["narrativeExemptions"]
+            if item["rule"] != "R-TXT-5"
+        ]
+        receipt_result = self.run_json(
+            receipt_scenes,
+            extra=("--fail-on-warnings",),
+        )
+        self.assertEqual(
+            receipt_result.returncode,
+            2,
+            receipt_result.stdout + receipt_result.stderr,
+        )
+        self.assertIn("WARN R-TXT-5", receipt_result.stdout)
+
+        quote_scenes = self.make_scenes()
+        quote_scenes["scenes"][0]["nodes"][0]["text"] = "「把引號加回來。」"
+        quote_result = self.run_json(quote_scenes)
+        self.assertEqual(
+            quote_result.returncode,
+            1,
+            quote_result.stdout + quote_result.stderr,
+        )
+        self.assertIn("ERROR R-TXT-6", quote_result.stdout)
+
+    def test_source_receipt_requires_handoff_but_not_player_repetition(self) -> None:
+        scenes = self.make_scenes(traveler=False)
+        scenes["narrativeExemptions"] = [
+            item
+            for item in scenes["narrativeExemptions"]
+            if item["rule"] != "R-TXT-5"
+        ]
+        source_node = scenes["scenes"][0]["nodes"][2]
+        source_node["receiptKind"] = "source"
+        scenes["scenes"][0]["nodes"][1]["text"] = "乙把來信攤在桌面中央。"
+        result = self.run_json(scenes)
+        self.assertNotIn("WARN R-TXT-5", result.stdout)
+
+        scenes["scenes"][0]["nodes"][1]["text"] = "乙說這是剛送來的信。"
+        mutation = self.run_json(
+            scenes,
+            extra=("--fail-on-warnings",),
+        )
+        self.assertEqual(
+            mutation.returncode,
+            2,
+            mutation.stdout + mutation.stderr,
+        )
+        self.assertIn("missing physical receipt action", mutation.stdout)
+
+    def test_runtime_dialogue_escape_keeps_chinese_utf8_intact(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            runtime_path = Path(temp_dir) / "runtime.js"
+            runtime_path.write_text(
+                'var beat = { speaker: "旅人(你)", '
+                'action: "把紙壓住\\n再攤開", '
+                'text: "同一批中文\\n分成兩行" };',
+                encoding="utf-8",
+            )
+            parsed = narrative_module.parse_runtime_dialogue(runtime_path)
+        self.assertEqual(len(parsed), 1)
+        self.assertEqual(parsed[0]["speaker"], "旅人(你)")
+        self.assertEqual(parsed[0]["action"], "把紙壓住\n再攤開")
+        self.assertEqual(parsed[0]["text"], "同一批中文\n分成兩行")
 
 
 class ReportGuardTests(unittest.TestCase):
