@@ -937,6 +937,8 @@
       r = Engine.runDossierCabinComparison(state.lab);
     else if (action === "runDossierCabinSeries" && Engine.runDossierCabinSeries)
       r = Engine.runDossierCabinSeries(state.lab);
+    else if (action === "commitDossierCabinWindPlan" && Engine.commitDossierCabinWindPlan)
+      r = Engine.commitDossierCabinWindPlan(state.lab, args.choice);
     else if (action === "runDossierBlind" && Engine.runDossierBlind) r = Engine.runDossierBlind(state.lab);
     else if (action === "judgeDossierBlind" && Engine.judgeDossierBlind) r = Engine.judgeDossierBlind(state.lab, args.choice);
     else if (action === "enterDossierDebate" && Engine.enterDossierDebate) r = Engine.enterDossierDebate(state.lab);

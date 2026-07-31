@@ -1537,7 +1537,6 @@
   var ship3LastSeriesIds = []; /* 純表現層：最近完成／重播的原紙組，不寫入存檔。 */
   var ship3ReplayRecordId = null;
   var ship3ReplayNotice = false;
-  var ship3CabinDesignReady = false; /* 轉場設計題只控制當次 UI；答錯不產生資料。 */
   var ship3DualDesignReady = false;
   function ship3ExploreMode() { return !state || state.mode !== "scholar"; }
   function ship3El(tag, text, parent, cls) {
@@ -1678,24 +1677,38 @@
   function ship3SayAssertionBeat(assertionId) {
     var beats = {
       A1: [
-        { speaker: "旅人(你)", text: "我引用這組走穩三回的岸紙：在這艘船、這顆石頭和這種放手條件下，石頭都落在桅腳附近。" },
-        { speaker: "伽桑狄", text: "三張紙都寫了同船、同石、同高，也都由岸上確認船已走穩。這句可以收進卷宗。" }
+        { speaker: "旅人(你)", text: "三回都落在桅腳附近。同一顆石頭、同一個高度、同一個門閂。" },
+        { speaker: "艾蒂安", action: "在岸紙上補一行", text: "三回的船位間距我也記了。一樣。" },
+        { speaker: null, text: "馬蒂厄把封蠟壓上。蠟還熱著，印子有點歪。" },
+        { speaker: "馬蒂厄", text: "歪的沒關係。日期看得見就行。" }
       ],
       A3: [
-        { speaker: "旅人(你)", text: "我把解纜起步與走穩兩組並排：落後出現在船速仍增加時，不能把它說成所有前進船況的結果。" },
-        { speaker: "維達爾船長", text: "我的舊紙只寫了落點，沒有寫船速。今天這兩組紙，才把那個空欄補回來。" }
+        { speaker: "旅人(你)", text: "起步那組偏後，走穩那組沒有。差別不在船，不在石頭，不在放手的人。" },
+        { speaker: "維達爾船長", text: "那在哪。" },
+        { speaker: "旅人(你)", text: "在船速還在不在變。" },
+        { speaker: "維達爾船長", action: "很久", text: "……我那張紙沒有這一欄。" },
+        { speaker: "旅人(你)", text: "對。所以它只能說「不知道」。" },
+        { speaker: "維達爾船長", action: "把舊紙推過來", text: "那就寫「不知道」。" }
       ],
       A2: [
-        { speaker: "旅人(你)", text: "封閉船艙裡，停泊三回與平駛三回的水面和落球結果仍然相近。這句只說艙內，不替甲板風下結論。" },
-        { speaker: "伽桑狄", text: "對。關艙是縮小問題，不是宣布風永遠無關。這六張紙只替你剛才那句作證。" }
+        { speaker: "旅人(你)", text: "關起來的艙裡，停泊三回、平駛三回，水面和落球都差不多。" },
+        { speaker: "伽桑狄", text: "這句只到艙門為止。" },
+        { speaker: "旅人(你)", text: "我知道。我沒有說風不重要——我說的是，沒有甲板風，它照樣這樣落。" },
+        { speaker: "伽桑狄", action: "在紙角寫了兩個字，推回來", text: "那就這樣寫。" },
+        { speaker: null, text: "紙角寫著：「艙內」。" }
       ],
       S1: [
-        { speaker: "旅人(你)", text: "這組徒手原紙的落點散開；手勢混進來後，它們不適合替乾淨落點作證。" },
-        { speaker: "馬蒂厄", text: "每回都是我鬆手，但我的手並沒有每次都一樣。這個差別，紙上看得見。" }
+        { speaker: "旅人(你)", text: "這三回落點散開了。放手的方式沒有固定。" },
+        { speaker: "馬蒂厄", text: "每回都是我鬆手。" },
+        { speaker: "馬蒂厄", action: "看著自己的手", text: "但我的手沒有每次都一樣。" },
+        { speaker: "旅人(你)", text: "所以這組不能替乾淨落點作證。" },
+        { speaker: "馬蒂厄", action: "把紙抽走，另外壓一枚蠟", text: "不作證，不代表丟掉。它證明的是門閂有用。" }
       ],
       S4: [
-        { speaker: "旅人(你)", text: "今天量到的三種船況分別留下偏後、接近桅腳與偏前；我的斷言只涵蓋實際測過的船和條件。" },
-        { speaker: "伽桑狄", text: "三組紙回答的是三種船況，不是天下所有船。範圍寫清楚，這句就站得住。" }
+        { speaker: "旅人(你)", text: "今天量到三種船況：偏後、桅腳、偏前。" },
+        { speaker: "伽桑狄", text: "三種。不是全部。" },
+        { speaker: "旅人(你)", text: "我只寫這三種，和這一艘船。" },
+        { speaker: "維達爾船長", action: "在單子上畫一筆", text: "那就少賠一點錢。" }
       ]
     };
     var lines = beats[assertionId];
@@ -1706,24 +1719,51 @@
     var key = String(beforeId || "") + ">" + afterId;
     var bridges = {
       "reproduce>steady": [
-        { speaker: "維達爾船長", text: "後偏重做出來了。但這三回都在解纜起步；它還不能代表船走穩以後。" },
-        { speaker: "旅人(你)", text: "那就沿用同一套石頭、放手和記錄，只等船速不再增加，再做一組。" }
+        { speaker: null, text: "三張新紙並排在舊紙旁邊。一樣的後偏。" },
+        { speaker: "維達爾船長", action: "沒有伸手去拿", text: "八年。" },
+        { speaker: "維達爾船長", action: "把耳後的筆抽出來，又插回去", text: "八年來畫過這條線的只有我一個。現在有四張了。" },
+        { speaker: "旅人(你)", text: "當時他們怎麼說？" },
+        { speaker: "維達爾船長", text: "船在走，石頭當然落後。" },
+        { speaker: "維達爾船長", action: "停", text: "我反駁不了。我只做過這一種。" },
+        { speaker: "旅人(你)", text: "哪一種？" },
+        { speaker: "維達爾船長", action: "朝防波堤抬了抬下巴", text: "解纜。出了那道堤以後，我從來沒扔過。" }
       ],
       "steady>speed": [
-        { speaker: "伽桑狄", text: "走穩三回都靠近桅腳，起步三回卻偏後。下一步不用再扔石頭，先把兩組紙真正並排。" },
-        { speaker: "旅人(你)", text: "我要查的不是船有沒有前進，而是放手以後，船速是不是還在改變。" }
+        { speaker: "馬蒂厄", action: "把兩疊紙推到一起", text: "走穩三回，桅腳。起步三回，桅後。" },
+        { speaker: "維達爾船長", action: "看了很久", text: "兩疊都是我的船。" },
+        { speaker: "伽桑狄", text: "同一艘，同一顆石頭。" },
+        { speaker: "旅人(你)", text: "高度一樣，放手的人也一樣。那幾欄我們鎖住了。" },
+        { speaker: "維達爾船長", action: "把筆抽出來，這次沒插回去", text: "……那不一樣的，是這兩趟各自在做什麼。" },
+        { speaker: null, text: "他在舊紙那個空白的船速欄上，敲了兩下。" }
       ],
       "speed>cabin": [
-        { speaker: "馬蒂厄", text: "甲板上的風一直往臉上打。石頭跟船一起往前，會不會只是被風推著？" },
-        { speaker: "旅人(你)", text: "現有甲板紙沒有量風。下一組實驗要先決定：怎麼把這個可能的影響隔開，又不把話說過頭。" }
+        { speaker: null, text: "一陣側風把攤在桶上的紙掀起一角。馬蒂厄用封蠟壓住。" },
+        { speaker: "馬蒂厄", text: "風從解纜就沒停過。" },
+        { speaker: "維達爾船長", text: "風怎麼了。" },
+        { speaker: "馬蒂厄", action: "沒有立刻回答，看著那張被壓住的紙", text: "石頭是跟著船走的，還是被風推著走的。這兩件事，我們的紙分不出來。" },
+        { speaker: "伽桑狄", action: "看向旅人", text: "那你打算怎麼把風請出去？" }
       ],
       "cabin>dual": [
-        { speaker: "維達爾船長", text: "艙內的問題收好了。可是岸紙畫彎線，船紙卻像直落；你要說它們是同一件事，就得讓兩張紙共用同一個時刻。" },
-        { speaker: "旅人(你)", text: "那就先安排同一顆石頭、同一號鼓點，還要兩位不能互換位置的觀察者。" }
+        { speaker: null, text: "艾蒂安從岸上下來，手裡拿著一張紙，走得很快。" },
+        { speaker: "艾蒂安", text: "我畫的那顆石頭，是彎的。" },
+        { speaker: "馬蒂厄", action: "把船上那張推過去", text: "我畫的是直的。" },
+        { speaker: "艾蒂安", text: "同一顆石頭。" },
+        { speaker: "馬蒂厄", text: "同一顆石頭。" },
+        { speaker: null, text: "兩張紙並排。一張向前彎下去，一張筆直落下。" },
+        { speaker: "維達爾船長", action: "沒有看紙，看著兩個人", text: "你們兩個，誰站錯地方了？" },
+        { speaker: "艾蒂安", text: "我沒有離開過岸。" },
+        { speaker: "馬蒂厄", text: "我沒有離開過船。" },
+        { speaker: "旅人・心聲", osPurpose: "private_hypothesis", text: "兩張紙都沒有漏拍。那個差別，也許不是誰畫錯了。" },
+        { speaker: "伽桑狄", action: "把兩張紙的邊對齊", text: "那就讓它們回到同一個時刻，再看一次。" }
       ],
       "dual>explore": [
-        { speaker: "艾蒂安", text: "岸紙和船紙都收好了。同一號鼓點一個不少，接下來可以在碼頭上逐拍對帳。" },
-        { speaker: "旅人(你)", text: "主要問題都有紙可以回答了。若要把斷言寫得更廣，才需要另外補做。" }
+        { speaker: "馬蒂厄", action: "把最後一份封起來", text: "今天的紙，齊了。" },
+        { speaker: "維達爾船長", action: "翻著卷宗，翻得很慢", text: "我那張還是缺一欄。" },
+        { speaker: "旅人(你)", text: "那一欄補不回來了。" },
+        { speaker: "維達爾船長", action: "停手", text: "……嗯。" },
+        { speaker: "旅人(你)", text: "可是能寫清楚它缺什麼。這樣它還能用。" },
+        { speaker: null, text: "他把八年前那張紙，放回卷宗最上面。" },
+        { speaker: "伽桑狄", text: "碼頭上明天有人等著問你。要多帶什麼紙，趁今天。" }
       ]
     };
     if (bridges[key]) sayIntoDialogue(bridges[key], "", state.cursor ? state.cursor.scene : null);
@@ -1801,6 +1841,8 @@
           "dossier-speed-paper-missing": "其中有原紙沒有逐拍船位，無法確認放手時船怎麼走。改勾有岸上船速紙的紀錄。",
           "dossier-variable-mismatch": "這些原紙同時改了不只一項條件。先勾選船、石頭、放手高度與記錄方式相同的資料。",
           "dossier-comparison-missing": "這句話需要兩組各三張原紙。檢查是否少了停泊／平駛，或平駛／解纜起步其中一組。",
+          "wind-wait-unmeasured": "沒有量風，就不能把兩天的甲板風當成相同條件。",
+          "windbreak-incomplete": "擋風板仍在甲板風裡，不能確認殘留風已被隔開。",
           "unknown-dossier-source": "這張原紙不在目前的卷宗裡。",
           "dossier-evidence-missing": "這一柱問的是你還沒測過的條件。先回船補做；原紙和已答完的柱都會保留。",
           "concept-mismatch": "這個說法沒有回答船長的追問。先看他問的是共同前行、船速改變，還是量位置的起點。",
@@ -3601,6 +3643,13 @@
     var choices = ship3El("div", null, card, "shipDossierDesignChoices");
     config.options.forEach(function (option) {
       var button = ship3Btn(choices, option.label, function () {
+        if (config.action) {
+          if (option.reply)
+            sayIntoDialogue(option.reply, "", state.cursor ? state.cursor.scene : null);
+          doShip(config.action, { choice: option.id },
+            "✓ " + option.feedback, option.feedback);
+          return;
+        }
         if (!option.correct) {
           ship3Msg = "✕ " + option.feedback;
           if (option.reply) sayIntoDialogue(option.reply, "", state.cursor ? state.cursor.scene : null);
@@ -3715,33 +3764,35 @@
     }
     if (mission.id === "cabin") {
       ship3El("h3", "船艙對照｜把甲板風隔在外面", work);
-      if (d.blind && d.blind.records && d.blind.records.length)
-        ship3CabinDesignReady = true; /* 舊存檔已做過，不要求重答純 UI 鷹架。 */
-      if (!ship3CabinDesignReady) {
+      var cabinWindCommitted = d.designCommitments &&
+        d.designCommitments.cabinWind === "close-cabin";
+      var legacyCabinInProgress = d.blind && d.blind.records && d.blind.records.length;
+      if (!cabinWindCommitted && !legacyCabinInProgress) {
         renderShipDossierDesignDecision(work, {
           id: "cabin-wind",
+          narrativeChoice: "ch3",
+          action: "commitDossierCabinWindPlan",
           title: "甲板風可能混進落點，下一組怎麼安排？",
-          prompt: "現有紙沒有量風。要檢查「不靠甲板風，船內現象是否仍相近」，哪個安排真的隔開了這個可能影響？",
-          accept: function () { ship3CabinDesignReady = true; },
+          prompt: "現有原紙沒有量風。你要先公開承諾：下一組怎麼隔開這個變因，又不把結論說過頭？",
           options: [
             {
-              id: "repeat-deck", label: "仍在甲板各做三回，把兩天的風當成一樣",
-              feedback: "兩天的風沒有被量，也沒有被固定；多做三回不會自動把這個混淆拿掉。",
-              reply: [{ speaker: "伽桑狄", text: "我們沒有風力紙。把未知條件說成一樣，只是替空欄填字。" }]
+              id: "wait-calm", label: "等一個自認無風的日子，再在甲板重做",
+              feedback: "沒有量風，就不能確認兩天的條件相同。",
+              reply: [{ speaker: "維達爾船長", text: "你在馬賽等無風的日子。我可以等，一天照算錢。" }]
             },
             {
               id: "close-cabin", correct: true,
-              label: "關上艙門；停泊與平駛各三回，岸上另記船況",
-              feedback: "甲板風被隔在外面；兩組只改船況，仍保留岸紙確認停泊與平駛。",
+              label: "搬進船艙；只比較關艙後的停泊與平駛",
+              feedback: "承諾已寫下：隔開甲板風，但結論只限關艙後的比較。",
               reply: [
-                { speaker: "旅人(你)", text: "關上艙門，把甲板風隔在外面；停泊和平駛各做三回，岸上仍要逐回確認船況。" },
-                { speaker: "伽桑狄", text: "我在艙內記水面與落球，艾蒂安留在岸上。這組紙只回答艙內，不替甲板風下永久結論。" }
+                { speaker: "旅人(你)", text: "搬進船艙。這組只回答：沒有甲板風時，停泊和平駛還像不像。" },
+                { speaker: "伽桑狄", text: "我留在艙內。艾蒂安，你到岸上替每一回確認船況。" }
               ]
             },
             {
-              id: "wind-never", label: "關艙一次；若結果相近，就斷言風永遠無關",
-              feedback: "隔開風只能縮小這次比較；沒有量過的甲板風，不能被一句話永久排除。",
-              reply: [{ speaker: "維達爾船長", text: "你可以關上一扇門，不能順手關掉所有可能。先把斷言寫小。" }]
+              id: "windbreak", label: "在甲板立擋風板，仍照原位置放石",
+              feedback: "擋風板仍留在甲板風裡，殘留風也沒有被量清楚。",
+              reply: [{ speaker: "馬蒂厄", text: "擋不乾淨的東西，紙上就寫不清楚。" }]
             }
           ]
         });
@@ -4281,6 +4332,22 @@
         ship3El("p", "槳手追問：哪組紙把甲板風隔開，仍能比較停泊與平駛？", work, "shipNote shipStepPrompt");
         renderShipDossierEvidenceChoices(work, d, function (id) {
           doShip("answerDossierDebate", { pillar: "p1", step: "cabin", choice: id });
+        });
+      } else if (!db.p1.wind && !(d.designCommitments &&
+          d.designCommitments.cabinWind === "close-cabin")) {
+        renderShipDossierActiveEvidence(work, d, "A2", "現在引用｜封閉船艙六回對照");
+        ship3El("p", "這組紙隔開了甲板風；你最多能把結論寫到哪裡？", work,
+          "shipNote shipStepPrompt");
+        [
+          ["limited-wind", "甲板風影響多少還不能說；但隔開它後，石頭仍不一定落後"],
+          ["wind-never-matters", "甲板風在這類落石裡永遠不會改變結果"],
+          ["wind-proved-false", "這六回已經徹底排除風的影響"]
+        ].forEach(function (option) {
+          ship3Btn(work, option[1], function () {
+            doShip("answerDossierDebate", {
+              pillar: "p1", step: "wind", choice: option[0]
+            });
+          }, "shipAction");
         });
       }
     } else if (db.current === "p2") {

@@ -1,6 +1,14 @@
 {
  "chapter": "ch2",
  "startScene": "B0-1",
+ "narrativeExemptions": [
+  {
+   "rule": "NAR-08",
+   "scene": "B3-D",
+   "nodes": ["e1", "gF", "gW"],
+   "reason": "本場由第二章辯論引擎承載完整可見攻防；scenes 層只保留 embed 與成功／中止出口，不應為介面對稱硬塞台詞。"
+  }
+ ],
  "evidenceNames": {
   "F1": "船桅待驗預測",
   "F2": "桌緣彈射・平方根律",

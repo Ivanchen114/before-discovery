@@ -612,6 +612,10 @@
       assertionSources: {},
       sourceAttempts: [],
       scopeAttempts: [],
+      designCommitments: {
+        cabinWind: null,
+        cabinWindAttempts: []
+      },
       /* blind 保留作舊存檔欄位名；玩家流程已改為公開船況的船艙對照。 */
       blind: { ran: false, judgment: null, unsealed: false, scope: false, attempts: [], records: [] },
       debate: {
@@ -746,6 +750,12 @@
     if (s.caseFile.boundary !== "honest") s.caseFile.boundary = null;
     if (!s.caseFile.dossier || typeof s.caseFile.dossier !== "object") s.caseFile.dossier = makeDossier();
     var d = s.caseFile.dossier, defaults = makeDossier();
+    if (!d.designCommitments || typeof d.designCommitments !== "object")
+      d.designCommitments = clone(defaults.designCommitments);
+    if (d.designCommitments.cabinWind !== "close-cabin")
+      d.designCommitments.cabinWind = null;
+    if (!Array.isArray(d.designCommitments.cabinWindAttempts))
+      d.designCommitments.cabinWindAttempts = [];
     if (["lab", "debate"].indexOf(d.page) < 0) d.page = "lab";
     if (!d.draft || typeof d.draft !== "object") d.draft = clone(defaults.draft);
     if (DOSSIER_LOCATIONS.indexOf(d.draft.location) < 0) d.draft.location = defaults.draft.location;
@@ -2213,6 +2223,8 @@
     if (!d.assertions.A1) return err(state0, "steady-assertion-required");
     if (!d.assertions.A3) return err(state0, "speed-assertion-required");
     if (dossierMissionId(d) !== "cabin") return err(state0, "cabin-comparison-required");
+    if (!d.designCommitments.cabinWind && !d.blind.records.length)
+      return err(state0, "cabin-wind-plan-required");
     var stage = d.draft.stage === "dock" ? "dock" : "steady";
     var existing = d.blind.records.filter(function (item) { return item.stage === stage; }).length;
     var count = Math.max(0, 3 - existing);
@@ -2247,6 +2259,21 @@
       state: s, ok: true, records: clone(rows), record: clone(rows[rows.length - 1]),
       count: count, dockCount: dockCount, steadyCount: steadyCount
     };
+  }
+  function commitDossierCabinWindPlan(state0, choice) {
+    var s = ensureNewFields(clone(state0)), d = s.caseFile.dossier;
+    if (!d.assertions.A1) return err(state0, "steady-assertion-required");
+    if (!d.assertions.A3) return err(state0, "speed-assertion-required");
+    if (dossierMissionId(d) !== "cabin") return err(state0, "cabin-comparison-required");
+    var allowed = ["wait-calm", "windbreak", "close-cabin"];
+    if (allowed.indexOf(choice) < 0) return err(state0, "unknown-cabin-wind-plan");
+    var ok = choice === "close-cabin";
+    var reason = choice === "wait-calm"
+      ? "wind-wait-unmeasured"
+      : (choice === "windbreak" ? "windbreak-incomplete" : null);
+    d.designCommitments.cabinWindAttempts.push({ choice: choice, ok: ok });
+    if (ok) d.designCommitments.cabinWind = choice;
+    return { state: s, ok: ok, reason: reason, choice: choice };
   }
   function runDossierBlind(state0) {
     return runDossierCabinComparison(state0);
@@ -2617,11 +2644,15 @@
         db.p1.cabin = true;
         db.p1.concept = true;
         db.p1.steady = true;
-        db.p1.wind = true;
-        db.pillars.p1 = true;
-        db.current = "p2";
-        db.lastReply = "伽桑狄：（把自己簽名的六張船艙紙攤開）「停泊三回，平駛三回。隔開甲板風後，兩組結果仍相近。」\n槳手：「你只說到紙能說的地方。這一問過了。下一問，船長那張舊紙。」";
-        dossierOS(d, "p1-done");
+        if (d.designCommitments.cabinWind === "close-cabin") {
+          db.p1.wind = true;
+          db.pillars.p1 = true;
+          db.current = "p2";
+          db.lastReply = "伽桑狄：（把自己簽名的六張船艙紙攤開）「停泊三回，平駛三回。隔開甲板風後，兩組結果仍相近。」\n槳手：「你在動手前已把話寫小：這組只回答關艙後的比較。好，下一問，船長那張舊紙。」";
+          dossierOS(d, "p1-done");
+        } else {
+          db.lastReply = "伽桑狄：（把自己簽名的六張船艙紙攤開）「停泊三回，平駛三回。隔開甲板風後，兩組結果仍相近。」\n槳手：「好。可這只隔開了甲板風——你最多敢把結論寫到哪裡？」";
+        }
       } else if (step === "wind") {
         if (choice !== "limited-wind") return dossierFailDebate(s, pillar, step, choice, "overclaim",
           "槳手：（指著兩組標題）「船艙隔開的是甲板風。你憑哪一欄，替甲板那一趟的風下結論？」");
@@ -2994,6 +3025,7 @@
     getDossierEvidenceCatalog: getDossierEvidenceCatalog,
     runDossierCabinComparison: runDossierCabinComparison,
     runDossierCabinSeries: runDossierCabinSeries,
+    commitDossierCabinWindPlan: commitDossierCabinWindPlan,
     runDossierBlind: runDossierBlind, judgeDossierBlind: judgeDossierBlind,
     enterDossierDebate: enterDossierDebate, leaveDossierDebate: leaveDossierDebate,
     selectDossierPillar: selectDossierPillar, answerDossierDebate: answerDossierDebate,

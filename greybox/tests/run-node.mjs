@@ -209,6 +209,9 @@ tests.push({
     if (c3.items.length !== 4 ||
         !["releaseRig", "beatDrum", "landingTray", "paperRulers"].every((id) => c3.items.some((item) => item.id === id)))
       throw new Error("第三章器材踏查未聚焦放手、同拍、落點與兩張原紙");
+    const releaseRig = c3.items.find((item) => item.id === "releaseRig");
+    if (!releaseRig || releaseRig.y > 25 || releaseRig.x < 35 || releaseRig.x > 55)
+      throw new Error("第三章桅頂放手裝置亮點沒有落在桅頂區");
     const stageEvents = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
     if (stageEvents.includes('CHAPTER_ID === "ch3" && targetScene === "C1-1"'))
       throw new Error("第三章仍繞過共用器材踏查流程");
@@ -457,8 +460,9 @@ tests.push({
     for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
       if (!sceneIds.has(sc)) throw new Error("sceneFx 指向不存在場景:" + sc);
       if (fx.fx !== "montage") throw new Error("sceneFx 未知效果:" + fx.fx);
-      if (!Array.isArray(fx.steps) || fx.steps.length < 1 || fx.steps.length > 3)
-        throw new Error("montage 應有 1–3 個節拍:" + sc);
+      const maxSteps = sc === "C0-1" ? 6 : 3;
+      if (!Array.isArray(fx.steps) || fx.steps.length < 1 || fx.steps.length > maxSteps)
+        throw new Error("montage 節拍數超出場景契約:" + sc);
       for (const step of fx.steps) {
         const e = entryById[step.plate];
         if (!e) throw new Error("板圖不存在:" + step.plate);
@@ -483,8 +487,33 @@ tests.push({
     const c0 = assets.sceneFx["C0-1"];
     if (c0.triggerMatch !== "頁面自己動了")
       throw new Error("C0-1 蒙太奇應在翻頁舞台動作發生時才播放，不得搶在場景開頭");
+    if (JSON.stringify(c0.steps.map((s) => s.plate)) !== JSON.stringify([
+      "ch03_transition_1609_question_departs_v01",
+      "ch03_transition_1610_jupiter_observation_v01",
+      "ch03_transition_1616_roman_admonition_v01",
+      "ch03_transition_1632_dialogue_ship_page_v01",
+      "ch03_transition_1633_roman_statement_v01",
+      "ch03_transition_1640_gassendi_handoff_v01"
+    ]))
+      throw new Error("C0-1 應依 1609→1610→1616→1632→1633→1640 六拍推進");
+    for (const id of [
+      "ch03_transition_1610_jupiter_observation_v01",
+      "ch03_transition_1616_roman_admonition_v01",
+      "ch03_transition_1633_roman_statement_v01"
+    ]) {
+      const entry = entryById[id];
+      if (!entry?.sourceMaster ||
+          !existsSync(path.join(here, "../../", entry.sourceMaster)))
+        throw new Error("C0-1 新年代圖缺可追溯母版:" + id);
+    }
+    if (c0.steps.some((step) => String(step.caption || "").includes("\n") ||
+        Array.from(String(step.caption || "")).length > 26))
+      throw new Error("C0-1 手機字幕應維持單行短句");
     if (c0.steps[c0.steps.length - 1].plate !== "ch03_transition_1640_gassendi_handoff_v01")
       throw new Error("C0-1 最後一拍應完成伽桑狄交棒");
+    if (!stageHtml.includes("#fxCaption { left: 20px; right: 170px;") ||
+        !stageHtml.includes("white-space: nowrap;"))
+      throw new Error("手機橫屏年代字幕缺單行安全區");
     const d0 = assets.sceneFx["D0-2"];
     if (JSON.stringify(d0.steps.map((s) => s.label)) !==
         JSON.stringify(["1642｜法國・馬賽", "1642→1665｜紙頁之間", "1665｜英格蘭・伍爾索普"]))
@@ -2270,7 +2299,7 @@ tests.push({
         scenes3.scenes.filter((scene) => scene.id !== "SC3-R1").length !== 10)
       throw new Error("第三章應為 10 場主線＋1 個信譽修復場");
     const allNodes = scenes3.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 221) throw new Error("第三章節點數不是 221，實得:" + allNodes);
+    if (allNodes !== 223) throw new Error("第三章節點數不是 223，實得:" + allNodes);
     if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
       throw new Error("第三章場景 id 重複");
     for (const s of scenes3.scenes) {
@@ -2375,7 +2404,7 @@ tests.push({
     if (JSON.stringify(phases2) !== JSON.stringify(["dossier"]))
       throw new Error("第三章應只用一個可往返的卷宗工作面，實得:" + phases2.join(","));
     for (const action of ["setDossierDraft", "runDossierSeries", "setDossierSourceGroup", "setDossierScope",
-      "runDossierCabinSeries", "enterDossierDebate", "leaveDossierDebate",
+      "commitDossierCabinWindPlan", "runDossierCabinSeries", "enterDossierDebate", "leaveDossierDebate",
       "selectDossierPillar", "answerDossierDebate", "setDossierP3Premise",
       "alignDossierPapers", "transformDossierPapers", "setDossierFinalBoundary"])
       if (!ui2.includes(action) || !engine2.includes("function " + action))
@@ -2403,7 +2432,7 @@ tests.push({
       throw new Error("章別備忘未進生成舞台:" + memo);
     if (!visible2.includes("維達爾船長留在踏板外") || !visible2.includes("我留在岸上，也不先看結果"))
       throw new Error("維達爾船長留岸、避免替自己作證的動機未進 runtime");
-    if (!visible2.includes("明天把船怎麼走也記下來") ||
+    if (!visible2.includes("這張紙缺的那一欄，明天我們可以真的記出來") ||
         !visible2.includes("先把你說的那一欄真的記出來"))
       throw new Error("旅人沒有在取得實驗權前先提出可檢驗的記錄方法");
     const activeDebateUi = ui2.slice(
@@ -2445,7 +2474,7 @@ tests.push({
        並確認核心體感會把玩家送回親手操作，而不是靠補括號湊比例。 */
     const causalBeats = [
       ["C0-2", ["x18", "n8"], ["把裝貨箱最底下那一層翻開", "以前也有人做過"]],
-      ["C0-2", ["n9", "x21a", "x21b"], ["船當時是走穩、變快，還是變慢", "明天把船怎麼走也記下來", "先把你說的那一欄真的記出來"]],
+      ["C0-2", ["n9", "x21a", "x21b"], ["船當時是走穩、變快，還是變慢", "明天我們可以真的記出來", "先把你說的那一欄真的記出來"]],
       ["C1-1", ["x4", "x5", "x6"], ["碼頭在往後退", "什麼時候開的", "剛剛"]],
       ["INT-C2", ["x3", "x4", "x5"], ["沒有了", "沒有了", "我問完了"]],
       ["C3-1", ["x13", "x14", "x15"], ["洛朗・維達爾", "你辯到一半", "我沒有說謊"]],
@@ -2514,6 +2543,16 @@ tests.push({
     take(Engine3.setDossierScope(state, "A3", "today-comparison"), "A3");
 
     set("stage", "dock");
+    const unplannedCabin = Engine3.runDossierCabinSeries(state);
+    if (unplannedCabin.error !== "cabin-wind-plan-required")
+      throw new Error("新流程沒有先要求玩家決定如何隔開甲板風");
+    const rejectedWindPlan = Engine3.commitDossierCabinWindPlan(state, "wait-calm");
+    if (rejectedWindPlan.error || rejectedWindPlan.ok !== false ||
+        rejectedWindPlan.state.caseFile.dossier.designCommitments.cabinWind ||
+        rejectedWindPlan.state.caseFile.dossier.designCommitments.cabinWindAttempts.length !== 1)
+      throw new Error("不量風只等無風日，竟被當成已排除變因");
+    state = rejectedWindPlan.state;
+    take(Engine3.commitDossierCabinWindPlan(state, "close-cabin"), "cabin-wind-plan");
     const dock = take(Engine3.runDossierCabinSeries(state), "cabin-dock-series");
     if (dock.count !== 3 || dock.records.map((row) => row.id).join(",") !== "C1,C2,C3")
       throw new Error("停泊船艙系列未一次留下三張");
@@ -2533,8 +2572,24 @@ tests.push({
     const dual = take(Engine3.runDossierSeries(state), "dual-series");
     if (dual.count !== 1 || dual.records.length !== 1 || !dual.record.dualPapers)
       throw new Error("雙視角被錯做成三次事件，或沒有同時產生雙紙");
+    const legacy = JSON.parse(JSON.stringify(state));
+    delete legacy.caseFile.dossier.designCommitments;
+    let legacyDebate = Engine3.enterDossierDebate(legacy);
+    legacyDebate = Engine3.answerDossierDebate(legacyDebate.state, "p1", "source", "A1");
+    legacyDebate = Engine3.answerDossierDebate(legacyDebate.state, "p1", "cabin", "A2");
+    if (legacyDebate.error || legacyDebate.state.caseFile.dossier.debate.pillars.p1 ||
+        legacyDebate.state.caseFile.dossier.debate.current !== "p1")
+      throw new Error("舊存檔沒有設計承諾，卻被系統代答風的主張範圍");
+    take(Engine3.enterDossierDebate(state), "enter-new-debate");
+    take(Engine3.answerDossierDebate(state, "p1", "source", "A1"), "p1-source-new");
+    take(Engine3.answerDossierDebate(state, "p1", "cabin", "A2"), "p1-cabin-new");
+    if (!state.caseFile.dossier.debate.pillars.p1 ||
+        state.caseFile.dossier.debate.current !== "p2")
+      throw new Error("玩家已在實驗前公開限定風的主張，辯論仍重複問同一題");
 
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (!/!db\.p1\.wind\s*&&\s*!\(d\.designCommitments\s*&&\s*d\.designCommitments\.cabinWind\s*===\s*"close-cabin"\)/.test(ui))
+      throw new Error("辯論 UI 沒有引用實驗前的風範圍承諾，可能重複收費");
     const notebook = readFileSync(path.join(here, "../src/stage/09-notebook.part.js"), "utf-8");
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const contract of [
@@ -3730,6 +3785,7 @@ tests.push({
         for (const sourceId of ["R1","R2","R3","R4","R5","R6"])
           act("selectDossierSource", { assertionId:"A3", sourceId });
         act("setDossierScope", { assertionId:"A3", choice:"today-comparison" });
+        act("commitDossierCabinWindPlan", { choice:"close-cabin" });
         draft("stage", "dock");
         for (let i = 0; i < 3; i++) act("runDossierCabinComparison");
         draft("stage", "steady");
@@ -3748,6 +3804,9 @@ tests.push({
         s = wrongTry.state;
         act("answerDossierDebate", { pillar:"p1", step:"source", choice:"A1" }); debateActions++;
         act("answerDossierDebate", { pillar:"p1", step:"cabin", choice:"A2" }); debateActions++;
+        if (!s.lab.caseFile.dossier.debate.pillars.p1 ||
+            s.lab.caseFile.dossier.debate.current !== "p2")
+          throw new Error("設計階段已公開限定風的主張，辯論沒有引用承諾直接收柱");
         act("answerDossierDebate", { pillar:"p2", step:"source", choice:"A3" }); debateActions++;
         act("answerDossierDebate", { pillar:"p2", step:"boundary", choice:"same-pattern-not-proof" }); debateActions++;
         act("answerDossierDebate", { pillar:"p2", step:"scope", choice:"tested-vessels-only" }); debateActions++;
@@ -3930,6 +3989,9 @@ tests.push({
       throw new Error("第一柱未破時竟可跳到第二柱");
     take(Engine3.answerDossierDebate(s, "p1", "source", "A1"), "p1-source");
     take(Engine3.answerDossierDebate(s, "p1", "cabin", "A2"), "p1-cabin");
+    if (s.caseFile.dossier.debate.pillars.p1)
+      throw new Error("第一柱在玩家限定風的主張前就被系統代為完成");
+    take(Engine3.answerDossierDebate(s, "p1", "wind", "limited-wind"), "p1-wind");
     take(Engine3.answerDossierDebate(s, "p2", "source", "A3"), "p2-source");
     take(Engine3.answerDossierDebate(s, "p2", "boundary", "same-pattern-not-proof"), "p2-boundary");
     take(Engine3.answerDossierDebate(s, "p2", "scope", "tested-vessels-only"), "p2-scope");
@@ -4950,6 +5012,27 @@ tests.push({
       if (!e || !e.path.startsWith("ch03/characters/") || e.w !== 900 || e.h !== 1200) throw new Error("第三章角色資產宣告錯誤:" + id);
     }
     if (assets.chapterThumbnail.ch03 !== "chapter_thumbnail_ch03") throw new Error("第三章章節縮圖未接上");
+    const timeline = assets.sceneFx["C0-1"] && assets.sceneFx["C0-1"].steps || [];
+    const requiredYears = {
+      "1610": "ch03_transition_1610_jupiter_observation_v01",
+      "1616": "ch03_transition_1616_roman_admonition_v01",
+      "1632": "ch03_transition_1632_dialogue_ship_page_v01",
+      "1633": "ch03_transition_1633_roman_statement_v01"
+    };
+    for (const [year, assetId] of Object.entries(requiredYears)) {
+      const step = timeline.find((item) => String(item.label || "").startsWith(year));
+      const entry = ids.get(assetId);
+      if (!step || step.plate !== assetId || !entry?.path ||
+          !existsSync(path.join(here, "../../public/assets/", entry.path)))
+        throw new Error("第三章年代轉場缺圖或映射錯誤:" + year);
+    }
+    const survey = assets.apparatusBriefings["ch3:C1-1"];
+    const releaseRig = survey && survey.items.find((item) => item.id === "releaseRig");
+    if (!releaseRig || releaseRig.y > 8 || releaseRig.x < 32 || releaseRig.x > 42)
+      throw new Error("桅頂放手裝置亮點沒有落在桅頂:" + JSON.stringify(releaseRig));
+    const stageCss = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    if (!/@media \(max-height: 560px\)[\s\S]{0,700}#fxCaption[\s\S]{0,350}white-space:\s*nowrap/.test(stageCss))
+      throw new Error("手機橫屏年代字幕可能重新折行");
     const expectedAudio = {
       ch3Harbor: ["once", ["ch03/Ch3_Harbor_Dawn.mp3"]],
       ch3Experiment: ["milestone", ["ch03/Ch3_Mast_Experiment_A.mp3", "ch03/Ch3_Mast_Experiment_B.mp3", "ch03/Ch3_Mast_Experiment_C.mp3"]],
@@ -5305,7 +5388,7 @@ tests.push({
         JSON.stringify(scenes4.scenes.map((scene) => scene.id)) !== JSON.stringify(expectedScenes))
       throw new Error("第四章 v0.8 應保留定案 12 場主線並追加 SC4-R1");
     const allNodes = scenes4.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 294) throw new Error("第四章節點數不是 294，實得:" + allNodes);
+    if (allNodes !== 295) throw new Error("第四章節點數不是 295，實得:" + allNodes);
 
     const sceneMap = new Map(scenes4.scenes.map((scene) =>
       [scene.id, new Map(scene.nodes.map((node) => [node.id, node]))]));
@@ -6429,6 +6512,59 @@ tests.push({
 });
 
 tests.push({
+  name: "第五章 E-3 展開|十個玩家發言、零空殼場、心聲用途與舊節點隔離",
+  fn: () => {
+    const allowedPurposes = new Set([
+      "time_dislocation", "future_knowledge", "cross_chapter_memory",
+      "private_observation", "private_hypothesis", "emotional_risk", "naming"
+    ]);
+    const mainScenes = scenes5.scenes.filter((scene) => scene.id !== "SC5-R1");
+    const activeNodes = mainScenes.flatMap((scene) =>
+      (scene.nodes || []).filter((node) => node.legacyOnly !== true));
+    const choices = activeNodes.filter((node) => node.type === "choice");
+    if (choices.length !== 10)
+      throw new Error("第五章主線玩家發言數漂移:" + choices.length);
+
+    for (const scene of mainScenes) {
+      const active = (scene.nodes || []).filter((node) => node.legacyOnly !== true);
+      if (active.length === 2 && active[0].type === "embed" && active[1].type === "goto")
+        throw new Error("第五章仍有 embed+goto 空殼場:" + scene.id);
+      const byId = new Map((scene.nodes || []).map((node) => [node.id, node]));
+      for (const node of active) {
+        if (node.speaker === "旅人・心聲" && !allowedPurposes.has(node.osPurpose))
+          throw new Error(scene.id + "/" + node.id + " 心聲缺合法 osPurpose");
+        const targets = [];
+        if (typeof node.next === "string") targets.push(node.next);
+        for (const option of (node.options || []))
+          if (typeof option.next === "string") targets.push(option.next);
+        for (const target of targets)
+          if (byId.get(target)?.legacyOnly === true)
+            throw new Error(scene.id + "/" + node.id + " 仍指向舊節點 " + target);
+      }
+    }
+
+    const e23 = scenes5.scenes.find((scene) => scene.id === "E2-3");
+    const legacy = e23.nodes.find((node) => node.id === "n1");
+    const current = e23.nodes.find((node) => node.id === "n1a");
+    if (legacy?.legacyOnly !== true || !current?.text.includes("這把尺只量到油灰"))
+      throw new Error("E2-3 舊游標或現行縮限句遺失");
+
+    const N5 = Narrative._factory(scenes5, Engine5, debate5);
+    let s = N5.initialState("explore");
+    s.cursor = { scene: "E2-3", node: "c_scale" };
+    const wrong = N5.choose(s, "overclaim-vital-force");
+    if (wrong.error || wrong.state.flags.ch5ScaleBoundary)
+      throw new Error("過度宣稱竟取得範圍承諾");
+    const back = N5.advance(wrong.state);
+    if (back.error || N5.view(back.state).nodeId !== "c_scale")
+      throw new Error("範圍過度宣稱沒有回到同一選擇");
+    const right = N5.choose(back.state, "measurement-only");
+    if (right.error || right.state.flags.ch5ScaleBoundary !== "measurement-only")
+      throw new Error("縮限主張沒有留下玩家承諾");
+  }
+});
+
+tests.push({
   name: "第五章 fixture|四種碰撞逐格驗算、4／8 油灰少三分之二、黏土誤差交替",
   fn: () => {
     const f = Engine5._FIXTURE.collisionAtSix;
@@ -6524,6 +6660,18 @@ tests.push({
       s = r.state;
       return r.result;
     };
+    const choiceByNode = {
+      c_intro: "collision-question",
+      c_ledger: "check-pages",
+      q1: "ledger",
+      c_order: "stick-first",
+      c_why2: "ask-emilie",
+      c_reuse: "reuse",
+      c_scale: "measurement-only",
+      c_j4: "keep-both",
+      c_emilie: "notebook",
+      c_next: "write-question"
+    };
     let guard = 0;
     while (!s.ended && guard++ < 200) {
       const v = N5.view(s);
@@ -6534,7 +6682,9 @@ tests.push({
         continue;
       }
       if (v.type === "choice") {
-        const r = N5.choose(s, "ledger");
+        const choiceId = choiceByNode[v.nodeId];
+        if (!choiceId) throw new Error("未定義第五章黃金選項:" + v.scene + "/" + v.nodeId);
+        const r = N5.choose(s, choiceId);
         if (r.error) throw new Error(r.error);
         s = r.state;
         continue;
