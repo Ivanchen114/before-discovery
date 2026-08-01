@@ -125,7 +125,11 @@
       }
     }
     if (view !== "lab" && view !== "ship" && view !== "orbit" && view !== "debate") {
-      pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
+      pendingEmbarkView = null; pendingEmbarkScene = null; pendingIntermissionToken = null;
+      body.classList.remove("embarkGate"); body.classList.remove("workbenchIntermission");
+      $("btnEmbark").hidden = true;
+      $("intermissionChoices").hidden = true;
+      $("intermissionChoices").innerHTML = "";
     }
     if (view === "debate" && !debIntroSeen && !body.classList.contains("embarkGate")) { /* 讀檔直落辯論 */
       debIntroSeen = true;
@@ -134,11 +138,49 @@
     prevView = view;
   });
   var prevView = null, pendingEmbarkView = null, pendingEmbarkScene = null;
+  var pendingIntermissionToken = null;
+  function clearWorkbenchIntermission() {
+    pendingIntermissionToken = null;
+    body.classList.remove("workbenchIntermission");
+    $("intermissionChoices").hidden = true;
+    $("intermissionChoices").innerHTML = "";
+  }
+  /* 同一個 embed 內的敘事接縫：暫時收起工作台，讓人物對話和研究決定
+     發生在舞台上；玩家明確按下一步後才回到工作台。 */
+  document.addEventListener("bd:workbench-intermission", function (event) {
+    var d = event.detail || {};
+    var choices = Array.isArray(d.choices) ? d.choices : [];
+    pendingEmbarkView = d.view || body.getAttribute("data-view") || null;
+    pendingEmbarkScene = d.scene || null;
+    pendingIntermissionToken = d.token || null;
+    body.classList.add("embarkGate");
+    body.classList.add("workbenchIntermission");
+    $("btnEmbark").textContent = d.label || "▸ 進入下一階段";
+    $("btnEmbark").hidden = choices.length > 0;
+    var tray = $("intermissionChoices");
+    tray.innerHTML = "";
+    tray.hidden = choices.length === 0;
+    choices.forEach(function (choice) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = choice.label;
+      if (choice.ariaLabel) button.setAttribute("aria-label", choice.ariaLabel);
+      button.addEventListener("click", function () {
+        document.dispatchEvent(new CustomEvent("bd:workbench-intermission-choice", {
+          detail: { token: pendingIntermissionToken, choice: choice.id }
+        }));
+      });
+      tray.appendChild(button);
+    });
+    syncFlags();
+  });
   $("btnEmbark").addEventListener("click", function () {
     var target = pendingEmbarkView;
     var targetScene = pendingEmbarkScene;
+    var intermissionToken = pendingIntermissionToken;
     pendingEmbarkView = null;
     pendingEmbarkScene = null;
+    clearWorkbenchIntermission();
     body.classList.remove("embarkGate");
     $("btnEmbark").hidden = true;
     if (target === "debate") {
@@ -168,7 +210,7 @@
     /* WB-CR-025b：讓工作台表現層在玩家親手跨過閘門、完成焦點交接後，
        才播放入場教練句；bd:line 會再把焦點交給對話框的 ack。 */
     document.dispatchEvent(new CustomEvent("bd:embark", {
-      detail: { view: target, scene: targetScene }
+      detail: { view: target, scene: targetScene, intermission: intermissionToken }
     }));
   });
   document.addEventListener("bd:start", function () {
@@ -179,6 +221,9 @@
     debIntroSeen = false;
     pendingEmbarkView = null;
     pendingEmbarkScene = null;
+    clearWorkbenchIntermission();
+    body.classList.remove("embarkGate");
+    $("btnEmbark").hidden = true;
     apparatusSurveySeen = {}; apparatusSurveyActive = null; apparatusSurveyDone = null;
     repPrev = null;
     lastLineScene = null;

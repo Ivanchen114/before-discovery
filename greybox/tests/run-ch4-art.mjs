@@ -93,6 +93,21 @@ if (!existsSync(path.join(here, "../../public/assets", tangentSheet.path)))
   fail("無作用切線預測紙 runtime 檔案不存在");
 if (!existsSync(path.join(here, "../../", tangentSheet.sourceMaster)))
   fail("無作用切線預測紙母版不存在");
+const crossScaleSheets = {
+  ch04_prop_cross_scale_surface_sheet_v01:
+    "ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp",
+  ch04_prop_cross_scale_moon_sheet_v01:
+    "ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp"
+};
+for (const [id, assetPath] of Object.entries(crossScaleSheets)) {
+  const entry = entries.get(id);
+  if (entry?.path !== assetPath || entry.w !== 1200 || entry.h !== 480)
+    fail("同尺紙重建底圖宣告錯誤:" + id);
+  if (!existsSync(path.join(here, "../../public/assets", assetPath)))
+    fail("同尺紙 runtime 底圖不存在:" + assetPath);
+  if (!entry.sourceMaster || !existsSync(path.join(here, "../../", entry.sourceMaster)))
+    fail("同尺紙來源母版不存在:" + id);
+}
 const tangentFocus = (assets.lineFocusVisual || []).find((rule) =>
   rule.scene === "D1-1" && rule.match.includes("畫下一條直線"));
 if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v02" ||
@@ -201,7 +216,7 @@ if (shellRule?.items?.[0]?.overlay !== "shell-theorem" ||
 const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
 for (const fragment of [
   "orbit4BlankSelect",
-  "四項都要由玩家選定",
+  "四項都要由你選定",
   "commitOrbitBeat",
   "continueOrbitRule",
   "beginLedgerRow",
@@ -216,6 +231,13 @@ for (const fragment of [
 ])
   if (!chapterUi.includes(fragment) && !focusRenderer.includes(fragment))
     fail("第四章 v0.8 動態證據視覺缺漏:" + fragment);
+for (const fragment of [
+  "ch04_prop_cross_scale_surface_sheet_v01",
+  "ch04_prop_cross_scale_moon_sheet_v01",
+  "4.9 m ÷ 60² ≈ 1.4 mm",
+  "4.9 m ÷ 1.4 mm ≈ 3600",
+  "60² = 3600｜距離平方縮弱"
+]) if (!chapterUi.includes(fragment)) fail("同尺紙底圖或漸進公式缺漏:" + fragment);
 for (const obsolete of ["箭頭方向 ", "箭頭長度 ", 'dist.type="range"', 'exponent.type="range"'])
   if (chapterUi.includes(obsolete)) fail("D1-2／D2-2 仍殘留已退役滑桿:" + obsolete);
 
@@ -330,6 +352,16 @@ const artGovernanceFiles = {
 };
 for (const [label, file] of Object.entries(artGovernanceFiles))
   if (!existsSync(file)) fail("第四章補圖缺治理紀錄:" + label);
+const scalePromptFile = path.join(here,
+  "../../art/source/production/ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V01_20260801.md");
+if (!existsSync(scalePromptFile)) fail("同尺紙缺生成提示與重建邊界紀錄");
+const scaleGovernance = [
+  readFileSync(scalePromptFile, "utf-8"),
+  readFileSync(artGovernanceFiles.ledger, "utf-8"),
+  readFileSync(artGovernanceFiles.licenses, "utf-8")
+].join("\n");
+for (const id of Object.keys(crossScaleSheets))
+  if (!scaleGovernance.includes(id)) fail("同尺紙治理紀錄缺資產 ID:" + id);
 const governanceText = Object.fromEntries(Object.entries(artGovernanceFiles).map(
   ([label, file]) => [label, readFileSync(file, "utf-8")]
 ));

@@ -35,3 +35,12 @@
 | `ch03_transition_1610_jupiter_observation_v01` | `ch03/transitions/ch03_transition_1610_jupiter_observation_v01.webp` | `art/source/production/ch03/transitions/PROMPTS_CH03_TIMELINE_20260731.md` §1610 | 無 | 可進內部／公開非商業版本 |
 | `ch03_transition_1616_roman_admonition_v01` | `ch03/transitions/ch03_transition_1616_roman_admonition_v01.webp` | 同上 §1616 | 無 | 可進內部／公開非商業版本 |
 | `ch03_transition_1633_roman_statement_v01` | `ch03/transitions/ch03_transition_1633_roman_statement_v01.webp` | 同上 §1633 | 無 | 可進內部／公開非商業版本 |
+
+## 六、OpenAI 生成資產｜2026-08-01 第四章同尺紙
+
+以下兩件由專案協作者 Codex 使用 OpenAI 內建 image generation 產生，未投入第三方影像、未直接模仿特定在世藝術家。兩圖是歷史語彙教學重建，不宣稱為牛頓真跡；玩家看到的數字與公式是專案自製 SVG 疊圖，不屬生成影像的一部分。
+
+| 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| `ch04_prop_cross_scale_surface_sheet_v01` | `ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp` | `art/source/production/ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V01_20260801.md` §Prompt 1 | 無 | 可進內部／公開非商業版本 |
+| `ch04_prop_cross_scale_moon_sheet_v01` | `ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp` | 同上 §Prompt 2 | 無 | 可進內部／公開非商業版本 |

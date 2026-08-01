@@ -319,6 +319,18 @@
         ] }
       },
       ch4: {
+        "D0-2/n12b": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"D0-2/c0", pick:"future-answer" }],
+          values: [
+          "說出了結論，卻拿不出能把蘋果接到月亮的證據"
+        ] },
+        "D0-2/n12d": {
+          expectedDelta: 1,
+          requiresBefore: [{ t:"choice", at:"D0-2/c0", pick:"evidence-boundary" }],
+          values: [
+          "把做過的船上紀錄，和還沒有證據的月亮問題分開"
+        ] },
         "orbit4.setHookeScope": { expectedDelta: -1, values: [
           "把虎克的一封信擴張成整套證明，超過來源能支持的範圍",
           "把虎克已留下的問題方向從來源線抹去"
@@ -3301,6 +3313,12 @@
           typeof line.text !== "string" || line.text.length > 2000)
         return fail("對話紀錄中有一筆格式錯誤");
     }
+    /* NARRATIVE-CR-034：舊存檔若正停在兩座退役工作台，不再把玩家送回錯的 UI。
+       依 state truth 回到對話決策；已完成者才略過，不替未完成者補造操作。 */
+    if (state.cursor.scene === "D1-1" && state.cursor.node === "e1")
+      state.cursor.node = tangent.sealed === true && tangent.choice === "tangent" ? "n4" : "c1";
+    if (state.cursor.scene === "DE-1" && state.cursor.node === "e1")
+      state.cursor.node = lab.archiveLab && lab.archiveLab.complete ? "g1" : "c1";
     return { ok: true, state: state };
   }
 

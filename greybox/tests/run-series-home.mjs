@@ -20,6 +20,9 @@ const ch4Script = readFileSync(
 );
 const vercel = JSON.parse(readFileSync(path.join(here, "../../vercel.json"), "utf8"));
 const sitemap = readFileSync(path.join(here, "../../sitemap.xml"), "utf8");
+const rootIndex = readFileSync(path.join(here, "../../index.html"), "utf8");
+const manifest = JSON.parse(readFileSync(path.join(here, "../../manifest.json"), "utf8"));
+const readme = readFileSync(path.join(here, "../../README.md"), "utf8");
 
 function assert(ok, message) {
   if (!ok) throw new Error(message);
@@ -114,7 +117,41 @@ assert(stageRedirect?.destination === "/" && stageRedirect.permanent === true, "
 assert(internalStageRedirect?.destination === "/" && internalStageRedirect.permanent === true, "內部舞台網址未永久收斂到正式網址");
 assert(html.includes('<link rel="canonical" href="https://before-discovery.vercel.app/">'), "系列首頁 canonical 不是正式根網址");
 assert(sitemap.includes("<loc>https://before-discovery.vercel.app/</loc>"), "sitemap 未收錄正式根網址");
+assert(sitemap.includes("<lastmod>2026-08-02</lastmod>"), "sitemap lastmod 未更新為本次實質發布日");
 assert(!sitemap.includes("/greybox/stage.html"), "sitemap 不得收錄內部舞台路徑");
+
+const playExperienceScript = localScriptAssetRefs(html)
+  .find((ref) => ref.path === "src/play-experience.js");
+assert(playExperienceScript, "系列首頁缺少遊玩體驗判定模組");
+assert(playExperienceScript.version === assetVersionFor(playExperienceScript.path),
+  "遊玩體驗判定模組的快取鍵未與內容雜湊同步");
+
+for (const [label, source] of [["舞台", html], ["根入口", rootIndex]]) {
+  assert(source.includes('<meta name="author" content="陳育詮">'), `${label}缺作者 metadata`);
+  assert(source.includes("臺北市立松山高中物理教師陳育詮創作"), `${label}分享摘要缺校職與作者姓名`);
+  assert(source.includes('<meta name="robots" content="index,follow,max-image-preview:large'), `${label}缺索引指令`);
+  for (const name of ["twitter:title", "twitter:description", "twitter:image"])
+    assert(source.includes(`<meta name="${name}"`), `${label}缺 ${name}`);
+  const ld = source.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  assert(ld, `${label}缺 JSON-LD`);
+  const parsed = JSON.parse(ld[1]);
+  assert(parsed.name === "發現之前 Before Discovery" && parsed.author?.name === "陳育詮",
+    `${label} JSON-LD 缺作品或作者實體`);
+}
+assert(html.includes('<h1 class="t1">發現之前</h1>'), "正式首頁沒有語意 h1");
+assert(html.includes('class="titleCredit"') &&
+  html.includes("臺北市立松山高中物理教師 陳育詮"),
+"舞台只寫 metadata，標題頁沒有玩家可見作者署名");
+assert(rootIndex.includes("創作・設計｜臺北市立松山高中物理教師 陳育詮"),
+"根入口 fallback 沒有玩家可見作者署名");
+assert(manifest.description.includes("臺北市立松山高中物理教師陳育詮創作"),
+"PWA manifest 缺校職與作者姓名");
+assert(manifest.id === "/" && manifest.start_url === "/" && manifest.scope === "/" &&
+  manifest.lang === "zh-Hant-TW", "PWA manifest 未收旂到正式根網址或缺語言");
+assert(readme.includes("**創作・設計**:臺北市立松山高中物理教師 陳育詮"),
+"README 缺正式創作署名");
 
 console.log("  ✓ 系列首頁 v3|目前旅程＋資料驅動章節目錄，可擴充且第四章章名同步");
 console.log("  ✓ 正式根入口|根網址直接提供系列首頁，資源路由與 canonical 收斂");
+console.log("  ✓ 作者署名|標題頁、分享 metadata、PWA 與 README 均標示校職與姓名");
+console.log("  ✓ SEO 與 PWA|單一 canonical、JSON-LD、Twitter Card、根路徑 manifest 與有效 sitemap");

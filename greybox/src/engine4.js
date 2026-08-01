@@ -2111,6 +2111,53 @@
     };
   }
 
+  /* ENGINE-CR-033：歸檔是一次有意義的玩家決策，不是五次沒有新推論的 UI 點擊。
+     仍沿用 clipEvidence，保留 K1→K5 的 append-only 紀錄與既有章末守衛。 */
+  function archiveEvidenceSet(state0) {
+    var hasCompleteProof = !!(state0.evidence && state0.evidence.k5 &&
+      state0.proof && state0.proof.press &&
+      state0.proof.press.proofs.some(function (record) {
+        return record && record.kind === "complete" &&
+          record.complete === true && record.superseded !== true;
+      }));
+    if (!hasCompleteProof) return {
+      state: state0,
+      error: "completed-proof-required",
+      userMessage: "完整校樣還沒完成，現在不能把五張證據收進筆記。"
+    };
+    var missing = ARCHIVE_IDS.filter(function (evidenceId) {
+      return !(state0.evidence && state0.evidence[evidenceId.toLowerCase()]);
+    });
+    if (missing.length) return {
+      state: state0,
+      error: "archive-evidence-set-incomplete",
+      userMessage: "還有證據沒完成：" + missing.join("、") + "。",
+      missing: missing
+    };
+    var s = state0, added = [];
+    for (var i = 0; i < ARCHIVE_IDS.length; i += 1) {
+      var evidenceId = ARCHIVE_IDS[i];
+      if (s.archiveLab && Array.isArray(s.archiveLab.clipped) &&
+          s.archiveLab.clipped.indexOf(evidenceId) >= 0) continue;
+      var r = clipEvidence(s, evidenceId);
+      if (r.error) return {
+        state: state0,
+        error: r.error,
+        userMessage: "這組證據還不能歸檔；請回頭檢查未完成的紙。",
+        failedAt: evidenceId
+      };
+      s = r.state;
+      added.push(evidenceId);
+    }
+    return {
+      state: s,
+      ok: true,
+      archived: ARCHIVE_IDS.slice(),
+      added: added,
+      complete: !!(s.archiveLab && s.archiveLab.complete)
+    };
+  }
+
   var api = {
     initialState: initialState,
     advanceTransition: advanceTransition,
@@ -2132,7 +2179,7 @@
     removeTravelerFromAuthorField: removeTravelerFromAuthorField,
     submitPartialProof: submitPartialProof, setBoundary: setBoundary,
     previewProof: previewProof, submitProof: submitProof, deferPress: deferPress,
-    clipEvidence: clipEvidence,
+    clipEvidence: clipEvidence, archiveEvidenceSet: archiveEvidenceSet,
     _FIXTURE: { teaching: TEACHING, modernCheck: MODERN, planets: PLANETS },
     _ORBIT_RULES: {
       speeds: clone(ORBIT_SPEEDS), strengths: clone(ORBIT_STRENGTHS),

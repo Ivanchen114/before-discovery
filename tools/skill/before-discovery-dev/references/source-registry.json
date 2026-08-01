@@ -584,7 +584,7 @@
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "只在 task 明示 workbench／debate／evidence-interaction／workbench-interaction 時讀；一般場景互動歸 narrative。本法源 v0.1.6 同時守操作決策密度、原始紀錄、斷言回應、筆記、無副作用重播、必要點擊資格、卡片分層與章別備忘，不是所有章的外形模板。"
+          "note": "只在 task 明示 workbench／debate／evidence-interaction／workbench-interaction 時讀；一般場景互動歸 narrative。本法源 v0.1.7 同時守操作決策密度、原始紀錄、斷言回應、斷言後離台／對話／再入、筆記、無副作用重播與定位、必要點擊資格、卡片分層與章別備忘，不是所有章的外形模板。"
         }
       ]
     },

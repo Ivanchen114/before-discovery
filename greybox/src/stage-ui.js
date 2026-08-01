@@ -466,9 +466,14 @@
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
     /* 對話真正播完才把鍵盤焦點交給轉場鈕；不得只在進場瞬間猜一次時機。 */
-    if (!active && body.classList.contains("embarkGate") && !$("btnEmbark").hidden) {
+    if (!active && body.classList.contains("embarkGate") &&
+        (!$("btnEmbark").hidden || !$("intermissionChoices").hidden)) {
       setTimeout(function () {
-        if (!body.classList.contains("held") && body.classList.contains("embarkGate")) $("btnEmbark").focus();
+        if (body.classList.contains("held") || !body.classList.contains("embarkGate")) return;
+        if (!$("intermissionChoices").hidden) {
+          var firstChoice = $("intermissionChoices").querySelector("button");
+          if (firstChoice) firstChoice.focus();
+        } else $("btnEmbark").focus();
       }, 0);
     }
   }
@@ -754,7 +759,11 @@
       }
     }
     if (view !== "lab" && view !== "ship" && view !== "orbit" && view !== "debate") {
-      pendingEmbarkView = null; pendingEmbarkScene = null; body.classList.remove("embarkGate"); $("btnEmbark").hidden = true;
+      pendingEmbarkView = null; pendingEmbarkScene = null; pendingIntermissionToken = null;
+      body.classList.remove("embarkGate"); body.classList.remove("workbenchIntermission");
+      $("btnEmbark").hidden = true;
+      $("intermissionChoices").hidden = true;
+      $("intermissionChoices").innerHTML = "";
     }
     if (view === "debate" && !debIntroSeen && !body.classList.contains("embarkGate")) { /* 讀檔直落辯論 */
       debIntroSeen = true;
@@ -763,11 +772,49 @@
     prevView = view;
   });
   var prevView = null, pendingEmbarkView = null, pendingEmbarkScene = null;
+  var pendingIntermissionToken = null;
+  function clearWorkbenchIntermission() {
+    pendingIntermissionToken = null;
+    body.classList.remove("workbenchIntermission");
+    $("intermissionChoices").hidden = true;
+    $("intermissionChoices").innerHTML = "";
+  }
+  /* 同一個 embed 內的敘事接縫：暫時收起工作台，讓人物對話和研究決定
+     發生在舞台上；玩家明確按下一步後才回到工作台。 */
+  document.addEventListener("bd:workbench-intermission", function (event) {
+    var d = event.detail || {};
+    var choices = Array.isArray(d.choices) ? d.choices : [];
+    pendingEmbarkView = d.view || body.getAttribute("data-view") || null;
+    pendingEmbarkScene = d.scene || null;
+    pendingIntermissionToken = d.token || null;
+    body.classList.add("embarkGate");
+    body.classList.add("workbenchIntermission");
+    $("btnEmbark").textContent = d.label || "▸ 進入下一階段";
+    $("btnEmbark").hidden = choices.length > 0;
+    var tray = $("intermissionChoices");
+    tray.innerHTML = "";
+    tray.hidden = choices.length === 0;
+    choices.forEach(function (choice) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = choice.label;
+      if (choice.ariaLabel) button.setAttribute("aria-label", choice.ariaLabel);
+      button.addEventListener("click", function () {
+        document.dispatchEvent(new CustomEvent("bd:workbench-intermission-choice", {
+          detail: { token: pendingIntermissionToken, choice: choice.id }
+        }));
+      });
+      tray.appendChild(button);
+    });
+    syncFlags();
+  });
   $("btnEmbark").addEventListener("click", function () {
     var target = pendingEmbarkView;
     var targetScene = pendingEmbarkScene;
+    var intermissionToken = pendingIntermissionToken;
     pendingEmbarkView = null;
     pendingEmbarkScene = null;
+    clearWorkbenchIntermission();
     body.classList.remove("embarkGate");
     $("btnEmbark").hidden = true;
     if (target === "debate") {
@@ -797,7 +844,7 @@
     /* WB-CR-025b：讓工作台表現層在玩家親手跨過閘門、完成焦點交接後，
        才播放入場教練句；bd:line 會再把焦點交給對話框的 ack。 */
     document.dispatchEvent(new CustomEvent("bd:embark", {
-      detail: { view: target, scene: targetScene }
+      detail: { view: target, scene: targetScene, intermission: intermissionToken }
     }));
   });
   document.addEventListener("bd:start", function () {
@@ -808,6 +855,9 @@
     debIntroSeen = false;
     pendingEmbarkView = null;
     pendingEmbarkScene = null;
+    clearWorkbenchIntermission();
+    body.classList.remove("embarkGate");
+    $("btnEmbark").hidden = true;
     apparatusSurveySeen = {}; apparatusSurveyActive = null; apparatusSurveyDone = null;
     repPrev = null;
     lastLineScene = null;
@@ -1252,7 +1302,7 @@
     if (!$("apparatusSurvey").hidden) return;
     if (!$("labIntro").hidden) return;
     if (!$("debIntro").hidden) return;
-    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast, #nextCard, #rotateHint")) return;
+    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast, #nextCard")) return;
     if (advanceIntent()) return;
     idleAdvance();
   });
@@ -1280,38 +1330,109 @@
     if (idleAdvance()) ev.preventDefault();
   }, true);
 
-  /* ---------- 行動裝置:全螢幕+橫屏鎖定(GB-ADR-014) ----------
-     Android Chrome=requestFullscreen(手勢內)+screen.orientation.lock("landscape");
-     iPhone Safari 不支援元素全螢幕與鎖向 → 藏按鈕,rotateHint 引導轉橫+加入主畫面(manifest)。 */
+  /* ---------- 行動裝置：能力優先的全螢幕＋開場建議(GB-ADR-014 補記) ----------
+     iOS 已有部分版本支援 Fullscreen API，不再以裝置名稱猜能力。
+     沒有 API 且未以主畫面 Web App 開啟時，才給 Apple 行動裝置加入主畫面指引。 */
   (function () {
     var root = document.documentElement;
+    var PX = window.BDPlayExperience;
+    var ADVICE_KEY = "bd_play_advice_dismissed";
     var supported = !!(root.requestFullscreen || root.webkitRequestFullscreen);
     function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function standalone() {
+      try {
+        return navigator.standalone === true ||
+          !!(window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches ||
+            window.matchMedia("(display-mode: fullscreen)").matches));
+      } catch (e) { return false; }
+    }
+    function dismissed() {
+      try { return sessionStorage.getItem(ADVICE_KEY) === "1"; } catch (e) { return false; }
+    }
+    function rememberDismissed() {
+      try { sessionStorage.setItem(ADVICE_KEY, "1"); } catch (e) {}
+    }
     function lockLandscape() {
       try {
-        if (screen.orientation && screen.orientation.lock)
-          screen.orientation.lock("landscape").catch(function () {});
+        if (screen.orientation && screen.orientation.lock) {
+          var lock = screen.orientation.lock("landscape");
+          if (lock && lock.catch) lock.catch(function () {});
+        }
       } catch (e) {}
     }
-    function enter() {
-      var r = root.requestFullscreen ? root.requestFullscreen({ navigationUI: "hide" })
-        : root.webkitRequestFullscreen();
-      if (r && r.then) r.then(lockLandscape, function () {}); else lockLandscape();
+    function setAdviceStatus(text) {
+      var status = $("playAdviceStatus");
+      if (status) status.textContent = text || "";
     }
-    function exit() { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    function focusStart() {
+      var target = $("continueWrap") && $("continueWrap").style.display !== "none"
+        ? $("btnContinue") : $("btnNew");
+      if (target && target.focus) target.focus();
+    }
+    function hideAdvice(shouldFocus) {
+      rememberDismissed();
+      var advice = $("playAdvice");
+      if (advice) advice.hidden = true;
+      if (shouldFocus) focusStart();
+    }
+    function enter(fromAdvice) {
+      var request;
+      try {
+        request = root.requestFullscreen
+          ? root.requestFullscreen({ navigationUI: "hide" })
+          : root.webkitRequestFullscreen();
+      } catch (error) {
+        setAdviceStatus("無法進入全螢幕，你仍可繼續遊玩。");
+        return Promise.reject(error);
+      }
+      return Promise.resolve(request).then(function () {
+        lockLandscape();
+        if (fromAdvice) hideAdvice(false);
+      }, function (error) {
+        setAdviceStatus("無法進入全螢幕，你仍可繼續遊玩。");
+        throw error;
+      });
+    }
+    function exit() {
+      var method = document.exitFullscreen || document.webkitExitFullscreen;
+      if (method) method.call(document);
+    }
+    function syncAdvice() {
+      var advice = $("playAdvice");
+      if (!advice || !PX) return;
+      var kind = PX.adviceKind({
+        dismissed: dismissed(),
+        standalone: standalone(),
+        fullscreen: fsOn(),
+        supportsFullscreen: supported,
+        appleMobile: PX.isAppleMobile(navigator),
+        http: location.protocol === "http:" || location.protocol === "https:"
+      });
+      advice.hidden = kind === "hidden";
+      $("playAdviceGeneral").hidden = kind !== "fullscreen";
+      $("playAdviceIos").hidden = kind !== "ios-install";
+      $("btnAdviceFull").hidden = kind !== "fullscreen";
+      if (kind !== "hidden") setAdviceStatus("");
+    }
     function sync() {
       var on = fsOn();
       $("btnFull").textContent = on ? "視窗" : "全螢幕";
       $("btnFull").setAttribute("aria-pressed", on ? "true" : "false");
+      syncAdvice();
     }
-    if (!supported) { $("btnFull").style.display = "none"; $("btnRotFull").style.display = "none"; }
-    $("btnFull").onclick = function () { if (fsOn()) exit(); else enter(); };
+    if (!supported || standalone()) $("btnFull").style.display = "none";
+    $("btnFull").onclick = function () {
+      if (fsOn()) exit();
+      else enter(false).catch(function () {});
+    };
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("webkitfullscreenchange", sync);
-    function rotOk() { body.classList.add("rotOk"); try { sessionStorage.setItem("bd_rotOk", "1"); } catch (e) {} }
-    try { if (sessionStorage.getItem("bd_rotOk") === "1") body.classList.add("rotOk"); } catch (e) {}
-    $("btnRotFull").onclick = function () { enter(); rotOk(); };
-    $("btnRotDismiss").onclick = rotOk;
+    $("btnAdviceFull").onclick = function () { enter(true).catch(function () {}); };
+    $("btnAdviceDismiss").onclick = function () { hideAdvice(true); };
+    [$("btnNew"), $("btnContinue")].forEach(function (button) {
+      if (button) button.addEventListener("click", function () { hideAdvice(false); });
+    });
+    sync();
   })();
 
   /* ---------- 旅人筆記(全畫面筆記本模式) ---------- */

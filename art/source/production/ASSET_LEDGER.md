@@ -40,3 +40,10 @@
 | `ch03_transition_1633_roman_statement_v01` | 羅馬聲明的克制重建；不把傳說姿勢當唯一史實 | `art/source/production/ch03/transitions/ch03_transition_1633_roman_statement_master_v01.png` | `public/assets/ch03/transitions/ch03_transition_1633_roman_statement_v01.webp` | OpenAI image generation／2026-07-31 | 同上 §1633 | sharp WebP q84，無裁切、無放大 | generated／reviewed／browser pending |
 
 1632 沿用既有 `ch03_transition_1632_dialogue_ship_page_v01`；本批不重生成，也不倒推改寫其舊來源狀態。
+
+## 六、2026-08-01｜第四章 1665 同尺紙底圖
+
+| 資產 ID | 用途與史實邊界 | 母版 | runtime | 工具／日期 | 提示與編修紀錄 | 衍生參數 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| `ch04_prop_cross_scale_surface_sheet_v01` | 地表一秒紙的 1665 手稿語彙教學重建；不是牛頓真跡或留存紙掃描，數字與公式由可驗證 SVG 疊加 | `art/source/production/ch04/props/ch04_prop_cross_scale_surface_sheet_master_v01.png` | `public/assets/ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp` | OpenAI image generation／2026-08-01 | `ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V01_20260801.md` §Prompt 1 | sharp WebP q82，1200×480；runtime 以 SVG 疊字 | generated／reviewed／browser pending |
+| `ch04_prop_cross_scale_moon_sheet_v01` | 月球六十秒紙的 1665 手稿語彙教學重建；不是牛頓真跡或留存紙掃描，換算公式完成作答後才由 SVG 顯示 | `art/source/production/ch04/props/ch04_prop_cross_scale_moon_sheet_master_v01.png` | `public/assets/ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp` | OpenAI image generation／2026-08-01 | 同上 §Prompt 2 | sharp WebP q82，1200×480；runtime 以 SVG 疊字 | generated／reviewed／browser pending |

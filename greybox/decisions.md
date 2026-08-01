@@ -86,6 +86,7 @@
 **背景**:總監:手機玩要橫屏全螢幕,瀏覽器網址列擋畫面。
 **裁決**:三件套——①HUD「全螢幕」鈕(手勢內 requestFullscreen+`screen.orientation.lock("landscape")`,Android Chrome 有效);②直向+觸控裝置顯示轉橫提示(可進全螢幕/可婉拒,sessionStorage 記憶);③PWA manifest(fullscreen+landscape+圖示自標題主視覺裁切,Sol 可換專圖)。**誠實邊界:iPhone Safari 不支援元素全螢幕與鎖向**——藏全螢幕鈕,提示改導「加入主畫面」(manifest 生效=全螢幕開啟)。
 **驗證**:契約測試(按鈕/提示/manifest 欄位/圖示實檔/灰盒不長舞台件);真機行為=G 系列人工簽核。
+**補記(2026-08-02，總監要求開場提示)**:WebKit 新版本已在 iOS 提供／修正 `Element.requestFullscreen`，因此改為**能力偵測優先**，不再用 iPhone 名稱一律判定無全螢幕。標題頁內嵌非 modal、可略過的「遊玩體驗建議」：有 Fullscreen API 時給真按鈕；Apple 行動裝置在 HTTP(S)、無 API、非 standalone 時，才顯示「分享 → 加入主畫面 → 從桌面開啟」。文案只承諾減少 Safari 工具列，不宣稱必然全螢幕；請求失敗時保留建議並以 `aria-live` 回報，不阻擋開始遊戲。舊 `rotateHint` 因置於尚未顯示的遊戲畫面且又被 GB-ADR-016 隱藏，屬不可達死路，正式退役。
 
 ## GB-ADR-013|終幕預告卡(2026-07-20)
 

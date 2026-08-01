@@ -825,6 +825,27 @@
     state.transcript.push({ scene: state.cursor.scene, node: node.id + "." + opt.id, speaker: "旅人(你)", text: opt.text });
     state.eventLog.push({ t: "choice", at: state.cursor.scene + "/" + node.id, pick: opt.id });
     applyEffects(state, opt.effects, state.cursor.scene + "/" + node.id + "." + opt.id);
+    /* ENGINE-CR-033：只允許一個受 labAction 白名單約束的章別動作。
+       ok:false 是可留下的錯答；error 才整次拒絕並回復原 state。 */
+    var labEffects = (opt.effects || []).filter(function (effect) {
+      return effect && effect.labAction;
+    });
+    if (labEffects.length > 1)
+      return { state: state0, error: "單一選項不可執行多個章別動作" };
+    if (labEffects.length === 1) {
+      var spec = labEffects[0].labAction || {};
+      var labResult = labAction(state, spec.action, spec.args || {});
+      if (labResult.error) {
+        var labError = labResult.result && labResult.result.userMessage;
+        return {
+          state: state0,
+          error: labError || labResult.error,
+          errorCode: labResult.error,
+          result: labResult.result
+        };
+      }
+      state = labResult.state;
+    }
     state.cursor.node = opt.next;
     return { state: state, option: opt };
   }
@@ -1007,6 +1028,7 @@
     else if (action === "previewProof" && Engine.previewProof) r = Engine.previewProof(state.lab);
     else if (action === "submitProof" && Engine.submitProof) r = Engine.submitProof(state.lab);
     else if (action === "clipEvidence" && Engine.clipEvidence) r = Engine.clipEvidence(state.lab, args.evidenceId);
+    else if (action === "archiveEvidenceSet" && Engine.archiveEvidenceSet) r = Engine.archiveEvidenceSet(state.lab);
     /* 第五章：同一批碰撞的兩本帳、4／8 追一筆與黏土深度。 */
     else if (action === "setCollisionDraft" && Engine.setDraft) r = Engine.setDraft(state.lab, args.field, args.value);
     else if (action === "runCollision" && Engine.runCollision) r = Engine.runCollision(state.lab);

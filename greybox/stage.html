@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,10 +7,54 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="發現之前">
 <meta name="theme-color" content="#14100c">
-<meta name="description" content="回到物理史的關鍵現場，親手做實驗、檢驗證據，在答案出現之前重新理解運動。">
+<meta name="description" content="《發現之前》是臺北市立松山高中物理教師陳育詮創作的互動物理史解謎遊戲。穿越到伽利略、牛頓等科學家的關鍵現場，親手設計實驗、檢驗證據與參與辯論。">
+<meta name="author" content="陳育詮">
+<meta name="creator" content="臺北市立松山高中物理教師 陳育詮">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:site_name" content="發現之前 Before Discovery">
+<meta property="og:title" content="發現之前 Before Discovery｜互動物理史遊戲">
+<meta property="og:description" content="臺北市立松山高中物理教師陳育詮創作。回到物理史的關鍵現場，親手讓證據成立。">
+<meta property="og:url" content="https://before-discovery.vercel.app/">
+<meta property="og:image" content="https://before-discovery.vercel.app/public/assets/ch01/ui/title_background.webp">
+<meta property="og:image:alt" content="《發現之前》互動物理史遊戲">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="發現之前 Before Discovery｜互動物理史遊戲">
+<meta name="twitter:description" content="臺北市立松山高中物理教師陳育詮創作。在答案出現之前，親手讓證據成立。">
+<meta name="twitter:image" content="https://before-discovery.vercel.app/public/assets/ch01/ui/title_background.webp">
 <meta name="google-site-verification" content="Zu2n6kU6yV9VnM7N-8crlAPfe8zdUTXbxth6Nx4k_nk">
 <link rel="canonical" href="https://before-discovery.vercel.app/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["VideoGame", "LearningResource"],
+  "name": "發現之前 Before Discovery",
+  "alternateName": "Before Discovery",
+  "description": "穿越到物理史的關鍵現場，親手設計實驗、檢驗證據與參與辯論的互動解謎遊戲。",
+  "url": "https://before-discovery.vercel.app/",
+  "image": "https://before-discovery.vercel.app/public/assets/ch01/ui/title_background.webp",
+  "inLanguage": "zh-Hant-TW",
+  "isAccessibleForFree": true,
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Web",
+  "learningResourceType": "互動物理史推理遊戲",
+  "educationalLevel": "高中",
+  "author": {
+    "@type": "Person",
+    "name": "陳育詮",
+    "jobTitle": "物理教師",
+    "affiliation": {
+      "@type": "EducationalOrganization",
+      "name": "臺北市立松山高中"
+    }
+  }
+}
+</script>
 <link rel="apple-touch-icon" href="../public/assets/icons/icon-192-v2.png">
 <title>發現之前 Before Discovery｜互動物理史遊戲</title>
 <link rel="icon" type="image/svg+xml" sizes="any" href="../public/assets/icons/favicon-v2.svg">
@@ -491,7 +535,7 @@
   #dialogue[data-speaker="旅人筆記"] #dlgText { font-family: var(--font-hand); }
 
   /* --- 直向自動橫置(GB-ADR-016,總監:一進去直接橫屏):手機直拿時整座舞台旋轉 90°
-     畫滿螢幕,實體轉向後由真橫屏接手;取代 rotateHint 的攔截職責(玩家回報:直向標題
+     畫滿螢幕,實體轉向後由真橫屏接手(玩家回報:直向標題
      上下被裁,按鈕看不到=進不去)。僅觸控裝置;桌機窄窗不受影響。 --- */
   @media (orientation: portrait) and (pointer: coarse) {
     #stage {
@@ -502,25 +546,7 @@
       inset: auto; left: 50%; top: 50%; margin: 0;
       transform: translate(-50%, -50%) rotate(90deg);
     }
-    #rotateHint { display: none !important; } /* 已自動橫置,毋須再攔 */
   }
-
-  /* --- 行動裝置轉橫提示+全螢幕(GB-ADR-014):Android=Fullscreen API+orientation.lock;
-     iPhone Safari 不支援元素全螢幕與鎖向,退路=PWA 加入主畫面(manifest fullscreen/landscape)--- */
-  #rotateHint { position: absolute; inset: 0; z-index: 60; display: none; align-items: center;
-    justify-content: center; text-align: center; background: rgba(10, 7, 5, 0.93); }
-  body.rotOk #rotateHint { display: none !important; }
-  @media (orientation: portrait) and (pointer: coarse) { #rotateHint { display: flex; } }
-  .rhBox { max-width: 480px; padding: 26px 30px; }
-  .rhMain { font-family: var(--font-dialogue); color: #efe3cb; font-size: clamp(18px, 5vw, 24px);
-    line-height: 1.7; margin: 0 0 12px; }
-  .rhSub { font-family: var(--font-ui); color: rgba(180, 190, 205, 0.7); font-size: 13px;
-    line-height: 1.7; margin: 0 0 20px; }
-  .rhBtns { margin: 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .rhBtns button { background: none; color: rgba(207,169,107,0.9); border: 1px solid rgba(207,169,107,0.45);
-    border-radius: 999px; min-height: 44px; padding: 6px 22px; letter-spacing: 0.12em;
-    font-size: 15px; cursor: pointer; font-family: var(--font-dialogue); }
-  #btnRotDismiss { color: rgba(180, 170, 150, 0.6); border-color: rgba(180, 170, 150, 0.3); }
 
   /* --- 終幕預告卡(GB-ADR-013,總監裁決:戲劇卡+角落系統行)--- */
   #nextCard { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center;
@@ -560,6 +586,19 @@
   #btnEmbark:hover { background: #935c35; }
   #btnEmbark[hidden] { display: none; }
   body.held #btnEmbark { visibility: hidden; } /* 台詞還在演:先讀完 */
+  #intermissionChoices { position: absolute; z-index: 28; left: 4.5%; right: 4.5%; bottom: 5.5%;
+    display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+  #intermissionChoices[hidden] { display: none; }
+  #intermissionChoices button { min-height: 44px; padding: 8px 18px; border-radius: 999px;
+    border: 1px solid rgba(230, 215, 189, 0.55); background: rgba(122, 75, 42, 0.92);
+    color: #f3e9d5; font-family: var(--font-dialogue); font-size: clamp(14px, 1.25vw, 17px);
+    line-height: 1.35; cursor: pointer; }
+  #intermissionChoices button:hover { background: #935c35; }
+  body.held #intermissionChoices { visibility: hidden; } /* 先讀完問題，再做決定 */
+  @media (max-width: 900px) {
+    #intermissionChoices { justify-content: stretch; gap: 6px; bottom: 4%; }
+    #intermissionChoices button { flex: 1 1 30%; min-width: 0; padding: 7px 10px; font-size: 14px; }
+  }
   /* --- 信譽首動提示+辯論備忘卡 --- */
   #hud .chip[title] { cursor: pointer; }
   #hud .chip:focus-visible { outline: 3px solid var(--color-focus); }
@@ -1395,6 +1434,8 @@
   #titleCard .t1 { font-family: var(--font-dialogue); font-size: clamp(38px, 5.2vw, 66px);
     font-weight: 500; letter-spacing: .12em; line-height: 1.08; margin: 0 0 14px; white-space: nowrap; }
   .titleTagline { margin: 0; color: rgba(230,215,189,.78); font: 400 clamp(14px,1.5vw,17px)/1.7 var(--font-ui); }
+  .titleCredit { margin: 18px 0 0; color: rgba(230,215,189,.72); font: 500 12px/1.55 var(--font-ui); }
+  .titleCredit span { display: block; color: #cfa96b; font-size: 10px; letter-spacing: .14em; }
   .titleLaunch { grid-area: launch; min-width: 0; position: relative; }
   .chapterStatus { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 8px; }
   .chapterStatusText span { display: block; color: #cfa96b; font: 600 11px/1.2 var(--font-ui); letter-spacing: .14em; }
@@ -1516,6 +1557,22 @@
   label.mode input:checked + .mc b { color: #f6ecd8; }
   label.mode input:focus-visible + .mc { outline: 3px solid var(--color-focus); outline-offset: 2px; }
   .newGameActions { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin-top: 8px; }
+  #playAdvice { box-sizing: border-box; margin-top: 7px; padding: 8px 9px 8px 11px;
+    display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 5px 10px;
+    border-left: 3px solid rgba(207,169,107,.72); border-radius: 0 6px 6px 0;
+    background: rgba(207,169,107,.08); color: rgba(230,215,189,.8); }
+  #playAdvice[hidden], #playAdvice p[hidden], #playAdvice button[hidden] { display: none !important; }
+  .playAdviceCopy { min-width: 0; }
+  .playAdviceTitle { display: block; margin-bottom: 2px; color: #e9d4ad;
+    font: 650 11px/1.25 var(--font-ui); letter-spacing: .06em; }
+  #playAdvice p { margin: 0; font: 400 10.5px/1.45 var(--font-ui); }
+  #playAdviceIos strong { color: #f0cf8a; font-weight: 650; }
+  .playAdviceActions { display: flex; align-items: center; gap: 6px; }
+  #titleCard #btnAdviceFull, #titleCard #btnAdviceDismiss { min-height: 44px; padding: 5px 10px;
+    white-space: nowrap; font-size: 11px; }
+  #titleCard #btnAdviceFull { background: rgba(122,75,42,.58); }
+  #titleCard #btnAdviceDismiss { color: rgba(230,215,189,.68); border-color: rgba(230,215,189,.28); }
+  #playAdviceStatus { grid-column: 1 / -1; color: #f0c27a; }
   /* 按鈕階層:主動作=章節棕,次動作=空心;操作字一律黑體 */
   #titleCard button { background: rgba(16,11,8,.52); color: rgba(243,233,213,.84);
     border: 1px solid rgba(230,215,189,0.45); border-bottom-color: rgba(18,11,7,0.75);
@@ -1557,6 +1614,7 @@
     .titleKicker { margin-bottom: 5px; font-size: 10px; }
     #titleCard .t1 { font-size: clamp(31px,6.5vh,40px); margin-bottom: 7px; letter-spacing: .08em; }
     .titleTagline { font-size: 12px; line-height: 1.45; }
+    .titleCredit { margin-top: 9px; font-size: 10px; line-height: 1.35; }
     .chapterStatus { margin-bottom: 5px; }
     .chapterStatusText strong { font-size: 18px; }
     .chapterJourneyNav { margin-bottom: 5px; }
@@ -1586,6 +1644,10 @@
       white-space: nowrap;
     }
     .newGameActions { margin-top: 6px; }
+    #playAdvice { margin-top: 4px; padding: 5px 7px 5px 9px; gap: 3px 7px; }
+    .playAdviceTitle { margin-bottom: 1px; font-size: 10px; }
+    #playAdvice p { font-size: 9.5px; line-height: 1.35; }
+    #titleCard #btnAdviceFull, #titleCard #btnAdviceDismiss { min-height: 44px; padding: 4px 8px; font-size: 10px; }
     #titleCard button { min-height: 42px; padding: 6px 14px; }
     #continueMeta { display: none; }
     .titleTools { margin-top: 3px; }
@@ -2239,6 +2301,11 @@
   .orbitPaper { fill:#d8c9a7; stroke:#756343; stroke-width:3; filter:drop-shadow(0 5px 8px rgba(0,0,0,.35)); }
   .orbitPaper.moon { fill:#c6b995; stroke:#64778a; stroke-dasharray:10 6; }
   .orbitPaperTitle { fill:#33281c; font:800 17px var(--font-ui); }
+  .orbitPaperMeta { fill:#514533; font:700 13px var(--font-ui);
+    paint-order:stroke; stroke:rgba(239,226,192,.78); stroke-width:3; stroke-linejoin:round; }
+  .orbitPaperFormula { fill:#4b3522; font:700 13px var(--font-story);
+    paint-order:stroke; stroke:rgba(239,226,192,.82); stroke-width:3; stroke-linejoin:round; }
+  .orbitPaperFormula.sealed { fill:#315d3b; }
   .orbitPaperPoint { fill:#f5d792; stroke:#3a2a1c; stroke-width:3; }
   .orbitPaperPoint.start { fill:#f7ead0; }.orbitPaperPoint.match { fill:#b9dfb1; stroke:#3f6d45; }
   .orbitPaperPoint.tooStrong,.orbitPaperPoint.tooWeak { fill:#efb28e; stroke:#8b4d35; }
@@ -2568,14 +2635,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
       <div id="controls"></div>
     </div>
 
-    <div id="rotateHint" role="dialog" aria-label="建議轉為橫向">
-      <div class="rhBox">
-        <p class="rhMain">把裝置轉橫——這齣戲是 16:9 的。</p>
-        <p class="rhSub">iPhone 想去掉網址列:Safari 分享選單 →「加入主畫面」,從桌面開啟即全螢幕。</p>
-        <p class="rhBtns"><button id="btnRotFull" type="button">進入全螢幕</button>
-        <button id="btnRotDismiss" type="button">就這樣玩</button></p>
-      </div>
-    </div>
     <div id="nextCard" role="dialog" aria-modal="true" aria-label="章節結束・下一章預告" hidden>
       <div id="ncInner">
         <p class="ncSealed">第一章《重物的渴望》——已封存</p>
@@ -2671,6 +2730,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
       <div id="dlgText" aria-hidden="true"></div>
       <span id="dlgCue" style="display:none">▼</span>
     </div>
+    <div id="intermissionChoices" hidden role="group" aria-label="下一步的研究決定"></div>
 
     <div id="notebook" role="dialog" aria-modal="true" aria-label="旅人筆記" data-tab="evidence" hidden>
       <div id="nbSheet">
@@ -2704,8 +2764,9 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     <div id="titleCard">
       <header class="titleIdentity">
         <p class="titleKicker">物理史推理遊戲</p>
-        <p class="t1">發現之前</p>
+        <h1 class="t1">發現之前</h1>
         <p class="titleTagline">知道答案，不等於能說服一個時代。<br>親手讓證據成立。</p>
+        <p class="titleCredit"><span>創作・設計</span>臺北市立松山高中物理教師 陳育詮</p>
       </header>
       <section class="titleLaunch" aria-label="章節與遊戲選項">
         <div class="chapterStatus">
@@ -2760,6 +2821,18 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
             <button id="btnNew">開始第一章</button>
           </div>
         </fieldset>
+        <aside id="playAdvice" aria-labelledby="playAdviceTitle" hidden>
+          <div class="playAdviceCopy">
+            <strong class="playAdviceTitle" id="playAdviceTitle">遊玩體驗建議</strong>
+            <p id="playAdviceGeneral" hidden>建議以橫向、全螢幕遊玩並開啟聲音；進度會自動儲存，換裝置前可匯出旅人書信碼。</p>
+            <p id="playAdviceIos" hidden>iPhone Safari 若沒有全螢幕按鈕：<strong>分享 → 加入主畫面</strong>（iOS 26 保留「以網頁 App 開啟」）→ 從桌面圖示開啟，可減少 Safari 工具列。</p>
+          </div>
+          <div class="playAdviceActions">
+            <button id="btnAdviceFull" type="button" hidden>進入全螢幕</button>
+            <button id="btnAdviceDismiss" type="button">略過</button>
+          </div>
+          <p id="playAdviceStatus" role="status" aria-live="polite"></p>
+        </aside>
         <div class="titleTools">
           <details>
             <summary>跨裝置續玩・旅人書信碼</summary>
@@ -2785,20 +2858,20 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts3.js?v=asset-ff2ba03ac549"></script>
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
-<script src="data/assets.js?v=asset-8e3424a9427a"></script>
-<script src="src/sanitize.js?v=asset-bdef07bd1dae"></script>
+<script src="data/assets.js?v=asset-25258fe98864"></script>
+<script src="src/sanitize.js?v=asset-8c39547609f2"></script>
 <script src="src/save-envelope.js?v=asset-ddfa4a45c13a"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-1694dc709620"></script>
 <script src="src/engine2.js?v=asset-03d600b8a7d5"></script>
 <script src="src/engine3.js?v=asset-e8b2da3819d9"></script>
-<script src="src/engine4.js?v=asset-321ebec4e356"></script>
+<script src="src/engine4.js?v=asset-7b55563d74b6"></script>
 <script src="src/engine5.js?v=asset-8c6a10a864ce"></script>
-<script src="data/scenes.js?v=asset-8595708d8c93"></script>
-<script src="data/scenes2.js?v=asset-f8ce832d4058"></script>
-<script src="data/scenes3.js?v=asset-b3cd7dc77fba"></script>
-<script src="data/scenes4.js?v=asset-9da65ec86b20"></script>
-<script src="data/scenes5.js?v=asset-1d138836354c"></script>
+<script src="data/scenes.js?v=asset-7ee4e229dc93"></script>
+<script src="data/scenes2.js?v=asset-6a7abf0050c6"></script>
+<script src="data/scenes3.js?v=asset-855c57703607"></script>
+<script src="data/scenes4.js?v=asset-25b635720c75"></script>
+<script src="data/scenes5.js?v=asset-fb93ac0f9487"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
 (function () {
@@ -2837,8 +2910,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-ce350d53d557"></script>
-<script src="src/chapter-ui.js?v=asset-4dbec3007dcb"></script>
+<script src="src/narrative.js?v=asset-32641d3ca9bb"></script>
+<script src="src/chapter-ui.js?v=asset-3fb62128b2e2"></script>
 <script>
 (function () {
   "use strict";
@@ -2971,6 +3044,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   refreshDirectorySemantics();
 })();
 </script>
-<script src="src/stage-ui.js?v=asset-43efd5a1b80a"></script>
+<script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
+<script src="src/stage-ui.js?v=asset-52abf21a2799"></script>
 </body>
 </html>

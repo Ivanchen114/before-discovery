@@ -1620,6 +1620,26 @@
    "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v02.png"
   },
   {
+   "id": "ch04_prop_cross_scale_surface_sheet_v01",
+   "kind": "prop",
+   "label": "1665 同尺紙・地表一秒教學重建底圖",
+   "path": "ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 480,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_cross_scale_surface_sheet_master_v01.png"
+  },
+  {
+   "id": "ch04_prop_cross_scale_moon_sheet_v01",
+   "kind": "prop",
+   "label": "1665 同尺紙・月球六十秒教學重建底圖",
+   "path": "ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 480,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_cross_scale_moon_sheet_master_v01.png"
+  },
+  {
    "id": "ch04_prop_rope_ball_setup_v01",
    "kind": "prop",
    "label": "1665 繩球演示裝置（演示前）",
@@ -2362,7 +2382,7 @@
   {
    "scene": "A2-2",
    "speaker": "伽利略",
-   "match": "實驗失敗最常見的樣子",
+   "match": "點散成一團",
    "asset": "dialogue_galileo39_frustrated",
    "note": "作廢紀錄前的苦笑"
   },

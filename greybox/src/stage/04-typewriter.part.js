@@ -13,9 +13,14 @@
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
     /* 對話真正播完才把鍵盤焦點交給轉場鈕；不得只在進場瞬間猜一次時機。 */
-    if (!active && body.classList.contains("embarkGate") && !$("btnEmbark").hidden) {
+    if (!active && body.classList.contains("embarkGate") &&
+        (!$("btnEmbark").hidden || !$("intermissionChoices").hidden)) {
       setTimeout(function () {
-        if (!body.classList.contains("held") && body.classList.contains("embarkGate")) $("btnEmbark").focus();
+        if (body.classList.contains("held") || !body.classList.contains("embarkGate")) return;
+        if (!$("intermissionChoices").hidden) {
+          var firstChoice = $("intermissionChoices").querySelector("button");
+          if (firstChoice) firstChoice.focus();
+        } else $("btnEmbark").focus();
       }, 0);
     }
   }

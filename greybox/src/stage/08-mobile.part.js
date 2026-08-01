@@ -6,7 +6,7 @@
     if (!$("apparatusSurvey").hidden) return;
     if (!$("labIntro").hidden) return;
     if (!$("debIntro").hidden) return;
-    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast, #nextCard, #rotateHint")) return;
+    if (ev.target.closest("button, select, input, textarea, label, a, #panelWrap, #notebook, #title-screen, #hud, #hudTip, #repToast, #nextCard")) return;
     if (advanceIntent()) return;
     idleAdvance();
   });
@@ -34,36 +34,107 @@
     if (idleAdvance()) ev.preventDefault();
   }, true);
 
-  /* ---------- 行動裝置:全螢幕+橫屏鎖定(GB-ADR-014) ----------
-     Android Chrome=requestFullscreen(手勢內)+screen.orientation.lock("landscape");
-     iPhone Safari 不支援元素全螢幕與鎖向 → 藏按鈕,rotateHint 引導轉橫+加入主畫面(manifest)。 */
+  /* ---------- 行動裝置：能力優先的全螢幕＋開場建議(GB-ADR-014 補記) ----------
+     iOS 已有部分版本支援 Fullscreen API，不再以裝置名稱猜能力。
+     沒有 API 且未以主畫面 Web App 開啟時，才給 Apple 行動裝置加入主畫面指引。 */
   (function () {
     var root = document.documentElement;
+    var PX = window.BDPlayExperience;
+    var ADVICE_KEY = "bd_play_advice_dismissed";
     var supported = !!(root.requestFullscreen || root.webkitRequestFullscreen);
     function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function standalone() {
+      try {
+        return navigator.standalone === true ||
+          !!(window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches ||
+            window.matchMedia("(display-mode: fullscreen)").matches));
+      } catch (e) { return false; }
+    }
+    function dismissed() {
+      try { return sessionStorage.getItem(ADVICE_KEY) === "1"; } catch (e) { return false; }
+    }
+    function rememberDismissed() {
+      try { sessionStorage.setItem(ADVICE_KEY, "1"); } catch (e) {}
+    }
     function lockLandscape() {
       try {
-        if (screen.orientation && screen.orientation.lock)
-          screen.orientation.lock("landscape").catch(function () {});
+        if (screen.orientation && screen.orientation.lock) {
+          var lock = screen.orientation.lock("landscape");
+          if (lock && lock.catch) lock.catch(function () {});
+        }
       } catch (e) {}
     }
-    function enter() {
-      var r = root.requestFullscreen ? root.requestFullscreen({ navigationUI: "hide" })
-        : root.webkitRequestFullscreen();
-      if (r && r.then) r.then(lockLandscape, function () {}); else lockLandscape();
+    function setAdviceStatus(text) {
+      var status = $("playAdviceStatus");
+      if (status) status.textContent = text || "";
     }
-    function exit() { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    function focusStart() {
+      var target = $("continueWrap") && $("continueWrap").style.display !== "none"
+        ? $("btnContinue") : $("btnNew");
+      if (target && target.focus) target.focus();
+    }
+    function hideAdvice(shouldFocus) {
+      rememberDismissed();
+      var advice = $("playAdvice");
+      if (advice) advice.hidden = true;
+      if (shouldFocus) focusStart();
+    }
+    function enter(fromAdvice) {
+      var request;
+      try {
+        request = root.requestFullscreen
+          ? root.requestFullscreen({ navigationUI: "hide" })
+          : root.webkitRequestFullscreen();
+      } catch (error) {
+        setAdviceStatus("無法進入全螢幕，你仍可繼續遊玩。");
+        return Promise.reject(error);
+      }
+      return Promise.resolve(request).then(function () {
+        lockLandscape();
+        if (fromAdvice) hideAdvice(false);
+      }, function (error) {
+        setAdviceStatus("無法進入全螢幕，你仍可繼續遊玩。");
+        throw error;
+      });
+    }
+    function exit() {
+      var method = document.exitFullscreen || document.webkitExitFullscreen;
+      if (method) method.call(document);
+    }
+    function syncAdvice() {
+      var advice = $("playAdvice");
+      if (!advice || !PX) return;
+      var kind = PX.adviceKind({
+        dismissed: dismissed(),
+        standalone: standalone(),
+        fullscreen: fsOn(),
+        supportsFullscreen: supported,
+        appleMobile: PX.isAppleMobile(navigator),
+        http: location.protocol === "http:" || location.protocol === "https:"
+      });
+      advice.hidden = kind === "hidden";
+      $("playAdviceGeneral").hidden = kind !== "fullscreen";
+      $("playAdviceIos").hidden = kind !== "ios-install";
+      $("btnAdviceFull").hidden = kind !== "fullscreen";
+      if (kind !== "hidden") setAdviceStatus("");
+    }
     function sync() {
       var on = fsOn();
       $("btnFull").textContent = on ? "視窗" : "全螢幕";
       $("btnFull").setAttribute("aria-pressed", on ? "true" : "false");
+      syncAdvice();
     }
-    if (!supported) { $("btnFull").style.display = "none"; $("btnRotFull").style.display = "none"; }
-    $("btnFull").onclick = function () { if (fsOn()) exit(); else enter(); };
+    if (!supported || standalone()) $("btnFull").style.display = "none";
+    $("btnFull").onclick = function () {
+      if (fsOn()) exit();
+      else enter(false).catch(function () {});
+    };
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("webkitfullscreenchange", sync);
-    function rotOk() { body.classList.add("rotOk"); try { sessionStorage.setItem("bd_rotOk", "1"); } catch (e) {} }
-    try { if (sessionStorage.getItem("bd_rotOk") === "1") body.classList.add("rotOk"); } catch (e) {}
-    $("btnRotFull").onclick = function () { enter(); rotOk(); };
-    $("btnRotDismiss").onclick = rotOk;
+    $("btnAdviceFull").onclick = function () { enter(true).catch(function () {}); };
+    $("btnAdviceDismiss").onclick = function () { hideAdvice(true); };
+    [$("btnNew"), $("btnContinue")].forEach(function (button) {
+      if (button) button.addEventListener("click", function () { hideAdvice(false); });
+    });
+    sync();
   })();
