@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-"""場景資料產生器(authoring 工具,非遊戲建置步驟)。
-canonical 資產=輸出的 data/scenes.json 與 data/scenes.js(雙載體,R-DATA-05/06 鏡像測試把關);
-本檔為編修便利,重跑覆寫兩載體。台詞逐字取自劇本 v0.2.1;節點 ID 對齊劇本場景 ID。
-效果原語(R-NAR-02):{"rep":±n} {"evidence":"ID"} {"flag":["k","v"]}
-守衛(R-NAR-03):require={"flag":["k","v"]} 或 {"flagAbsent":"k"};mode(R-NAR-04)∈ explore|scholar
+"""DEPRECATED：第一章 v0.2.1 的歷史場景產生器。
+
+本檔不再是 authoring 或建置入口，保留內容只供考古比對。現行唯一正典是
+data/scenes.json；修改後請執行 ``node tools/build-ch1-data.mjs`` 產生 JS 鏡像。
+直接重跑這份舊生成器會覆蓋多年 CR、存檔相容與玩家文案，因此一律拒絕。
 """
 import json, os
+
+raise SystemExit(
+    "gen_scenes.py 已停用：請直接修改 data/scenes.json，"
+    "再執行 node tools/build-ch1-data.mjs。"
+)
 
 def L(nid, speaker, text, nxt=None, mode=None, require=None):
     n = {"id": nid, "type": "line", "speaker": speaker, "text": text}

@@ -887,6 +887,25 @@
     background-color: #d9c39a !important; }
   .presentAction { width: 100%; margin-top: 6px !important; min-height: 52px !important;
     font-family: var(--font-dialogue); font-weight: 700; }
+  .annotationBoard { display: grid; gap: 9px; }
+  .annotationOriginalNote { margin: 0; padding: 9px 12px; border-left: 4px solid #7f392d;
+    background: rgba(127,57,45,.08); font-family: var(--font-dialogue); }
+  .annotationSlotKey { margin: 0; color: var(--color-ink-secondary); font-size: .9em; }
+  .annotationCards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+  .annotationPaper { min-width: 0; padding: 12px; border: 1px solid rgba(90,70,56,.38); border-radius: 5px;
+    background: rgba(255,250,236,.76); box-shadow: 0 3px 10px rgba(65,43,22,.08); }
+  .annotationPaper small { color: var(--color-ink-secondary); letter-spacing: .08em; }
+  .annotationPaper p { min-height: 4.6em; margin: 7px 0 10px; font-family: var(--font-dialogue); }
+  .annotationPaper label { display: grid; gap: 4px; font-size: .86em; }
+  .annotationPaper select { width: 100%; min-width: 0; min-height: 44px; }
+  .annotationResolved .annotationOriginalNote del { text-decoration-thickness: 3px;
+    text-decoration-color: #7f392d; }
+  .annotationPaperResolved { display: grid; align-content: start; }
+  .annotationPlacement { display: block; padding-top: 8px; border-top: 1px solid rgba(90,70,56,.3);
+    color: var(--color-evidence); font-family: var(--font-ui); }
+  .annotationTrace { margin: 0; padding: 7px 9px; border-left: 3px solid var(--color-evidence);
+    background: rgba(31,48,63,.06); }
+  .annotationSubmit { width: 100%; min-height: 50px !important; font-weight: 700; }
   .pressChoice, .debateSuspend { padding: 12px; border-left: 4px solid var(--color-chapter-accent);
     background: rgba(122,75,42,.08); }
   .enemyDataCard { margin: 0 0 12px; padding: 12px 14px 10px; border: 1px solid rgba(90,70,56,.42);
@@ -914,6 +933,9 @@
     .statementCard { padding: 8px; }
     .statementCard blockquote { font-size: .94em; }
     .evidenceCard { flex-basis: 145px; min-height: 76px !important; }
+    .annotationCards { grid-template-columns: 1fr; }
+    .annotationPaper { padding: 8px; }
+    .annotationPaper p { min-height: 0; margin: 4px 0 7px; }
     .enemyDataCard { padding: 7px 9px; }
     .enemyDataCard header { margin-bottom: 0; }
     .enemyDataCard svg { height: 190px; }
@@ -1340,7 +1362,7 @@
     #dialogue[data-active="right"].has-r #dlgText { margin-right: 120px; }
     #dialogue[data-active="left"].has-l #nameplate { left: 130px; }
     #dialogue[data-active="right"] #nameplate, #dialogue[data-active="none"] #nameplate { left: 16px; }
-    #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/說服力 */
+    #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/論證對位 */
     #sceneChip { display: none; }
     body[data-view="choice"] #panelWrap { bottom: 34%; }
     /* 辯論 v2 的對話框已會退場；舊版預留的 42% 會把證據手牌整段裁掉。 */
@@ -2566,7 +2588,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
       <span class="chip" tabindex="0" title="信譽 0–5：猜錯與實驗失敗不扣；把未驗證答案說成事實、隱瞞資料或越過證據邊界才扣。主動補正並守住證據範圍可以恢復。">信譽 <b id="repVal">3</b>/5</span>
       <span class="chip" tabindex="0" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
       <span class="chip" tabindex="0" id="e3Val"></span>
-      <span class="chip" tabindex="0" id="perVal" title="說服力:辯論中的氣勢量表;錯誤出示會扣,歸零=辯論中止。與伽利略複盤後可從未破的支柱再入。"></span>
+      <span class="chip" tabindex="0" id="perVal" title="論證對位：看證據有沒有咬住主張；配錯會退回，歸零先複盤。"></span>
       <span class="chip" id="saveWarn" hidden style="border-color:var(--color-warning);color:#f0c27a">⚠ 目前無法儲存——請先匯出書信碼</span>
       <span class="chip" id="modeVal"></span>
       <span class="chip" id="sceneVal" style="display:none"></span>
@@ -2672,8 +2694,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
         <ol>
           <li><b>戰場</b>——對面那位用三根支柱撐起他的理論。支柱不倒,理論不倒。</li>
           <li><b>先偵察,再開火</b>——「問到底」找出證詞真正依靠的前提;讀洞見與手牌上的白話摘要,再選一張<b>能檢驗同一件事</b>的證據。</li>
-          <li><b>以證據回擊</b>——先點一句證詞,再從手牌選一張證據;行動鈕會把你的反駁完整說一遍。打中弱點=支柱裂;打錯=<b>說服力 −1</b>(第一支柱容你一次免扣試射)。</li>
-          <li><b>說服力歸零=今日辯論中止</b>——不是缺證據。你會與伽利略複盤剛才的錯配，再入時已破的支柱不必重打。</li>
+          <li><b>以證據回擊</b>——先點一句證詞,再從手牌選一張證據;行動鈕會把你的反駁完整說一遍。打中弱點=支柱裂;打錯=<b>論證對位 −1</b>(第一支柱容你一次免扣試射)。</li>
+          <li><b>論證對位歸零=今日辯論中止</b>——不是缺證據。你會與伽利略複盤剛才的錯配，再入時已破的支柱不必重打。</li>
           <li><b>鐵則</b>——別說謊。被抓到的那一句,比整場辯論都貴。</li>
         </ol>
         <button id="btnDebIntroGo" type="button">上場</button>
@@ -2850,16 +2872,16 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 <script src="data/series.js?v=asset-492d80f30cc7"></script>
 <script src="data/patterns.js?v=asset-ee07dbab238f"></script>
-<script src="data/debate.js?v=asset-0ba9140f7471"></script>
-<script src="data/debate2.js?v=asset-8610879d3916"></script>
+<script src="data/debate.js?v=asset-da2ea6f0dc1f"></script>
+<script src="data/debate2.js?v=asset-a0430a6e0ba5"></script>
 <script src="data/debate5.js?v=asset-7bde7921725c"></script>
 <script src="data/histfacts.js?v=asset-7dcd468b722b"></script>
 <script src="data/histfacts2.js?v=asset-06953e62421e"></script>
 <script src="data/histfacts3.js?v=asset-ff2ba03ac549"></script>
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
-<script src="data/assets.js?v=asset-25258fe98864"></script>
-<script src="src/sanitize.js?v=asset-8c39547609f2"></script>
+<script src="data/assets.js?v=asset-e2cc6087265f"></script>
+<script src="src/sanitize.js?v=asset-ec15c6ef09bf"></script>
 <script src="src/save-envelope.js?v=asset-ddfa4a45c13a"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-1694dc709620"></script>
@@ -2867,11 +2889,11 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="src/engine3.js?v=asset-e8b2da3819d9"></script>
 <script src="src/engine4.js?v=asset-7b55563d74b6"></script>
 <script src="src/engine5.js?v=asset-8c6a10a864ce"></script>
-<script src="data/scenes.js?v=asset-7ee4e229dc93"></script>
-<script src="data/scenes2.js?v=asset-6a7abf0050c6"></script>
-<script src="data/scenes3.js?v=asset-855c57703607"></script>
+<script src="data/scenes.js?v=asset-7bed7144ccba"></script>
+<script src="data/scenes2.js?v=asset-4513c77b83fd"></script>
+<script src="data/scenes3.js?v=asset-004b0950c202"></script>
 <script src="data/scenes4.js?v=asset-25b635720c75"></script>
-<script src="data/scenes5.js?v=asset-fb93ac0f9487"></script>
+<script src="data/scenes5.js?v=asset-21eaae0df036"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
 (function () {
@@ -2910,8 +2932,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-32641d3ca9bb"></script>
-<script src="src/chapter-ui.js?v=asset-3fb62128b2e2"></script>
+<script src="src/narrative.js?v=asset-f6e788389046"></script>
+<script src="src/chapter-ui.js?v=asset-980406a69f25"></script>
 <script>
 (function () {
   "use strict";
@@ -3045,6 +3067,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-52abf21a2799"></script>
+<script src="src/stage-ui.js?v=asset-3d9aeef87fec"></script>
 </body>
 </html>

@@ -2400,14 +2400,14 @@
   {
    "scene": "B3-D",
    "speaker": "辛普里奧",
-   "match": "提筆,在自己的計算紙上劃掉了一行",
+   "match": "提筆，在自己的計算紙上劃掉一行",
    "asset": "dialogue_simplicio76_strikeout",
-   "note": "ch02-p0p1"
+   "note": "終局三紙重排後，只劃掉方法性批註；原句仍可見"
   },
   {
    "scene": "B3-6",
    "speaker": "辛普里奧",
-   "match": "下一回,老夫出題",
+   "match": "下一回，老夫出題",
    "asset": "dialogue_simplicio76_almost_warm",
    "note": "ch02-p0p1"
   }
@@ -2711,18 +2711,7 @@
   },
   {
    "scene": "B2-4",
-   "match": "機關:桌緣一座小門閂",
-   "items": [
-    {
-     "asset": "workshop2_projectile_apparatus_master",
-     "alt": "桌緣彈射裝置：門閂同時水平推出一球並釋放另一球垂直下落"
-    }
-   ],
-   "caption": "雙球機關：一次扳動，同時水平推出一球、原地放下一球。"
-  },
-  {
-   "scene": "B2-4",
-   "match": "三輪紀錄在案",
+   "match": "高層最後落下",
    "items": [
     {
      "asset": "card_F3",
@@ -2744,11 +2733,11 @@
   },
   {
    "scene": "B2-5",
-   "match": "牆上:砲術圖",
+   "match": "牆上:墨跡板",
    "items": [
     {
-     "asset": "card_S3",
-     "alt": "砲術三段圖"
+     "asset": "ch02_focus_ship_mast_thought_v01",
+     "alt": "只有桅杆與落石問號、尚未留下船上紀錄的待驗預測紙"
     },
     {
      "asset": "prop_inked_incline_board",
@@ -2759,11 +2748,11 @@
      "alt": "桌緣彈射裝置與沙盤"
     },
     {
-     "asset": "card_S4",
-     "alt": "Guidobaldo 實驗筆記抄頁"
+     "asset": "card_F3",
+     "alt": "三個高度逐列確認的一拋一放聲響紀錄"
     }
    ],
-   "caption": "第二幕的證據牆：問題來源、前人線索、玩家裝置與親測墨跡並排。"
+   "caption": "三份完成的紀錄留在牆上；只有船桅預測尚未實做，等著被寫清界線後封進蠟袋。"
   },
   {
    "scene": "E-1",
@@ -2814,18 +2803,11 @@
   {
    "scene": "B2-4",
    "nodeIds": [
-    "q1",
-    "q2",
-    "q3"
+    "q4",
+    "nb1",
+    "n3"
    ],
-   "match": "機關:桌緣一座小門閂"
-  },
-  {
-   "scene": "B2-4",
-   "nodeIds": [
-    "q4"
-   ],
-   "match": "三輪紀錄在案"
+   "match": "高層最後落下"
   }
  ],
  "sceneFx": {

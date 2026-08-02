@@ -37,12 +37,17 @@
 
   function $(id) { return document.getElementById(id); }
   function chapterMeta(id) {
-    return SERIES_CHAPTERS.find(function (ch) { return ch.id === id; }) || {
+    var found = SERIES_CHAPTERS.find(function (ch) { return ch.id === id; });
+    if (found) return found;
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn("[發現之前] 找不到章別資料：" + String(id || "(空白)"));
+    }
+    return {
       id: id || "ch1",
-      route: "ch01",
-      number: "01",
-      label: "第一章",
-      title: SCENES.title || "重物的渴望",
+      route: "",
+      number: "--",
+      label: "（章別未載入）",
+      title: SCENES.title || "章節資料未載入",
       years: "",
       question: ""
     };
@@ -429,11 +434,11 @@
         : "";
       $("perVal").title = "校樣窗口不按閱讀時間倒數；只有送出校樣或主動延後，才推進一個窗口。";
     } else if (CHAPTER_ID === "ch5") {
-      $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
-      $("perVal").title = "第五章說服力：配錯證據會下降；歸零只中止當日辯論，帳與已破支柱都保留。";
+      $("perVal").textContent = state.debate ? ("論證對位｜" + state.debate.persuasion + "/5") : "";
+      $("perVal").title = "看證據有沒有咬住主張；配錯會退回，歸零先複盤。帳與已破支柱都保留。";
     } else {
-      $("perVal").textContent = state.debate ? ("說服力：" + state.debate.persuasion + "/5") : "";
-      $("perVal").title = "說服力是辯論中的氣勢量表；錯誤出示會扣，歸零時先複盤論證再返回辯論。";
+      $("perVal").textContent = state.debate ? ("論證對位｜" + state.debate.persuasion + "/5") : "";
+      $("perVal").title = "看證據有沒有咬住主張；配錯會退回，歸零先複盤。";
     }
     $("modeVal").textContent = "模式：" + (state.mode === "scholar" ? "學者" : "探索");
     $("sceneVal").textContent = "場景：" + playerSceneTitle(state.cursor.scene);
@@ -777,9 +782,20 @@
     var prevLen = state.transcript.length;
     var r = N[fn].apply(null, [state].concat(args));
     if (r.error) { addLine("system", "(" + r.error + ")", "system"); return; }
+    var arranged = fn === "debateFr" && typeof args[0] === "string" &&
+      args[0].indexOf("arrange:") === 0;
     setState(r.state);
     syncNewTranscript(prevLen);
     renderAll();
+    if (arranged) {
+      var focusTarget = r.outcome === "resolved"
+        ? document.querySelector(".annotationResolved h3")
+        : document.querySelector(".annotationPaper select");
+      if (focusTarget) {
+        if (focusTarget.tagName !== "SELECT") focusTarget.setAttribute("tabindex", "-1");
+        focusTarget.focus();
+      }
+    }
   }
   function mkBtn(box, text, onclick, disabled) {
     var b = document.createElement("button");
@@ -826,8 +842,8 @@
     });
     var meter = document.createElement("div");
     meter.className = "debateMeter";
-    meter.setAttribute("aria-label", "說服力 " + d.persuasion + " / 5");
-    var mb = document.createElement("b"); mb.textContent = "說服力";
+    meter.setAttribute("aria-label", "論證對位 " + d.persuasion + " / 5");
+    var mb = document.createElement("b"); mb.textContent = "論證對位";
     var dots = document.createElement("span"); dots.textContent = "●".repeat(d.persuasion) + "○".repeat(Math.max(0, 5 - d.persuasion));
     meter.appendChild(mb); meter.appendChild(dots); track.appendChild(meter);
     box.appendChild(track);
@@ -880,6 +896,43 @@
     data.textContent = "x：" + enemy.card.x.join("・") + "｜高度：" + enemy.card.y.join("・");
     card.appendChild(data); box.appendChild(card);
   }
+  function renderResolvedAnnotation(d, box) {
+    if (!d.arrange) return;
+    var board = document.createElement("section");
+    board.className = "annotationBoard annotationResolved";
+    var title = document.createElement("h3");
+    title.textContent = "三張原紙已歸位";
+    board.appendChild(title);
+    if (!d.arrange.lastLayout) {
+      var legacy = document.createElement("p");
+      legacy.className = "annotationTrace";
+      legacy.textContent = "這份存檔完成於三紙對位上線前；原有通關記錄已保留。";
+      board.appendChild(legacy); box.appendChild(board); return;
+    }
+    var oldNote = document.createElement("blockquote");
+    oldNote.className = "annotationOriginalNote";
+    oldNote.setAttribute("aria-label", "辛普里奧已劃掉方法性批註，原文仍可讀：" + displayText(d.arrange.originalNote));
+    var noteLead = document.createElement("span");
+    noteLead.textContent = "已劃掉的方法性批註｜";
+    var noteText = document.createElement("del");
+    noteText.textContent = displayText(d.arrange.originalNote);
+    oldNote.appendChild(noteLead); oldNote.appendChild(noteText); board.appendChild(oldNote);
+    var labels = {};
+    d.arrange.dispositions.forEach(function (item) { labels[item.id] = item.label; });
+    var cards = document.createElement("div");
+    cards.className = "annotationCards";
+    d.arrange.cards.forEach(function (card) {
+      var paper = document.createElement("article");
+      paper.className = "annotationPaper annotationPaperResolved";
+      var source = document.createElement("small"); source.textContent = displayText(card.source);
+      var text = document.createElement("p"); text.textContent = displayText(card.text);
+      var placement = document.createElement("strong");
+      placement.className = "annotationPlacement";
+      placement.textContent = "歸位｜" + displayText(labels[d.arrange.lastLayout[card.id]] || "未辨識");
+      paper.appendChild(source); paper.appendChild(text); paper.appendChild(placement); cards.appendChild(paper);
+    });
+    board.appendChild(cards); box.appendChild(board);
+  }
   function stmtHasGap(sid) { /* 探索模式「此句有隙」:資料層 weakTo 存在=可被證據檢驗;學者不標(Sol 分層案) */
     var CH = DEBATE.chapter || {};
     var pools = [];
@@ -916,8 +969,11 @@
       return;
     }
     if (d.status === "won" || d.phase === "won") {
+      renderResolvedAnnotation(d, box);
       var pW = document.createElement("p");
-      pW.textContent = "支柱盡破,最後反撲已破——收束辯論。";
+      pW.textContent = d.arrange
+        ? "三張原紙已對位，方法性批註的墨線仍留在紙上——收束辯論。"
+        : "支柱盡破,最後反撲已破——收束辯論。";
       box.appendChild(pW);
       mkBtn(box, "▶ 繼續劇情(判定)", function () {
         var r = N.embedComplete(state);
@@ -1032,6 +1088,87 @@
       }
       return;
     }
+    if (d.phase === "arrange") {
+      var board = document.createElement("section");
+      board.className = "annotationBoard";
+      var arrangeTitle = document.createElement("h3");
+      arrangeTitle.textContent = "把三張原紙重新排好";
+      board.appendChild(arrangeTitle);
+      var arrangePrompt = document.createElement("p");
+      arrangePrompt.textContent = displayText(d.arrange.prompt);
+      board.appendChild(arrangePrompt);
+      var oldNote = document.createElement("blockquote");
+      oldNote.className = "annotationOriginalNote";
+      oldNote.textContent = "原批註｜" + displayText(d.arrange.originalNote);
+      board.appendChild(oldNote);
+      var slotKey = document.createElement("p");
+      slotKey.className = "annotationSlotKey";
+      slotKey.textContent = d.arrange.slots.map(function (slot) { return slot.label; }).join(" ／ ");
+      board.appendChild(slotKey);
+      var selected = {};
+      if (d.arrange.lastLayout) Object.keys(d.arrange.lastLayout).forEach(function (id) {
+        selected[id] = d.arrange.lastLayout[id];
+      });
+      var cards = document.createElement("div");
+      cards.className = "annotationCards";
+      var submit = document.createElement("button");
+      submit.type = "button";
+      submit.className = "annotationSubmit";
+      submit.textContent = "把這一版推回講台";
+      function updateArrangeSubmit() {
+        submit.disabled = d.arrange.cards.some(function (card) { return !selected[card.id]; });
+      }
+      d.arrange.cards.forEach(function (card) {
+        var paper = document.createElement("article");
+        paper.className = "annotationPaper";
+        var source = document.createElement("small");
+        source.textContent = displayText(card.source);
+        paper.appendChild(source);
+        var text = document.createElement("p");
+        text.textContent = displayText(card.text);
+        paper.appendChild(text);
+        var label = document.createElement("label");
+        label.textContent = "這張紙要放在哪裡？";
+        var select = document.createElement("select");
+        select.setAttribute("aria-label", displayText(card.source) + "的放置位置");
+        var placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "先讀紙，再選位置";
+        select.appendChild(placeholder);
+        d.arrange.dispositions.forEach(function (item) {
+          var option = document.createElement("option");
+          option.value = item.id;
+          option.textContent = displayText(item.label);
+          select.appendChild(option);
+        });
+        select.value = selected[card.id] || "";
+        select.onchange = function () {
+          if (select.value) selected[card.id] = select.value;
+          else delete selected[card.id];
+          updateArrangeSubmit();
+        };
+        label.appendChild(select);
+        paper.appendChild(label);
+        cards.appendChild(paper);
+      });
+      board.appendChild(cards);
+      if (d.arrange.attempts > 0) {
+        var trace = document.createElement("p");
+        trace.className = "annotationTrace";
+        trace.textContent = "上一版排法仍留在三張紙上；改動任何一欄，再整版送出。";
+        board.appendChild(trace);
+      }
+      submit.onclick = function () {
+        var encoded = "arrange:" + d.arrange.cards.map(function (card) {
+          return card.id + "=" + selected[card.id];
+        }).join(",");
+        doDebate("debateFr", [encoded]);
+      };
+      updateArrangeSubmit();
+      board.appendChild(submit);
+      box.appendChild(board);
+      return;
+    }
     if (d.phase === "trap") {
       var pTr = document.createElement("p");
       pTr.textContent = displayText(d.trap.prompt);
@@ -1080,7 +1217,7 @@
     var mistakes = d && d.mistakes ? d.mistakes : [];
     var list = document.createElement("ol"); list.className = "debriefList";
     if (!mistakes.length) {
-      var none = document.createElement("li"); none.textContent = "沒有可列出的配對；回想最後一個讓說服力歸零的選擇。"; list.appendChild(none);
+      var none = document.createElement("li"); none.textContent = "沒有可列出的配對；回想最後一個讓論證對位歸零的選擇。"; list.appendChild(none);
     }
     mistakes.forEach(function (m) {
       var li = document.createElement("li");
@@ -4333,7 +4470,7 @@
       ship3El("small", pillarDef.purpose, pillar);
     });
     var meter = ship3El("div", null, track, "debateMeter");
-    ship3El("b", "說服力", meter);
+    ship3El("b", "論證對位", meter);
     ship3El("span", "●".repeat(db.rep) + "○".repeat(Math.max(0, 5 - db.rep)), meter);
   }
   function renderShipDossierDebate(work, d) {

@@ -280,6 +280,24 @@
           values: [
           "先讀對手的圖，也保留它真正能支持的範圍"
         ] },
+        "B2-4/q4.b": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"B2-4/q4", pick:"b" }],
+          values: [
+          "三列都只記下兩聲分不開，仍把沒有測得的延遲寫成結果"
+        ] },
+        "B2-5/q2.b": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"B2-5/q2", pick:"b" }],
+          values: [
+          "把尚未出航的船桅預測寫成已由桌上實驗完成"
+        ] },
+        "B2-5/q2.c": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"B2-5/q2", pick:"c" }],
+          values: [
+          "把尚未出航的船桅預測寫成已由桌上實驗完成"
+        ] },
         "SC-R1/n3": {
           expectedDelta: 1, legacyOptional: true, requiresRepairCycle: true,
           requiresBefore: [{ t:"embedDone", at:"SC-R1/e1" }],
@@ -689,6 +707,19 @@
         choiceAt: "B0-2/q1", pick: "a", effectAt: "B0-2/q1.a", delta: -1,
         legacyReasonOptional: true, legacyWithoutFlag: true,
         reason: "尚未檢查砲術圖就宣稱舊規律一定管得到飛行"
+      }, {
+        flag: "f3DelayInvented", value: "1",
+        choiceAt: "B2-4/q4", pick: "b", effectAt: "B2-4/q4.b", delta: -1,
+        reason: "三列都只記下兩聲分不開，仍把沒有測得的延遲寫成結果"
+      }, {
+        flag: "shipMastOverclaimed", value: "1",
+        variants: [{
+          choiceAt: "B2-5/q2", pick: "b", effectAt: "B2-5/q2.b", delta: -1,
+          reason: "把尚未出航的船桅預測寫成已由桌上實驗完成"
+        }, {
+          choiceAt: "B2-5/q2", pick: "c", effectAt: "B2-5/q2.c", delta: -1,
+          reason: "把尚未出航的船桅預測寫成已由桌上實驗完成"
+        }]
       }],
       ch3: [{
         flag: "oldPaperAnswerBlurted", value: "1",
@@ -715,41 +746,48 @@
     }[chapterId] || [];
     for (var rsi = 0; rsi < reserved.length; rsi++) {
       var spec = reserved[rsi];
-      var flagIndex = events.findIndex(function (event) {
-        return event && event.t === "flag" && event.k === spec.flag &&
-          event.v === spec.value && event.at === spec.effectAt;
-      });
-      var repIndex = events.findIndex(function (event) {
-        return event && event.t === "rep" &&
-          event.at === spec.effectAt && event.d === spec.delta &&
-          (event.reason === spec.reason ||
-            (spec.legacyReasonOptional && !event.reason));
-      });
-      var pickIndex = events.findIndex(function (event) {
-        return event && event.t === "choice" &&
-          event.at === spec.choiceAt && event.pick === spec.pick;
-      });
       var flagPresent = Object.prototype.hasOwnProperty.call(flags, spec.flag);
-      var tracePresent = flagIndex >= 0 || repIndex >= 0 || pickIndex >= 0;
       if (flagPresent && flags[spec.flag] !== spec.value)
         return fail("信譽首次旗標值錯誤:" + spec.flag);
-      var completeCurrentTrace =
-        flagPresent && pickIndex >= 0 && repIndex > pickIndex &&
-        flagIndex > repIndex;
-      var completeLegacyTrace =
-        !!spec.legacyWithoutRep && flagPresent && pickIndex >= 0 &&
-        repIndex < 0 && flagIndex > pickIndex;
-      var completeLegacyFlagless =
-        !!spec.legacyWithoutFlag && !flagPresent && pickIndex >= 0 &&
-        repIndex > pickIndex && flagIndex < 0;
-      if ((flagPresent || tracePresent) &&
-          !completeCurrentTrace && !completeLegacyTrace &&
-          !completeLegacyFlagless)
+      var variants = spec.variants || [spec];
+      var tracePresent = false, completeCurrentTrace = false;
+      var completeLegacyTrace = false, completeLegacyFlagless = false;
+      var legacyVariant = null;
+      for (var vsi = 0; vsi < variants.length; vsi++) {
+        var variant = variants[vsi];
+        var flagIndex = events.findIndex(function (event) {
+          return event && event.t === "flag" && event.k === spec.flag &&
+            event.v === spec.value && event.at === variant.effectAt;
+        });
+        var repIndex = events.findIndex(function (event) {
+          return event && event.t === "rep" &&
+            event.at === variant.effectAt && event.d === variant.delta &&
+            (event.reason === variant.reason ||
+              (variant.legacyReasonOptional && !event.reason));
+        });
+        var pickIndex = events.findIndex(function (event) {
+          return event && event.t === "choice" &&
+            event.at === variant.choiceAt && event.pick === variant.pick;
+        });
+        tracePresent = tracePresent || flagIndex >= 0 || repIndex >= 0 || pickIndex >= 0;
+        if (flagPresent && pickIndex >= 0 && repIndex > pickIndex && flagIndex > repIndex)
+          completeCurrentTrace = true;
+        if (variant.legacyWithoutRep && flagPresent && pickIndex >= 0 &&
+            repIndex < 0 && flagIndex > pickIndex)
+          completeLegacyTrace = true;
+        if (variant.legacyWithoutFlag && !flagPresent && pickIndex >= 0 &&
+            repIndex > pickIndex && flagIndex < 0) {
+          completeLegacyFlagless = true;
+          legacyVariant = variant;
+        }
+      }
+      if ((flagPresent || tracePresent) && !completeCurrentTrace &&
+          !completeLegacyTrace && !completeLegacyFlagless)
         return fail("信譽首次旗標缺少完整玩家操作紀錄:" + spec.flag);
       if (completeLegacyFlagless) {
         flags[spec.flag] = spec.value;
         events.push({
-          t: "flag", k: spec.flag, v: spec.value, at: spec.effectAt,
+          t: "flag", k: spec.flag, v: spec.value, at: legacyVariant.effectAt,
           migratedFrom: "ch2-v1-reasonless"
         });
       }
@@ -840,6 +878,102 @@
       return fail("存檔中的故事位置無法辨識");
     var reputation = sanitizeReputationLifecycle(state, scenes, "ch2");
     if (!reputation.ok) return reputation;
+
+    /*
+     * GB-ADR-022 (2026-08-02) 後的最後反撲是一次「三紙整版對位」。
+     * F5 不是可獨立勾選的進度欄；它必須和正確排法、辯論勝利與
+     * runtime 寫下的事件帳同時成立。舊線上存檔沒有 lastLayout，
+     * 因此另以舊 FR 真正走完時的封閉形狀放行，不替存檔補故事。
+     */
+    var evidence2 = state.evidence;
+    if (!evidence2 || typeof evidence2 !== "object" || Array.isArray(evidence2))
+      return fail("第二章證據欄位格式錯誤");
+    var evidenceIds2 = { S3:1, S4:1, F1:1, F2:1, F3:1, F4:1, F5:1 };
+    for (var evidenceId2 in evidence2) {
+      if (!evidenceIds2[evidenceId2] || evidence2[evidenceId2] !== true)
+        return fail("第二章證據狀態無法辨識:" + evidenceId2);
+    }
+    var hasF5 = evidence2.F5 === true;
+    var debate2 = state.debate;
+    if (debate2 == null) {
+      if (hasF5) return fail("三紙對位尚未完成，不得取得 F5");
+    } else {
+      if (typeof debate2 !== "object" || Array.isArray(debate2) ||
+          !isInt(debate2.persuasion) || debate2.persuasion < 0 || debate2.persuasion > 5 ||
+          !isInt(debate2.idx) || debate2.idx < 0 || debate2.idx > 3 ||
+          ["pending", "suspended", "won"].indexOf(debate2.status) < 0 ||
+          !debate2.fr || typeof debate2.fr !== "object" || Array.isArray(debate2.fr))
+        return fail("第二章辯論狀態格式錯誤");
+      if (debate2.status === "suspended" && debate2.persuasion !== 0)
+        return fail("論證對位中止狀態與量表不一致");
+      if (debate2.status === "pending" && debate2.persuasion === 0)
+        return fail("論證對位歸零卻未進入中止狀態");
+
+      var fr2 = debate2.fr;
+      var isNewArrangement = Object.prototype.hasOwnProperty.call(fr2, "lastLayout") ||
+        Object.prototype.hasOwnProperty.call(fr2, "attempts");
+      var correctLayout2 = { table:"stands", cannon:"boundary", sky:"unmeasured" };
+      var layoutCorrect2 = false;
+      if (isNewArrangement) {
+        if (!Object.prototype.hasOwnProperty.call(fr2, "lastLayout") ||
+            !Object.prototype.hasOwnProperty.call(fr2, "attempts") ||
+            !isInt(fr2.attempts) || fr2.attempts < 0 || fr2.attempts > 200 ||
+            typeof fr2.opened !== "boolean" || typeof fr2.claimDone !== "boolean" ||
+            typeof fr2.resolved !== "boolean")
+          return fail("三紙對位進度格式錯誤");
+        if (fr2.lastLayout == null) {
+          if (fr2.attempts !== 0)
+            return fail("三紙對位次數與桌上排法不一致");
+        } else {
+          if (typeof fr2.lastLayout !== "object" || Array.isArray(fr2.lastLayout) ||
+              fr2.attempts < 1 || !fr2.opened)
+            return fail("三紙對位排法格式錯誤");
+          var layoutKeys2 = Object.keys(fr2.lastLayout).sort();
+          if (layoutKeys2.join(",") !== "cannon,sky,table")
+            return fail("三紙對位排法欄位錯誤");
+          var disposition2 = { stands:1, boundary:1, unmeasured:1, discard:1, refutes:1 };
+          for (var layoutKey2 in fr2.lastLayout)
+            if (!disposition2[fr2.lastLayout[layoutKey2]])
+              return fail("三紙對位位置無法辨識");
+          layoutCorrect2 = fr2.lastLayout.table === correctLayout2.table &&
+            fr2.lastLayout.cannon === correctLayout2.cannon &&
+            fr2.lastLayout.sky === correctLayout2.sky;
+        }
+        if (debate2.status === "won") {
+          if (!fr2.opened || !fr2.resolved || !fr2.claimDone || !layoutCorrect2 ||
+              !hasF5 || debate2.persuasion === 0)
+            return fail("三紙對位勝利狀態與實際排法不一致");
+        } else if (fr2.resolved || fr2.claimDone || hasF5 || layoutCorrect2) {
+          return fail("三紙對位尚未勝利卻殘留完成狀態");
+        }
+      } else {
+        /* 51c977d 以前的線上終局：敵方圖、範圍承諾與三步組鏈全數完成。 */
+        var legacyWon2 = debate2.status === "won" && fr2.opened === true &&
+          fr2.resolved === true && fr2.claimDone === true &&
+          fr2.enemySlopeRead === true && fr2.enemyClassified === true &&
+          ((state.mode === "explore" && fr2.step === 3) ||
+            (state.mode === "scholar" && Array.isArray(fr2.slots) &&
+              fr2.slots.join(",") === "c1,c2,c3"));
+        if (debate2.status === "won" && (!legacyWon2 || !hasF5 || debate2.persuasion === 0))
+          return fail("舊版第二章終局完成狀態不完整");
+        if (debate2.status !== "won" && hasF5)
+          return fail("舊版第二章終局尚未完成卻已取得 F5");
+      }
+
+      if (hasF5) {
+        var f5Events2 = state.eventLog.filter(function (event) {
+          return event && event.t === "evidence" && event.id === "F5" && event.at === "debate.fr";
+        });
+        var debateWins2 = state.eventLog.filter(function (event) {
+          return event && event.t === "debateWon";
+        });
+        var f5EventIndex2 = state.eventLog.indexOf(f5Events2[0]);
+        var winEventIndex2 = state.eventLog.indexOf(debateWins2[0]);
+        if (f5Events2.length !== 1 || debateWins2.length !== 1 ||
+            f5EventIndex2 < 0 || winEventIndex2 <= f5EventIndex2)
+          return fail("F5 缺少完整的三紙對位勝利事件鏈");
+      }
+    }
 
     var lab = state.lab, parts = engine2 && engine2._PARTS || {}, slots = engine2 && engine2._SLOTS || [];
     if (!lab || typeof lab !== "object") return fail("實驗紀錄缺失");

@@ -96,6 +96,13 @@ tests.push({
   fn: () => {
     const json = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
     if (JSON.stringify(scenes) !== JSON.stringify(json)) throw new Error("scenes 鏡像漂移");
+    const retiredGenerator = readFileSync(path.join(here, "../tools/gen_scenes.py"), "utf-8");
+    const stopAt = retiredGenerator.indexOf("raise SystemExit");
+    const oldDataAt = retiredGenerator.indexOf("SCENES = [");
+    if (!(stopAt >= 0 && oldDataAt > stopAt) ||
+        !retiredGenerator.includes("node tools/build-ch1-data.mjs") ||
+        !retiredGenerator.includes("data/scenes.json"))
+      throw new Error("舊 gen_scenes.py 仍可能覆寫第一章 canonical 資料");
   }
 });
 tests.push({
@@ -665,7 +672,7 @@ tests.push({
       'sceneCue(sceneId)', 'BGM.current() === "ch2Catapult"', 'd.scene === "B2-3"', 'd.scene === "B2-4"',
       'BGM.current() === "ch3Experiment"', 'd.scene === "C1-3"', 'd.scene === "C2-2"',
       'BGM.current() === "ch3Public"', 'd.scene === "C3-2"', 'd.scene === "C3-3"',
-      'BGM.current() !== "ch2Debate"', 'd.phase === "fr"', "BGM.variant(1)", "BGM.variant(2)"])
+      'BGM.current() !== "ch2Debate"', 'd.phase === "fr"', 'd.phase === "arrange"', "BGM.variant(1)", "BGM.variant(2)"])
       if (!sui.includes(frag)) throw new Error("BGM milestone 掛點缺失:" + frag);
     if (!stageHtml.includes("fx-gain") || !stageHtml.includes('id="fxJump"'))
       throw new Error("FX 樣式/容器缺失");
@@ -1045,6 +1052,19 @@ tests.push({
   fn: () => {
     const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    for (const shellName of ["chapter.html", "chapter2.html", "chapter3.html"]) {
+      const shell = readFileSync(path.join(here, "../" + shellName), "utf-8");
+      const seriesAt = shell.indexOf('data/series.js');
+      const uiAt = shell.indexOf('src/chapter-ui.js');
+      if (!(seriesAt >= 0 && seriesAt < uiAt))
+        throw new Error(shellName + " 未在共用 UI 前載入系列章名，會把第二／三章誤標成第一章");
+    }
+    const metaStart = cui.indexOf("function chapterMeta(id)");
+    const metaEnd = cui.indexOf("function displayText", metaStart);
+    const metaSource = cui.slice(metaStart, metaEnd);
+    if (!metaSource.includes('label: "（章別未載入）"') ||
+        metaSource.includes('label: "第一章"'))
+      throw new Error("章別資料缺漏時仍會靜默偽裝成第一章");
     for (const frag of [
       'class="titleIdentity"', 'class="chapterJourneyNav"', 'id="chapterDirectory"',
       'id="chapterRail"', 'id="btnPrevChapter"', 'id="btnNextChapter"',
@@ -1503,27 +1523,127 @@ tests.push({
 });
 
 tests.push({
-  name: "GB-ADR-022|獨立性順序:F2 假說→F3 直測→B2-5 玩家三步組模型",
+  name: "GB-ADR-022|預判→三列直測→封存未決→三紙重排",
   fn: () => {
     const scenes = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
+    const debateData = JSON.parse(readFileSync(path.join(here, "../data/debate2.json"), "utf-8"));
     const byId = (sid, nid) => scenes.scenes.find((s) => s.id === sid).nodes.find((n) => n.id === nid);
     const f2 = byId("B2-3", "n4").text;
     if (!f2.includes("還沒告訴我們前進會不會拖慢下墜") || !f2.includes("門閂直接問") ||
         f2.includes("各按自己的鐘走"))
       throw new Error("F2 未維持待驗假說語氣");
+    const b24 = scenes.scenes.find((s) => s.id === "B2-4");
     const f3 = byId("B2-4", "n3").text;
-    if (!f3.includes("三筆「分不開」") || !f3.includes("一離手") || !f3.includes("聽得出的範圍裡"))
+    if (!f3.includes("三列「分不開」") || !f3.includes("一離手") || !f3.includes("能分辨的範圍裡"))
       throw new Error("F3 缺限定式獨立性結論");
+    if (b24.nodes.filter((node) => !node.legacyOnly).length !== 11 ||
+        ["np2", "np3", "na1"].some((id) => !byId("B2-4", id)?.legacyOnly))
+      throw new Error("B2-4 未維持 11 個 active 節點與舊游標落點");
+    const prediction = byId("B2-4", "q1");
+    if (prediction.options.length !== 3 || prediction.options.some((option) => option.next !== "q2") ||
+        prediction.options.some((option) => (option.effects || []).some((effect) => "rep" in effect)))
+      throw new Error("B2-4 未在看結果前提供三個不計分預判");
+    if (byId("B2-4", "q2").options.length !== 1 || byId("B2-4", "q2").options[0].next !== "np1" ||
+        !byId("B2-4", "q2").options[0].text.includes("總門閂"))
+      throw new Error("B2-4 不是一次總門閂釋放三層");
+    if (byId("B2-4", "np1").type !== "choice" || byId("B2-4", "np1").options[0].next !== "q3" ||
+        byId("B2-4", "q3").options[0].next !== "q4" || !byId("B2-4", "q4").text.includes("第三列"))
+      throw new Error("B2-4 三列結果沒有逐列出現並由玩家確認");
     const b25 = scenes.scenes.find((s) => s.id === "B2-5");
-    for (const qid of ["q1", "q2", "q3"]) {
-      const q = b25.nodes.find((n) => n.id === qid);
-      if (!q || q.type !== "choice" || !q.options.find((o) => o.id === "a"))
-        throw new Error("B2-5 模型組裝缺步驟:" + qid);
+    if (b25.nodes.filter((node) => !node.legacyOnly).length !== 10 ||
+        ["n2", "n3", "n4", "q3", "w3"].some((id) => !byId("B2-5", id)?.legacyOnly))
+      throw new Error("B2-5 未維持 10 個 active 節點與舊游標落點");
+    if (byId("B2-5", "q1").options.length !== 3 ||
+        byId("B2-5", "q1").options.find((o) => o.id === "a")?.next !== "q2" ||
+        byId("B2-5", "w1b").next !== "q1" || byId("B2-5", "w1c").next !== "q1")
+      throw new Error("B2-5 第一拍沒有讓玩家挑出唯一未實做的船桅紙");
+    if (!byId("B2-5", "q2").options.find((o) => o.id === "a")?.text.includes("尚未在船上實做") ||
+        byId("B2-5", "w2").next !== "q2" || !byId("B2-5", "n5").text.includes("壓下封蠟"))
+      throw new Error("B2-5 未完成挑紙→寫界線→封蠟三步");
+    if (scenes.evidenceNames.F5 !== "三紙邊界對位" ||
+        byId("B3-F", "n4").text.includes("已重新排好") ||
+        !byId("B3-F", "n4").text.includes("上一版排法仍留在桌上"))
+      throw new Error("B3 仍用舊組鏈名稱，或複盤後被系統自動排正");
+
+    /* 新主線不得再進入 legacyOnly；但已發佈存檔的 8 個舊游標必須真的能續讀。 */
+    const legacyByScene = {
+      "B2-4": new Set(["np2", "np3", "na1"]),
+      "B2-5": new Set(["n2", "n3", "n4", "q3", "w3"])
+    };
+    const legacyContinuation = {
+      "B2-4/np2":"q3", "B2-4/np3":"q4", "B2-4/na1":"n3",
+      "B2-5/n2":"q1", "B2-5/n3":"q2", "B2-5/n4":"q3",
+      "B2-5/q3":"n5", "B2-5/w3":"q3"
+    };
+    for (const [sceneId, legacyIds] of Object.entries(legacyByScene)) {
+      const scene = scenes.scenes.find((item) => item.id === sceneId);
+      for (const node of scene.nodes.filter((item) => !item.legacyOnly)) {
+        const targets = [node.next]
+          .concat((node.options || []).map((option) => option.next))
+          .filter(Boolean);
+        if (targets.some((target) => legacyIds.has(target)))
+          throw new Error(sceneId + " active 主線重新進入 legacyOnly:" + node.id);
+      }
     }
-    if (byId("B2-5", "q1").options.find((o) => o.id === "b").next !== "w1b" || byId("B2-5", "w1b").next !== "q1")
-      throw new Error("B2-5 證據邊界錯答未原地修正");
-    if (!byId("B2-5", "n5").text.includes("射程跟著下落高度的平方根變化"))
-      throw new Error("B2-5 組模型未收束至 F2 定量預測");
+    const N2 = Narrative._factory(scenes, require("../src/engine2.js"), debateData);
+    const San2 = require("../src/sanitize.js");
+    for (const [sceneId, legacyIds] of Object.entries(legacyByScene)) {
+      for (const nodeId of legacyIds) {
+        const old = N2.initialState("explore");
+        old.cursor = { scene:sceneId, node:nodeId };
+        const imported = San2.sanitizeImport2(JSON.parse(JSON.stringify(old)), scenes, require("../src/engine2.js"));
+        if (!imported.ok) throw new Error("legacyOnly 舊游標無法匯入:" + sceneId + "/" + nodeId);
+        const oldView = N2.view(imported.state);
+        const continued = oldView.type === "choice"
+          ? N2.choose(imported.state, oldView.options[0].id)
+          : N2.advance(imported.state);
+        if (continued.error) throw new Error("legacyOnly 舊游標無法續讀:" + sceneId + "/" + nodeId);
+        if (continued.state.cursor.scene !== sceneId ||
+            continued.state.cursor.node !== legacyContinuation[sceneId + "/" + nodeId])
+          throw new Error("legacyOnly 舊游標接到錯誤的新主線拍點:" + sceneId + "/" + nodeId);
+      }
+    }
+    let legacyRepair = N2.initialState("explore");
+    for (const [sceneId, nodeId, pick] of [
+      ["B0-2", "q1", "a"], ["B2-4", "q4", "b"], ["B2-5", "q2", "b"]
+    ]) {
+      legacyRepair.cursor = { scene:sceneId, node:nodeId };
+      const penalized = N2.choose(legacyRepair, pick);
+      if (penalized.error) throw new Error("無法建立舊游標修復對照組:" + penalized.error);
+      legacyRepair = penalized.state;
+    }
+    legacyRepair.cursor = { scene:"B2-5", node:"q3" };
+    const repairRedirect = N2.redirectIfLocked(legacyRepair);
+    if (!repairRedirect.redirected || repairRedirect.state.flags.returnScene !== "B2-5" ||
+        repairRedirect.state.flags.returnNode !== "q3" ||
+        !San2.sanitizeImport2(repairRedirect.state, scenes, require("../src/engine2.js")).ok)
+      throw new Error("legacyOnly 舊游標不能作為信譽修復後的精確返回點");
+
+    /* 三個預判只寫進原紙：不計分、不改結果，也不因答過就消失。 */
+    const predictionResults = prediction.options.map((option) => {
+      let state = N2.initialState("explore");
+      state.cursor = { scene:"B2-4", node:"q1" };
+      const picked = N2.choose(state, option.id);
+      if (picked.error || picked.state.rep !== state.rep || picked.state.cursor.node !== "q2" ||
+          !picked.state.transcript.some((line) => line.text === option.text))
+        throw new Error("B2-4 預判沒有保留玩家原句，或偷改信譽:" + option.id);
+      state = N2.choose(picked.state, "a").state;
+      state = N2.choose(state, "a").state;
+      state = N2.choose(state, "a").state;
+      const resultView = N2.view(state);
+      return JSON.stringify({ text:resultView.text, options:resultView.options.map((row) => row.text) });
+    });
+    if (new Set(predictionResults).size !== 1)
+      throw new Error("B2-4 預判暗中改變了三列實驗結果");
+    const arrangement = debateData.chapter.fr.arrangement;
+    if (debateData.chapter.fr.kind !== "annotation-arrange" || arrangement.cards.length !== 3 ||
+        JSON.stringify(arrangement.correct) !== JSON.stringify({ table:"stands", cannon:"boundary", sky:"unmeasured" }) ||
+        !arrangement.originalNote.includes("桌上的規律全錯"))
+      throw new Error("B3 終局未改為三張原紙的邊界重排");
+    const successText = arrangement.success.map((line) => line.text).join("\n");
+    if (!successText.includes("字仍看得見") || !successText.includes("仍信亞里斯多德") &&
+        !byId("B3-6", "n2").text.includes("仍信亞里斯多德"))
+      throw new Error("B3 沒守住方法批註留痕或信仰立場不變");
   }
 });
 
@@ -1531,6 +1651,19 @@ tests.push({
   name: "一二章誘答可信度|平行選項、錯答不消失、正解必須由玩家親自選下",
   fn: () => {
     const s1 = JSON.parse(readFileSync(path.join(here, "../data/scenes.json"), "utf-8"));
+    const d1 = JSON.parse(readFileSync(path.join(here, "../data/debate.json"), "utf-8"));
+    if (JSON.stringify(d1).includes("主張紀錄"))
+      throw new Error("第一章角色回饋仍洩漏介面欄位名『主張紀錄』");
+    for (const rel of [
+      "../../04_劇本/第一章完整劇本_重物的渴望_v0.2.2.md",
+      "../../04_劇本/第一章可操作小說稿_重物的渴望_v0.3-draft.md"
+    ]) {
+      const script = readFileSync(path.join(here, rel), "utf-8");
+      if (/P0-1[^\n]*信譽\s*\+1|INT-1[^\n]*信譽\s*\+1|這數據不能用/.test(script) ||
+          !script.includes("信譽不變") || !/混雜紙|紙留著|紙留進卷宗/.test(script) ||
+          !script.includes("A1-3.q1") || !/改選.*同材質|改選大鉛球\+小鉛球/.test(script))
+        throw new Error("第一章參考稿又漂回舊信譽或丟棄混雜紙規則:" + rel);
+    }
     const a13 = s1.scenes.find((scene) => scene.id === "A1-3");
     const diagnosis = a13?.nodes.find((node) => node.id === "nB3");
     if (!diagnosis || diagnosis.type !== "choice" || diagnosis.options.length !== 3)
@@ -1575,13 +1708,12 @@ tests.push({
     const b25 = s2.scenes.find((scene) => scene.id === "B2-5");
     const b25scope = b25?.nodes.find((node) => node.id === "q1");
     if (!b25scope || b25scope.options.length !== 3 ||
-        !b25scope.options.every((option) => option.text.startsWith("這句話寫到")))
-      throw new Error("第二章 B2-5 未提供三個平行範圍選項");
-    const frOptions = d2.chapter.fr.claim.options;
-    if (frOptions.length !== 3 || !frOptions.every((option) => option.text.startsWith("「這條規律寫到")))
-      throw new Error("第二章終局未提供三個平行範圍誘答");
-    if (frOptions.some((option) => /全部|任何情況|絕對|只能說|已經證明/.test(option.text)))
-      throw new Error("第二章終局仍靠插旗詞提示錯項");
+        !b25scope.options.every((option) => /：/.test(option.text)))
+      throw new Error("第二章 B2-5 未用三張同格式紙讓玩家判讀");
+    const arrangement = d2.chapter.fr.arrangement;
+    if (d2.chapter.fr.kind !== "annotation-arrange" || arrangement.cards.length !== 3 ||
+        arrangement.dispositions.length < 3)
+      throw new Error("第二章終局未提供三紙整版重排");
 
     const N2 = Narrative._factory(s2, require("../src/engine2.js"), d2);
     let ch2 = N2.initialState("explore");
@@ -1589,28 +1721,31 @@ tests.push({
     ch2 = N2.advance(ch2).state;
     ch2.debate.idx = 3;
     ch2.debate.fr.opened = true;
-    ch2.debate.fr.enemyStep = "done";
-    ch2.debate.fr.trapPending = true;
     for (const evidenceId of d2.chapter.fr.requires) ch2.evidence[evidenceId] = true;
     view = N2.debateView(ch2);
-    if (view.phase !== "trap" || view.trap.options.length !== 3)
-      throw new Error("第二章終局三個範圍選項未進玩家介面");
+    if (view.phase !== "arrange" || view.arrange.cards.length !== 3 || view.arrange.lastLayout)
+      throw new Error("第二章終局三張紙未進無預設的玩家介面");
     const beforePlayerLines = ch2.transcript.filter((line) => line.speaker === "旅人(你)").length;
-    result = N2.debateFr(ch2, "over");
-    if (result.outcome !== "retry" || result.state.debate.fr.claimDone)
-      throw new Error("第二章越界後被自動改成正解");
+    const wrongLayout = "arrange:table=stands,cannon=refutes,sky=unmeasured";
+    result = N2.debateFr(ch2, wrongLayout);
+    if (result.outcome !== "retry" || result.state.debate.fr.claimDone || result.state.rep !== ch2.rep)
+      throw new Error("第二章錯排被自動改正，或把論辯草稿誤算成信譽事件");
     const addedPlayerLines = result.state.transcript.filter((line) => line.speaker === "旅人(你)").slice(beforePlayerLines);
-    if (addedPlayerLines.length !== 1 || addedPlayerLines[0].text !== frOptions.find((option) => option.id === "over").text)
-      throw new Error("第二章越界後 transcript 混入玩家未選的正解");
+    if (addedPlayerLines.length !== 1 || !addedPlayerLines[0].text.includes("用它否定桌上紀錄"))
+      throw new Error("第二章錯排後 transcript 混入玩家未送出的正解");
     view = N2.debateView(result.state);
-    if (view.trap.options.length !== 3 || !view.trap.options.some((option) => option.id === "over"))
-      throw new Error("第二章錯項答過一次後從選單消失");
-    result = N2.debateFr(result.state, "over");
-    if (result.outcome !== "retry" || result.state.debate.mistakes.filter((mistake) => mistake.optionId === "over").length < 2)
-      throw new Error("第二章同一個越界主張不能再次提交或沒有留下痕跡");
-    result = N2.debateFr(result.state, "honest");
-    if (result.outcome !== "honest" || !result.state.debate.fr.claimDone)
-      throw new Error("第二章正確範圍不是由玩家親自選下");
+    if (view.phase !== "arrange" || view.arrange.lastLayout.cannon !== "refutes")
+      throw new Error("第二章錯排沒有留在三張紙上供玩家改寫");
+    result = N2.debateFr(result.state, wrongLayout);
+    if (result.outcome !== "retry" || result.state.debate.mistakes.filter((mistake) => mistake.kind === "arrangement").length < 2)
+      throw new Error("第二章同一個錯排不能再次送出或沒有留下痕跡");
+    result = N2.debateFr(result.state, "arrange:table=stands,cannon=boundary,sky=unmeasured");
+    if (result.outcome !== "resolved" || !result.state.debate.fr.claimDone || !result.state.evidence.F5)
+      throw new Error("第二章正確三紙對位不是由玩家整版送出");
+    view = N2.debateView(result.state);
+    if (view.phase !== "won" || !view.arrange || !view.arrange.resolved ||
+        view.arrange.lastLayout.cannon !== "boundary")
+      throw new Error("第二章答對後沒有保留唯讀三紙板與正確歸位");
   }
 });
 
@@ -1722,7 +1857,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M1-M3|全章走查:B0-1→BE-2 終+雙歸零修復(彈射三 embed+三柱+FR 兩步判讀+F5 雙路)",
+  name: "第二章 M1-M3|全章走查:B0-1→BE-2 終+三柱+三紙重排+論證對位複盤",
   fn: () => {
     const F = require("../src/narrative.js")._factory;
     const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
@@ -1772,6 +1907,30 @@ tests.push({
             evidence: { P1: "F4", P2: "F3", P3: "F3" }[pid] }), "present " + pid);
           return;
         }
+        if (dv.phase === "arrange") {
+          let code = "arrange:table=stands,cannon=boundary,sky=unmeasured";
+          let mark = "";
+          if ((o.wrongFR || o.secondWrong || o.suspendFR) && !st.flags.frW) {
+            if (o.suspendFR) {
+              st = JSON.parse(JSON.stringify(st));
+              st.debate.persuasion = 1;
+            }
+            code = "arrange:table=stands,cannon=discard,sky=unmeasured";
+            mark = "frW";
+          } else if (o.secondWrong && !st.flags.frW2) {
+            code = "arrange:table=stands,cannon=refutes,sky=unmeasured";
+            mark = "frW2";
+          }
+          const r = N2.debateFr(st, code);
+          if (r.error) throw new Error("arrange:" + r.error);
+          st = r.state;
+          if (mark) {
+            st.flags[mark] = "1";
+            if (r.outcome !== "retry" && r.outcome !== "suspended")
+              throw new Error("三紙錯排應留在原步或進複盤");
+          }
+          return;
+        }
         if (dv.phase === "enemy") {
           if (dv.enemy.step === "slope" && o.wrongFR && !st.flags.frW) {
             const r = N2.debateFr(st, "same"); st = r.state; st.flags.frW = "1";
@@ -1781,14 +1940,7 @@ tests.push({
           ok(N2.debateFr(st, dv.enemy.step === "slope" ? "steeper" : "boundary"), "enemy " + dv.enemy.step);
           return;
         }
-        if (dv.phase === "trap") {
-          if (o.doubleZero && !st.flags.dzPrimed) {
-            /* 對抗邊界注入：讓 over 的 −2/−1 同時把兩量表打到零。 */
-            st = JSON.parse(JSON.stringify(st));
-            st.debate.persuasion = 2; st.rep = 1; st.flags.dzPrimed = "1";
-          }
-          ok(N2.debateFr(st, o.over && !st.flags.overd ? (st.flags.overd = "1", "over") : "honest"), "claim"); return;
-        }
+        if (dv.phase === "trap") { throw new Error("第二章新終局不應再進舊 claim 選單"); }
         if (dv.phase === "fr") {
           if (dv.fr.kind === "explore") { ok(N2.debateFr(st, "a"), "fr explore"); return; }
           ok(N2.debateFr(st, ["c1", "c2", "c3"][dv.fr.slots.length]), "fr slot");
@@ -1838,29 +1990,33 @@ tests.push({
     const s1 = walk("explore", { wrongFirst: true, hypothesis: true, wrongFR: true });
     for (const ev of ["S3", "S4", "F1", "F2", "F3", "F4", "F5"])
       if (!s1.evidence[ev]) throw new Error("證據缺失:" + ev);
-    if (s1.rep !== 3) throw new Error("信譽應 3,得 " + s1.rep);
+    if (s1.rep !== 2) throw new Error("先搶答後修正、再把未測延遲寫進第三列，信譽應 2,得 " + s1.rep);
     if (s1.lab.days !== 10) throw new Error("黃金路徑應 10 天,得 " + s1.lab.days);
     if (s1.flags.revealSqrt !== "1") throw new Error("r2 假說未寫揭曉旗標");
-    if (s1.debate.status !== "won" || !s1.debate.fr.enemySlopeRead || !s1.debate.fr.enemyClassified)
-      throw new Error("FR 兩步旗標/勝利狀態缺失");
+    if (s1.debate.status !== "won" || !s1.debate.fr.claimDone || !s1.debate.fr.lastLayout)
+      throw new Error("FR 三紙重排完成旗標/勝利狀態缺失");
     if (s1.debate.persuasion !== 4) throw new Error("FR 誤選一次應 5→4,得 " + s1.debate.persuasion);
-    /* 學者線+ch1 certified 投影:inherited 鏈+r1 押中原子揭曉 */
+    /* 學者線+ch1 certified 投影：前章認證仍保留，但新終局共同重排同一批三紙，不再另開 inherited 口試。 */
     const s2 = walk("scholar", { hypothesis: false, xch: { ch1: { source: "ch1-schema3", certified: true, e3: { a: true, b: true, c: true } } } });
     if (s2.flags.revealSqrt !== "1") throw new Error("r1 押中路未原子寫入揭曉旗標");
     if (!s2.transcript.some((t) => (t.text || "").includes("先不把推論當成紀錄"))) throw new Error("學者分支未演出");
-    if (!s2.transcript.some((t) => (t.text || "").includes("沒有直接量過垂直落下"))) throw new Error("certified 路未用 inherited 第二環");
-    /* over 反將路:說服力 5→3、信譽 −1；原題保留，下一次由玩家親選 honest 完賽 */
-    const s3 = walk("explore", { over: true });
-    if (s3.debate.persuasion !== 3 || s3.rep !== 3 - 1 + 1) /* B0-2 b 未誤選:rep 3+1(S3 線)−1(over)=3 */
-      throw new Error("over 代價錯:persuasion=" + s3.debate.persuasion + " rep=" + s3.rep);
-    if (!s3.debate.fr.overTried || s3.debate.status !== "won") throw new Error("over 後未由玩家親自收回越界主張");
-    /* 雙歸零：over 同時清空說服力與信譽→修復一次→複盤一次→honest 完章。 */
-    const s4 = walk("explore", { over: true, doubleZero: true });
+    if (!s2.crossChapter?.ch1?.certified ||
+        !s2.transcript.some((t) => (t.text || "").includes("天上的——今日空著")) ||
+        s2.transcript.some((t) => (t.text || "").includes("第一章只量到不同傾角")))
+      throw new Error("certified 投影遺失，或新三紙終局仍誤入舊 inherited 口試");
+    /* 兩次錯排只扣論證對位，不把介面試排冒充研究失信；第三版由玩家整版送對。 */
+    const s3 = walk("explore", { secondWrong: true });
+    if (s3.debate.persuasion !== 3 || s3.rep !== 4)
+      throw new Error("錯排代價錯:persuasion=" + s3.debate.persuasion + " rep=" + s3.rep);
+    if (s3.debate.fr.attempts !== 3 || s3.debate.status !== "won")
+      throw new Error("兩次錯排後未由玩家親手完成第三版");
+    /* 論證對位歸零：保留原紙與錯排→複盤一次→再入後完成，不觸發信譽修復。 */
+    const s4 = walk("explore", { suspendFR: true });
     const countEvent = (t) => s4.eventLog.filter((e) => e.t === t).length;
-    if (countEvent("repairEnter") !== 1) throw new Error("雙歸零應且僅應進入一次信譽修復,得 " + countEvent("repairEnter"));
-    if (countEvent("debateSuspend") !== 1) throw new Error("雙歸零應且僅應中止一次辯論,得 " + countEvent("debateSuspend"));
-    if (s4.rep !== 1 || s4.debate.status !== "won" || !s4.debate.fr.overTried)
-      throw new Error("雙歸零修復後未以 honest 完章:rep=" + s4.rep + " status=" + s4.debate.status);
+    if (countEvent("repairEnter") !== 0) throw new Error("三紙錯排不得誤進信譽修復");
+    if (countEvent("debateSuspend") !== 1) throw new Error("論證對位歸零應且僅應複盤一次,得 " + countEvent("debateSuspend"));
+    if (s4.rep !== 4 || s4.debate.status !== "won" || !s4.debate.fr.claimDone)
+      throw new Error("複盤後未完成三紙重排:rep=" + s4.rep + " status=" + s4.debate.status);
     /* 存檔往返 */
     const F2i = F(scenes2, E2, D2);
     const back = F2i.loadSave(F2i.serialize(s1));
@@ -2026,17 +2182,174 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M3b|敵方數據卡 UI+匯入淨化接線契約",
+  name: "第二章存檔真相|三紙正解才能取得 F5，舊終局仍可匯入",
+  fn: () => {
+    const E2 = require("../src/engine2.js");
+    const D2 = require("../data/debate2.js");
+    const N2 = Narrative._factory(scenes2, E2, D2);
+    const S = require("../src/sanitize.js");
+    const clone = (value) => JSON.parse(JSON.stringify(value));
+    const checked = (state) => S.sanitizeImport2(clone(state), scenes2, E2);
+
+    /* 新增的兩個研究誠實事件必須能從 runtime 原子動作完整往返。 */
+    const firstPenalty = (scene, node, pick) => {
+      const state = N2.initialState("explore");
+      state.cursor = { scene, node };
+      const result = N2.choose(state, pick);
+      if (result.error || !checked(result.state).ok)
+        throw new Error(scene + "/" + node + "." + pick + " 合法信譽事件被 sanitizer 拒絕");
+      return result.state;
+    };
+    const delayState = firstPenalty("B2-4", "q4", "b");
+    const mastBState = firstPenalty("B2-5", "q2", "b");
+    firstPenalty("B2-5", "q2", "c");
+    const missingChoice = clone(delayState);
+    missingChoice.eventLog = missingChoice.eventLog.filter((event) =>
+      !(event.t === "choice" && event.at === "B2-4/q4" && event.pick === "b"));
+    if (S.sanitizeImport2(missingChoice, scenes2, E2).ok)
+      throw new Error("F3 虛構延遲於拿掉玩家選擇後仍可匯入");
+    const wrongReason = clone(mastBState);
+    wrongReason.eventLog.find((event) => event.t === "rep" && event.at === "B2-5/q2.b").reason = "不存在的理由";
+    if (S.sanitizeImport2(wrongReason, scenes2, E2).ok)
+      throw new Error("船桅越界事件可篡改玩家可見理由");
+
+    const arrangeBase = () => {
+      const state = N2.initialState("explore");
+      state.cursor = { scene:"B3-1", node:"s1" };
+      const entered = N2.advance(state);
+      if (entered.error) throw new Error(entered.error);
+      entered.state.debate.idx = 3;
+      entered.state.debate.fr.opened = true;
+      for (const id of D2.chapter.fr.requires) entered.state.evidence[id] = true;
+      return entered.state;
+    };
+    const wrong = N2.debateFr(arrangeBase(),
+      "arrange:table=stands,cannon=discard,sky=unmeasured");
+    if (wrong.error || !checked(wrong.state).ok)
+      throw new Error("合法錯排中途存檔被拒絕:" + checked(wrong.state).reason);
+    const suspendBase = arrangeBase();
+    suspendBase.debate.persuasion = 1;
+    const suspended = N2.debateFr(suspendBase,
+      "arrange:table=stands,cannon=discard,sky=unmeasured");
+    if (suspended.outcome !== "suspended" || !checked(suspended.state).ok)
+      throw new Error("論證對位歸零存檔被拒絕:" + checked(suspended.state).reason);
+    const won = N2.debateFr(wrong.state,
+      "arrange:table=stands,cannon=boundary,sky=unmeasured");
+    if (won.outcome !== "resolved" || !checked(won.state).ok)
+      throw new Error("玩家親手完成的三紙正解存檔被拒絕:" + checked(won.state).reason);
+
+    const freshF5 = N2.initialState("explore"); freshF5.evidence.F5 = true;
+    const badLayout = clone(won.state); badLayout.debate.fr.lastLayout.cannon = "discard";
+    const badAttempts = clone(won.state); badAttempts.debate.fr.attempts = "nine";
+    const hugeAttempts = clone(won.state); hugeAttempts.debate.fr.attempts = 999;
+    const badPersuasion = clone(won.state); badPersuasion.debate.persuasion = 999;
+    const noF5 = clone(won.state); delete noF5.evidence.F5;
+    const zeroPending = clone(wrong.state); zeroPending.debate.persuasion = 0;
+    const closedWithLayout = clone(wrong.state); closedWithLayout.debate.fr.opened = false;
+    const stringOpened = clone(wrong.state); stringOpened.debate.fr.opened = "yes";
+    for (const [label, forged] of [
+      ["空手 F5", freshF5], ["勝利後改排法", badLayout], ["次數改字串", badAttempts],
+      ["次數超界", hugeAttempts], ["說服力超界", badPersuasion], ["勝利卻刪 F5", noF5],
+      ["待續卻說服力歸零", zeroPending], ["未開放卻有錯排", closedWithLayout],
+      ["opened 非布林", stringOpened]
+    ]) if (S.sanitizeImport2(forged, scenes2, E2).ok)
+      throw new Error(label + " 偽造存檔未被拒絕");
+
+    /* 51c977d 舊玩家已走完 slope→classify→claim→三環的存檔不得被新規則鎖外。 */
+    const legacyWon = N2.initialState("explore");
+    for (const id of ["F1", "F2", "F3", "F4", "F5"]) legacyWon.evidence[id] = true;
+    legacyWon.debate = {
+      persuasion:4, idx:3, pillars:{}, p3NeedFlag:false, pressChoice:null,
+      fr:{ opened:true, step:3, slots:[], trapPending:false, resolved:true,
+        enemyStep:null, enemySlopeRead:true, enemyClassified:true, claimDone:true,
+        overTried:false },
+      mistakes:[], status:"won"
+    };
+    legacyWon.eventLog.push({ t:"evidence", id:"F5", at:"debate.fr" }, { t:"debateWon" });
+    if (!checked(legacyWon).ok)
+      throw new Error("已發佈的舊版終局存檔被新 sanitizer 拒絕:" + checked(legacyWon).reason);
+  }
+});
+
+tests.push({
+  name: "第二章三紙對位|三種核心錯排留痕，格式錯誤零變更",
+  fn: () => {
+    const E2 = require("../src/engine2.js");
+    const D2 = require("../data/debate2.js");
+    const N2 = Narrative._factory(scenes2, E2, D2);
+    const base = () => {
+      const state = N2.initialState("explore");
+      state.cursor = { scene:"B3-1", node:"s1" };
+      const entered = N2.advance(state).state;
+      entered.debate.idx = 3; entered.debate.fr.opened = true;
+      for (const id of D2.chapter.fr.requires) entered.evidence[id] = true;
+      return entered;
+    };
+    for (const row of [
+      ["arrange:table=stands,cannon=discard,sky=unmeasured", "這是老夫量到的", "discard"],
+      ["arrange:table=stands,cannon=refutes,sky=unmeasured", "哪一張紙說另一張沒有發生", "refutes"],
+      ["arrange:table=stands,cannon=boundary,sky=stands", "這一欄，誰量的", "stands"]
+    ]) {
+      const before = base();
+      const result = N2.debateFr(before, row[0]);
+      if (result.outcome !== "retry" || result.state.evidence.F5 || result.state.rep !== before.rep ||
+          result.state.debate.persuasion !== before.debate.persuasion - 1 ||
+          result.state.debate.fr.lastLayout[row[2] === "stands" ? "sky" : "cannon"] !== row[2] ||
+          !result.state.transcript.some((line) => line.text.includes(row[1])))
+        throw new Error("錯排沒有保留原版、只扣論證對位，或回應未指向真正邊界:" + row[0]);
+    }
+    for (const input of [
+      "arrange:table=stands,cannon=boundary",
+      "arrange:table=stands,cannon=teleport,sky=unmeasured"
+    ]) {
+      const before = base(), snapshot = JSON.stringify(before);
+      const result = N2.debateFr(before, input);
+      if (!result.error || JSON.stringify(result.state) !== snapshot || JSON.stringify(before) !== snapshot)
+        throw new Error("三紙格式錯誤改寫了玩家狀態:" + input);
+    }
+  }
+});
+
+tests.push({
+  name: "第二章 M3b|三紙對位 UI+匯入淨化接線契約",
   fn: () => {
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    for (const frag of ["renderEnemyDataCard", 'd.phase === "enemy"', "enemyDataCard", "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"])
-      if (!cui.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
+    const validateArrangeUi = (source) => {
+      for (const frag of [
+        'd.phase === "arrange"', "annotationBoard", "annotationCards", "annotationPaper",
+        'select.value = selected[card.id] || ""', "placeholder.value = \"\"",
+        "submit.disabled = d.arrange.cards.some", 'var encoded = "arrange:"',
+        "d.arrange.lastLayout", "renderResolvedAnnotation", 'document.createElement("del")',
+        "原文仍可讀", 'document.querySelector(".annotationPaper select")',
+        "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"
+      ]) if (!source.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
+    };
+    validateArrangeUi(cui);
+    let prefillRed = false;
+    try {
+      validateArrangeUi(cui.replace(
+        'select.value = selected[card.id] || ""',
+        'select.value = selected[card.id] || "stands"'
+      ));
+    } catch (_) { prefillRed = true; }
+    if (!prefillRed) throw new Error("三紙下拉選單預填正解的反向變異沒有轉紅");
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
-    for (const frag of ["src/save-envelope.js", "scenes1", "engine2.js", "第二章", "第一寸的弧線"])
+    for (const frag of [
+      "src/save-envelope.js", "scenes1", "engine2.js", "第二章", "第一寸的弧線",
+      ".annotationCards", "grid-template-columns: repeat(3,minmax(0,1fr))",
+      "@media (max-width: 680px) { .annotationCards { grid-template-columns: 1fr; } }",
+      ".annotationPaper select, .annotationSubmit { width: 100%; min-height: 44px; }"
+    ])
       if (!c2.includes(frag)) throw new Error("第二章殼缺失:" + frag);
     const stage2 = readFileSync(path.join(here, "../stage.html"), "utf-8");
-    for (const frag of [".enemyCurve { fill: none", "minmax(0,.9fr) minmax(0,1.1fr)", 'src="data/series.js?v=asset-'])
+    for (const frag of [
+      ".annotationCards { display: grid", "grid-template-columns: repeat(3,minmax(0,1fr))",
+      ".annotationSubmit", ".annotationPaper select { width: 100%; min-width: 0; min-height: 44px; }",
+      ".annotationResolved .annotationOriginalNote del", 'src="data/series.js?v=asset-'
+    ])
       if (!stage2.includes(frag)) throw new Error("第二章正式舞台回歸契約缺失:" + frag);
+    if (!stage2.includes(".annotationCards { grid-template-columns: 1fr; }"))
+      throw new Error("三紙對位在窄螢幕沒有收成單欄");
     const series = JSON.parse(readFileSync(path.join(here, "../data/series.json"), "utf-8"));
     if (!series.chapters.some((chapter) => chapter.id === "ch2" && chapter.route === "ch02"))
       throw new Error("第二章未登錄於資料驅動首頁");
@@ -2231,16 +2544,26 @@ tests.push({
     if (!f3 || f3.kind !== "card" || f3.path !== "ch02/cards/card_F3.webp" || f3.w !== 1200 || f3.h !== 750)
       throw new Error("F3 一拋一放證據圖資產宣告缺失");
     if (!existsSync(path.join(here, "../../public/assets/", f3.path))) throw new Error("F3 證據圖檔不存在");
-    for (const match of ["三輪紀錄在案", "如果它要等推力用完才下墜"])
+    for (const match of ["高層最後落下", "如果它要等推力用完才下墜"])
       if (!rules.some((r) => r.scene === "B2-4" && r.match === match && r.items.some((x) => x.asset === "card_F3")))
         throw new Error("F3 判讀／回述缺專用圖:" + match);
     const viewRules = assets.viewFocusVisual || [];
     const mechanismView = viewRules.find((r) => r.scene === "B2-4" && r.match === "機關:桌緣一座小門閂");
-    const resultView = viewRules.find((r) => r.scene === "B2-4" && r.match === "三輪紀錄在案");
-    if (!mechanismView || ["q1", "q2", "q3"].some((id) => !mechanismView.nodeIds.includes(id)))
-      throw new Error("B2-4 三輪操作未持續展示雙球機關");
-    if (!resultView || resultView.nodeIds.length !== 1 || resultView.nodeIds[0] !== "q4")
-      throw new Error("B2-4 結果圖未鎖在玩家判讀之前");
+    const resultView = viewRules.find((r) => r.scene === "B2-4" && r.match === "高層最後落下");
+    if (mechanismView || rules.some((r) => r.scene === "B2-4" &&
+        r.items.some((item) => item.asset === "workshop2_projectile_apparatus_master")))
+      throw new Error("B2-4 預判前仍展示錯誤的 F2 斜槽彈射台");
+    if (!resultView || ["q4", "nb1", "n3"].some((id) => !resultView.nodeIds.includes(id)))
+      throw new Error("B2-4 第三列判讀與回述未持續展示 F3 結果圖");
+    if (viewRules.some((r) => r.scene === "B2-4" &&
+        (r.nodeIds || []).some((id) => ["q1", "q2", "np1", "q3"].includes(id))))
+      throw new Error("B2-4 尚未顯示第三列前就擺出已畫入軌跡答案的 F3 圖");
+    const pendingWall = rules.find((r) => r.scene === "B2-5" && r.match === "牆上:墨跡板");
+    const expectedWall = ["ch02_focus_ship_mast_thought_v01", "prop_inked_incline_board",
+      "workshop2_projectile_apparatus_master", "card_F3"];
+    if (!pendingWall || pendingWall.items.length !== 4 ||
+        expectedWall.some((asset) => !pendingWall.items.some((item) => item.asset === asset)))
+      throw new Error("B2-5 證據牆不是三份完成紀錄＋一張船桅待驗預測");
     for (const vr of viewRules) {
       const source = rules.find((r) => r.scene === vr.scene && r.match === vr.match);
       if (!source) throw new Error("互動節點特寫找不到單一來源:" + vr.scene + "→" + vr.match);
@@ -2437,9 +2760,17 @@ tests.push({
         ...(node.options || []).map((option) => option.text || "")])).join("\n");
     const validate = (s3, s5) => {
       const xcard = byId(s3, "C0-1", "xcard")?.text || "";
-      const revealedSteadyResult = /落(?:在|到)?(?:桅(?:杆)?(?:腳|下|底)|原處)|(?:跟|隨)(?:著)?船(?:一起)?(?:走|前進)|不(?:會)?落(?:在)?後|沒有落後/.test(xcard);
-      if (!xcard.includes("合理重建") || !xcard.includes("史實邊界") || revealedSteadyResult)
-        throw new Error("C0-1 合理重建卡提前揭露落石結果，或未交代史實邊界");
+      const steadyResultPattern = /落(?:在|到)?(?:桅(?:杆)?(?:腳|下|底)|原處)|(?:跟|隨)(?:著)?船(?:一起)?(?:走|前進)|不(?:會)?落(?:在)?後|沒有落後/;
+      const experimentSceneIndex = s3.scenes.findIndex((scene) => scene.id === "C1-1");
+      const preExperimentText = s3.scenes.slice(0, experimentSceneIndex)
+        .flatMap((scene) => scene.nodes
+          .filter((node) => !node.legacyOnly)
+          .flatMap((node) => [node.text || "", node.hint || "",
+            ...(node.options || []).map((option) => option.text || "")]))
+        .join("\n");
+      if (!xcard.includes("合理重建") || !xcard.includes("史實邊界") ||
+          steadyResultPattern.test(preExperimentText))
+        throw new Error("C1-1 實驗前的 active 節點或選項提前揭露平穩航行落石結果，或合理重建卡未交代史實邊界");
 
       const paperKeep = byId(s3, "C3-1", "x19")?.text || "";
       if (!paperKeep.includes("舊紙") || !paperKeep.includes("少了一欄") || !paperKeep.includes("不撕"))
@@ -2543,6 +2874,12 @@ tests.push({
     };
     expectMutationFail("合理重建卡提前寫出桅腳", (s3) => {
       byId(s3, "C0-1", "xcard").text += " 結果落在桅腳。";
+    });
+    expectMutationFail("實驗前選項提前寫出跟船一起走", (s3) => {
+      byId(s3, "C0-3", "c1").options[0].text = "石頭會跟船一起走，不會落在後面。";
+    });
+    expectMutationFail("實驗前一般台詞提前寫出桅腳", (s3) => {
+      byId(s3, "C0-2", "n1").text += " 結果會落在桅腳。";
     });
     expectMutationFail("重試句代替玩家縮限", (s3) => {
       byId(s3, "C0-3", "f2").text = "條件沒寫全，這張紙能說的就少；但它記下的落點還是真的。";
@@ -2999,6 +3336,26 @@ tests.push({
     const ch2Again = N2.choose(ch2Retry.state, "a-again");
     if (ch2Again.error || ch2Again.state.rep !== 2)
       throw new Error("第二章同一句越界仍可重複扣信譽");
+    const f3BoundaryBase = N2.initialState("explore");
+    f3BoundaryBase.cursor = { scene:"B2-4", node:"q4" };
+    const f3Boundary = N2.choose(f3BoundaryBase, "b");
+    const f3BoundaryBack = N2.advance(f3Boundary.state);
+    const f3BoundaryAgain = N2.choose(f3BoundaryBack.state, "b_again");
+    if (f3Boundary.error || f3BoundaryAgain.error || f3Boundary.state.rep !== 2 ||
+        f3BoundaryAgain.state.rep !== 2 ||
+        f3Boundary.state.eventLog.filter((event) => event.t === "rep").at(-1)?.reason !==
+          "三列都只記下兩聲分不開，仍把沒有測得的延遲寫成結果")
+      throw new Error("第二章 F3 補寫未測延遲不是一次性信譽事件");
+    const sealBoundaryBase = N2.initialState("explore");
+    sealBoundaryBase.cursor = { scene:"B2-5", node:"q2" };
+    const sealBoundary = N2.choose(sealBoundaryBase, "b");
+    const sealBoundaryBack = N2.advance(sealBoundary.state);
+    const sealBoundaryAgain = N2.choose(sealBoundaryBack.state, "b_again");
+    if (sealBoundary.error || sealBoundaryAgain.error || sealBoundary.state.rep !== 2 ||
+        sealBoundaryAgain.state.rep !== 2 ||
+        sealBoundary.state.eventLog.filter((event) => event.t === "rep").at(-1)?.reason !==
+          "把尚未出航的船桅預測寫成已由桌上實驗完成")
+      throw new Error("第二章把待驗紙封成已完成不是一次性信譽事件");
 
     /* 算錯、預測錯不扣；只有來源／署名／邊界越界才回傳 repDelta。 */
     const tangentWrong = Engine4.sealTangentPrediction(Engine4.initialState(), "arc");
@@ -3051,15 +3408,9 @@ tests.push({
       .pressChoice.options.find((option) => option.id === "a").penalty;
     const liedPenalty = debate.chapter.fr.trap.options
       .find((option) => option.id === "lied").penalty;
-    const overPenalty = debate2.chapter.fr.claim.options
-      .find((option) => option.id === "over").penalty;
-    const skyPenalty = debate2.chapter.fr.claim.options
-      .find((option) => option.id === "sky").penalty;
     for (const [label, penalty] of [
       ["第一章未來權威", futurePenalty],
-      ["第一章偽稱量過垂直", liedPenalty],
-      ["第二章遠砲外推", overPenalty],
-      ["第二章高空外推", skyPenalty]
+      ["第一章偽稱量過垂直", liedPenalty]
     ]) if (!(penalty.reason || "").trim())
       throw new Error(label + " 的辯論信譽後果沒有玩家可讀理由");
 
@@ -3100,31 +3451,26 @@ tests.push({
           event.t === "rep").at(-1)?.reason !== liedPenalty.reason)
       throw new Error("第一章偽稱量過垂直仍可刷扣，或 reason 沒有進事件簿");
 
-    const claimBase = N2.initialState("explore");
-    for (const id of ["F1", "F2", "F3", "F4"]) claimBase.evidence[id] = true;
-    claimBase.debate = {
+    const arrangeBase = N2.initialState("explore");
+    for (const id of ["F1", "F2", "F3", "F4"]) arrangeBase.evidence[id] = true;
+    arrangeBase.debate = {
       persuasion:5, idx:3,
       pillars:{ P1:{broken:true,s:{}}, P2:{broken:true,s:{}},
         P3:{broken:true,s:{}} },
       p3NeedFlag:false, pressChoice:null,
-      fr:{opened:true,step:0,slots:[],trapPending:true,resolved:false,claimDone:false},
+      fr:{opened:true,step:0,slots:[],trapPending:false,resolved:false,
+        claimDone:false,lastLayout:null,attempts:0},
       firstMissUsed:false, status:"pending", mistakes:[]
     };
-    const overOnce = N2.debateFr(claimBase, "over");
-    const overTwice = N2.debateFr(overOnce.state, "over");
-    const skyOnce = N2.debateFr(overTwice.state, "sky");
-    const skyTwice = N2.debateFr(skyOnce.state, "sky");
-    if (overOnce.state.rep !== 2 || overTwice.state.rep !== 2 ||
-        skyOnce.state.rep !== 1 || skyTwice.state.rep !== 1 ||
-        skyTwice.state.eventLog.filter((event) =>
-          event.t === "rep" && event.at === "debate.fr2.over").length !== 1 ||
-        skyTwice.state.eventLog.filter((event) =>
-          event.t === "rep" && event.at === "debate.fr2.sky").length !== 1 ||
-        overOnce.state.eventLog.filter((event) =>
-          event.t === "rep").at(-1)?.reason !== overPenalty.reason ||
-        skyOnce.state.eventLog.filter((event) =>
-          event.t === "rep").at(-1)?.reason !== skyPenalty.reason)
-      throw new Error("第二章範圍越界仍可刷扣，或 reason 沒有進事件簿");
+    const discardOnce = N2.debateFr(arrangeBase,
+      "arrange:table=stands,cannon=discard,sky=unmeasured");
+    const discardTwice = N2.debateFr(discardOnce.state,
+      "arrange:table=stands,cannon=discard,sky=unmeasured");
+    if (discardOnce.state.rep !== 3 || discardTwice.state.rep !== 3 ||
+        discardTwice.state.debate.persuasion !== 3 ||
+        discardTwice.state.eventLog.some((event) => event.t === "rep") ||
+        discardTwice.state.debate.fr.lastLayout.cannon !== "discard")
+      throw new Error("第二章三紙錯排被誤算成信譽，或錯排沒有留在原紙上");
 
     /* 第五章：拿名聲代替帳只扣一次；先立可驗問句才是正向信譽。 */
     const N5 = Narrative._factory(scenes5, Engine5, debate5);
@@ -3197,10 +3543,10 @@ tests.push({
     ch1ReachRepair = Narrative.debateFr(ch1ReachRepair, "lied").state;
 
     let ch2ReachRepair = JSON.parse(JSON.stringify(ch2First.state));
-    for (const id of ["F1", "F2", "F3", "F4"]) ch2ReachRepair.evidence[id] = true;
-    ch2ReachRepair.debate = JSON.parse(JSON.stringify(claimBase.debate));
-    ch2ReachRepair = N2.debateFr(ch2ReachRepair, "over").state;
-    ch2ReachRepair = N2.debateFr(ch2ReachRepair, "sky").state;
+    ch2ReachRepair.cursor = { scene:"B2-4", node:"q4" };
+    ch2ReachRepair = N2.choose(ch2ReachRepair, "b").state;
+    ch2ReachRepair.cursor = { scene:"B2-5", node:"q2" };
+    ch2ReachRepair = N2.choose(ch2ReachRepair, "b").state;
 
     const N3Reach = Narrative._factory(scenes3, Engine3, {});
     let ch3ReachRepair = N3Reach.initialState("explore");
@@ -7091,6 +7437,138 @@ tests.push({
     const right = N5.choose(back.state, "measurement-only");
     if (right.error || right.state.flags.ch5ScaleBoundary !== "measurement-only")
       throw new Error("縮限主張沒有留下玩家承諾");
+  }
+});
+
+tests.push({
+  name: "第三、五章台詞精修|年代伏筆、證據邊界、量綱與論證對位負向契約",
+  fn: () => {
+    const sceneNode = (data, sceneId, nodeId) =>
+      data.scenes.find((scene) => scene.id === sceneId)?.nodes.find((node) => node.id === nodeId);
+
+    const c01x12 = sceneNode(scenes3, "C0-1", "x12");
+    const c01x13 = sceneNode(scenes3, "C0-1", "x13");
+    const c01x14 = sceneNode(scenes3, "C0-1", "x14");
+    const c01x15 = sceneNode(scenes3, "C0-1", "x15");
+    const ce1x2 = sceneNode(scenes3, "CE-1", "x2");
+    if (c01x12?.next !== "x13" || c01x13?.next !== "x14" ||
+        c01x14?.next !== "x16" || c01x15?.legacyOnly !== true)
+      throw new Error("第三章 1640 年伏筆的節點接縫或舊游標相容漂移");
+    if (c01x14?.osPurpose !== "future_knowledge" ||
+        !String(c01x14?.text).includes("不到兩年") ||
+        /一六四二|1642|他會死|去世|逝世|死亡/.test(String(c01x14?.text)))
+      throw new Error("第三章 1640 年心聲沒有保留伏筆，或提前說破伽利略死訊");
+    if (!String(ce1x2?.text).includes("那年秋天") || /兩年前/.test(String(ce1x2?.text)))
+      throw new Error("第三章仍把 1640 年秋至 1642 年 1 月寫成整整兩年");
+
+    const protectedE32 = ["那個坑。", "嗯。", "它是真的。", "我只是不知道要記在哪一欄。"];
+    function keepsProtectedE32(data) {
+      return protectedE32.every((text, index) =>
+        sceneNode(data, "E3-2", "x" + (index + 2))?.text === text);
+    }
+    if (!keepsProtectedE32(scenes5))
+      throw new Error("第五章 E3-2/x2–x5 的定案收尾被改寫");
+    const e32Mutation = JSON.parse(JSON.stringify(scenes5));
+    sceneNode(e32Mutation, "E3-2", "x2").text += "別急。";
+    if (keepsProtectedE32(e32Mutation))
+      throw new Error("第五章 E3-2/x2–x5 逐字護欄的反向控制未轉紅");
+
+    function validateCh5Text(data) {
+      const errors = [];
+      const get = (sceneId, nodeId) => sceneNode(data, sceneId, nodeId);
+      const hints = [get("E1-2", "lab1"), get("E2-2", "lab2"), get("E2-3", "lab3")];
+      if (hints.some((node) => /勾選|勾回|點選|斷言[一二三]|4／8/.test(String(node?.hint || ""))))
+        errors.push("hint-interface");
+      if (!String(hints[0]?.hint).includes("彈開與黏住") ||
+          !String(hints[1]?.hint).includes("同一批紀錄") ||
+          !String(hints[1]?.hint).includes("四比八") ||
+          !String(hints[2]?.hint).includes("三種落下高度"))
+        errors.push("hint-mission");
+
+      const worldText = data.scenes.flatMap((scene) => scene.nodes
+        .filter((node) => node.legacyOnly !== true)
+        .flatMap((node) => [node.text, node.hint]
+          .concat((node.options || []).map((option) => option.text))))
+        .filter(Boolean).join("\n");
+      if (/第[一二三四五]章/.test(worldText)) errors.push("world-chapter");
+
+      const ee2x7 = get("EE-2", "x7");
+      const ee2Choice = get("EE-2", "c_next")?.options?.[0];
+      const boundary = String(ee2x7?.text || "") + "\n" + String(ee2Choice?.text || "");
+      if (ee2x7?.speaker !== "stage" || /溫度|能量|動能|變成兩顆球/.test(boundary) ||
+          !String(ee2x7?.text).includes("只量到油灰") ||
+          !String(ee2Choice?.text).includes("完整去向"))
+        errors.push("evidence-boundary");
+
+      const e02x8 = String(get("E0-2", "x8")?.text || "");
+      if (/同一場|同一次/.test(e02x8) || !e02x8.includes("兩份紙") || !e02x8.includes("碰撞留下的痕跡"))
+        errors.push("same-event");
+      const reuse = String(get("E2-2", "reuse_1")?.text || "");
+      if (/數字就會一樣|數字一樣/.test(reuse) ||
+          !reuse.includes("一起對平") || !reuse.includes("一起短少"))
+        errors.push("dimension");
+
+      if (/第[一二三四五六七八九十]+次/.test(String(get("EE-1", "emilie_notebook_6")?.text || "")))
+        errors.push("ordinal");
+      const sourceCards = String(get("E0-2", "s6")?.text || "") +
+        String(get("E0-2", "s7")?.text || "");
+      if (/可測主張|開收據/.test(sourceCards)) errors.push("source-register");
+      if (/失手配對/.test(String(get("E3-1", "debrief")?.hint || "")))
+        errors.push("debrief-register");
+      for (const [sceneId, nodeId, retired] of [
+        ["E2-1", "x3", "他不是看不見那個坑"],
+        ["E2-2", "missing_depth_2", "她在防的不是院士"],
+        ["E2-3", "scale_bad_world", "不是全世界"],
+        ["EE-1", "n2", "不只是翻字"]
+      ]) if (String(get(sceneId, nodeId)?.text || "").includes(retired))
+        errors.push("retired-aphorism");
+      return errors;
+    }
+
+    const baseErrors = validateCh5Text(scenes5);
+    if (baseErrors.length) throw new Error("第五章台詞契約失敗:" + baseErrors.join("、"));
+    const rejectMutation = (label, mutate, expected) => {
+      const copy = JSON.parse(JSON.stringify(scenes5));
+      const get = (sceneId, nodeId) => sceneNode(copy, sceneId, nodeId);
+      mutate(get);
+      const errors = validateCh5Text(copy);
+      if (!errors.includes(expected))
+        throw new Error("第五章台詞負向控制未轉紅:" + label + "→" + errors.join("、"));
+    };
+    rejectMutation("hint 介面動詞", (get) => {
+      get("E1-2", "lab1").hint = "勾選後提出斷言一。";
+    }, "hint-interface");
+    rejectMutation("世界內章號", (get) => {
+      get("EE-2", "x2").text = "第四章那個問號。";
+    }, "world-chapter");
+    rejectMutation("未量溫度", (get) => {
+      get("EE-2", "c_next").options[0].text += "它變成溫度。";
+    }, "evidence-boundary");
+    rejectMutation("不同來源偷換同一事件", (get) => {
+      get("E0-2", "x8").text = "兩份紙量的是同一場撞。";
+    }, "same-event");
+    rejectMutation("不同量綱偷換同一數字", (get) => {
+      get("E2-2", "reuse_1").text = "兩本帳算出來的數字就會一樣。";
+    }, "dimension");
+
+    const chapterUi = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const stageHtml = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const introUi = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");
+    const legacyUi = readFileSync(path.join(here, "../src/ui.js"), "utf-8");
+    const visibleSources = [chapterUi, stageHtml, introUi, legacyUi,
+      JSON.stringify(scenes), JSON.stringify(scenes2), JSON.stringify(scenes5),
+      JSON.stringify(debate), JSON.stringify(require("../data/debate2.js"))].join("\n");
+    if (visibleSources.includes("說服力") || !visibleSources.includes("論證對位"))
+      throw new Error("玩家可見『說服力』尚未完整改名為『論證對位』");
+    if (!chapterUi.includes("看證據有沒有咬住主張；配錯會退回，歸零先複盤。") ||
+        !chapterUi.includes("state.debate.persuasion") || debate5.persuasion !== 5)
+      throw new Error("論證對位 tooltip 缺意義說明，或底層 persuasion 契約被誤改");
+
+    const novel5 = readFileSync(path.join(here,
+      "../../04_劇本/第五章可操作小說稿_兩本帳_v0.1-draft.md"), "utf-8");
+    if (novel5.includes("本章全程靜止，失敗一律退回、不扣分") ||
+        !novel5.includes("E3 辯論另啟用 5 點「論證對位」"))
+      throw new Error("第五章小說稿仍與 runtime 的雙軌分數契約矛盾");
   }
 });
 

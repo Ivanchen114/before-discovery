@@ -56,7 +56,7 @@
     var e3 = state.evidence.e3;
     $("e3State").textContent = "斜面主張：規律" + (e3.a ? "●" : "○") + " 重量" + (e3.b ? "●" : "○") + " 傾角" + (e3.c ? "●" : "○") + (Engine.e3Established(state) ? "（確立）" : "");
     var P3 = state.belief.P3;
-    $("persuasion").textContent = "說服力:" + Array(P3.persuasion + 1).join("●") + Array(5 - P3.persuasion + 1).join("○");
+    $("persuasion").textContent = "論證對位:" + Array(P3.persuasion + 1).join("●") + Array(5 - P3.persuasion + 1).join("○");
     $("p3Status").textContent = "目的論支柱：" + ({ pending: "未決", suspended: "辯論中止", broken: "已破裂" })[P3.status];
   }
 
@@ -232,10 +232,10 @@
         log(label + " 方向對,但不足。" + DEBATE.statements[1].insufficient.reply + "(量表不減)");
         break;
       case "wrong":
-        log(label + " " + DEBATE.texts.absorb + "(說服力 −1)");
+        log(label + " " + DEBATE.texts.absorb + "(論證對位 −1)");
         break;
       case "suspended":
-        log(label + " " + DEBATE.texts.absorb + "(說服力 −1)\n【辯論中止】" + DEBATE.texts.suspendHint + "\n(證據與主張完整保留,回實驗台補強後可再入辯論)");
+        log(label + " " + DEBATE.texts.absorb + "(論證對位 −1)\n【辯論中止】" + DEBATE.texts.suspendHint + "\n(證據與主張完整保留,回實驗台補強後可再入辯論)");
         break;
       case "suspended_block":
         log("(辯論已中止——請先按「再入辯論」)");
@@ -251,7 +251,7 @@
     var res = Engine.reenterDebate(state);
     if (res.error) { log("(" + res.error + ")"); return; }
     state = res.state;
-    log("【再入辯論】說服力重置為 5;證詞狀態保留。");
+    log("【再入辯論】論證對位重置為 5;證詞狀態保留。");
     renderAll();
   };
 

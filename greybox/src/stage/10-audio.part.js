@@ -263,7 +263,7 @@
   document.addEventListener("bd:debate", function (ev) { /* 雙章辯論 A/B/C:開庭→支柱裂開→最後反撲 */
     if (BGM.current() !== "hall" && BGM.current() !== "ch2Debate") return;
     var d = ev.detail || {}, n = (d.broken || []).length;
-    if (d.phase === "fr" || d.phase === "trap" || d.phase === "won") BGM.variant(2);
+    if (d.phase === "fr" || d.phase === "trap" || d.phase === "arrange" || d.phase === "won") BGM.variant(2);
     else if (n >= (BGM.current() === "ch2Debate" ? 1 : 2)) BGM.variant(1);
     else BGM.variant(0);
   });

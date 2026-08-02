@@ -199,7 +199,11 @@
       mistakes: [],
       status: "pending"
     };
-    if (CH.fr.enemy) { /* 第二章 FR(R-DEB2-06):兩步敵方判讀→claim→F5 組裝 */
+    if (CH.fr.kind === "annotation-arrange") {
+      state.debate.fr.lastLayout = null;
+      state.debate.fr.attempts = 0;
+      state.debate.fr.claimDone = false; /* 舊存檔／回顧欄位：完成三紙重排後才成立 */
+    } else if (CH.fr.enemy) { /* 第二章舊 FR 存檔相容欄位 */
       state.debate.fr.enemyStep = "slope";
       state.debate.fr.enemySlopeRead = false;
       state.debate.fr.enemyClassified = false;
@@ -393,6 +397,58 @@
     var x = state.crossChapter && state.crossChapter.ch1;
     return (x && x.certified) ? CH.fr.explore.stepsInherited : CH.fr.explore.stepsLocal;
   }
+  function debateFrArrange2(state, state0, optionId) {
+    var d = state.debate, A = CH.fr.arrangement;
+    for (var i = 0; i < CH.fr.requires.length; i++)
+      if (!state.evidence[CH.fr.requires[i]])
+        return { state: state0, error: "證據未齊:" + CH.fr.requires[i] };
+    if (typeof optionId !== "string" || optionId.indexOf("arrange:") !== 0)
+      return { state: state0, error: "請先替三張紙各選一個位置" };
+    var allowedCards = {}, allowedDispositions = {}, labels = {};
+    A.cards.forEach(function (card) { allowedCards[card.id] = true; });
+    A.dispositions.forEach(function (item) {
+      allowedDispositions[item.id] = true;
+      labels[item.id] = item.label;
+    });
+    var layout = {}, parts = optionId.slice(8).split(",");
+    for (i = 0; i < parts.length; i++) {
+      var pair = parts[i].split("=");
+      if (pair.length !== 2 || !allowedCards[pair[0]] || !allowedDispositions[pair[1]] || layout[pair[0]])
+        return { state: state0, error: "三紙排法格式不合法" };
+      layout[pair[0]] = pair[1];
+    }
+    for (i = 0; i < A.cards.length; i++)
+      if (!layout[A.cards[i].id]) return { state: state0, error: "三張紙都要留下位置" };
+    d.fr.lastLayout = layout;
+    d.fr.attempts = (d.fr.attempts || 0) + 1;
+    say(state, "旅人(你)", A.cards.map(function (card) {
+      return card.source + " → " + labels[layout[card.id]];
+    }).join("；"));
+    var wrong = null;
+    if (layout.cannon === "discard") wrong = A.wrongReplies.cannonDiscard;
+    else if (layout.cannon === "refutes") wrong = A.wrongReplies.cannonRefutes;
+    else if (layout.table !== A.correct.table) wrong = A.wrongReplies.tableLost;
+    else if (layout.cannon !== A.correct.cannon) wrong = A.wrongReplies.cannonLost;
+    else if (layout.sky !== A.correct.sky) wrong = A.wrongReplies.skyFilled;
+    if (wrong) {
+      say(state, "system", A.wrongLead);
+      say(state, opponentSpeaker(), wrong);
+      rememberMistake(d, {
+        kind: "arrangement", layout: clone(layout),
+        label: "三紙排法仍越過至少一張原紙的邊界。"
+      });
+      /* 這是正式論辯的對位失準，不把答題錯誤冒充研究信譽事件。 */
+      debatePersuasion(state, -1, "debate.fr2.arrangement");
+      return { state: state, outcome: d.status === "suspended" ? "suspended" : "retry" };
+    }
+    (A.success || []).forEach(function (line) { say(state, line.speaker, line.text); });
+    d.fr.claimDone = true;
+    d.fr.resolved = true;
+    d.status = "won";
+    grantEvidence(state, CH.fr.grant || "F5", "debate.fr");
+    state.eventLog.push({ t: "debateWon" });
+    return { state: state, outcome: "resolved" };
+  }
   function debateFr2(state, state0, optionId) {
     var d = state.debate;
     for (var i = 0; i < CH.fr.requires.length; i++)
@@ -543,7 +599,8 @@
     var d = state.debate;
     var g = guardDebate(state); if (g) return { state: state0, error: g };
     if (!d.fr.opened || d.fr.resolved) return { state: state0, error: "尚未進入最後反撲" };
-    if (CH.fr.enemy) return debateFr2(state, state0, optionId); /* 第二章 FR 全流程 */
+    if (CH.fr.kind === "annotation-arrange") return debateFrArrange2(state, state0, optionId);
+    if (CH.fr.enemy) return debateFr2(state, state0, optionId); /* 第二章舊 FR 全流程 */
     if (CH.fr.kind === "rewrite") return debateFrRewrite(state, state0, optionId);
     /* A-1:外推論證之前提=玩家親手驗過「隨傾角形式不變」(E3.c);未持有不得組鏈 */
     if (!state.lab.evidence.e3.c) {
@@ -609,6 +666,25 @@
     return { state: state };
   }
 
+  function annotationArrangeView(d) {
+    return {
+      prompt: CH.fr.arrangement.prompt,
+      originalNote: CH.fr.arrangement.originalNote,
+      cards: CH.fr.arrangement.cards.map(function (card) {
+        return { id: card.id, source: card.source, text: card.text };
+      }),
+      slots: CH.fr.arrangement.slots.map(function (slot) {
+        return { id: slot.id, label: slot.label };
+      }),
+      dispositions: CH.fr.arrangement.dispositions.map(function (item) {
+        return { id: item.id, label: item.label };
+      }),
+      lastLayout: d.fr.lastLayout ? clone(d.fr.lastLayout) : null,
+      attempts: d.fr.attempts || 0,
+      resolved: !!d.fr.resolved
+    };
+  }
+
   function debateView(state) {
     var d = state.debate;
     if (!d) return null;
@@ -631,7 +707,10 @@
         v.pressChoice = { prompt: stmt.pressChoice.prompt, options: stmt.pressChoice.options.map(function (o) { return { id: o.id, text: o.text }; }) };
       }
     } else if (!d.fr.resolved) {
-      if (CH.fr.enemy && (d.fr.enemyStep === "slope" || d.fr.enemyStep === "classify")) {
+      if (CH.fr.kind === "annotation-arrange") {
+        v.phase = "arrange";
+        v.arrange = annotationArrangeView(d);
+      } else if (CH.fr.enemy && (d.fr.enemyStep === "slope" || d.fr.enemyStep === "classify")) {
         var Ed = d.fr.enemyStep === "slope" ? CH.fr.enemy.slope : CH.fr.enemy.classify;
         v.phase = "enemy";
         v.enemy = { step: d.fr.enemyStep, card: CH.fr.enemy.card, prompt: Ed.prompt,
@@ -656,7 +735,10 @@
         v.fr = { kind: "scholar", prompt: CH.fr.scholar.slotPrompt, slots: d.fr.slots.slice(),
                  pool: corr0.concat(CH.fr.scholar.distractors).map(function (o) { return { id: o.id, text: o.text }; }) };
       }
-    } else { v.phase = "won"; }
+    } else {
+      v.phase = "won";
+      if (CH.fr.kind === "annotation-arrange") v.arrange = annotationArrangeView(d);
+    }
     return v;
   }
 
