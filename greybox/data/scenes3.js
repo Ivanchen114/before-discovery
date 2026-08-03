@@ -1636,6 +1636,7 @@
   {
    "id": "CE-2",
    "title": "旅人筆記・末頁",
+   "historyTag": "documented-future-echo + explicit-boundary",
    "nodes": [
     {
      "id": "n1",
@@ -1734,6 +1735,28 @@
      "type": "line",
      "speaker": "stage",
      "text": "「這個世界只為證據付費。」",
+     "next": "f1"
+    },
+    {
+     "id": "f1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "褐色字跡旁忽然透出冷白光。印刷室的牆退到紙外，狹窄艙室、儀表與三道人影從筆記裡浮了起來。",
+     "next": "f2"
+    },
+    {
+     "id": "f2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "1968 年，阿波羅 8 號繞著月球航行。艙裡一支筆和一張紙浮在三名太空人身旁；窗外的月面仍一段一段彎過去。",
+     "next": "f3"
+    },
+    {
+     "id": "f3",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
+     "text": "紙、筆、人和整艘船一起前進，船艙裡沒有人被甩到後面。可這幕仍沒回答：整艘船為什麼會沿著月亮轉彎？",
      "next": "x5"
     },
     {

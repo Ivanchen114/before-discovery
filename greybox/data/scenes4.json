@@ -2224,13 +2224,35 @@
   {
    "id": "DE-2",
    "title": "下一本帳",
-   "historyTag": "modern-model",
+   "historyTag": "documented-future-echo + modern-model",
    "nodes": [
     {
      "id": "n1",
      "type": "line",
      "speaker": "stage",
      "text": "印刷工收著鉛字，把字盒一格一格推回架上。",
+     "next": "f1"
+    },
+    {
+     "id": "f1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人筆記的頁角忽然亮起。鉛字盒後方的黑暗拉深成星空，一顆帶著四根長鬚的銀色小球從紙面升起。",
+     "next": "f2"
+    },
+    {
+     "id": "f2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "1957 年，史普尼克一號成為第一顆繞行地球的人造衛星。它比一個人還輕，卻一次又一次從地平線外回來。",
+     "next": "f3"
+    },
+    {
+     "id": "f3",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
+     "text": "牛頓寫下的規則，幾百年後真的讓人造的月亮一直落、也一直錯過地面。可兩個東西若撞在一起，軌道那本帳還不夠用。",
      "next": "n2"
     },
     {

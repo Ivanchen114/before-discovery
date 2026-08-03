@@ -4004,18 +4004,28 @@
       "finite-predictions", "continuous-run", "finite-verdict", "audit", "joint-page", "complete"];
     if (phases.indexOf(lab.phase) < 0) return fail("第六章工作階段無法辨識");
     var sources6 = ["chips", "cannon", "air", "water"];
+    var sourceRules6 = engine6.SOURCE_RULES || {};
     var sourceLedger = lab.sourceLedger;
     if (!sourceLedger.placements || !sourceLedger.consequences || !sourceLedger.modelPredictions ||
         typeof sourceLedger.sealed !== "boolean") return fail("第六章來源帳格式錯誤");
     if (sourceLedger.sealed && (!sources6.every(function (source) {
-      return typeof sourceLedger.placements[source] === "string" && !!sourceLedger.placements[source] &&
-        typeof sourceLedger.consequences[source] === "string" && !!sourceLedger.consequences[source];
-    }) || typeof sourceLedger.modelPredictions.caloric !== "string" ||
-      typeof sourceLedger.modelPredictions.motion !== "string"))
+      var rule = sourceRules6[source] || {};
+      return sourceLedger.placements[source] === rule.position &&
+        sourceLedger.consequences[source] === rule.consequence;
+    }) || ["finite-sources", "no-visible-cost"].indexOf(sourceLedger.modelPredictions.caloric) < 0 ||
+      ["continued-motion", "single-impact"].indexOf(sourceLedger.modelPredictions.motion) < 0))
       return fail("第六章來源帳封存缺少內容");
     var recordIds = {}, maxRecordId = 0;
     var recordKinds = ["chip-comparison", "friction-condition", "dry-strip", "air-comparison",
       "water-box-preparation", "continuous-segment"];
+    function sameNumber6(actual, expected) {
+      return typeof actual === "number" && isFinite(actual) && Math.abs(actual - expected) < 1e-9;
+    }
+    function roundOne6(value) { return Math.round(value * 10) / 10; }
+    function chipCurve6(start, end) {
+      return [roundOne6(start), roundOne6(start + (end - start) * 0.55),
+        roundOne6(start + (end - start) * 0.82), roundOne6(end)];
+    }
     for (var ri = 0; ri < lab.records.length; ri++) {
       var row = lab.records[ri];
       if (!row || !isInt(row.id) || row.id <= 0 || recordIds[row.id] ||
@@ -4025,12 +4035,33 @@
       maxRecordId = Math.max(maxRecordId, row.id);
       if ((row.kind === "chip-comparison" || row.kind === "dry-strip" || row.kind === "air-comparison") &&
           typeof row.clean !== "boolean") return fail("第六章原紙缺乾淨狀態");
+      if (row.kind === "chip-comparison") {
+        var cd = row.conditions || {};
+        var massKeys6 = ["chipMass", "plateMass", "waterA", "waterB"];
+        var tempKeys6 = ["chipTemp", "plateTemp", "waterTempA", "waterTempB"];
+        if (massKeys6.some(function (key) { return !sameNumber6(cd[key], cd[key]) || cd[key] <= 0 || cd[key] > 20; }) ||
+            tempKeys6.some(function (key) { return !sameNumber6(cd[key], cd[key]) || cd[key] < 5 || cd[key] > 90; }))
+          return fail("第六章碎屑比較條件錯誤");
+        var chipEnd6 = (cd.chipMass * cd.chipTemp + cd.waterA * cd.waterTempA) / (cd.chipMass + cd.waterA);
+        var plateEnd6 = (cd.plateMass * cd.plateTemp + cd.waterB * cd.waterTempB) / (cd.plateMass + cd.waterB);
+        var clean6 = cd.chipMass === cd.plateMass && cd.chipTemp === cd.plateTemp &&
+          cd.waterA === cd.waterB && cd.waterTempA === cd.waterTempB;
+        var reasons6 = [];
+        if (cd.chipMass !== cd.plateMass) reasons6.push("mass-mismatch");
+        if (cd.chipTemp !== cd.plateTemp) reasons6.push("sample-temperature-mismatch");
+        if (cd.waterA !== cd.waterB) reasons6.push("water-mass-mismatch");
+        if (cd.waterTempA !== cd.waterTempB) reasons6.push("water-temperature-mismatch");
+        if (row.clean !== clean6 || JSON.stringify(row.dirtyReasons || []) !== JSON.stringify(reasons6) ||
+            JSON.stringify(row.chipCurve) !== JSON.stringify(chipCurve6(cd.waterTempA, chipEnd6)) ||
+            JSON.stringify(row.plateCurve) !== JSON.stringify(chipCurve6(cd.waterTempB, plateEnd6)))
+          return fail("第六章碎屑曲線與實際條件不一致");
+      }
       if (row.kind === "continuous-segment" && (!isInt(row.segment) || row.segment < 1 || row.segment > 6 ||
-          ["continue", "calibrate", "repair-leak"].indexOf(row.action) < 0 ||
+          row.action !== "record-next" ||
           typeof row.temperature !== "number" || !isFinite(row.temperature)))
         return fail("第六章長時段原紙格式錯誤");
     }
-    if (lab.recordSeq < maxRecordId) return fail("第六章原紙序號倒退");
+    if (lab.recordSeq !== maxRecordId) return fail("第六章原紙序號與紀錄不一致");
     function idsValid(ids, kind) {
       return Array.isArray(ids) && ids.length <= 500 && new Set(ids).size === ids.length &&
         ids.every(function (id) { return recordIds[id] && (!kind || recordIds[id].kind === kind); });
@@ -4047,10 +4078,34 @@
       return fail("第六章乾式紙帶紀錄不一致");
     if (typeof lab.airBench.sealed !== "boolean" || !Array.isArray(lab.airBench.attempts) ||
         !idsValid(lab.airBench.attempts, "air-comparison") || !idsValid(lab.airBench.cleanRecordIds, "air-comparison") ||
-        typeof lab.airBench.judged !== "boolean") return fail("第六章空氣對照紀錄不一致");
+        typeof lab.airBench.judged !== "boolean" ||
+        [null, "fulfilled", "not-fulfilled"].indexOf(lab.airBench.predictionOutcome) < 0 ||
+        (lab.airBench.sealed && ["slower-when-sealed", "faster-when-sealed"].indexOf(lab.airBench.prediction) < 0))
+      return fail("第六章空氣對照紀錄不一致");
+    if ((lab.airBench.judged && (!lab.airBench.sealed || lab.airBench.predictionOutcome == null)) ||
+        (!lab.airBench.judged && lab.airBench.predictionOutcome != null))
+      return fail("第六章空氣預測判讀時序不一致");
     if (!lab.waterBench.draft || !Array.isArray(lab.waterBench.attempts) ||
-        !idsValid(lab.waterBench.attempts, "water-box-preparation") || typeof lab.waterBench.ready !== "boolean")
+        !idsValid(lab.waterBench.attempts, "water-box-preparation") || typeof lab.waterBench.ready !== "boolean" ||
+        typeof lab.waterBench.draft.waterRead !== "boolean" ||
+        typeof lab.waterBench.draft.cannonRead !== "boolean" ||
+        typeof lab.waterBench.draft.equilibrated !== "boolean")
       return fail("第六章水箱紀錄不一致");
+    var waterDraft6 = lab.waterBench.draft;
+    var waterReady6 = lab.waterBench.attempts.length === 1;
+    if (lab.waterBench.attempts.length > 1 || lab.waterBench.ready !== waterReady6 ||
+        lab.waterBench.ready && (!sameNumber6(waterDraft6.water, waterDraft6.water) ||
+          !sameNumber6(waterDraft6.cannon, waterDraft6.cannon) ||
+          waterDraft6.water < 5 || waterDraft6.water > 60 || waterDraft6.cannon < 5 || waterDraft6.cannon > 60 ||
+          !waterDraft6.waterRead || !waterDraft6.cannonRead || !waterDraft6.equilibrated ||
+          !waterDraft6.sealed || !waterDraft6.leakChecked || !waterDraft6.sampling ||
+          Math.abs(waterDraft6.water - waterDraft6.cannon) > 0.5))
+      return fail("第六章水箱乾淨起點與封存紀錄不一致");
+    if (lab.waterBench.ready) {
+      var waterRecord6 = recordIds[lab.waterBench.attempts[0]];
+      if (!waterRecord6.clean || JSON.stringify(waterRecord6.conditions) !== JSON.stringify(waterDraft6))
+        return fail("第六章水箱封存原紙與起點不一致");
+    }
     var finite = lab.finiteSources;
     var bands = [null, "soon", "within-shift", "no-endpoint"];
     var verdicts = [null, "fulfilled", "not-fulfilled", "insufficient"];
@@ -4063,36 +4118,66 @@
       if (bands.indexOf(finite.bands[source]) < 0 || verdicts.indexOf(finite.verdicts[source]) < 0 ||
           sealStates.indexOf(finite.sealState[source]) < 0)
         return fail("第六章來源封條狀態無法辨識");
+      if (finite.bands[source] != null &&
+          (!sourceRules6[source] || sourceRules6[source].bands.indexOf(finite.bands[source]) < 0))
+        return fail("第六章來源終點帶與來源不相容");
       if (finite.verdicts[source] === "not-fulfilled" && finite.sealState[source] !== "cracked")
         return fail("第六章來源已否證但封條未裂");
+      if (finite.bands[source] === "no-endpoint" && finite.verdicts[source] === "not-fulfilled")
+        return fail("第六章無終點預測被越界判敗");
+      if (finite.verdicts[source] === "insufficient" &&
+          (finite.bands[source] !== "no-endpoint" || finite.sealState[source] !== "intact"))
+        return fail("第六章不足判讀錯誤改動封條");
+      if (finite.verdicts[source] === "fulfilled") return fail("第六章曲線沒有兌現任一有限來源預測");
       if (!finite.verdicts[source] && finite.sealState[source] !== "intact")
         return fail("第六章未判讀封條被提前改變");
     }
-    if (finite.sealed && !sources6.every(function (source) { return bands.indexOf(finite.bands[source]) > 0; }))
+    if (finite.sealed && !sources6.every(function (source) {
+      return sourceRules6[source] && sourceRules6[source].bands.indexOf(finite.bands[source]) >= 0;
+    }))
       return fail("第六章有限來源封存不完整");
     var continuous = lab.continuousRun;
     if (!idsValid(continuous.segments, "continuous-segment") || typeof continuous.complete !== "boolean" ||
         typeof continuous.reachedBoiling !== "boolean") return fail("第六章長時段狀態格式錯誤");
     if (continuous.complete !== (continuous.segments.length === 6) || continuous.reachedBoiling !== continuous.complete)
       return fail("第六章長時段完成狀態與原紙不一致");
-    var allNotFulfilled = sources6.every(function (source) { return finite.verdicts[source] === "not-fulfilled"; });
-    if (finite.complete !== allNotFulfilled || finite.complete && !continuous.complete)
+    var longTemperatures6 = [31, 47, 65, 83, 96, 100];
+    for (var csi = 0; csi < continuous.segments.length; csi++) {
+      var segmentRow6 = recordIds[continuous.segments[csi]];
+      if (segmentRow6.segment !== csi + 1 || segmentRow6.minutes !== (csi + 1) * 30 ||
+          segmentRow6.temperature !== longTemperatures6[csi] || segmentRow6.horsePace !== "steady" ||
+          segmentRow6.pressure !== "fixed" || segmentRow6.leak !== "none")
+        return fail("第六章長時段原紙與單鍵記錄序列不一致");
+    }
+    var allLegallyJudged = sources6.every(function (source) {
+      var verdict = finite.verdicts[source];
+      return verdict === "not-fulfilled" || verdict === "insufficient";
+    });
+    if (finite.complete !== allLegallyJudged || finite.complete && !continuous.complete)
       return fail("第六章來源判讀完成狀態不一致");
     var evidenceKeys6 = ["s8", "t1", "t2", "t3", "t4", "t5"];
     if (!evidenceKeys6.every(function (key) { return typeof lab.evidence[key] === "boolean"; }))
       return fail("第六章證據狀態格式錯誤");
-    if (lab.evidence.t1 !== !!lab.chipBench.judged || lab.evidence.t2 !== !!lab.frictionBench.judged ||
+    if (lab.evidence.t1 !== !!lab.chipBench.judged || lab.evidence.t2 !== !!lab.dryBench.judged ||
         lab.evidence.t3 !== !!lab.airBench.judged || lab.evidence.t4 !== !!finite.complete)
       return fail("第六章 T1–T4 與玩家判讀不一致");
     if (lab.evidence.t1 && !lab.chipBench.cleanRecordIds.length) return fail("第六章 T1 缺乾淨來源");
-    if (lab.evidence.t2 && ["rotation-only", "pressure-only", "contact-motion"].some(function (condition) {
-      return !lab.frictionBench.sealed[condition];
-    })) return fail("第六章 T2 缺三條條件紙");
+    if (lab.evidence.t2 && (!lab.frictionBench.judged || !lab.dryBench.cleanRecordId ||
+        ["rotation-only", "pressure-only", "contact-motion"].some(function (condition) {
+          return !lab.frictionBench.sealed[condition];
+        }))) return fail("第六章 T2 缺三條條件紙或乾式紙帶");
     if (lab.evidence.t3) {
       var airRows = lab.airBench.cleanRecordIds.map(function (id) { return recordIds[id]; });
       if (!airRows.some(function (row) { return row.condition === "open"; }) ||
           !airRows.some(function (row) { return row.condition === "sealed"; }))
         return fail("第六章 T3 缺密合與未密合對照");
+      var openAir6 = airRows.filter(function (row) { return row.condition === "open"; })[0];
+      var sealedAir6 = airRows.filter(function (row) { return row.condition === "sealed"; })[0];
+      var airDifference6 = sealedAir6.curve[sealedAir6.curve.length - 1] - sealedAir6.curve[0] -
+        (openAir6.curve[openAir6.curve.length - 1] - openAir6.curve[0]);
+      var airHit6 = lab.airBench.prediction === "slower-when-sealed" ? airDifference6 < -2 : airDifference6 > 2;
+      if (lab.airBench.predictionOutcome !== (airHit6 ? "fulfilled" : "not-fulfilled"))
+        return fail("第六章空氣預測結果與兩張原紙不一致");
     }
     var audit = lab.auditBoard;
     if (!audit.placements || typeof audit.complete !== "boolean" ||

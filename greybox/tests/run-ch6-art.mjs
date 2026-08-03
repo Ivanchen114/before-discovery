@@ -121,6 +121,14 @@ for (const [scene, match, id] of focusChecks) {
     fail("台詞聚焦圖未完整接上:" + scene);
   requireAsset(entries, id, { kind: "prop", w: 1200, h: 750 });
 }
+const epilogueFocus = assets.lineFocusVisual.find((item) =>
+  item.scene === "HE-1" && item.match === "旅人把兩頁攤在一起");
+if (epilogueFocus?.epilogue !== true ||
+    epilogueFocus?.items?.[0]?.asset !== "ch06_epilogue_unmeasured_exchange_v01")
+  fail("第六章末頁圖或 epilogue 放大演出未接上");
+requireAsset(entries, "ch06_epilogue_unmeasured_exchange_v01", {
+  kind: "bg", w: 1920, h: 1080
+});
 
 for (const code of ["S8", "T1", "T2", "T3", "T4", "T5"]) {
   requireAsset(entries, "card_" + code, { kind: "card", w: 1200, h: 750 });
@@ -163,7 +171,7 @@ for (const entry of assets.entries) {
     runtimePaths.add(runtime);
   }
 }
-if (runtimePaths.size !== 30) fail("第六章 runtime 檔案數應為 30，實際 " + runtimePaths.size);
+if (runtimePaths.size !== 32) fail("第六章 runtime 檔案數應為 32，實際 " + runtimePaths.size);
 if (totalBytes > 8 * 1024 * 1024) fail("第六章 runtime 圖片超過全章 8 MB 預算");
 
-console.log("  ✓ 第六章正式美術交接（30 圖，" + (totalBytes / 1024 / 1024).toFixed(2) + " MB）");
+console.log("  ✓ 第六章正式美術交接（32 圖，含章末未來顯影，" + (totalBytes / 1024 / 1024).toFixed(2) + " MB）");

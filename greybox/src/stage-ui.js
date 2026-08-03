@@ -260,7 +260,7 @@
   function clearFocusVisual() {
     var fig = $("sceneFocus");
     if (!fig) return;
-    fig.classList.remove("on", "multi", "quad", "evidence-acquired");
+    fig.classList.remove("on", "multi", "quad", "epilogue", "future-echo", "question-handoff", "evidence-acquired");
     fig.hidden = true;
     $("sceneFocusMedia").innerHTML = "";
     $("sceneFocusCaption").textContent = "";
@@ -374,6 +374,9 @@
     if (!fig || !media) return;
     media.innerHTML = "";
     fig.classList.remove("evidence-acquired");
+    fig.classList.toggle("epilogue", !!rule.epilogue);
+    fig.classList.toggle("future-echo", rule.epilogueLayer === "future-echo");
+    fig.classList.toggle("question-handoff", rule.epilogueLayer === "question-handoff");
     var shown = 0;
     (rule.items || []).forEach(function (item) {
       if (item.evidence === "E2") {

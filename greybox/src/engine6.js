@@ -6,6 +6,30 @@
   var SOURCES = ["chips", "cannon", "air", "water"];
   var BANDS = ["soon", "within-shift", "no-endpoint"];
   var VERDICTS = ["fulfilled", "not-fulfilled", "insufficient"];
+  var SOURCE_RULES = {
+    chips: {
+      position: "鑽下的碎屑",
+      consequence: "碎屑容納熱的本事應改變",
+      bands: ["soon", "no-endpoint"]
+    },
+    cannon: {
+      position: "炮身金屬內",
+      consequence: "炮身應先冷卻或讓升溫線衰減",
+      bands: ["soon", "within-shift"]
+    },
+    air: {
+      position: "進氣口",
+      consequence: "密合後升溫應變慢",
+      bands: ["soon", "no-endpoint"]
+    },
+    water: {
+      position: "水箱內",
+      consequence: "水應先冷卻或讓升溫線衰減",
+      bands: ["soon", "within-shift"]
+    }
+  };
+  var CALORIC_MODELS = ["finite-sources", "no-visible-cost"];
+  var MOTION_MODELS = ["continued-motion", "single-impact"];
   var FRICTION = ["rotation-only", "pressure-only", "contact-motion"];
   var JOINT_COLUMNS = ["operation", "readings", "caloric", "motion"];
   var JOINT_VALUES = {
@@ -57,8 +81,17 @@
         draft: { horsePace: "steady", pressure: "fixed", sampling: "sixteen-beats" },
         attempts: [], cleanRecordId: null, judged: false
       },
-      airBench: { prediction: null, sealed: false, attempts: [], cleanRecordIds: [], judged: false },
-      waterBench: { draft: { water: 18, sealed: false, leakChecked: false, sampling: false }, attempts: [], ready: false },
+      airBench: {
+        prediction: null, predictionOutcome: null, sealed: false,
+        attempts: [], cleanRecordIds: [], judged: false
+      },
+      waterBench: {
+        draft: {
+          water: 18, cannon: 24, waterRead: false, cannonRead: false,
+          equilibrated: false, sealed: false, leakChecked: false, sampling: false
+        },
+        attempts: [], ready: false
+      },
       finiteSources: {
         bands: { chips: null, cannon: null, air: null, water: null },
         sealed: false,
@@ -85,6 +118,9 @@
     if (state0.sourceLedger.sealed) return fail(state0, "source-ledger-sealed");
     if (typeof args.position !== "string" || !args.position || typeof args.consequence !== "string" || !args.consequence)
       return fail(state0, "source-ledger-entry-incomplete");
+    var rule = SOURCE_RULES[args.source];
+    if (args.position !== rule.position || args.consequence !== rule.consequence)
+      return fail(state0, "source-ledger-mismatch");
     var state = clone(state0);
     state.sourceLedger.placements[args.source] = args.position;
     state.sourceLedger.consequences[args.source] = args.consequence;
@@ -97,7 +133,7 @@
     if (!allSources(state0.sourceLedger.placements, function (value) { return typeof value === "string" && !!value; }) ||
         !allSources(state0.sourceLedger.consequences, function (value) { return typeof value === "string" && !!value; }))
       return fail(state0, "four-sources-required");
-    if (typeof args.caloric !== "string" || !args.caloric || typeof args.motion !== "string" || !args.motion)
+    if (!has(CALORIC_MODELS, args.caloric) || !has(MOTION_MODELS, args.motion))
       return fail(state0, "two-model-predictions-required");
     var state = clone(state0);
     state.sourceLedger.modelPredictions.caloric = args.caloric;
@@ -112,6 +148,10 @@
     var allowed = ["chipMass", "plateMass", "chipTemp", "plateTemp", "waterA", "waterB", "waterTempA", "waterTempB"];
     if (!has(allowed, args.field) || typeof args.value !== "number" || !isFinite(args.value))
       return fail(state0, "unknown-chip-setting");
+    var massOrWater = /Mass|waterA|waterB/.test(args.field);
+    var temperature = /Temp/.test(args.field);
+    if (massOrWater && (args.value <= 0 || args.value > 20)) return fail(state0, "invalid-chip-setting");
+    if (temperature && (args.value < 5 || args.value > 90)) return fail(state0, "invalid-chip-setting");
     var state = clone(state0);
     state.chipBench.draft[args.field] = args.value;
     return { state: state, ok: true };
@@ -120,13 +160,33 @@
   function runChipComparison(state0) {
     if (!state0.sourceLedger.sealed) return fail(state0, "source-ledger-required");
     var state = clone(state0), draft = state.chipBench.draft;
+    if (["chipMass", "plateMass", "waterA", "waterB"].some(function (key) {
+      return typeof draft[key] !== "number" || !isFinite(draft[key]) || draft[key] <= 0 || draft[key] > 20;
+    }) || ["chipTemp", "plateTemp", "waterTempA", "waterTempB"].some(function (key) {
+      return typeof draft[key] !== "number" || !isFinite(draft[key]) || draft[key] < 5 || draft[key] > 90;
+    })) return fail(state0, "invalid-chip-setting");
     var clean = draft.chipMass === draft.plateMass && draft.chipTemp === draft.plateTemp &&
       draft.waterA === draft.waterB && draft.waterTempA === draft.waterTempB;
+    function round1(value) { return Math.round(value * 10) / 10; }
+    function equilibrium(sampleMass, sampleTemp, waterMass, waterTemp) {
+      return (sampleMass * sampleTemp + waterMass * waterTemp) / (sampleMass + waterMass);
+    }
+    function curve(start, end) {
+      return [round1(start), round1(start + (end - start) * 0.55),
+        round1(start + (end - start) * 0.82), round1(end)];
+    }
+    var chipEnd = equilibrium(draft.chipMass, draft.chipTemp, draft.waterA, draft.waterTempA);
+    var plateEnd = equilibrium(draft.plateMass, draft.plateTemp, draft.waterB, draft.waterTempB);
+    var dirtyReasons = [];
+    if (draft.chipMass !== draft.plateMass) dirtyReasons.push("mass-mismatch");
+    if (draft.chipTemp !== draft.plateTemp) dirtyReasons.push("sample-temperature-mismatch");
+    if (draft.waterA !== draft.waterB) dirtyReasons.push("water-mass-mismatch");
+    if (draft.waterTempA !== draft.waterTempB) dirtyReasons.push("water-temperature-mismatch");
     state.days += 1;
     var row = addRecord(state, "chip-comparison", {
-      clean: clean, conditions: clone(draft),
-      chipCurve: [draft.waterTempA, 26, 31, 34],
-      plateCurve: [draft.waterTempB, 25.8, 30.9, 34.1]
+      clean: clean, dirtyReasons: dirtyReasons, conditions: clone(draft),
+      chipCurve: curve(draft.waterTempA, chipEnd),
+      plateCurve: curve(draft.waterTempB, plateEnd)
     });
     state.chipBench.attempts.push(row.id);
     if (clean) state.chipBench.cleanRecordIds.push(row.id);
@@ -169,7 +229,7 @@
     var state = clone(state0);
     state.frictionBench.judged = true;
     state.phase = "dry";
-    return { state: state, ok: true, evidence: grant(state, "t2") ? "T2" : null };
+    return { state: state, ok: true };
   }
 
   function setDryDraft(state0, args) {
@@ -185,7 +245,7 @@
   }
 
   function runDryStrip(state0) {
-    if (!state0.evidence.t2) return fail(state0, "t2-required");
+    if (!state0.frictionBench.judged) return fail(state0, "friction-judgment-required");
     var state = clone(state0), draft = state.dryBench.draft;
     var clean = draft.horsePace === "steady" && draft.pressure === "fixed" && draft.sampling === "sixteen-beats";
     state.days += 1;
@@ -206,14 +266,14 @@
     var state = clone(state0);
     state.dryBench.judged = true;
     state.phase = "air";
-    return { state: state, ok: true };
+    return { state: state, ok: true, evidence: grant(state, "t2") ? "T2" : null };
   }
 
   function sealAirPrediction(state0, args) {
     args = args || {};
     if (!state0.dryBench.judged) return fail(state0, "dry-judgment-required");
     if (state0.airBench.sealed) return fail(state0, "air-prediction-sealed");
-    if (!has(["slower-when-sealed", "any-change", "faster-when-sealed"], args.prediction))
+    if (!has(["slower-when-sealed", "faster-when-sealed"], args.prediction))
       return fail(state0, "unknown-air-prediction");
     var state = clone(state0);
     state.airBench.prediction = args.prediction;
@@ -250,6 +310,13 @@
       return fail(state0, "open-and-sealed-required");
     if (args.concept !== "air-not-necessary") return fail(state0, "air-judgment-mismatch");
     var state = clone(state0);
+    var open = rows.filter(function (row) { return row.condition === "open"; })[0];
+    var sealed = rows.filter(function (row) { return row.condition === "sealed"; })[0];
+    var openRise = open.curve[open.curve.length - 1] - open.curve[0];
+    var sealedRise = sealed.curve[sealed.curve.length - 1] - sealed.curve[0];
+    var difference = sealedRise - openRise;
+    var predictedHit = state.airBench.prediction === "slower-when-sealed" ? difference < -2 : difference > 2;
+    state.airBench.predictionOutcome = predictedHit ? "fulfilled" : "not-fulfilled";
     state.airBench.judged = true;
     state.phase = "water";
     return { state: state, ok: true, evidence: grant(state, "t3") ? "T3" : null };
@@ -257,18 +324,44 @@
 
   function setWaterDraft(state0, args) {
     args = args || {};
-    var allowed = { water: "number", sealed: "boolean", leakChecked: "boolean", sampling: "boolean" };
+    if (state0.waterBench.ready) return fail(state0, "water-box-already-ready");
+    var allowed = { water: "number", cannon: "number", sealed: "boolean", leakChecked: "boolean", sampling: "boolean" };
     if (!allowed[args.field] || typeof args.value !== allowed[args.field]) return fail(state0, "unknown-water-setting");
-    if (typeof args.value === "number" && (!isFinite(args.value) || args.value <= 0)) return fail(state0, "invalid-water-value");
+    if (typeof args.value === "number" && (!isFinite(args.value) || args.value < 5 || args.value > 60))
+      return fail(state0, "invalid-water-value");
     var state = clone(state0);
     state.waterBench.draft[args.field] = args.value;
+    if (args.field === "water" || args.field === "cannon") state.waterBench.draft.equilibrated = false;
     return { state: state, ok: true };
+  }
+
+  function readWaterTemperature(state0, args) {
+    args = args || {};
+    if (state0.waterBench.ready) return fail(state0, "water-box-already-ready");
+    if (!has(["water", "cannon"], args.target)) return fail(state0, "unknown-temperature-target");
+    var state = clone(state0);
+    state.waterBench.draft[args.target + "Read"] = true;
+    return { state: state, ok: true, value: state.waterBench.draft[args.target] };
+  }
+
+  function equilibrateWaterBox(state0) {
+    if (state0.waterBench.ready) return fail(state0, "water-box-already-ready");
+    var draft0 = state0.waterBench.draft;
+    if (!draft0.waterRead || !draft0.cannonRead) return fail(state0, "two-starting-temperatures-required");
+    var state = clone(state0);
+    var common = Math.round(((draft0.water + draft0.cannon) / 2) * 10) / 10;
+    state.waterBench.draft.water = common;
+    state.waterBench.draft.cannon = common;
+    state.waterBench.draft.equilibrated = true;
+    return { state: state, ok: true, temperature: common };
   }
 
   function prepareWaterBox(state0) {
     if (!state0.evidence.t3) return fail(state0, "t3-required");
+    if (state0.waterBench.ready) return fail(state0, "water-box-already-ready");
     var draft = state0.waterBench.draft;
-    if (!(draft.water === 18 && draft.sealed && draft.leakChecked && draft.sampling))
+    if (!(draft.waterRead && draft.cannonRead && draft.equilibrated &&
+        Math.abs(draft.water - draft.cannon) <= 0.5 && draft.sealed && draft.leakChecked && draft.sampling))
       return fail(state0, "water-box-not-ready");
     var state = clone(state0);
     state.days += 1;
@@ -284,7 +377,7 @@
     if (!state0.waterBench.ready) return fail(state0, "water-box-required");
     if (state0.finiteSources.sealed) return fail(state0, "finite-predictions-sealed");
     if (!has(SOURCES, args.source)) return fail(state0, "unknown-source");
-    if (!has(BANDS, args.band)) return fail(state0, "unknown-prediction-band");
+    if (!has(SOURCE_RULES[args.source].bands, args.band)) return fail(state0, "source-prediction-band-mismatch");
     var state = clone(state0);
     state.finiteSources.bands[args.source] = args.band;
     return { state: state, ok: true };
@@ -292,7 +385,9 @@
 
   function sealFinitePredictions(state0) {
     if (state0.finiteSources.sealed) return fail(state0, "finite-predictions-sealed");
-    if (!allSources(state0.finiteSources.bands, function (band) { return has(BANDS, band); }))
+    if (!allSources(state0.finiteSources.bands, function (band, source) {
+      return has(SOURCE_RULES[source].bands, band);
+    }))
       return fail(state0, "four-prediction-bands-required");
     var state = clone(state0);
     state.finiteSources.sealed = true;
@@ -305,7 +400,7 @@
     /* R-CH6-01：實驗鍵本身 fail closed，不依賴 UI 是否顯示。 */
     if (!state0.finiteSources.sealed) return fail(state0, "finite-predictions-required");
     if (state0.continuousRun.complete) return fail(state0, "continuous-run-complete");
-    if (!has(["continue", "calibrate", "repair-leak"], args.action)) return fail(state0, "unknown-run-action");
+    if (args.action !== "record-next") return fail(state0, "unknown-run-action");
     var state = clone(state0);
     var index = state.continuousRun.segments.length;
     var temperatures = [31, 47, 65, 83, 96, 100];
@@ -313,7 +408,7 @@
     var row = addRecord(state, "continuous-segment", {
       segment: index + 1, action: args.action, minutes: (index + 1) * 30,
       temperature: temperatures[index], horsePace: "steady", pressure: "fixed",
-      leak: args.action === "repair-leak" ? "repaired" : "none"
+      leak: "none"
     });
     state.continuousRun.segments.push(row.id);
     if (state.continuousRun.segments.length >= temperatures.length) {
@@ -331,13 +426,15 @@
     if (!has(SOURCES, args.source)) return fail(state0, "unknown-source");
     if (!has(VERDICTS, args.verdict)) return fail(state0, "unknown-source-verdict");
     if (state0.finiteSources.verdicts[args.source]) return fail(state0, "source-already-judged");
-    if (args.verdict !== "not-fulfilled") return fail(state0, "source-verdict-mismatch");
+    var band = state0.finiteSources.bands[args.source];
+    var expected = band === "no-endpoint" ? "insufficient" : "not-fulfilled";
+    if (args.verdict !== expected) return fail(state0, "source-verdict-mismatch");
     var state = clone(state0);
     state.finiteSources.verdicts[args.source] = args.verdict;
-    /* 封條裂而不消失：只有玩家提交判讀才可轉態。 */
-    state.finiteSources.sealState[args.source] = "cracked";
+    /* 可否證且未兌現才裂封；未標終點只能保持完整並記為不足。 */
+    state.finiteSources.sealState[args.source] = expected === "not-fulfilled" ? "cracked" : "intact";
     state.finiteSources.complete = allSources(state.finiteSources.verdicts, function (verdict) {
-      return verdict === "not-fulfilled";
+      return verdict === "not-fulfilled" || verdict === "insufficient";
     });
     var evidence = null;
     if (state.finiteSources.complete) {
@@ -359,7 +456,12 @@
 
   function setLatentDisposition(state0, args) {
     args = args || {};
-    if (!has(["motion-unresolved", "discard-caloric", "proves-motion"], args.disposition))
+    if (!state0.evidence.t4) return fail(state0, "t4-required");
+    var required = { chips: "T1", air: "T3", cannon: "T4", water: "T4", condition: "T2" };
+    if (!Object.keys(required).every(function (slot) {
+      return state0.auditBoard.placements[slot] === required[slot];
+    })) return fail(state0, "audit-evidence-required");
+    if (!has(["motion-unresolved", "discard-caloric", "proves-motion", "evidence-useless"], args.disposition))
       return fail(state0, "unknown-latent-disposition");
     if (args.disposition !== "motion-unresolved") return fail(state0, "latent-disposition-mismatch");
     var state = clone(state0);
@@ -398,15 +500,6 @@
     return { state: state, ok: true };
   }
 
-  function prepareJointPage(state0) {
-    if (!state0.auditBoard.complete) return fail(state0, "audit-required");
-    if (!JOINT_COLUMNS.every(function (key) { return state0.jointPage.columns[key] === JOINT_VALUES[key]; }) ||
-        state0.jointPage.scopeDebt !== "scope-unresolved")
-      return fail(state0, "joint-page-draft-incomplete");
-    /* R-CH6-03：此 action 只確認暫稿；旅人不簽名、不授 T5、不完章。 */
-    return { state: clone(state0), ok: true, draftReady: true };
-  }
-
   function finalizeJointPage(state0, args) {
     args = args || {};
     if (!state0.auditBoard.complete || !state0.evidence.t4) return fail(state0, "audit-required");
@@ -425,9 +518,20 @@
 
   function gate(state, key) {
     if (key === "source-ledger") return !!state.sourceLedger.sealed;
+    if (key === "chip-record") return !!state.chipBench.cleanRecordIds.length;
+    if (key === "friction-record") return FRICTION.every(function (condition) {
+      return !!state.frictionBench.sealed[condition];
+    });
+    if (key === "dry-record") return !!state.dryBench.cleanRecordId;
+    if (key === "air-record") {
+      var airConditions = state.records.filter(function (row) {
+        return row.kind === "air-comparison" && row.clean && has(state.airBench.cleanRecordIds, row.id);
+      }).map(function (row) { return row.condition; });
+      return has(airConditions, "open") && has(airConditions, "sealed");
+    }
     if (key === "chips") return !!state.evidence.t1;
-    if (key === "friction") return !!state.evidence.t2;
-    if (key === "dry") return !!state.dryBench.judged;
+    if (key === "friction") return !!state.frictionBench.judged;
+    if (key === "dry") return !!state.evidence.t2;
     if (key === "air") return !!state.evidence.t3;
     if (key === "water") return !!state.waterBench.ready;
     if (key === "finite-predictions") return !!state.finiteSources.sealed;
@@ -456,6 +560,8 @@
     runAirComparison: runAirComparison,
     judgeAirComparison: judgeAirComparison,
     setWaterDraft: setWaterDraft,
+    readWaterTemperature: readWaterTemperature,
+    equilibrateWaterBox: equilibrateWaterBox,
     prepareWaterBox: prepareWaterBox,
     setFinitePrediction: setFinitePrediction,
     sealFinitePredictions: sealFinitePredictions,
@@ -466,12 +572,12 @@
     completeAudit: completeAudit,
     setJointColumn: setJointColumn,
     writeScopeDebt: writeScopeDebt,
-    prepareJointPage: prepareJointPage,
     finalizeJointPage: finalizeJointPage,
     gate: gate,
     SOURCES: SOURCES.slice(),
     BANDS: BANDS.slice(),
     VERDICTS: VERDICTS.slice()
+    ,SOURCE_RULES: clone(SOURCE_RULES)
     ,JOINT_VALUES: clone(JOINT_VALUES)
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

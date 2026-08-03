@@ -38,7 +38,8 @@
     ch3: [],
     ch4: ["sealTangentPrediction", "archiveEvidenceSet"],
     ch5: [],
-    ch6: ["writeScopeDebt", "finalizeJointPage"]
+    ch6: ["judgeChipComparison", "judgeFrictionConditions", "judgeDryStrip",
+      "sealAirPrediction", "judgeAirComparison", "writeScopeDebt", "finalizeJointPage"]
   };
 
   function dataLabActions() {
@@ -1264,10 +1265,11 @@
     else if (CHAPTER_ID === "ch6" && [
       "setSourceLedger", "sealModels", "setChipDraft", "runChipComparison", "judgeChipComparison",
       "runFrictionCondition", "judgeFrictionConditions", "setDryDraft", "runDryStrip", "judgeDryStrip",
-      "sealAirPrediction", "runAirComparison", "judgeAirComparison", "setWaterDraft", "prepareWaterBox",
+      "sealAirPrediction", "runAirComparison", "judgeAirComparison", "setWaterDraft", "readWaterTemperature",
+      "equilibrateWaterBox", "prepareWaterBox",
       "setFinitePrediction", "sealFinitePredictions", "runContinuousSegment", "judgeFiniteSource",
       "placeAuditEvidence", "setLatentDisposition", "completeAudit", "setJointColumn", "writeScopeDebt",
-      "prepareJointPage", "finalizeJointPage"
+      "finalizeJointPage"
     ].indexOf(action) >= 0 && Engine[action]) r = Engine[action](state.lab, args || {});
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };

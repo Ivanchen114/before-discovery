@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>六章末頁焦點圖驗收</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body { overflow: hidden; color: #e8dbc2; background: #110c09;
+      font-family: system-ui, -apple-system, "Noto Sans TC", sans-serif; }
+    #stage { position: relative; width: 100%; height: 100%; overflow: hidden;
+      background: radial-gradient(circle at 65% 45%, #433226 0, #18100c 52%, #090605 100%); }
+    #controls { position: absolute; z-index: 30; top: 10px; right: 10px; display: grid;
+      justify-items: end; gap: 6px; max-width: 58%; }
+    #chapterControls, #layerControls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    #controls button { min-width: 44px; min-height: 44px; padding: 6px 10px; color: #eadcc3;
+      background: rgba(20,14,10,.88); border: 1px solid rgba(220,181,111,.62); border-radius: 4px; }
+    #controls button[aria-pressed="true"] { color: #24170f; background: #d4ac68; }
+    #sceneFocus { position: absolute; z-index: 18; top: 10.5%; left: 4%; display: flex;
+      flex-direction: column; width: min(48%,780px); max-height: 50%; margin: 0; overflow: hidden;
+      padding: 7px; color: #e8dbc2; background: rgba(18,12,8,.9);
+      border: 1px solid rgba(220,181,111,.62); border-radius: 7px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.58), inset 0 0 0 1px rgba(255,245,220,.08); }
+    #sceneFocusMedia { display: grid; flex: 1 1 auto; min-height: 0; overflow: hidden;
+      place-items: center; gap: 6px; }
+    #sceneFocusMedia img { display: block; width: 100%; max-height: 100%; min-height: 0;
+      object-fit: contain; border-radius: 3px; background: rgba(239,228,201,.12); }
+    #sceneFocus.epilogue { width: min(62%,980px); max-height: 66%; }
+    #sceneFocusCaption { display: block; flex: 0 0 auto; padding: 6px 7px 2px;
+      font-size: clamp(13px,1.05vw,16px); line-height: 1.4; color: rgba(239,226,201,.9); }
+    #meta { position: absolute; left: 4%; bottom: 5%; color: rgba(232,219,194,.65);
+      font-size: 12px; letter-spacing: .04em; }
+    @media (max-height:520px), (orientation:portrait) and (pointer:coarse) and (max-width:520px) {
+      #sceneFocus { top: 13%; left: 2.5%; width: 42%; max-height: 43%; padding: 4px; }
+      #sceneFocusMedia img { max-height: 27vh; }
+      #sceneFocus.epilogue { top: 9%; left: 2.5%; width: 64%; max-height: 70%; }
+      #sceneFocus.epilogue #sceneFocusMedia img { max-height: 48vh; }
+      #sceneFocusCaption { padding: 3px 4px 1px; font-size: 11px; line-height: 1.25; }
+      #controls { max-width: 54%; }
+      #meta { left: 2.5%; bottom: 3%; }
+    }
+  </style>
+</head>
+<body>
+  <main id="stage">
+    <nav id="controls" aria-label="選擇章末圖">
+      <div id="chapterControls" aria-label="選擇章節"></div>
+      <div id="layerControls" aria-label="選擇章末敘事層"></div>
+    </nav>
+    <figure id="sceneFocus" class="epilogue" aria-live="polite">
+      <div id="sceneFocusMedia"></div>
+      <figcaption id="sceneFocusCaption"></figcaption>
+    </figure>
+    <p id="meta"></p>
+  </main>
+  <script src="../data/assets.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      var scenes = ["E-2", "BE-2", "CE-2", "DE-2", "EE-2", "HE-1"];
+      var controls = document.getElementById("controls");
+      var chapterControls = document.getElementById("chapterControls");
+      var layerControls = document.getElementById("layerControls");
+      var media = document.getElementById("sceneFocusMedia");
+      var caption = document.getElementById("sceneFocusCaption");
+      var meta = document.getElementById("meta");
+      var assets = window.GB.DATA.assets;
+      var currentScene = scenes[0];
+      var currentLayer = "question-handoff";
+
+      function entry(id) {
+        return (assets.entries || []).find(function (item) { return item.id === id; });
+      }
+      function sceneRules(scene) {
+        return (assets.lineFocusVisual || []).filter(function (item) {
+          return item.scene === scene && item.epilogue && item.epilogueLayer && item.items;
+        });
+      }
+      function renderLayerControls(rules) {
+        layerControls.innerHTML = "";
+        rules.forEach(function (rule) {
+          var button = document.createElement("button");
+          button.type = "button";
+          button.dataset.layer = rule.epilogueLayer;
+          button.textContent = rule.epilogueLayer === "future-echo" ? "未來顯影" : "下一章留白";
+          button.setAttribute("aria-pressed", rule.epilogueLayer === currentLayer ? "true" : "false");
+          button.addEventListener("click", function () {
+            currentLayer = rule.epilogueLayer;
+            show(currentScene);
+          });
+          layerControls.appendChild(button);
+        });
+      }
+      function show(scene) {
+        currentScene = scene;
+        var rules = sceneRules(scene);
+        if (!rules.some(function (item) { return item.epilogueLayer === currentLayer; })) {
+          currentLayer = rules[0] && rules[0].epilogueLayer;
+        }
+        var rule = rules.find(function (item) { return item.epilogueLayer === currentLayer; });
+        var art = rule && entry(rule.items[0].asset);
+        if (!rule || !art) return;
+        renderLayerControls(rules);
+        media.innerHTML = "";
+        var image = document.createElement("img");
+        image.src = "../../public/assets/" + art.path;
+        image.alt = rule.items[0].alt;
+        media.appendChild(image);
+        caption.textContent = rule.caption;
+        meta.textContent = scene + " · " + rule.epilogueLayer + " · " + art.id + " · " + art.w + "×" + art.h;
+        Array.prototype.forEach.call(chapterControls.querySelectorAll("button"), function (button) {
+          button.setAttribute("aria-pressed", button.dataset.scene === scene ? "true" : "false");
+        });
+      }
+
+      scenes.forEach(function (scene, index) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.dataset.scene = scene;
+        button.textContent = "第" + ["一", "二", "三", "四", "五", "六"][index] + "章";
+        button.setAttribute("aria-pressed", "false");
+        button.addEventListener("click", function () { show(scene); });
+        chapterControls.appendChild(button);
+      });
+      show(scenes[0]);
+    }());
+  </script>
+</body>
+</html>

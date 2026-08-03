@@ -1359,6 +1359,7 @@
   {
    "id": "EE-2",
    "title": "旅人筆記・末頁",
+   "historyTag": "documented-future-echo + explicit-boundary",
    "nodes": [
     {
      "id": "x1",
@@ -1387,6 +1388,28 @@
     {
      "id": "facts",
      "type": "histfacts",
+     "next": "f1"
+    },
+    {
+     "id": "f1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "空框裡先落下一點灰。西雷的燭光退去，筆記深處浮出兩顆彼此繞行的黑色岩塊。",
+     "next": "f2"
+    },
+    {
+     "id": "f2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "2022 年，一艘名為 DART 的飛行器撞上小行星衛星 Dimorphos。撞後的軌道改了，岩石碎屑也從撞擊處大片飛散。",
+     "next": "f3"
+    },
+    {
+     "id": "f3",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_memory",
+     "text": "後世會同時追它撞後往哪裡走，也追表面留下什麼。兩本帳都沒有被丟掉。可撞擊畫面本身，仍不能替短少的那一截完整結帳。",
      "next": "x5"
     },
     {

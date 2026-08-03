@@ -2358,6 +2358,106 @@
    "sourceMaster": "art/source/production/ch06/focus/ch06_focus_latent_heat_notebook_master_v01.png"
   },
   {
+   "id": "ch01_epilogue_unresolved_arc_v01",
+   "kind": "bg",
+   "label": "第一章末頁・運河石子與未完弧線",
+   "path": "ch01/epilogues/ch01_epilogue_unresolved_arc_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch01_epilogue_unresolved_arc_master_v01.png"
+  },
+  {
+   "id": "ch02_epilogue_motion_continues_v01",
+   "kind": "bg",
+   "label": "第二章末頁・月球高爾夫回聲與持續運動",
+   "path": "ch02/epilogues/ch02_epilogue_motion_continues_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch02_epilogue_motion_continues_master_v01.png"
+  },
+  {
+   "id": "ch03_epilogue_moon_question_v01",
+   "kind": "bg",
+   "label": "第三章末頁・同步紙帶與月亮問題",
+   "path": "ch03/epilogues/ch03_epilogue_moon_question_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch03_epilogue_moon_question_master_v01.png"
+  },
+  {
+   "id": "ch04_epilogue_two_collision_accounts_v01",
+   "kind": "bg",
+   "label": "第四章末頁・碰撞後的兩張帳",
+   "path": "ch04/epilogues/ch04_epilogue_two_collision_accounts_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch04_epilogue_two_collision_accounts_master_v01.png"
+  },
+  {
+   "id": "ch05_epilogue_blank_receipt_v01",
+   "kind": "bg",
+   "label": "第五章末頁・兩本帳與空白收據",
+   "path": "ch05/epilogues/ch05_epilogue_blank_receipt_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch05_epilogue_blank_receipt_master_v01.png"
+  },
+  {
+   "id": "ch06_epilogue_unmeasured_exchange_v01",
+   "kind": "bg",
+   "label": "第六章末頁・尚未量得的兌換率",
+   "path": "ch06/epilogues/ch06_epilogue_unmeasured_exchange_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch06_epilogue_unmeasured_exchange_master_v01.png"
+  },
+  {
+   "id": "ch03_future_echo_apollo8_v01",
+   "kind": "bg",
+   "label": "第三章未來顯影・阿波羅八號月球軌道艙",
+   "path": "ch03/epilogues/ch03_future_echo_apollo8_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch03_future_echo_apollo8_master_v01.png"
+  },
+  {
+   "id": "ch04_future_echo_sputnik_v01",
+   "kind": "bg",
+   "label": "第四章未來顯影・史普尼克一號繞地",
+   "path": "ch04/epilogues/ch04_future_echo_sputnik_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch04_future_echo_sputnik_master_v01.png"
+  },
+  {
+   "id": "ch05_future_echo_dart_v01",
+   "kind": "bg",
+   "label": "第五章未來顯影・DART 撞擊 Dimorphos",
+   "path": "ch05/epilogues/ch05_future_echo_dart_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch05_future_echo_dart_master_v01.png"
+  },
+  {
+   "id": "ch06_future_echo_fsw_v01",
+   "kind": "bg",
+   "label": "第六章未來顯影・摩擦攪拌焊",
+   "path": "ch06/epilogues/ch06_future_echo_fsw_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/epilogues/ch06_future_echo_fsw_master_v01.png"
+  },
+  {
    "id": "chapter_thumbnail_ch06",
    "kind": "cg",
    "label": "第六章章節縮圖",
@@ -3144,14 +3244,133 @@
   },
   {
    "scene": "CE-2",
-   "match": "旅人把岸上那道彎線往前延長",
+   "match": "褐色字跡旁忽然透出冷白光",
+   "epilogue": true,
+   "epilogueLayer": "future-echo",
    "items": [
     {
-     "asset": "ch03_focus_unfinished_arc_to_moon_v01",
-     "alt": "兩張同步紙帶上的直落與彎曲記錄並排，旅人的手把岸上曲線延長成一道尚未閉合、通往月亮的巨大弧線"
+     "asset": "ch03_future_echo_apollo8_v01",
+     "alt": "1968 年阿波羅八號月球軌道艙內，三名太空人面向儀表，無字紙張與鉛筆浮在身旁，窗外是月面與遠方地球"
     }
    ],
-   "caption": "第三章只把弧延長了；月亮為什麼沒有沿直線離開，仍在下一頁等答案。"
+   "caption": "1968・阿波羅 8 號｜艙內一切與飛船共同前進；整艘船為什麼繞月轉彎，這一幕仍沒回答。"
+  },
+  {
+   "scene": "CE-2",
+   "match": "旅人把岸上那道彎線往前延長",
+   "epilogue": true,
+   "epilogueLayer": "question-handoff",
+   "items": [
+    {
+     "asset": "ch03_epilogue_moon_question_v01",
+     "alt": "1642 年印刷室的兩條同步紙帶並排，筆記上的墨弧停在半途，窗外月亮與弧線之間沒有連線"
+    }
+   ],
+   "caption": "紙帶留下共同前進的證據；月亮為什麼沒有沿直線離開，仍在下一頁等答案。"
+  },
+  {
+   "scene": "E-2",
+   "match": "鎚羽影像消失",
+   "epilogue": true,
+   "epilogueLayer": "question-handoff",
+   "items": [
+    {
+     "asset": "ch01_epilogue_unresolved_arc_v01",
+     "alt": "帕多瓦運河石橋上的旅人筆記攤開，一顆石子壓著運河素描，未完的墨弧跨過書脊後停在空白頁"
+    }
+   ],
+   "caption": "鎚和羽回答了落下；運河石子留下的彎曲路徑，仍停在空白頁。"
+  },
+  {
+   "scene": "BE-2",
+   "match": "球桿早已留在身後",
+   "epilogue": true,
+   "epilogueLayer": "future-echo",
+   "items": [
+    {
+     "asset": "ch02_epilogue_motion_continues_v01",
+     "alt": "旅人筆記透出的 1971 年月球遠景裡，太空人與球桿留在左後方，唯一一顆小白球已飛到右前景"
+    }
+   ],
+   "caption": "向前與向下已能一起描述；沒有持續推動，運動為什麼仍會繼續？"
+  },
+  {
+   "scene": "DE-2",
+   "match": "旅人筆記的頁角忽然亮起",
+   "epilogue": true,
+   "epilogueLayer": "future-echo",
+   "items": [
+    {
+     "asset": "ch04_future_echo_sputnik_v01",
+     "alt": "1957 年史普尼克一號的銀色球體與四根長天線從旅人筆記上方掠過地球弧面，畫面沒有軌道線或文字"
+    }
+   ],
+   "caption": "1957・史普尼克一號｜人造衛星把牛頓的軌道規則帶進工程；碰撞後該守住什麼，仍是另一本帳。"
+  },
+  {
+   "scene": "DE-2",
+   "match": "桌上有兩張帳",
+   "epilogue": true,
+   "epilogueLayer": "question-handoff",
+   "items": [
+    {
+     "asset": "ch04_epilogue_two_collision_accounts_v01",
+     "alt": "1687 年印刷室裡兩只字盤撞後錯開，方向紀錄與凹痕紀錄分列左右，中間留著一張空白卡"
+    }
+   ],
+   "caption": "兩張帳都能誠實記下碰撞；真正該守住哪一筆，還沒有名字。"
+  },
+  {
+   "scene": "EE-2",
+   "match": "空框裡先落下一點灰",
+   "epilogue": true,
+   "epilogueLayer": "future-echo",
+   "items": [
+    {
+     "asset": "ch05_future_echo_dart_v01",
+     "alt": "DART 飛行器剛撞上小行星衛星 Dimorphos，岩石碎屑向外飛散，較大的 Didymos 位在遠方，頁面下緣仍可見旅人筆記"
+    }
+   ],
+   "caption": "2022・DART｜撞後運動與碎屑痕跡都要記；撞擊畫面仍不能替可見運動的短少完整結帳。"
+  },
+  {
+   "scene": "EE-2",
+   "match": "短少的那一截沒有消失",
+   "epilogue": true,
+   "epilogueLayer": "question-handoff",
+   "items": [
+    {
+     "asset": "ch05_epilogue_blank_receipt_v01",
+     "alt": "西雷書桌上的兩本帳分列左右，凹陷黏土放在其中一頁，旅人的筆停在中央空白收據上方"
+    }
+   ],
+   "caption": "凹痕可以量，短少也確實存在；空白收據仍在等它去了哪裡。"
+  },
+  {
+   "scene": "HE-1",
+   "match": "旅人筆記的紙邊忽然泛出冷白光",
+   "epilogue": true,
+   "epilogueLayer": "future-echo",
+   "items": [
+    {
+     "asset": "ch06_future_echo_fsw_v01",
+     "alt": "現代摩擦攪拌焊機的旋轉工具壓過兩塊鋁板接縫，接觸處因發熱泛出暖色但沒有火焰，角落疊著旅人筆記"
+    }
+   ],
+   "caption": "1991 年後・摩擦攪拌焊｜持續機械接觸能使金屬發熱軟化；固定兌換率仍須另一把尺。"
+  },
+  {
+   "scene": "HE-1",
+   "match": "旅人把兩頁攤在一起",
+   "epilogue": true,
+   "epilogueLayer": "question-handoff",
+   "items": [
+    {
+     "asset": "ch06_epilogue_unmeasured_exchange_v01",
+     "alt": "1798 年兵工廠桌上，機械作用頁與水溫頁分列兩側，中央兌換欄空白，黃銅量規尚未對上兩頁的刻度"
+    }
+   ],
+   "caption": "兩頁紀錄各自成立；一份機械作用究竟能換來多少升溫，仍未量得。"
   },
   {
    "scene": "H0-1",

@@ -52,8 +52,9 @@ tests.push({
 function ch6ReadyForFinitePredictions() {
   let state = Engine6.initialState();
   for (const source of Engine6.SOURCES) {
+    const rule = Engine6.SOURCE_RULES[source];
     state = Engine6.setSourceLedger(state, {
-      source, position: source + "-position", consequence: source + "-visible-change"
+      source, position: rule.position, consequence: rule.consequence
     }).state;
   }
   state = Engine6.sealModels(state, { caloric: "finite-sources", motion: "continued-motion" }).state;
@@ -70,6 +71,9 @@ function ch6ReadyForFinitePredictions() {
   state = Engine6.judgeAirComparison(state, { concept: "air-not-necessary" }).state;
   for (const [field, value] of [["sealed", true], ["leakChecked", true], ["sampling", true]])
     state = Engine6.setWaterDraft(state, { field, value }).state;
+  state = Engine6.readWaterTemperature(state, { target: "water" }).state;
+  state = Engine6.readWaterTemperature(state, { target: "cannon" }).state;
+  state = Engine6.equilibrateWaterBox(state).state;
   state = Engine6.prepareWaterBox(state).state;
   const bands = { chips: "soon", air: "soon", cannon: "within-shift", water: "within-shift" };
   for (const source of Engine6.SOURCES)
@@ -80,14 +84,16 @@ function ch6ReadyForFinitePredictions() {
 function ch6CompleteLongRun(state0) {
   let state = state0;
   for (let i = 0; i < 6; i += 1)
-    state = Engine6.runContinuousSegment(state, { action: "continue" }).state;
+    state = Engine6.runContinuousSegment(state, { action: "record-next" }).state;
   return state;
 }
 
 function ch6CompleteVerdicts(state0) {
   let state = state0;
-  for (const source of Engine6.SOURCES)
-    state = Engine6.judgeFiniteSource(state, { source, verdict: "not-fulfilled" }).state;
+  for (const source of Engine6.SOURCES) {
+    const verdict = state.finiteSources.bands[source] === "no-endpoint" ? "insufficient" : "not-fulfilled";
+    state = Engine6.judgeFiniteSource(state, { source, verdict }).state;
+  }
   return state;
 }
 
@@ -104,7 +110,7 @@ tests.push({
   fn: () => {
     const initial = Engine6.initialState();
     const before = JSON.stringify(initial);
-    const early = Engine6.runContinuousSegment(initial, { action: "continue" });
+    const early = Engine6.runContinuousSegment(initial, { action: "record-next" });
     if (early.error !== "finite-predictions-required" || JSON.stringify(early.state) !== before)
       throw new Error("未封預測仍能跑或失敗改動 state");
     let state = ch6ReadyForFinitePredictions();
@@ -132,6 +138,17 @@ tests.push({
       throw new Error("四來源齊全仍未原子取得 T4");
     if (!Engine6.SOURCES.every((source) => last.state.finiteSources.sealState[source] === "cracked"))
       throw new Error("裂封狀態不完整");
+
+    let openEnded = ch6ReadyForFinitePredictions();
+    openEnded = Engine6.setFinitePrediction(openEnded, { source: "chips", band: "no-endpoint" }).state;
+    openEnded = Engine6.sealFinitePredictions(openEnded).state;
+    openEnded = ch6CompleteLongRun(openEnded);
+    const overclaim = Engine6.judgeFiniteSource(openEnded, { source: "chips", verdict: "not-fulfilled" });
+    if (overclaim.error !== "source-verdict-mismatch" || overclaim.state.finiteSources.sealState.chips !== "intact")
+      throw new Error("沒有終點的預測仍可被判敗或封條提前裂開");
+    const bounded = Engine6.judgeFiniteSource(openEnded, { source: "chips", verdict: "insufficient" });
+    if (bounded.error || bounded.state.finiteSources.sealState.chips !== "intact")
+      throw new Error("證據不足判讀未保留完整封條");
   }
 });
 
@@ -146,14 +163,14 @@ tests.push({
     for (const [column, text] of Object.entries(columns))
       state = Engine6.setJointColumn(state, { column, text }).state;
     state = Engine6.writeScopeDebt(state, { debt: "scope-unresolved" }).state;
-    const draft = Engine6.prepareJointPage(state);
-    if (draft.error || draft.state.evidence.t5 || draft.state.jointPage.complete ||
-        draft.state.jointPage.signedBy.traveler)
+    if (typeof Engine6.prepareJointPage !== "undefined") throw new Error("無效果的 prepareJointPage API 仍存在");
+    if (!Engine6.gate(state, "joint-draft") || state.evidence.t5 || state.jointPage.complete ||
+        state.jointPage.signedBy.traveler)
       throw new Error("共同頁暫稿提前授 T5／旅人署名／完成");
-    const wrong = Engine6.finalizeJointPage(draft.state, { rateDebt: "drill-longer" });
+    const wrong = Engine6.finalizeJointPage(state, { rateDebt: "drill-longer" });
     if (wrong.error !== "rate-debt-mismatch" || wrong.state.evidence.t5)
       throw new Error("錯誤交棒仍部分成立");
-    const final = Engine6.finalizeJointPage(draft.state, { rateDebt: "conversion-rate-unmeasured" });
+    const final = Engine6.finalizeJointPage(state, { rateDebt: "conversion-rate-unmeasured" });
     if (final.error || final.evidence !== "T5" || !final.state.evidence.t5 ||
         !final.state.jointPage.complete || final.state.phase !== "complete" ||
         !Object.values(final.state.jointPage.signedBy).every(Boolean))
@@ -168,11 +185,14 @@ tests.push({
       throw new Error("第六章 decisionRegistry 不是 17 組");
     const sceneOrder = new Map(scenes6.scenes.map((scene, index) => [scene.id, index]));
     const nodeByKey = new Map();
+    const nodeOrder = new Map();
     const evidenceAt = new Map();
     for (const scene of scenes6.scenes) {
-      for (const node of scene.nodes) {
+      for (let index = 0; index < scene.nodes.length; index += 1) {
+        const node = scene.nodes[index];
         const key = `${scene.id}/${node.id}`;
         nodeByKey.set(key, { scene, node, key });
+        nodeOrder.set(key, index);
         for (const effect of node.effects || [])
           if (effect.evidence) evidenceAt.set(effect.evidence, key);
       }
@@ -222,12 +242,90 @@ tests.push({
           const sourceKey = ref.includes("/") ? ref : evidenceAt.get(ref);
           if (!sourceKey || !nodeByKey.has(sourceKey))
             throw new Error("refutedBy 無法解析:" + decision.id + "/" + option.id + "→" + ref);
+          if (nodeByKey.get(sourceKey).scene.id === decision.scene && nodeOrder.get(sourceKey) >= nodeOrder.get(decisionKey))
+            throw new Error("refutedBy 指向同場作答後節點:" + decision.id + "/" + option.id + "→" + ref);
           if (!dominators.get(decisionKey).has(sourceKey))
             throw new Error("refutedBy 尚未見:" + decision.id + "/" + option.id + "→" + ref);
         }
       }
     }
     if (![...sceneOrder.keys()].includes("HE-1")) throw new Error("scene registry 遺漏 HE-1");
+  }
+});
+
+tests.push({
+  name: "R-CH6-05|施工清單 P0/P1 閘門、白名單與真實操作後果",
+  fn: () => {
+    const initial = Engine6.initialState();
+    const initialJson = JSON.stringify(initial);
+    const earlyVerdict = Engine6.setLatentDisposition(initial, { disposition: "motion-unresolved" });
+    if (earlyVerdict.error !== "t4-required" || JSON.stringify(earlyVerdict.state) !== initialJson)
+      throw new Error("全新存檔仍可直接完成模型判定");
+    const mismatch = Engine6.setSourceLedger(initial, {
+      source: "chips", position: "炮身金屬內", consequence: Engine6.SOURCE_RULES.chips.consequence
+    });
+    if (mismatch.error !== "source-ledger-mismatch" || JSON.stringify(mismatch.state) !== initialJson)
+      throw new Error("來源紙仍可掛錯實物或失敗時改動 state");
+
+    let state = initial;
+    for (const source of Engine6.SOURCES) {
+      const rule = Engine6.SOURCE_RULES[source];
+      state = Engine6.setSourceLedger(state, { source, position: rule.position, consequence: rule.consequence }).state;
+    }
+    const wildModel = Engine6.sealModels(state, { caloric: "anything", motion: "whatever" });
+    if (wildModel.error !== "two-model-predictions-required") throw new Error("模型欄仍接受任意字串");
+    state = Engine6.sealModels(state, { caloric: "finite-sources", motion: "continued-motion" }).state;
+
+    const invalidMass = Engine6.setChipDraft(state, { field: "chipMass", value: -1 });
+    if (invalidMass.error !== "invalid-chip-setting") throw new Error("負質量仍可進入碎屑比較");
+    let dirty = Engine6.setChipDraft(state, { field: "plateMass", value: 8 }).state;
+    const dirtyRun = Engine6.runChipComparison(dirty);
+    if (dirtyRun.clean || JSON.stringify(dirtyRun.record.chipCurve) === JSON.stringify(dirtyRun.record.plateCurve))
+      throw new Error("髒比較沒有產生可見不同的兩條曲線");
+    const cleanRun = Engine6.runChipComparison(state);
+    if (!cleanRun.clean || JSON.stringify(cleanRun.record.chipCurve) !== JSON.stringify(cleanRun.record.plateCurve))
+      throw new Error("乾淨比較未保留同條件的可比較曲線");
+    state = Engine6.judgeChipComparison(cleanRun.state, { concept: "chips-not-lower-capacity" }).state;
+    for (const condition of ["rotation-only", "pressure-only", "contact-motion"])
+      state = Engine6.runFrictionCondition(state, { condition }).state;
+    state = Engine6.judgeFrictionConditions(state, { concept: "contact-and-motion" }).state;
+    if (state.evidence.t2) throw new Error("T2 仍在 H1-2 提前授予");
+    state = Engine6.runDryStrip(state).state;
+    const wrongDry = Engine6.judgeDryStrip(state, { concept: "sounds-careful" });
+    if (wrongDry.error !== "dry-judgment-mismatch") throw new Error("判讀函式仍接受語氣相近的任意概念");
+    state = Engine6.judgeDryStrip(state, { concept: "observed-range-only" }).state;
+    if (!state.evidence.t2) throw new Error("H1-3 完成後沒有取得 T2");
+    const anyChange = Engine6.sealAirPrediction(state, { prediction: "any-change" });
+    if (anyChange.error !== "unknown-air-prediction") throw new Error("不可否證的空氣預測仍可封存");
+    state = Engine6.sealAirPrediction(state, { prediction: "slower-when-sealed" }).state;
+    state = Engine6.runAirComparison(state, { condition: "open" }).state;
+    state = Engine6.runAirComparison(state, { condition: "sealed" }).state;
+    state = Engine6.judgeAirComparison(state, { concept: "air-not-necessary" }).state;
+    if (state.airBench.predictionOutcome !== "not-fulfilled") throw new Error("空氣封存預測沒有記錄命中或偏離");
+    for (const [field, value] of [["sealed", true], ["leakChecked", true], ["sampling", true]])
+      state = Engine6.setWaterDraft(state, { field, value }).state;
+    if (Engine6.prepareWaterBox(state).error !== "water-box-not-ready")
+      throw new Error("玩家未讀兩個初溫就能封存水箱起點");
+    state = Engine6.readWaterTemperature(state, { target: "water" }).state;
+    if (Engine6.equilibrateWaterBox(state).error !== "two-starting-temperatures-required")
+      throw new Error("只讀一個初溫就能代做對齊");
+    state = Engine6.readWaterTemperature(state, { target: "cannon" }).state;
+    state = Engine6.equilibrateWaterBox(state).state;
+    state = Engine6.prepareWaterBox(state).state;
+    const repeatedWater = Engine6.prepareWaterBox(state);
+    if (repeatedWater.error !== "water-box-already-ready") throw new Error("同一水箱起點仍可重複封存");
+    if (Engine6.setFinitePrediction(state, { source: "cannon", band: "no-endpoint" }).error !==
+        "source-prediction-band-mismatch")
+      throw new Error("炮身仍可偷放進沒有終點的預測帶");
+    for (const [source, band] of Object.entries({ chips: "soon", cannon: "within-shift", air: "soon", water: "within-shift" }))
+      state = Engine6.setFinitePrediction(state, { source, band }).state;
+    state = Engine6.sealFinitePredictions(state).state;
+    for (const fakeAction of ["continue", "calibrate", "repair-leak"])
+      if (Engine6.runContinuousSegment(state, { action: fakeAction }).error !== "unknown-run-action")
+        throw new Error("結果相同的假操作鍵仍被引擎接受:" + fakeAction);
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    if (ui.includes("prepareJointPage") || typeof Engine6.prepareJointPage !== "undefined")
+      throw new Error("無效果的共同頁確認動作仍存在");
   }
 });
 
@@ -244,34 +342,34 @@ tests.push({
     };
     const finishEmbed = (phase) => {
       if (phase === "heat-source-ledger") {
-        for (const source of Engine6.SOURCES)
-          act("setSourceLedger", { source, position:`${source}-position`, consequence:`${source}-change` });
+        for (const source of Engine6.SOURCES) {
+          const rule = Engine6.SOURCE_RULES[source];
+          act("setSourceLedger", { source, position:rule.position, consequence:rule.consequence });
+        }
         act("sealModels", { caloric:"finite-sources", motion:"continued-motion" });
       } else if (phase === "chip-capacity-bench") {
         act("runChipComparison");
-        act("judgeChipComparison", { concept:"chips-not-lower-capacity" });
       } else if (phase === "friction-condition-bench") {
         for (const condition of ["rotation-only", "pressure-only", "contact-motion"])
           act("runFrictionCondition", { condition });
-        act("judgeFrictionConditions", { concept:"contact-and-motion" });
       } else if (phase === "dry-strip-bench") {
         act("runDryStrip");
-        act("judgeDryStrip", { concept:"observed-range-only" });
       } else if (phase === "airtight-bench") {
-        act("sealAirPrediction", { prediction:"slower-when-sealed" });
         act("runAirComparison", { condition:"open" });
         act("runAirComparison", { condition:"sealed" });
-        act("judgeAirComparison", { concept:"air-not-necessary" });
       } else if (phase === "water-box-bench") {
         for (const [field, value] of [["sealed", true], ["leakChecked", true], ["sampling", true]])
           act("setWaterDraft", { field, value });
+        act("readWaterTemperature", { target:"water" });
+        act("readWaterTemperature", { target:"cannon" });
+        act("equilibrateWaterBox");
         act("prepareWaterBox");
       } else if (phase === "finite-source-prediction-bands") {
         const bands = { chips:"soon", cannon:"within-shift", air:"soon", water:"within-shift" };
         for (const [source, band] of Object.entries(bands)) act("setFinitePrediction", { source, band });
         act("sealFinitePredictions");
       } else if (phase === "continuous-run-bench") {
-        for (let index = 0; index < 6; index += 1) act("runContinuousSegment", { action:"continue" });
+        for (let index = 0; index < 6; index += 1) act("runContinuousSegment", { action:"record-next" });
       } else if (phase === "source-prediction-verdict") {
         for (const source of Engine6.SOURCES) act("judgeFiniteSource", { source, verdict:"not-fulfilled" });
       } else if (phase === "model-audit-board") {
@@ -281,7 +379,6 @@ tests.push({
         act("completeAudit");
       } else if (phase === "joint-verification-page") {
         for (const [column, text] of Object.entries(Engine6.JOINT_VALUES)) act("setJointColumn", { column, text });
-        act("prepareJointPage");
       } else throw new Error("未知第六章互動 phase:" + phase);
       const completed = N6.embedComplete(state);
       if (completed.error) throw new Error("互動未能收束:" + completed.error);
@@ -328,6 +425,28 @@ tests.push({
     const vanishedSeal = JSON.parse(N6.serialize(state));
     vanishedSeal.lab.finiteSources.sealState.chips = "hidden";
     if (San.sanitizeImport6(vanishedSeal, scenes6, Engine6).ok) throw new Error("封條消失狀態未被拒絕");
+    const forgedOpenEnded = JSON.parse(N6.serialize(state));
+    forgedOpenEnded.lab.finiteSources.bands.chips = "no-endpoint";
+    if (San.sanitizeImport6(forgedOpenEnded, scenes6, Engine6).ok)
+      throw new Error("沒有終點的來源仍可從存檔偽造成已否證裂封");
+    const forgedAirOutcome = JSON.parse(N6.serialize(state));
+    forgedAirOutcome.lab.airBench.predictionOutcome = "fulfilled";
+    if (San.sanitizeImport6(forgedAirOutcome, scenes6, Engine6).ok)
+      throw new Error("空氣預測命中狀態可與原紙矛盾");
+    const forgedWaterStart = JSON.parse(N6.serialize(state));
+    forgedWaterStart.lab.waterBench.attempts = [];
+    if (San.sanitizeImport6(forgedWaterStart, scenes6, Engine6).ok)
+      throw new Error("水箱 ready 可在缺封存原紙時偽造");
+    const forgedChipCurve = JSON.parse(N6.serialize(state));
+    const chipRecord = forgedChipCurve.lab.records.find((row) => row.kind === "chip-comparison");
+    chipRecord.chipCurve[3] += 5;
+    if (San.sanitizeImport6(forgedChipCurve, scenes6, Engine6).ok)
+      throw new Error("碎屑曲線可脫離實際條件偽造");
+    const forgedLongStrip = JSON.parse(N6.serialize(state));
+    const longRecord = forgedLongStrip.lab.records.find((row) => row.kind === "continuous-segment");
+    longRecord.temperature = 999;
+    if (San.sanitizeImport6(forgedLongStrip, scenes6, Engine6).ok)
+      throw new Error("長時段原紙可脫離單鍵記錄序列偽造");
 
     const json = JSON.parse(readFileSync(path.join(here, "../data/scenes6.json"), "utf-8"));
     if (JSON.stringify(scenes6) !== JSON.stringify(json)) throw new Error("scenes6 鏡像漂移");
@@ -1819,7 +1938,7 @@ tests.push({
                 " 仍指向 legacyOnly 節點 " + target);
         }
       }
-      if (allInner.length !== 46 || activeInner.length !== 18 ||
+      if (allInner.length !== 47 || activeInner.length !== 19 ||
           legacyInner.length !== 28)
         throw new Error("第三章心聲庫存／活躍／相容數不符:" +
           [allInner.length, activeInner.length, legacyInner.length].join("/"));
@@ -3044,7 +3163,8 @@ tests.push({
       throw new Error("第二章船桅思想實驗缺少明確標為待驗預測的想像畫面");
     if (!rules.some((r) => r.scene === "CE-1" && r.items.some((x) => x.asset === "ch03_focus_two_books_1642_v01")))
       throw new Error("第三章兩本書與死訊場景缺少敘事特寫");
-    if (!rules.some((r) => r.scene === "CE-2" && r.items.some((x) => x.asset === "ch03_focus_unfinished_arc_to_moon_v01")))
+    if (!rules.some((r) => r.scene === "CE-2" && r.epilogue === true &&
+        r.items.some((x) => x.asset === "ch03_epilogue_moon_question_v01")))
       throw new Error("第三章末頁缺少未完成弧線交棒第四章的想像畫面");
     const f3 = assets.entries.find((e) => e.id === "card_F3");
     if (!f3 || f3.kind !== "card" || f3.path !== "ch02/cards/card_F3.webp" || f3.w !== 1200 || f3.h !== 750)
@@ -3149,7 +3269,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章資料鏡像與敘事圖|10 場主線＋1 修復場、223 節點、活躍圖全可達、舊游標相容",
+  name: "第三章資料鏡像與敘事圖|10 場主線＋1 修復場、226 節點、活躍圖全可達、舊游標相容",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts3.json"), "utf-8"));
@@ -3162,7 +3282,7 @@ tests.push({
         scenes3.scenes.filter((scene) => scene.id !== "SC3-R1").length !== 10)
       throw new Error("第三章應為 10 場主線＋1 個信譽修復場");
     const allNodes = scenes3.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 223) throw new Error("第三章節點數不是 223，實得:" + allNodes);
+    if (allNodes !== 226) throw new Error("第三章節點數不是 226，實得:" + allNodes);
     if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
       throw new Error("第三章場景 id 重複");
     for (const s of scenes3.scenes) {
@@ -6603,7 +6723,7 @@ function ch4CompleteK5(state0) {
 }
 
 tests.push({
-  name: "第四章 v0.9 場景圖|12 場主線＋1 修復場、281 活躍節點＋19 舊游標、五座取證工作台與 JSON 鏡像一致",
+  name: "第四章 v0.9 場景圖|12 場主線＋1 修復場、284 活躍節點＋19 舊游標、五座取證工作台與 JSON 鏡像一致",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts4.json"), "utf-8"));
@@ -6618,7 +6738,7 @@ tests.push({
         JSON.stringify(scenes4.scenes.map((scene) => scene.id)) !== JSON.stringify(expectedScenes))
       throw new Error("第四章 v0.8 應保留定案 12 場主線並追加 SC4-R1");
     const allNodes = scenes4.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 300) throw new Error("第四章節點數不是 300，實得:" + allNodes);
+    if (allNodes !== 303) throw new Error("第四章節點數不是 303，實得:" + allNodes);
 
     const allowedPurposes = new Set([
       "time_dislocation", "future_knowledge", "cross_chapter_memory",
@@ -6635,7 +6755,7 @@ tests.push({
           throw new Error(scene.id + "/" + node.id + " 活躍心聲缺合法 osPurpose");
       }
     }
-    if (activeInner.length !== 10 || legacyInner.length !== 17 || legacyNodes.length !== 19)
+    if (activeInner.length !== 11 || legacyInner.length !== 17 || legacyNodes.length !== 19)
       throw new Error("第四章心聲減量庫存不符，活躍／退役／全部退役=" +
         [activeInner.length, legacyInner.length, legacyNodes.length].join("/"));
     const stageOnlyContract = (data) => [["D0-1", "n4a"], ["D0-1", "n5"], ["D0-2", "a3"]]
@@ -6688,7 +6808,7 @@ tests.push({
       .filter((node) => node.legacyOnly !== true)
       .map((node) => scene.id + "/" + node.id));
     const unreachableActive = activeNodes.filter((key) => !visited.has(key));
-    if (activeNodes.length !== 281 || unreachableActive.length)
+    if (activeNodes.length !== 284 || unreachableActive.length)
       throw new Error("第四章活躍節點數或可達性錯誤:" +
         activeNodes.length + " / " + unreachableActive.join("、"));
     const reachedLegacy = legacyNodes.filter((key) => visited.has(key));
