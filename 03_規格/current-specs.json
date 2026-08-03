@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-03",
+  "documents": [
+    {
+      "id": "shared",
+      "version": "v1.0",
+      "path": "03_規格/發現之前_跨章runtime與治理規格_v1.0.md"
+    },
+    {
+      "id": "ch01",
+      "version": "v0.1.2",
+      "path": "03_規格/發現之前_第一章功能規格書_v0.1.2.md"
+    },
+    {
+      "id": "ch02",
+      "version": "v0.2",
+      "path": "03_規格/發現之前_第二章功能規格書_v0.2.md"
+    },
+    {
+      "id": "ch03",
+      "version": "v0.2",
+      "path": "03_規格/發現之前_第三章功能規格書_v0.2.md"
+    },
+    {
+      "id": "ch04",
+      "version": "v0.2",
+      "path": "03_規格/發現之前_第四章功能規格書_v0.2.md"
+    },
+    {
+      "id": "ch05",
+      "version": "v0.2",
+      "path": "03_規格/發現之前_第五章功能規格書_v0.2.md"
+    }
+  ],
+  "designs": [
+    {
+      "id": "ch03-design",
+      "version": "v1.0",
+      "path": "02_設計/發現之前_第三章現行設計基線_v1.0.md"
+    },
+    {
+      "id": "ch04-design",
+      "version": "v1.0",
+      "path": "02_設計/發現之前_第四章書桌探究現行設計定案_v1.0.md"
+    }
+  ]
+}

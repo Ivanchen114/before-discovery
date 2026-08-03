@@ -3,7 +3,7 @@
   "registry_id": "before-discovery-source-registry",
   "registry_status": "active",
   "skill_version": "3.4.7",
-  "updated": "2026-07-31",
+  "updated": "2026-08-03",
   "truth_modes": [
     "AS-IS",
     "TO-BE",
@@ -479,6 +479,34 @@
       ],
       "sources": [
         {
+          "id": "design.runtime-governance",
+          "path": "03_規格/發現之前_跨章runtime與治理規格_v1.0.md",
+          "status": "active",
+          "authority": "cross_chapter_rule",
+          "phase": [
+            "plan",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、用途與正本",
+            "二、跨章不變量",
+            "三、資源與名詞",
+            "五、GB-ADR 覆蓋台帳",
+            "六、驗收層級"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "現行規格入口、術語、真相層級與 ADR 覆蓋的跨章基線。"
+        },
+        {
           "id": "design.evidence-ownership",
           "path": "02_設計/發現之前_實驗證據所有權與認知進階原則_v0.1.md",
           "status": "active",
@@ -509,7 +537,7 @@
         },
         {
           "id": "design.reputation-lifecycle",
-          "path": "01_治理/發現之前_GB-ADR-030_信譽作為研究誠實與授權階梯_20260729.md",
+          "path": "01_治理/發現之前_GOV-ADR-001_信譽作為研究誠實與授權階梯_20260729.md",
           "status": "active",
           "authority": "project_decision",
           "phase": [
@@ -527,10 +555,10 @@
           },
           "tracked_required": true,
           "required_headings": [
-            "二、裁定",
-            "三、五章施工矩陣",
-            "四、跨章施工設計",
-            "五、不變量",
+            "二、信譽規則",
+            "三、信譽與論證對位",
+            "四、五章章別落點",
+            "五、狀態與匯入不變量",
             "六、驗收"
           ],
           "supersedes": [],
@@ -1581,7 +1609,7 @@
         },
         {
           "id": "ch1.spec",
-          "path": "03_規格/發現之前_第一章功能規格書_v0.1.1.md",
+          "path": "03_規格/發現之前_第一章功能規格書_v0.1.2.md",
           "domains": [
             "design"
           ],
@@ -1601,7 +1629,7 @@
           "required_headings": [],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "第一章功能目標。"
+          "note": "第一章現行功能目標；含真實第五段、玩家平方判讀與信譽修復。"
         },
         {
           "id": "ch1.script",
@@ -1717,7 +1745,7 @@
         },
         {
           "id": "ch2.spec",
-          "path": "03_規格/發現之前_第二章功能規格書_v0.1.1.md",
+          "path": "03_規格/發現之前_第二章功能規格書_v0.2.md",
           "domains": [
             "design"
           ],
@@ -1739,7 +1767,7 @@
             "ch2.spec-v010"
           ],
           "blocks_skill_activation": false,
-          "note": "第二章功能目標。"
+          "note": "第二章現行功能目標；整合單門閂、未測紙封存與三紙終局。"
         },
         {
           "id": "ch2.spec-v010",
@@ -1877,7 +1905,7 @@
         },
         {
           "id": "ch3.spec",
-          "path": "03_規格/發現之前_第三章功能規格書_v0.1.md",
+          "path": "03_規格/發現之前_第三章功能規格書_v0.2.md",
           "domains": [
             "design"
           ],
@@ -1897,10 +1925,39 @@
           "required_headings": [],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "known_issues": [
-            "runtime 後續重構較新；CONFORMANCE 必須同讀最新 CR 與 runtime"
+          "note": "第三章現行功能規格；含卷宗狀態、船艙器材與第三柱逐拍換算。"
+        },
+        {
+          "id": "ch3.design-current",
+          "path": "02_設計/發現之前_第三章現行設計基線_v1.0.md",
+          "domains": [
+            "design",
+            "narrative"
           ],
-          "note": "第三章早期功能規格，不能單獨指揮現行 runtime。"
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、章的核心問題",
+            "三、五輪因果鏈",
+            "四、第三柱的玩家代理權",
+            "六、歷史與敘事邊界"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第三章五輪因果、卷宗破案與玩家代理權的現行設計。"
         },
         {
           "id": "ch3.cr-024",
@@ -2221,7 +2278,7 @@
         },
         {
           "id": "ch4.construction-baseline",
-          "path": "03_規格/發現之前_第四章v0.8施工基線_盤點與分批_Claude_20260728.md",
+          "path": "03_規格/發現之前_第四章功能規格書_v0.2.md",
           "domains": [
             "design"
           ],
@@ -2240,16 +2297,48 @@
           },
           "tracked_required": true,
           "required_headings": [
-            "一、好消息:機制層比預想近很多(實撈 engine4.js)",
-            "二、場景層:重排對映(實撈現行 14 場)",
-            "三、分批(為什麼不一口氣)"
+            "一、資料、狀態與遷移",
+            "二、K1 切線與軌道",
+            "三、K2 同尺紙",
+            "四、K3 雙押行星",
+            "六、K5 證明鏈與出版"
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "known_issues": [
-            "基線文字保存施工前舊場次盤點；AS-IS 的場數與節點必須由現行 runtime 即時計算"
+          "note": "第四章現行功能規格；v0.8 遷移表仍由下一筆來源補充。"
+        },
+        {
+          "id": "ch4.design-current",
+          "path": "02_設計/發現之前_第四章書桌探究現行設計定案_v1.0.md",
+          "domains": [
+            "design",
+            "narrative"
           ],
-          "note": "第四章 v0.8 的 TO-BE 施工基線。"
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、章的定位",
+            "三、K1：切線不是看動畫",
+            "四、K2：兩張紙，不是一牆說明",
+            "五、K3：真封存、真揭曉",
+            "六、K4／K5：模型成本與公開後果"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第四章 K1–K5 書桌探究與出版後果的現行設計。"
         },
         {
           "id": "ch4.migration-spec",
@@ -2455,7 +2544,7 @@
         },
         {
           "id": "ch5.workbench-spec",
-          "path": "03_規格/發現之前_第五章工作台與辯論規格_v0.1_Claude.md",
+          "path": "03_規格/發現之前_第五章功能規格書_v0.2.md",
           "domains": [
             "design"
           ],
@@ -2476,7 +2565,7 @@
           "required_headings": [],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "第五章三輪工作台與三柱目標。"
+          "note": "第五章現行功能規格；含 J1／J2／J3 概念判讀、三柱與 FR。"
         },
         {
           "id": "ch5.debate-spec",

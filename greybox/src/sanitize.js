@@ -210,7 +210,7 @@
     if (!Array.isArray(events) || events.length > 3000)
       return fail("信譽事件紀錄格式錯誤");
     /*
-     * 現行事件的理由是玩家可見契約；少數在 GB-ADR-030 前已能寫入
+     * 現行事件的理由是玩家可見契約；少數在 GOV-ADR-001 前已能寫入
      * 存檔的來源允許舊紀錄沒有 reason，但只要有 reason 仍須逐字吻合。
      * 新來源一律不接受「拿掉 reason 就假裝成舊存檔」。
      */
