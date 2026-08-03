@@ -15,7 +15,7 @@
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
   var TEXT = window.GB.TextFormat || null;
-  var CHAPTER_ID = /^ch[1-5]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var CHAPTER_ID = /^ch[1-6]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var TYPE_MS = 40;                    /* 逐字基速 */
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";
@@ -665,7 +665,7 @@
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship"
       : (d.system === "orbit" ? "orbit"
-      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision") ? "lab" : "debate"));
+      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision" || d.system === "heat") ? "lab" : "debate"));
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
@@ -714,7 +714,15 @@
           nc.querySelector(".ncNext").textContent = "下一個問題";
           nc.querySelector(".ncTitle").textContent = "短少的那一截，去了哪裡？";
           nc.querySelector(".ncHook").textContent = "黏土留下了可量的痕跡；要把去向全帳對平，還得學會怎麼量熱。";
-          nc.querySelector(".ncSys").textContent = "第五章進度與筆記已封存於這台裝置。";
+          nc.querySelector(".ncSys").textContent = "第六章現已開放。第五章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第六章";
+          nextHref = "stage.html?chapter=ch06";
+        } else if (CHAPTER_ID === "ch6") {
+          nc.querySelector(".ncSealed").textContent = "第六章《熱從哪裡來？》——已封存";
+          nc.querySelector(".ncNext").textContent = "下一筆債";
+          nc.querySelector(".ncTitle").textContent = "熱與功，究竟怎麼換算？";
+          nc.querySelector(".ncHook").textContent = "來源退下了，兌換率仍未量出。下一次，要讓兩種帳在同一把尺上相遇。";
+          nc.querySelector(".ncSys").textContent = "第六章進度與共同驗證頁已封存於這台裝置。";
         }
         nextBtn.hidden = !nextHref;
         nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
@@ -733,20 +741,22 @@
       ((d.scene === "A2-2" && d.nodeId === "e1") ||
        (d.scene === "B2-3" && d.nodeId === "e1") ||
        (d.scene === "C1-1" && d.nodeId === "e1") ||
+       (d.scene === "H0-3" && d.nodeId === "e1") ||
        (d.scene === "E1-2" && d.nodeId === "lab1") ||
        /* D1-1/e1 的 K0 封存刻意維持短操作；第四章大型工作台轉場
           放在 D1-2/e1 的同尺紙，避免切線紙剛封好就被整章備忘蓋住。 */
-       (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1");
+       (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1" || d.scene === "SC6-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
       pendingEmbarkScene = d.scene || null;
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
-        : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
+        : ((d.scene === "SC-R1" || d.scene === "SC6-R1") ? "▸ 用一筆乾淨紀錄道歉"
+        : (CHAPTER_ID === "ch6" ? "▸ 攤開四種來源的帳"
         : (CHAPTER_ID === "ch5" ? "▸ 攤開兩本帳"
         : (CHAPTER_ID === "ch4" ? "▸ 攤開兩張紙開始對帳"
-        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")))));
+        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))))));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {
@@ -1249,6 +1259,16 @@
         "資料不因失手消失——勾選、已破支柱與所有原紀錄都會保留。"
       ];
       $("btnLabIntroGo").textContent = "開始記第一本帳";
+    } else if (CHAPTER_ID === "ch6") {
+      title.textContent = "旅人筆記・四種來源追債台";
+      lines = [
+        "先封存，再揭示——四種有限來源都要先押下終點帶；未封存時，長時間實驗不會啟動。",
+        "一次只查一件事——熱容量、接觸運動、空氣與水箱各有自己的對照；失敗紀錄保留，但不能冒充乾淨證據。",
+        "封條只會裂，不會消失——長時間曲線出現後，你要逐一判讀四張預測；只有判讀完成，T4 才會入卷。",
+        "反例有邊界——資料能逼來源說退下，不能自動證明運動說，也不能抹掉潛熱等未查現象。",
+        "最後一頁分責任——操作、讀數、兩種解讀與未決債務分欄；四方署名只在最後交棒一次成立。"
+      ];
+      $("btnLabIntroGo").textContent = "開始追第一筆來源";
     } else {
       return;
     }
@@ -1260,7 +1280,7 @@
     if (!box || box.children.length) return;
     var ids = CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] :
       CHAPTER_ID === "ch3" ? ["ship3_g1_mast_dock", "ship3_g2_cabin"] :
-      CHAPTER_ID === "ch4" ? [] : ["prop_water_clock", "prop_ball_groove"];
+      (CHAPTER_ID === "ch4" || CHAPTER_ID === "ch6") ? [] : ["prop_water_clock", "prop_ball_groove"];
     ids.forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;

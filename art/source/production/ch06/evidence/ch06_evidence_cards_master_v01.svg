@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750">
+  <rect width="1200" height="750" fill="#e9ddbd"/>
+  <rect x="36" y="36" width="1128" height="678" rx="18" fill="none" stroke="#5f4632" stroke-width="5"/>
+  <text x="600" y="110" text-anchor="middle" font-family="serif" font-size="46" fill="#3b2a20">第六章證據卡母版｜來源・操作・讀數・邊界</text>
+  <g font-family="sans-serif" font-size="30" fill="#3b2a20">
+    <text x="100" y="210">S8　未查現象卡</text><text x="100" y="280">T1　同尺量熱</text>
+    <text x="100" y="350">T2　接觸運動</text><text x="100" y="420">T3　密合對照</text>
+    <text x="100" y="490">T4　封存帶與長曲線</text><text x="100" y="560">T5　四欄署名與兩筆未決</text>
+  </g>
+  <path d="M720 205h330M720 275h250M720 345h360M720 415h290M720 485h350M720 555h310" stroke="#9b633b" stroke-width="16" stroke-linecap="round" opacity=".8"/>
+  <text x="600" y="665" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#6e5744">runtime 分卡由本母版的色彩、框線與責任欄語法衍生</text>
+</svg>

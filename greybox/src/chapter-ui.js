@@ -124,7 +124,8 @@
     if (CHAPTER_ID === "ch2") return window.GB.Sanitize.sanitizeImport2(s, SCENES, window.GB.Engine2);
     if (CHAPTER_ID === "ch3") return window.GB.Sanitize.sanitizeImport3(s, SCENES, window.GB.Engine3);
     if (CHAPTER_ID === "ch4") return window.GB.Sanitize.sanitizeImport4(s, SCENES, window.GB.Engine4);
-    if (CHAPTER_ID === "ch5") return window.GB.Sanitize.sanitizeImport5(s, SCENES);
+    if (CHAPTER_ID === "ch5") return window.GB.Sanitize.sanitizeImport5(s, SCENES, window.GB.Engine5);
+    if (CHAPTER_ID === "ch6") return window.GB.Sanitize.sanitizeImport6(s, SCENES, window.GB.Engine6);
     return window.GB.Sanitize.sanitizeImport(s, PATTERNS, SCENES);
   }
   function showNewWarn(text) {
@@ -423,6 +424,21 @@
       $("e3Val").textContent = progress5[0];
       $("e3Val").title = progress5[1];
       $("dayVal").parentElement.title = "每次放手只留一筆；輪二重算舊紀錄，不增加天數。";
+    } else if (CHAPTER_ID === "ch6") {
+      var t6 = state.lab.evidence || {};
+      var acquired6 = ["t1", "t2", "t3", "t4", "t5"].filter(function (id) { return t6[id]; });
+      var target6 = {
+        "source-ledger": "封存兩模型來源帳", chips: "比較碎屑與實心金屬",
+        friction: "拆開接觸與運動", dry: "留下乾式連續紙帶", air: "做密合／開放對照",
+        water: "對齊水箱起點", "finite-predictions": "封存四個終點帶",
+        "continuous-run": "讓長紙走完", "finite-verdict": "逐張判讀裂封",
+        audit: "對回來源與原紙", "joint-page": "完成共同驗證頁", complete: "共同頁已封存"
+      }[state.lab.phase] || "完成眼前這一筆";
+      $("e3Val").textContent = acquired6.length
+        ? ("來源卷：" + acquired6.map(function (id) { return id.toUpperCase(); }).join("・"))
+        : "來源卷：尚未取得 T 證據";
+      $("e3Val").title = "現在只做：" + target6 + "。證據只有在玩家完成相應判讀後才入卷。";
+      $("dayVal").parentElement.title = "天數記錄每次實際比較、校準與長時段分段；讀紙和作答本身不加天。";
     } else {
     var e3 = state.lab.evidence.e3;
     /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
@@ -6628,7 +6644,7 @@
         var predictionSelect = orbit4BlankSelect(predictionPaper, [
           ["line",shapeLabels.line],["wrong-center",shapeLabels["wrong-center"]],
           ["away",shapeLabels.away],["circle",shapeLabels.circle],
-          ["ellipse",shapeLabels.ellipse],["crash",shapeLabels.crash]
+          ["ellipse",shapeLabels.ellipse]
         ], "4｜先預測路徑（未預選）", "orbit-rule-prediction");
         ship3Btn(ruleBox, o.continuedAt ? "另封一張規則紙與預測紙" : "把兩張紙一起封存", function () {
           if (!(targetSelect.value && speedSelect.value && strengthSelect.value && predictionSelect.value)) {
@@ -7701,6 +7717,305 @@
     }
   }
 
+  /* ---------- 第六章：來源追債台 ---------- */
+  var heat6Msg = "";
+  var HEAT6_SOURCE = { chips: "金屬碎屑", cannon: "炮身存量", air: "外界空氣", water: "水中存量" };
+  var HEAT6_BAND = { soon: "很快應變弱", "within-shift": "本班內應變弱", "no-endpoint": "目前無法標出終點" };
+
+  function heat6El(tag, text, parent, cls) {
+    var el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text != null) el.textContent = displayText(text);
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+  function heat6Select(parent, label, options, value) {
+    var wrap = heat6El("label", label + " ", parent, "heat6Field");
+    var select = document.createElement("select");
+    var blank = document.createElement("option");
+    blank.value = ""; blank.textContent = "— 請判斷 —";
+    select.appendChild(blank);
+    options.forEach(function (pair) {
+      var option = document.createElement("option");
+      option.value = pair[0]; option.textContent = pair[1];
+      select.appendChild(option);
+    });
+    select.value = value || "";
+    wrap.appendChild(select);
+    return select;
+  }
+  function heat6Error(code) {
+    var map = {
+      "four-sources-required": "四張來源紙都要先掛回實物，不能略過。",
+      "two-model-predictions-required": "兩套模型都要留下可核對的預測。",
+      "clean-chip-comparison-required": "目前只有混入差異的紙；把兩邊質量、初溫與水量對齊後再做。",
+      "chip-judgment-mismatch": "這句超出眼前兩條曲線。回到相同質量與初溫的比較。",
+      "three-friction-conditions-required": "三種條件還沒有全部留下原紙。",
+      "friction-judgment-mismatch": "只看哪一條真的持續升溫：轉而不壓、壓而不轉，還是接觸且運動。",
+      "clean-dry-strip-required": "紙帶有漏拍或條件改變；先留下一張可逐拍核對的乾淨紙。",
+      "dry-judgment-mismatch": "紙帶只支持量到的範圍，不能替未量到的時間作保。",
+      "air-prediction-required": "先封存密合後會怎樣，才能開兩組對照。",
+      "open-and-sealed-required": "開放與密合各需要一張乾淨紙。",
+      "air-judgment-mismatch": "比較兩條曲線：密合後升溫是否按來源預測消失或變慢？",
+      "water-box-not-ready": "水量、密合、檢漏與取樣位置還沒有同時對齊。",
+      "four-prediction-bands-required": "四個有限來源都要先放進終點帶。",
+      "finite-predictions-required": "終點帶尚未封存，長時段機器保持鎖定。",
+      "long-run-required": "長紙還沒走完，現在不足以判讀封條。",
+      "source-verdict-mismatch": "把封存帶與曲線並排：這個有限來源預測的變弱是否真的出現？",
+      "audit-placement-mismatch": "這張原紙查的不是這個來源；把來源問題與實際操作重新對回。",
+      "latent-disposition-mismatch": "反例能讓有限來源版本退下，不能單獨證明運動說，也不能刪掉未查現象。",
+      "audit-board-incomplete": "來源、條件紙與未決邊界還沒有全部對回。",
+      "unknown-joint-column": "責任放錯欄；人物只能簽自己實際操作、讀取或主張的部分。",
+      "joint-page-draft-incomplete": "四欄與『範圍未決』都要保留，暫稿才成立。"
+    };
+    return map[code] || ("這一步尚未成立（" + code + "）。");
+  }
+  function heat6Do(action, args, okText) {
+    var r = N.labAction(state, action, args || {});
+    if (r.error) { heat6Msg = "✕ " + heat6Error(r.error); renderAll(); return false; }
+    setState(r.state);
+    heat6Msg = "✓ " + (okText || "原紙已更新。舊紀錄仍留在卷內。");
+    renderAll();
+    return true;
+  }
+  function heat6Gate(parent, v) {
+    var gate = heat6El("div", null, parent, "heat6Gate");
+    if (!N.embedReady(state)) {
+      heat6El("p", "本段還缺關鍵判讀。完成眼前的物件與原紙後才能回到故事。", gate, "hint");
+      return;
+    }
+    ship3Btn(gate, "▶ 收好本段原紙，回到故事", function () {
+      var r = N.embedComplete(state);
+      if (r.error) { heat6Msg = "✕ " + r.error; renderAll(); return; }
+      setState(r.state); heat6Msg = ""; renderAll();
+    }, "heat6Primary");
+  }
+  function heat6Records(parent, kinds) {
+    var rows = state.lab.records.filter(function (row) { return kinds.indexOf(row.kind) >= 0; });
+    if (!rows.length) return;
+    var table = document.createElement("table"), body = document.createElement("tbody");
+    rows.forEach(function (row) {
+      var detail = row.curve ? row.curve.map(function (n) { return n == null ? "—" : n; }).join(" → ")
+        : (row.temperature != null ? (row.minutes + " 分｜" + row.temperature + "°") : (row.clean ? "乾淨" : "有差異"));
+      var tr = document.createElement("tr");
+      ["#" + row.id, row.kind, detail].forEach(function (text) { heat6El("td", String(text), tr); });
+      body.appendChild(tr);
+    });
+    table.appendChild(body); parent.appendChild(table);
+  }
+  function heat6VisualId(phase, lab) {
+    if (phase === "continuous-run-bench" && lab.continuousRun.complete)
+      return "ch06_lab_water_box_boiling";
+    return ASSETS && ASSETS.heat6Visual ? ASSETS.heat6Visual[phase] : null;
+  }
+  function heat6MountVisual(parent, phase, lab) {
+    var visual = assetEntry(heat6VisualId(phase, lab));
+    if (!visual) return;
+    var copy = {
+      "heat-source-ledger": ["四個實物來源區與四張空白來源紙", "圖面只標出要追查的實物；來源位置與後果由你寫入。"],
+      "chip-capacity-bench": ["兩只相同水杯、黃銅碎屑、實心薄片與四支無數字溫度計", "器材提供等質量、等初溫的比較情境；曲線由原紙產生。"],
+      "friction-condition-bench": ["旋轉炮身、固定鈍鑽與三種接觸條件的工作台", "正在工作的鑽具是鈍鑽；持續升溫要由三條條件紙比較。"],
+      "dry-strip-bench": ["固定鈍鑽、無數字取樣鼓與等待記錄的空白紙帶", "圖面不預寫趨勢；十六拍讀數與斷點由工作台留下。"],
+      "airtight-bench": ["同一鑽炮裝置的開放接縫與密合皮圈、活塞配置", "先封存密合預測，再讓兩組曲線回答空氣是否必要。"],
+      "water-box-bench": ["短炮段、固定鈍鑽、木製水箱與三支無數字溫度計", "這是長時段實驗的乾淨起點；先檢漏、取樣並封存終點帶。"],
+      "finite-source-prediction-bands": ["四個來源區與等待放入的空白預測帶", "終點帶要由玩家選定、封存；圖面不替任何來源押答案。"],
+      "continuous-run-bench": ["木製水箱裡的旋轉短炮段與固定鈍鑽", "長紙逐格延伸；確切分鐘與溫度仍以原紙為準。"],
+      "source-prediction-verdict": ["持續鑽削後已明顯沸騰的水箱，四張原預測仍留在桌上", "沸騰是可見結果；每張有限來源封條仍須逐一判讀。"],
+      "model-audit-board": ["分成四區的稽核板、封存袋與未填答案的原紙", "把每張原紙放回它真正查過的來源問題。"],
+      "joint-verification-page": ["共同驗證頁以三條分隔線形成四欄，四周放著獨立原紙", "四欄各負其責；共同頁不把未決機制冒充共同結論。"]
+    }[phase] || [visual.label || "第六章實驗器材", "圖面承載器材；數值、曲線與判讀由工作台產生。"];
+    if (phase === "continuous-run-bench" && lab.continuousRun.complete)
+      copy = ["長時段鑽削後水箱已達沸騰，原紙與器材仍在原位", "可見結果已出現；下一步仍要把曲線與四張封存帶逐一並排。"];
+    var figure = heat6El("figure", null, parent, "heat6Visual");
+    var image = document.createElement("img");
+    image.src = assetUrl(visual);
+    image.alt = copy[0];
+    image.loading = "lazy";
+    figure.appendChild(image);
+    heat6El("figcaption", copy[1], figure);
+  }
+  function renderHeat6(v, box) {
+    var lab = state.lab, phase = v.phase;
+    box.className = "heat6Lab";
+    box.setAttribute("data-phase", phase || "");
+    heat6El("h2", "四種來源追債台", box);
+    heat6El("p", v.hint || "把預測、操作與讀數留在同一張可追查的紙上。", box, "heat6Goal");
+    heat6MountVisual(box, phase, lab);
+    if (heat6Msg) {
+      var message = heat6El("p", heat6Msg, box, "labmsg heat6Message");
+      message.setAttribute("role", "status");
+    }
+
+    if (phase === "heat-source-ledger") {
+      var ledger = lab.sourceLedger;
+      Object.keys(HEAT6_SOURCE).forEach(function (source) {
+        var card = heat6El("section", null, box, "heat6Card");
+        card.setAttribute("data-source", source);
+        heat6El("h3", HEAT6_SOURCE[source], card);
+        if (ledger.placements[source]) {
+          heat6El("p", "位置：" + ledger.placements[source] + "｜若真是來源：" + ledger.consequences[source], card);
+          return;
+        }
+        var position = heat6Select(card, "掛到", [
+          ["鑽頭與炮身接觸處", "鑽頭與炮身接觸處"], ["炮身金屬內", "炮身金屬內"],
+          ["進氣口", "進氣口"], ["水箱內", "水箱內"]
+        ]);
+        var consequence = heat6Select(card, "若為來源", [
+          ["存量下降或溫度先變", "應看見存量下降或局部先變"],
+          ["隔絕後升溫應變慢", "隔絕後升溫應變慢"],
+          ["持續輸出後應衰減", "持續輸出後應衰減"]
+        ]);
+        ship3Btn(card, "掛上來源紙", function () {
+          if (!position.value || !consequence.value) { heat6Msg = "✕ 位置與可見後果都要寫清楚。"; renderAll(); return; }
+          heat6Do("setSourceLedger", { source: source, position: position.value, consequence: consequence.value }, "這張來源紙已掛回實物。 ");
+        });
+      });
+      if (!ledger.sealed && Object.keys(HEAT6_SOURCE).every(function (source) { return !!ledger.placements[source]; })) {
+        var models = heat6El("section", null, box, "heat6Card");
+        heat6El("h3", "封存兩套模型的預測", models);
+        var caloric = heat6Select(models, "熱質說", [["finite-sources", "熱來自可耗盡的物質來源"], ["no-visible-cost", "不要求任何來源留下變化"]]);
+        var motion = heat6Select(models, "運動說", [["continued-motion", "接觸運動持續，升溫可持續"], ["single-impact", "只在第一次接觸時升溫"]]);
+        ship3Btn(models, "封蠟，不再改寫", function () {
+          if (!caloric.value || !motion.value) { heat6Msg = "✕ 兩套模型都要先留下預測。"; renderAll(); return; }
+          heat6Do("sealModels", { caloric: caloric.value, motion: motion.value }, "兩套模型已封存；文字仍可查，但不能抽換。 ");
+        }, "heat6Primary");
+      }
+    } else if (phase === "chip-capacity-bench") {
+      heat6El("p", "兩邊目前質量：碎屑 " + lab.chipBench.draft.chipMass + "、實心片 " + lab.chipBench.draft.plateMass + "；初溫與水量也必須相同。", box);
+      ship3Btn(box, "故意少放一半碎屑", function () { heat6Do("setChipDraft", { field: "chipMass", value: 2 }, "差異已留在配置上；跑出的紙不能冒充乾淨對照。 "); });
+      ship3Btn(box, "恢復等質量", function () { heat6Do("setChipDraft", { field: "chipMass", value: 4 }, "兩邊質量已對齊。 "); });
+      ship3Btn(box, "浸入兩杯水，記曲線", function () { heat6Do("runChipComparison", {}, "兩條回溫曲線已留紙。 "); }, "heat6Primary");
+      heat6Records(box, ["chip-comparison"]);
+      if (lab.chipBench.cleanRecordIds.length) {
+        heat6El("h3", "這組比較支持哪一句？", box);
+        ship3Btn(box, "碎屑並沒有顯著較低的熱容量", function () { heat6Do("judgeChipComparison", { concept: "chips-not-lower-capacity" }, "T1 成立：碎屑供熱版本失去這條退路。 "); });
+        ship3Btn(box, "碎屑一定製造了更多熱", function () { heat6Do("judgeChipComparison", { concept: "chips-create-heat" }); });
+      }
+    } else if (phase === "friction-condition-bench") {
+      [["rotation-only", "只轉動，不壓緊"], ["pressure-only", "只壓緊，不轉動"], ["contact-motion", "壓緊並持續轉動"]].forEach(function (item) {
+        ship3Btn(box, lab.frictionBench.sealed[item[0]] ? ("✓ " + item[1]) : item[1], function () {
+          heat6Do("runFrictionCondition", { condition: item[0] }, "這一種條件已留下獨立曲線。 ");
+        }, "", !!lab.frictionBench.sealed[item[0]]);
+      });
+      heat6Records(box, ["friction-condition"]);
+      if (["rotation-only", "pressure-only", "contact-motion"].every(function (id) { return lab.frictionBench.sealed[id]; })) {
+        heat6El("h3", "哪個條件跟持續升溫一起出現？", box);
+        ship3Btn(box, "接觸與相對運動同時存在", function () { heat6Do("judgeFrictionConditions", { concept: "contact-and-motion" }, "T2 成立：紙帶只在接觸運動持續時上升。 "); });
+        ship3Btn(box, "只要壓力存在就夠", function () { heat6Do("judgeFrictionConditions", { concept: "pressure-only" }); });
+      }
+    } else if (phase === "dry-strip-bench") {
+      var dry = lab.dryBench.draft;
+      heat6El("p", "馬速：" + dry.horsePace + "｜壓力：" + dry.pressure + "｜取樣：" + dry.sampling, box);
+      ship3Btn(box, "中途改變壓力", function () { heat6Do("setDryDraft", { field: "pressure", value: "changed" }, "壓力變動已標在配置上。 "); });
+      ship3Btn(box, "固定壓力", function () { heat6Do("setDryDraft", { field: "pressure", value: "fixed" }, "壓力已固定。 "); });
+      ship3Btn(box, "讓紙帶走十六拍", function () { heat6Do("runDryStrip", {}, "乾式紙帶已留下；斷點不會被剪掉。 "); }, "heat6Primary");
+      heat6Records(box, ["dry-strip"]);
+      if (lab.dryBench.cleanRecordId) {
+        ship3Btn(box, "只主張已觀察時段內持續升溫", function () { heat6Do("judgeDryStrip", { concept: "observed-range-only" }, "乾式紙帶邊界已簽收。 "); });
+        ship3Btn(box, "主張永遠都會以同斜率升溫", function () { heat6Do("judgeDryStrip", { concept: "forever-linear" }); });
+      }
+    } else if (phase === "airtight-bench") {
+      if (!lab.airBench.sealed) {
+        heat6El("h3", "密合後，先押一個可被推翻的結果", box);
+        [["slower-when-sealed", "若空氣是必要來源，密合後應變慢"], ["any-change", "只押『可能不一樣』"], ["faster-when-sealed", "密合後應更快"]].forEach(function (item) {
+          ship3Btn(box, item[1], function () { heat6Do("sealAirPrediction", { prediction: item[0] }, "空氣封條已封存。 "); });
+        });
+      } else {
+        var airConditions = lab.records.filter(function (row) { return row.kind === "air-comparison" && row.clean; }).map(function (row) { return row.condition; });
+        [["open", "開放進氣"], ["sealed", "扣緊皮圈密合"]].forEach(function (item) {
+          ship3Btn(box, airConditions.indexOf(item[0]) >= 0 ? ("✓ " + item[1]) : item[1], function () {
+            heat6Do("runAirComparison", { condition: item[0], clean: true }, "這一組密合狀態已留下曲線。 ");
+          }, "", airConditions.indexOf(item[0]) >= 0);
+        });
+        heat6Records(box, ["air-comparison"]);
+        if (airConditions.indexOf("open") >= 0 && airConditions.indexOf("sealed") >= 0) {
+          ship3Btn(box, "空氣不是升溫的必要來源", function () { heat6Do("judgeAirComparison", { concept: "air-not-necessary" }, "T3 成立：舊封條保留，但空氣必要來源版本撤回。 "); });
+          ship3Btn(box, "密合證明空氣仍從縫裡進來", function () { heat6Do("judgeAirComparison", { concept: "hidden-air" }); });
+        }
+      }
+    } else if (phase === "water-box-bench") {
+      var water = lab.waterBench.draft;
+      heat6El("p", "起始水溫 " + water.water + "°｜密合 " + (water.sealed ? "✓" : "○") + "｜檢漏 " + (water.leakChecked ? "✓" : "○") + "｜三點取樣 " + (water.sampling ? "✓" : "○"), box);
+      ship3Btn(box, "扣緊水箱皮圈", function () { heat6Do("setWaterDraft", { field: "sealed", value: true }, "水箱已密合。 "); }, "", water.sealed);
+      ship3Btn(box, "靜置檢漏", function () { heat6Do("setWaterDraft", { field: "leakChecked", value: true }, "水位刻線沒有下降。 "); }, "", water.leakChecked);
+      ship3Btn(box, "放好三支溫度計", function () { heat6Do("setWaterDraft", { field: "sampling", value: true }, "摩擦處、箱壁與水面都已能讀數。 "); }, "", water.sampling);
+      ship3Btn(box, "封存乾淨起點", function () { heat6Do("prepareWaterBox", {}, "水箱起點已封存；可以開始押終點帶。 "); }, "heat6Primary");
+    } else if (phase === "finite-source-prediction-bands") {
+      var finite = lab.finiteSources;
+      Object.keys(HEAT6_SOURCE).forEach(function (source) {
+        var card = heat6El("section", null, box, "heat6Card " + finite.sealState[source]);
+        card.setAttribute("data-source", source);
+        heat6El("h3", HEAT6_SOURCE[source], card);
+        var choices = [["soon", "很快應變弱"], ["within-shift", "本班內應變弱"]];
+        if (source === "chips" || source === "air") choices.push(["no-endpoint", "目前無法標出終點"]);
+        var band = heat6Select(card, "終點帶", choices, finite.bands[source]);
+        ship3Btn(card, finite.bands[source] ? "改放這張帶" : "放入預測帶", function () {
+          if (!band.value) { heat6Msg = "✕ 每張來源紙都要選一個時段。"; renderAll(); return; }
+          heat6Do("setFinitePrediction", { source: source, band: band.value }, "預測帶已放好，封蠟前仍可調整。 ");
+        });
+      });
+      ship3Btn(box, "封住四張終點帶", function () { heat6Do("sealFinitePredictions", {}, "四張預測帶已封蠟；長時段機器解鎖。 "); }, "heat6Primary", finite.sealed);
+    } else if (phase === "continuous-run-bench") {
+      heat6El("p", "長紙 " + lab.continuousRun.segments.length + "／6 格｜馬速穩定｜壓力固定｜水位刻線可見", box);
+      heat6El("p", "封存終點帶：" + Object.keys(HEAT6_SOURCE).map(function (source) {
+        return HEAT6_SOURCE[source] + "＝" + HEAT6_BAND[lab.finiteSources.bands[source]];
+      }).join("｜"), box, "heat6Bands");
+      heat6Records(box, ["continuous-segment"]);
+      if (!lab.continuousRun.complete) {
+        ship3Btn(box, "續鑽半小時", function () { heat6Do("runContinuousSegment", { action: "continue" }, "曲線多出一格。 "); }, "heat6Primary");
+        ship3Btn(box, "停下校準再記", function () { heat6Do("runContinuousSegment", { action: "calibrate" }, "校準記號與下一格讀數一起留紙。 "); });
+        ship3Btn(box, "先修漏再記", function () { heat6Do("runContinuousSegment", { action: "repair-leak" }, "修漏記號留在這一格，舊紙沒有被抹掉。 "); });
+      } else heat6El("p", "水已達沸點；四張封存帶仍壓在曲線下方，等待你逐一判讀。", box, "ready");
+    } else if (phase === "source-prediction-verdict") {
+      var curve6 = lab.records.filter(function (row) { return row.kind === "continuous-segment"; })
+        .map(function (row) { return row.minutes + "分 " + row.temperature + "°"; });
+      heat6El("p", "長時段曲線：" + curve6.join(" → "), box, "heat6Curve");
+      Object.keys(HEAT6_SOURCE).forEach(function (source) {
+        var seal = lab.finiteSources.sealState[source], verdict = lab.finiteSources.verdicts[source];
+        var card = heat6El("section", null, box, "heat6Card heat6Seal " + seal);
+        card.setAttribute("data-source", source);
+        heat6El("h3", HEAT6_SOURCE[source] + "｜" + HEAT6_BAND[lab.finiteSources.bands[source]], card);
+        heat6El("p", seal === "cracked" ? "封蠟已裂；原預測仍留在原位。" : "封蠟完整，尚未提交判讀。", card);
+        if (!verdict) {
+          [["not-fulfilled", "預測未兌現"], ["insufficient", "本輪尚未走到終點"], ["fulfilled", "預測已命中"]].forEach(function (item) {
+            ship3Btn(card, item[1], function () { heat6Do("judgeFiniteSource", { source: source, verdict: item[0] }, "這張封條的判讀已落紙；封條只裂，不消失。 "); });
+          });
+        }
+      });
+    } else if (phase === "model-audit-board") {
+      var audit = lab.auditBoard;
+      [["chips", "T1", "碎屑來源 ← T1"], ["air", "T3", "空氣來源 ← T3"], ["cannon", "T4", "炮身有限存量 ← T4"], ["water", "T4", "水中有限存量 ← T4"], ["condition", "T2", "接觸運動條件 ← T2"]].forEach(function (item) {
+        ship3Btn(box, audit.placements[item[0]] ? ("✓ " + item[2]) : item[2], function () {
+          heat6Do("placeAuditEvidence", { slot: item[0], evidence: item[1] }, "原紙已放回它實際查過的問題旁。 ");
+        }, "", !!audit.placements[item[0]]);
+      });
+      heat6El("h3", "這些反例對運動說能說到哪裡？", box);
+      ship3Btn(box, "有限來源版本退下；運動說仍未證明", function () { heat6Do("setLatentDisposition", { disposition: "motion-unresolved" }, "未決邊界已留在板上。 "); }, "", !!audit.latentDisposition);
+      ship3Btn(box, "反例已經證明熱就是運動", function () { heat6Do("setLatentDisposition", { disposition: "proves-motion" }); });
+      ship3Btn(box, "封存模型稽核板", function () { heat6Do("completeAudit", {}, "來源、原紙與未決邊界已完成對帳。 "); }, "heat6Primary", audit.complete);
+    } else if (phase === "joint-verification-page") {
+      var joint = lab.jointPage, values = window.GB.Engine6.JOINT_VALUES;
+      var responsibilities = [
+        ["operation", "操作責任", [[values.operation, "史坦格：裝置與操作"], [values.readings, "凱斯勒：量熱讀數"]]],
+        ["readings", "讀數責任", [[values.readings, "凱斯勒：量熱讀數與來源反例"], [values.motion, "朗福德：運動說解讀"]]],
+        ["caloric", "熱質說欄", [[values.caloric, "凱斯勒：撤回範圍與保留現象"], [values.operation, "史坦格：裝置與操作"]]],
+        ["motion", "運動說欄", [[values.motion, "朗福德：個人解讀，自負其責"], [values.caloric, "凱斯勒：撤回範圍"]]]
+      ];
+      responsibilities.forEach(function (row) {
+        var responsibilityCard = heat6El("section", null, box, "heat6Card heat6Responsibility");
+        responsibilityCard.setAttribute("data-column", row[0]);
+        var field = heat6Select(responsibilityCard, row[1], row[2], joint.columns[row[0]]);
+        ship3Btn(responsibilityCard, joint.columns[row[0]] ? "✓ 已放入" : "放入這一欄", function () {
+          if (!field.value) { heat6Msg = "✕ 先選擇由誰為這一欄負責。"; renderAll(); return; }
+          heat6Do("setJointColumn", { column: row[0], text: field.value }, "責任欄已落紙；還沒有任何人簽共同結論。 ");
+        }, "", !!joint.columns[row[0]]);
+      });
+      heat6El("p", "範圍未決：" + (joint.scopeDebt === "scope-unresolved" ? "✓ 已保留" : "尚未由故事中的邊界選擇寫入"), box);
+      ship3Btn(box, "確認共同頁暫稿（不簽名）", function () { heat6Do("prepareJointPage", {}, "暫稿成立；T5、兌換率與旅人署名仍留白。 "); }, "heat6Primary");
+    }
+    heat6Gate(box, v);
+  }
+
   /* ---------- 主渲染 ---------- */
   function renderAll() {
     renderStatus();
@@ -7752,6 +8067,10 @@
       renderCollision5(v, box);
       return;
     }
+    if (v.type === "embed" && v.system === "heat") {
+      renderHeat6(v, box);
+      return;
+    }
     if (v.type === "embed" && v.system === "debrief") {
       renderDebrief(v, box);
       return;
@@ -7776,8 +8095,12 @@
         box.appendChild(lab);
         return ta;
       });
-      mkBtn(box, CHAPTER_ID === "ch5" ? "封存第五章" : (CHAPTER_ID === "ch4" ? "封存第四章" : (CHAPTER_ID === "ch3" ? "封存第三章" : (CHAPTER_ID === "ch2" ? "封存第二章" : "封存第一章"))), function () {
-        var r = N.setReview(state, tas[0].value, tas[1].value);
+      mkBtn(box, CHAPTER_ID === "ch6" ? "封存第六章" : (CHAPTER_ID === "ch5" ? "封存第五章" : (CHAPTER_ID === "ch4" ? "封存第四章" : (CHAPTER_ID === "ch3" ? "封存第三章" : (CHAPTER_ID === "ch2" ? "封存第二章" : "封存第一章")))), function () {
+        /* 舊章存檔維持 q1/q2 schema；三題以上時將第二題起以題目標籤合併入 q2。 */
+        var q2 = tas.slice(1).map(function (ta, index) {
+          return displayText(v.prompts[index + 1]) + "\n" + ta.value;
+        }).join("\n\n");
+        var r = N.setReview(state, tas[0].value, q2);
         if (r.error) { addLine("system", r.error, "system"); return; }
         setState(r.state);
         addLine("system", "旅人在筆記上寫下自己的答案。", "system");

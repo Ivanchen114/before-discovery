@@ -1069,8 +1069,9 @@
     .catApparatus, .catBook { padding: 7px 9px; }.catSectionHead { min-height: 26px; margin-bottom: 4px; }.catSectionHead h3 { font-size: 15px; }
     .catMaster { height: 104px; margin-bottom: 5px; }.catMaster figcaption { display: none; }
     .catSlots { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; }.catSlot { grid-column: auto; min-height: 64px; grid-template-columns: 1fr; padding: 4px; }.catSlot:last-child { grid-column: 1/-1; }
-    .catPartArt { display: none; }.catSlotCopy { grid-template-columns: 1fr; }.catSlotCopy b { font-size: 11px; }.catSlot select { font-size: 11px; min-height: 28px; }
-    .catPartBtn { font-size: 11px !important; }.catCalibrations { margin-top: 4px; }.catCal { min-height: 32px; padding: 2px 5px; }.catCal b { font-size: 10px; }
+    .catPartArt { display: none; }.catSlotCopy { grid-template-columns: 1fr; }.catSlotCopy b { font-size: 11px; }.catSlot select { font-size: 11px; min-height: 44px; }
+    .catPartBtn { min-height: 44px !important; font-size: 11px !important; }.catCalibrations { margin-top: 4px; }.catCal { min-height: 44px; padding: 2px 5px; }.catCal b { font-size: 10px; }
+    .catCal button,.catMeasureAction input,.catGateGo { min-height: 44px !important; }
     .catPartBrief { padding: 3px 5px; gap: 1px; }.catPartBrief strong, .catPartBrief p { font-size: 9px; }.catPartBrief blockquote { display: none; }
     .catMission { padding: 5px 8px; margin-bottom: 4px; }.catMission p { margin: 0; font-size: 13px; }
     .catClaims { gap: 3px; margin-top: 4px; }.catClaim { padding: 3px 5px; }.catClaim b, .catClaim span { font-size: 9px; }
@@ -2607,6 +2608,37 @@
     .orbitClaimChoice > label { grid-column:1; }
     .orbitWork table { font-size:12px; }
   }
+/* 第六章：來源追債台。點陣圖只提供器材，數值、曲線、封條與判讀仍由 DOM 產生。 */
+#controls.heat6Lab{box-sizing:border-box;width:100%;max-width:1080px;max-height:min(76vh,760px);margin:0 auto;padding:14px;overflow:auto;
+  color:#2b241b;background:linear-gradient(145deg,rgba(249,240,216,.98),rgba(224,205,165,.97));
+  border:1px solid #8b6e45;border-radius:10px;box-shadow:0 14px 38px rgba(18,12,7,.32)}
+.heat6Lab>h2{margin:.1rem 0 .35rem;font-family:serif;color:#372918}.heat6Goal{margin:.2rem 0 .65rem;color:#5d4a31}
+.heat6Visual{display:grid;grid-template-columns:minmax(260px,1.35fr) minmax(190px,.65fr);align-items:stretch;
+  margin:8px 0 12px;overflow:hidden;border:1px solid #8c7047;border-radius:7px;background:#34291f}
+.heat6Visual img{display:block;width:100%;height:210px;object-fit:cover;background:#201b17}
+.heat6Visual figcaption{display:flex;align-items:center;margin:0;padding:12px;color:#f3e5c5;font:600 13px/1.55 var(--font-ui)}
+.heat6Card{display:inline-block;box-sizing:border-box;width:calc(50% - 8px);min-height:130px;margin:4px 4px 8px;
+  padding:10px;vertical-align:top;border:1px solid rgba(116,84,44,.5);border-radius:6px;background:rgba(255,255,255,.35)}
+.heat6Card h3{margin:.1rem 0 .5rem;color:#49351f}.heat6Field{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:7px;align-items:center;margin:7px 0;font-weight:700}
+.heat6Field select{min-width:0;min-height:40px;padding:7px;border:1px solid #80663f;background:#fffaf0;color:#2d2418}
+.heat6Lab button{min-height:42px;margin:4px;padding:7px 11px}.heat6Primary{border-color:#496543!important;background:#e5efdc!important;color:#253621!important;font-weight:800}
+.heat6Message,.heat6Bands,.heat6Curve,.heat6Gate{padding:8px 10px;border-left:4px solid #80633e;background:rgba(255,255,255,.42)}
+.heat6Seal.cracked{border-color:#9e5d3e;background:rgba(174,96,61,.12)}.heat6Seal.cracked h3::before{content:"裂封｜";color:#984f32}
+.heat6Lab table{width:100%;margin:8px 0;border-collapse:collapse;background:rgba(255,255,255,.3)}
+.heat6Lab td{padding:6px;border-bottom:1px solid rgba(91,68,36,.28);text-align:left}
+@media(max-width:760px){
+  .heat6Visual{grid-template-columns:1fr}.heat6Visual img{height:170px}.heat6Visual figcaption{padding:8px 10px}
+  .heat6Card{display:block;width:100%;margin:5px 0}.heat6Field{grid-template-columns:1fr}
+}
+@media(max-height:520px) and (orientation:landscape){
+  #controls.heat6Lab{width:100%;max-width:1120px;max-height:72vh;padding:7px}
+  .heat6Lab>h2{font-size:18px}.heat6Goal{font-size:12px;margin-bottom:4px}
+  .heat6Visual{grid-template-columns:minmax(220px,.75fr) minmax(260px,1.25fr);margin:4px 0 7px}
+  .heat6Visual img{height:104px}.heat6Visual figcaption{padding:6px 8px;font-size:12px;line-height:1.35}
+  .heat6Card{min-height:0;padding:6px;margin:2px 3px 5px}.heat6Card h3{font-size:15px;margin-bottom:3px}
+  .heat6Field{margin:4px 0;font-size:12px}.heat6Field select{min-height:38px}.heat6Lab button{min-height:44px;margin:2px;padding:5px 8px}
+}
+
 /* 第五章：雙頁工作台。只在 collision embed 產生，既有章節零觸發。 */
 .collision5Workbench{width:min(1180px,96vw);margin:0 auto}
 .collision5Spread{display:grid;grid-template-columns:minmax(280px,.82fr) minmax(430px,1.28fr);gap:16px;align-items:start}
@@ -2635,10 +2667,14 @@
 .collision5Survey{margin-top:14px}
 .collision5Survey p{font-size:.86rem}
 body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
-@media(max-width:840px){
+@media(max-width:900px),(max-height:520px){
   .collision5Spread{grid-template-columns:1fr}
   .collision5Claims{grid-template-columns:1fr}
   .collision5Workbench{width:100%}
+  .collision5Page{padding:10px}
+  .collision5Setting select,.collision5Action,.collision5Gate,.collision5JudgmentOption{min-height:44px}
+  .collision5TableWrap{max-height:210px}
+  body[data-chapter="ch5"] #panelWrap{overflow:auto}
 }
 </style>
 </head>
@@ -2949,30 +2985,33 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 </div>
 
-<script src="data/series.js?v=asset-492d80f30cc7"></script>
+<script src="data/series.js?v=asset-e021a350f26d"></script>
 <script src="data/patterns.js?v=asset-d7342770b335"></script>
-<script src="data/debate.js?v=asset-da2ea6f0dc1f"></script>
-<script src="data/debate2.js?v=asset-a0430a6e0ba5"></script>
-<script src="data/debate5.js?v=asset-61d5f59799dc"></script>
+<script src="data/debate.js?v=asset-078769d39761"></script>
+<script src="data/debate2.js?v=asset-95645c9fb8f4"></script>
+<script src="data/debate5.js?v=asset-d2271e46933b"></script>
 <script src="data/histfacts.js?v=asset-7dcd468b722b"></script>
 <script src="data/histfacts2.js?v=asset-06953e62421e"></script>
 <script src="data/histfacts3.js?v=asset-ff2ba03ac549"></script>
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
-<script src="data/assets.js?v=asset-b6f16cd4a347"></script>
-<script src="src/sanitize.js?v=asset-f2132a30f33c"></script>
-<script src="src/save-envelope.js?v=asset-ddfa4a45c13a"></script>
+<script src="data/histfacts6.js?v=asset-df72fe7398b9"></script>
+<script src="data/assets.js?v=asset-351abd2ba15a"></script>
+<script src="src/sanitize.js?v=asset-90e1bc396ff9"></script>
+<script src="src/save-envelope.js?v=asset-0b9496000751"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-0777fc954c67"></script>
 <script src="src/engine2.js?v=asset-fa9fe59ca97c"></script>
 <script src="src/engine3.js?v=asset-9c360fdb8243"></script>
-<script src="src/engine4.js?v=asset-76c842f38cea"></script>
+<script src="src/engine4.js?v=asset-16cce02eccd2"></script>
 <script src="src/engine5.js?v=asset-49d82725763e"></script>
+<script src="src/engine6.js?v=asset-90fd77e0270a"></script>
 <script src="data/scenes.js?v=asset-457e57b73daa"></script>
 <script src="data/scenes2.js?v=asset-bf7cc0a29b5b"></script>
 <script src="data/scenes3.js?v=asset-e86236b448ea"></script>
 <script src="data/scenes4.js?v=asset-c99b00143f46"></script>
 <script src="data/scenes5.js?v=asset-3ba6caee6096"></script>
+<script src="data/scenes6.js?v=asset-599072799455"></script>
 <script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
 <script>
 (function () {
@@ -2983,7 +3022,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   data.scenes1 = data.scenes;
   window.GB.Engine1 = window.GB.Engine;
   var requested = new URLSearchParams(location.search).get("chapter");
-  var chapter = requested === "ch05" ? "ch05" : (requested === "ch04" ? "ch04" : (requested === "ch03" ? "ch03" : (requested === "ch02" ? "ch02" : "ch01")));
+  var chapter = requested === "ch06" ? "ch06" : (requested === "ch05" ? "ch05" : (requested === "ch04" ? "ch04" : (requested === "ch03" ? "ch03" : (requested === "ch02" ? "ch02" : "ch01"))));
   window.BD_CHAPTER = chapter;
   if (chapter === "ch02") {
     data.debate = data.debate2;
@@ -3007,12 +3046,17 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     data.scenes = data.scenes5;
     window.GB.Engine = window.GB.Engine5;
     window.BD_SAVE_KEY = "before-discovery:chapter5:v1";
+  } else if (chapter === "ch06") {
+    data.histfacts = data.histfacts6;
+    data.scenes = data.scenes6;
+    window.GB.Engine = window.GB.Engine6;
+    window.BD_SAVE_KEY = "before-discovery:chapter6:v1";
   }
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-1f559f10072d"></script>
-<script src="src/chapter-ui.js?v=asset-4d274ab5f292"></script>
+<script src="src/narrative.js?v=asset-b12328398828"></script>
+<script src="src/chapter-ui.js?v=asset-b230d33a8751"></script>
 <script>
 (function () {
   "use strict";
@@ -3029,7 +3073,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     ch2: "bd_ch2_save",
     ch3: "bd_ch3_save",
     ch4: "before-discovery:chapter4:v1",
-    ch5: "before-discovery:chapter5:v1"
+    ch5: "before-discovery:chapter5:v1",
+    ch6: "before-discovery:chapter6:v1"
   };
   var lastFocus = null;
 
@@ -3146,6 +3191,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-72c4e19cfa2a"></script>
+<script src="src/stage-ui.js?v=asset-1410ed7c0d73"></script>
 </body>
 </html>

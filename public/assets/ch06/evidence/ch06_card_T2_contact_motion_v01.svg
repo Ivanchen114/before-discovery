@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="t d"><title id="t">T2 接觸運動條件紙</title><desc id="d">三欄比較只轉動、只壓緊、壓緊並轉動；只有第三欄的溫度紙帶持續上升。</desc>
+<rect width="1200" height="750" fill="#e9ddbd"/><rect x="38" y="38" width="1124" height="674" rx="18" fill="none" stroke="#5f4632" stroke-width="5"/>
+<text x="80" y="110" font-family="serif" font-size="48" fill="#3b2a20">T2｜把壓力與相對運動拆開</text>
+<g font-family="sans-serif" font-size="28" text-anchor="middle" fill="#3b2a20"><text x="250" y="185">只轉，不壓</text><text x="600" y="185">只壓，不轉</text><text x="950" y="185">壓緊並轉動</text></g>
+<g fill="none" stroke="#40362d" stroke-width="7"><path d="M120 500V230M120 500h260"/><path d="M470 500V230M470 500h260"/><path d="M820 500V230M820 500h260"/></g>
+<path d="M135 450l220-5" stroke="#73838a" stroke-width="12"/><path d="M485 450l220-12" stroke="#73838a" stroke-width="12"/><path d="M835 455C900 430 970 340 1055 250" fill="none" stroke="#a44d35" stroke-width="14"/>
+<text x="600" y="665" text-anchor="middle" font-family="sans-serif" font-size="30" fill="#3b2a20">持續升溫跟著「接觸＋相對運動」出現</text></svg>

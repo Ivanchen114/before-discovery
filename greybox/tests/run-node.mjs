@@ -14,13 +14,16 @@ const debate = require("../data/debate.js");
 const scenes = require("../data/scenes.js");
 const scenes2 = require("../data/scenes2.js");
 const Engine = require("../src/engine.js");
+const Engine2 = require("../src/engine2.js");
 const Engine3 = require("../src/engine3.js");
 const Engine4 = require("../src/engine4.js");
 const Engine5 = require("../src/engine5.js");
+const Engine6 = require("../src/engine6.js");
 const Narrative = require("../src/narrative.js");
 const scenes3 = require("../data/scenes3.js");
 const scenes4 = require("../data/scenes4.js");
 const scenes5 = require("../data/scenes5.js");
+const scenes6 = require("../data/scenes6.js");
 const debate5 = require("../data/debate5.js");
 const histfacts5 = require("../data/histfacts5.js");
 const TextFormat = require("../src/text-format.js");
@@ -37,12 +40,314 @@ tests.push({
   name: "前端腳本語法|主要瀏覽器腳本都能被 JavaScript 引擎解析",
   fn: () => {
     for (const file of [
-      "chapter-ui.js", "engine3.js", "engine4.js", "ch4-migration.js",
+      "chapter-ui.js", "engine3.js", "engine4.js", "engine6.js", "ch4-migration.js",
       "narrative.js", "sanitize.js"
     ]) {
       const source = readFileSync(path.join(here, "../src", file), "utf-8");
       new Script(source, { filename: file });
     }
+  }
+});
+
+function ch6ReadyForFinitePredictions() {
+  let state = Engine6.initialState();
+  for (const source of Engine6.SOURCES) {
+    state = Engine6.setSourceLedger(state, {
+      source, position: source + "-position", consequence: source + "-visible-change"
+    }).state;
+  }
+  state = Engine6.sealModels(state, { caloric: "finite-sources", motion: "continued-motion" }).state;
+  state = Engine6.runChipComparison(state).state;
+  state = Engine6.judgeChipComparison(state, { concept: "chips-not-lower-capacity" }).state;
+  for (const condition of ["rotation-only", "pressure-only", "contact-motion"])
+    state = Engine6.runFrictionCondition(state, { condition }).state;
+  state = Engine6.judgeFrictionConditions(state, { concept: "contact-and-motion" }).state;
+  state = Engine6.runDryStrip(state).state;
+  state = Engine6.judgeDryStrip(state, { concept: "observed-range-only" }).state;
+  state = Engine6.sealAirPrediction(state, { prediction: "slower-when-sealed" }).state;
+  state = Engine6.runAirComparison(state, { condition: "open" }).state;
+  state = Engine6.runAirComparison(state, { condition: "sealed" }).state;
+  state = Engine6.judgeAirComparison(state, { concept: "air-not-necessary" }).state;
+  for (const [field, value] of [["sealed", true], ["leakChecked", true], ["sampling", true]])
+    state = Engine6.setWaterDraft(state, { field, value }).state;
+  state = Engine6.prepareWaterBox(state).state;
+  const bands = { chips: "soon", air: "soon", cannon: "within-shift", water: "within-shift" };
+  for (const source of Engine6.SOURCES)
+    state = Engine6.setFinitePrediction(state, { source, band: bands[source] }).state;
+  return state;
+}
+
+function ch6CompleteLongRun(state0) {
+  let state = state0;
+  for (let i = 0; i < 6; i += 1)
+    state = Engine6.runContinuousSegment(state, { action: "continue" }).state;
+  return state;
+}
+
+function ch6CompleteVerdicts(state0) {
+  let state = state0;
+  for (const source of Engine6.SOURCES)
+    state = Engine6.judgeFiniteSource(state, { source, verdict: "not-fulfilled" }).state;
+  return state;
+}
+
+function ch6CompleteAudit(state0) {
+  let state = state0;
+  for (const [slot, evidence] of [["chips", "T1"], ["air", "T3"], ["cannon", "T4"], ["water", "T4"], ["condition", "T2"]])
+    state = Engine6.placeAuditEvidence(state, { slot, evidence }).state;
+  state = Engine6.setLatentDisposition(state, { disposition: "motion-unresolved" }).state;
+  return Engine6.completeAudit(state).state;
+}
+
+tests.push({
+  name: "R-CH6-01|未封存有限來源預測不得跑長時段曲線",
+  fn: () => {
+    const initial = Engine6.initialState();
+    const before = JSON.stringify(initial);
+    const early = Engine6.runContinuousSegment(initial, { action: "continue" });
+    if (early.error !== "finite-predictions-required" || JSON.stringify(early.state) !== before)
+      throw new Error("未封預測仍能跑或失敗改動 state");
+    let state = ch6ReadyForFinitePredictions();
+    state = Engine6.sealFinitePredictions(state).state;
+    const rewrite = Engine6.setFinitePrediction(state, { source: "cannon", band: "soon" });
+    if (rewrite.error !== "finite-predictions-sealed") throw new Error("封存後仍可改押");
+  }
+});
+
+tests.push({
+  name: "R-CH6-02|長曲線不自動授 T4；四來源逐一判讀後才取得",
+  fn: () => {
+    let state = ch6ReadyForFinitePredictions();
+    state = Engine6.sealFinitePredictions(state).state;
+    state = ch6CompleteLongRun(state);
+    if (state.evidence.t4 || !Engine6.gate(state, "continuous-run"))
+      throw new Error("跑完長曲線時 T4 被自動授予或 run gate 未成立");
+    for (const source of Engine6.SOURCES.slice(0, 3)) {
+      state = Engine6.judgeFiniteSource(state, { source, verdict: "not-fulfilled" }).state;
+      if (state.evidence.t4) throw new Error("判讀未齊就取得 T4:" + source);
+      if (state.finiteSources.sealState[source] !== "cracked") throw new Error("已判讀封條沒有裂開");
+    }
+    const last = Engine6.judgeFiniteSource(state, { source: "water", verdict: "not-fulfilled" });
+    if (last.error || last.evidence !== "T4" || !last.state.evidence.t4 || !last.state.finiteSources.complete)
+      throw new Error("四來源齊全仍未原子取得 T4");
+    if (!Engine6.SOURCES.every((source) => last.state.finiteSources.sealState[source] === "cracked"))
+      throw new Error("裂封狀態不完整");
+  }
+});
+
+tests.push({
+  name: "R-CH6-03|x_final 前不得取得 T5、旅人署名或完章",
+  fn: () => {
+    let state = ch6ReadyForFinitePredictions();
+    state = Engine6.sealFinitePredictions(state).state;
+    state = ch6CompleteVerdicts(ch6CompleteLongRun(state));
+    state = ch6CompleteAudit(state);
+    const columns = Engine6.JOINT_VALUES;
+    for (const [column, text] of Object.entries(columns))
+      state = Engine6.setJointColumn(state, { column, text }).state;
+    state = Engine6.writeScopeDebt(state, { debt: "scope-unresolved" }).state;
+    const draft = Engine6.prepareJointPage(state);
+    if (draft.error || draft.state.evidence.t5 || draft.state.jointPage.complete ||
+        draft.state.jointPage.signedBy.traveler)
+      throw new Error("共同頁暫稿提前授 T5／旅人署名／完成");
+    const wrong = Engine6.finalizeJointPage(draft.state, { rateDebt: "drill-longer" });
+    if (wrong.error !== "rate-debt-mismatch" || wrong.state.evidence.t5)
+      throw new Error("錯誤交棒仍部分成立");
+    const final = Engine6.finalizeJointPage(draft.state, { rateDebt: "conversion-rate-unmeasured" });
+    if (final.error || final.evidence !== "T5" || !final.state.evidence.t5 ||
+        !final.state.jointPage.complete || final.state.phase !== "complete" ||
+        !Object.values(final.state.jointPage.signedBy).every(Boolean))
+      throw new Error("x_final 沒有原子成立兩筆債、四簽、T5 與完成");
+  }
+});
+
+tests.push({
+  name: "R-CH6-04|17 組選項錯項 refutedBy 只指向作答前已見來源",
+  fn: () => {
+    if (!Array.isArray(scenes6.decisionRegistry) || scenes6.decisionRegistry.length !== 17)
+      throw new Error("第六章 decisionRegistry 不是 17 組");
+    const sceneOrder = new Map(scenes6.scenes.map((scene, index) => [scene.id, index]));
+    const nodeByKey = new Map();
+    const evidenceAt = new Map();
+    for (const scene of scenes6.scenes) {
+      for (const node of scene.nodes) {
+        const key = `${scene.id}/${node.id}`;
+        nodeByKey.set(key, { scene, node, key });
+        for (const effect of node.effects || [])
+          if (effect.evidence) evidenceAt.set(effect.evidence, key);
+      }
+    }
+    const firstKey = new Map(scenes6.scenes.map((scene) => [scene.id, `${scene.id}/${scene.nodes[0].id}`]));
+    const predecessors = new Map([...nodeByKey.keys()].map((key) => [key, new Set()]));
+    const addEdge = (from, to) => {
+      if (!nodeByKey.has(to)) throw new Error(`第六章圖邊目標不存在:${from}→${to}`);
+      predecessors.get(to).add(from);
+    };
+    for (const { scene, node, key } of nodeByKey.values()) {
+      if (node.type === "goto") addEdge(key, firstKey.get(node.scene));
+      else if (node.type === "choice")
+        for (const option of node.options || []) addEdge(key, `${scene.id}/${option.next}`);
+      else if (node.next) addEdge(key, `${scene.id}/${node.next}`);
+    }
+    const start = firstKey.get(scenes6.startScene);
+    const allKeys = new Set(nodeByKey.keys());
+    const dominators = new Map();
+    for (const key of allKeys) dominators.set(key, key === start ? new Set([key]) : new Set(allKeys));
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const key of allKeys) {
+        if (key === start) continue;
+        const preds = [...predecessors.get(key)];
+        if (!preds.length) continue;
+        let next = new Set(dominators.get(preds[0]));
+        for (const pred of preds.slice(1))
+          next = new Set([...next].filter((candidate) => dominators.get(pred).has(candidate)));
+        next.add(key);
+        const current = dominators.get(key);
+        if (next.size !== current.size || [...next].some((candidate) => !current.has(candidate))) {
+          dominators.set(key, next);
+          changed = true;
+        }
+      }
+    }
+    for (const decision of scenes6.decisionRegistry) {
+      if (decision.preselected !== false) throw new Error("題目有預選:" + decision.id);
+      const decisionKey = `${decision.scene}/${decision.node}`;
+      if (!nodeByKey.has(decisionKey)) throw new Error("decision 節點不存在:" + decision.id);
+      for (const option of decision.options) {
+        if (option.isCorrect) continue;
+        if (!option.refutedBy.length) throw new Error("錯項缺 refutedBy:" + decision.id + "/" + option.id);
+        for (const ref of option.refutedBy) {
+          const sourceKey = ref.includes("/") ? ref : evidenceAt.get(ref);
+          if (!sourceKey || !nodeByKey.has(sourceKey))
+            throw new Error("refutedBy 無法解析:" + decision.id + "/" + option.id + "→" + ref);
+          if (!dominators.get(decisionKey).has(sourceKey))
+            throw new Error("refutedBy 尚未見:" + decision.id + "/" + option.id + "→" + ref);
+        }
+      }
+    }
+    if (![...sceneOrder.keys()].includes("HE-1")) throw new Error("scene registry 遺漏 HE-1");
+  }
+});
+
+tests.push({
+  name: "第六章全章走查|十一座互動、S8/T1–T5、共同頁、存檔淨化與舞台接線",
+  fn: () => {
+    const San = require("../src/sanitize.js");
+    const N6 = Narrative._factory(scenes6, Engine6, {});
+    let state = N6.initialState("explore");
+    const act = (action, args = {}) => {
+      const out = N6.labAction(state, action, args);
+      if (out.error) throw new Error(`${state.cursor.scene}/${state.cursor.node} ${action}:${out.error}`);
+      state = out.state;
+    };
+    const finishEmbed = (phase) => {
+      if (phase === "heat-source-ledger") {
+        for (const source of Engine6.SOURCES)
+          act("setSourceLedger", { source, position:`${source}-position`, consequence:`${source}-change` });
+        act("sealModels", { caloric:"finite-sources", motion:"continued-motion" });
+      } else if (phase === "chip-capacity-bench") {
+        act("runChipComparison");
+        act("judgeChipComparison", { concept:"chips-not-lower-capacity" });
+      } else if (phase === "friction-condition-bench") {
+        for (const condition of ["rotation-only", "pressure-only", "contact-motion"])
+          act("runFrictionCondition", { condition });
+        act("judgeFrictionConditions", { concept:"contact-and-motion" });
+      } else if (phase === "dry-strip-bench") {
+        act("runDryStrip");
+        act("judgeDryStrip", { concept:"observed-range-only" });
+      } else if (phase === "airtight-bench") {
+        act("sealAirPrediction", { prediction:"slower-when-sealed" });
+        act("runAirComparison", { condition:"open" });
+        act("runAirComparison", { condition:"sealed" });
+        act("judgeAirComparison", { concept:"air-not-necessary" });
+      } else if (phase === "water-box-bench") {
+        for (const [field, value] of [["sealed", true], ["leakChecked", true], ["sampling", true]])
+          act("setWaterDraft", { field, value });
+        act("prepareWaterBox");
+      } else if (phase === "finite-source-prediction-bands") {
+        const bands = { chips:"soon", cannon:"within-shift", air:"soon", water:"within-shift" };
+        for (const [source, band] of Object.entries(bands)) act("setFinitePrediction", { source, band });
+        act("sealFinitePredictions");
+      } else if (phase === "continuous-run-bench") {
+        for (let index = 0; index < 6; index += 1) act("runContinuousSegment", { action:"continue" });
+      } else if (phase === "source-prediction-verdict") {
+        for (const source of Engine6.SOURCES) act("judgeFiniteSource", { source, verdict:"not-fulfilled" });
+      } else if (phase === "model-audit-board") {
+        for (const [slot, evidence] of [["chips", "T1"], ["air", "T3"], ["cannon", "T4"], ["water", "T4"], ["condition", "T2"]])
+          act("placeAuditEvidence", { slot, evidence });
+        act("setLatentDisposition", { disposition:"motion-unresolved" });
+        act("completeAudit");
+      } else if (phase === "joint-verification-page") {
+        for (const [column, text] of Object.entries(Engine6.JOINT_VALUES)) act("setJointColumn", { column, text });
+        act("prepareJointPage");
+      } else throw new Error("未知第六章互動 phase:" + phase);
+      const completed = N6.embedComplete(state);
+      if (completed.error) throw new Error("互動未能收束:" + completed.error);
+      state = completed.state;
+    };
+    for (let guard = 0; guard < 1000 && !state.ended; guard += 1) {
+      const view = N6.view(state);
+      if (view.type === "line" || view.type === "system" || view.type === "histfacts") {
+        const out = N6.advance(state);
+        if (out.error) throw new Error(`${view.scene}/${view.nodeId}:${out.error}`);
+        state = out.state;
+      } else if (view.type === "choice") {
+        const def = N6._sceneMap[view.scene].nodes[view.nodeId];
+        const correct = def.options.find((option) => !option.refutedBy);
+        const out = N6.choose(state, correct.id);
+        if (out.error) throw new Error(`${view.scene}/${view.nodeId}/${correct.id}:${out.error}`);
+        state = out.state;
+      } else if (view.type === "embed") finishEmbed(view.phase);
+      else if (view.type === "review") {
+        const out = N6.setReview(state, "我如何逐一排除有限來源", "範圍與兌換率仍未決");
+        if (out.error) throw new Error(out.error);
+        state = out.state;
+      } else if (view.type === "end") {
+        const out = N6.advance(state);
+        if (out.error) throw new Error(out.error);
+        state = out.state;
+      } else throw new Error("未處理的第六章節點:" + view.type);
+    }
+    if (!state.ended || state.lab.phase !== "complete" ||
+        !["S8", "T1", "T2", "T3", "T4", "T5"].every((id) => state.evidence[id]))
+      throw new Error("第六章黃金路徑未完成或證據不齊");
+    if (!Object.values(state.lab.jointPage.signedBy).every(Boolean) || state.lab.days !== 14)
+      throw new Error("第六章四方署名或工作日誌不一致");
+    const clean = San.sanitizeImport6(JSON.parse(N6.serialize(state)), scenes6, Engine6);
+    if (!clean.ok) throw new Error("合法完章存檔遭拒:" + clean.reason);
+    const forgedT4 = JSON.parse(N6.serialize(state));
+    forgedT4.lab.finiteSources.verdicts.water = null;
+    forgedT4.lab.finiteSources.sealState.water = "intact";
+    forgedT4.lab.finiteSources.complete = false;
+    if (San.sanitizeImport6(forgedT4, scenes6, Engine6).ok) throw new Error("缺第四張判讀仍可冒充 T4 完章");
+    const forgedT5 = JSON.parse(N6.serialize(state));
+    forgedT5.lab.jointPage.signedBy.traveler = false;
+    if (San.sanitizeImport6(forgedT5, scenes6, Engine6).ok) throw new Error("缺旅人最終署名仍可冒充 T5");
+    const vanishedSeal = JSON.parse(N6.serialize(state));
+    vanishedSeal.lab.finiteSources.sealState.chips = "hidden";
+    if (San.sanitizeImport6(vanishedSeal, scenes6, Engine6).ok) throw new Error("封條消失狀態未被拒絕");
+
+    const json = JSON.parse(readFileSync(path.join(here, "../data/scenes6.json"), "utf-8"));
+    if (JSON.stringify(scenes6) !== JSON.stringify(json)) throw new Error("scenes6 鏡像漂移");
+    const histfacts6 = require("../data/histfacts6.js");
+    const histJson = JSON.parse(readFileSync(path.join(here, "../data/histfacts6.json"), "utf-8"));
+    if (JSON.stringify(histfacts6) !== JSON.stringify(histJson) ||
+        histfacts6.rows.some((row) => !histfacts6.labels.includes(row.label)))
+      throw new Error("histfacts6 鏡像或 label enum 漂移");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
+    for (const fragment of ["data/scenes6.js", "data/histfacts6.js", "src/engine6.js",
+      'requested === "ch06"', "before-discovery:chapter6:v1"])
+      if (!html.includes(fragment)) throw new Error("第六章入口接線缺失:" + fragment);
+    for (const fragment of ["renderHeat6", "finite-source-prediction-bands", "source-prediction-verdict",
+      "sanitizeImport6", "封存第六章"])
+      if (!ui.includes(fragment)) throw new Error("第六章 UI 接線缺失:" + fragment);
+    if (!stageUi.includes('d.system === "heat"') || !stageUi.includes('CHAPTER_ID === "ch6"') ||
+        !stageUi.includes('stage.html?chapter=ch06'))
+      throw new Error("第六章沒有接進舞台視圖或第五章章尾出口");
   }
 });
 
@@ -465,7 +770,7 @@ tests.push({
     }
     /* 章首與跨年蒙太奇：各章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
     const sceneIds = new Set([].concat(
-      scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes, scenes5.scenes
+      scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes, scenes5.scenes, scenes6.scenes
     ).map((s) => s.id));
     const entryById = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
     for (const [sc, fx] of Object.entries(assets.sceneFx || {})) {
@@ -2034,6 +2339,13 @@ tests.push({
         if (dv.status === "suspended") { ok(N2.debateExitSuspended(st), "exit suspended"); return; }
         if (dv.phase === "pillars") {
           const pid = dv.pillar.id;
+          if (dv.reason) {
+            const response = {
+              P1: "no-straight-stage", P2: "fall-not-delayed", P3: "motions-coexist"
+            }[pid];
+            ok(N2.debateReason(st, response), "reason " + pid);
+            return;
+          }
           ok(N2.debatePresent(st, { target: { P1: "p1s2", P2: "p2s2", P3: "p3s2" }[pid],
             evidence: { P1: "F4", P2: "F3", P3: "F3" }[pid] }), "present " + pid);
           return;
@@ -2713,8 +3025,11 @@ tests.push({
     const scenes2 = JSON.parse(readFileSync(path.join(here, "../data/scenes2.json"), "utf-8"));
     const scenes3 = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const scenes4 = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
+    const scenes5 = JSON.parse(readFileSync(path.join(here, "../data/scenes5.json"), "utf-8"));
+    const scenes6 = JSON.parse(readFileSync(path.join(here, "../data/scenes6.json"), "utf-8"));
     const ids = new Set(assets.entries.map((e) => e.id));
-    const byScene = new Map([...scenes1.scenes, ...scenes2.scenes, ...scenes3.scenes, ...scenes4.scenes]
+    const byScene = new Map([...scenes1.scenes, ...scenes2.scenes, ...scenes3.scenes, ...scenes4.scenes,
+      ...scenes5.scenes, ...scenes6.scenes]
       .map((s) => [s.id, JSON.stringify(s)]));
     const rules = assets.lineFocusVisual || [];
     for (const sid of ["P0-2", "A1-2", "A1-5", "A1-7", "A2-2", "A2-4"])
@@ -3713,6 +4028,29 @@ tests.push({
      */
     let ch5ReachRepair = N5.advance(authority.state).state;
     ch5ReachRepair = N5.choose(ch5ReachRepair, "ledger").state;
+    /* 修復路由的測試不得靠手填 J1–J3：先走完真實引擎路徑，
+       再攻辯論裡的研究誠信越界。這也鎖住 sanitizer 的投影一致性。 */
+    let repairLab5 = Engine5.initialState();
+    for (const head of ["steel", "putty"])
+      for (let repeat = 0; repeat < 3; repeat++) {
+        repairLab5 = Engine5.setDraft(repairLab5, "head", head).state;
+        repairLab5 = Engine5.runCollision(repairLab5).state;
+      }
+    const repairCollisionIds5 = repairLab5.collisionRuns.map((row) => row.id);
+    repairLab5 = Engine5.assertJ1(repairLab5, repairCollisionIds5, "both-close").state;
+    repairLab5 = Engine5.assertJ2(repairLab5, repairCollisionIds5, "steel-close-putty-short").state;
+    repairLab5 = Engine5.setJudgment(repairLab5, "followup", "changes-with-mass").state;
+    repairLab5 = Engine5.setDraft(repairLab5, "masses", "4/8").state;
+    repairLab5 = Engine5.setDraft(repairLab5, "head", "putty").state;
+    repairLab5 = Engine5.runCollision(repairLab5).state;
+    for (const height of ["h1", "h4", "h9"]) {
+      repairLab5 = Engine5.setDraft(repairLab5, "clayHeight", height).state;
+      repairLab5 = Engine5.runClay(repairLab5).state;
+    }
+    repairLab5 = Engine5.assertJ3(
+      repairLab5, repairLab5.clayRuns.map((row) => row.id), "speed-squared"
+    ).state;
+    ch5ReachRepair.lab = repairLab5;
     for (const id of ["J1", "J2", "J3"]) ch5ReachRepair.evidence[id] = true;
     ch5ReachRepair.debate = {
       persuasion:5, idx:3,
@@ -6102,12 +6440,12 @@ tests.push({
 });
 
 tests.push({
-  name: "五章證據視覺|每項宣告證據皆有可解析圖像，取得與筆記共用單一映射",
+  name: "六章證據視覺|每項宣告證據皆有可解析圖像，取得與筆記共用單一映射",
   fn: () => {
     const assets = require("../data/assets.js");
     const entries = new Map(assets.entries.map((e) => [e.id, e]));
     const required = [...new Set(
-      [scenes, scenes2, scenes3, scenes4, scenes5]
+      [scenes, scenes2, scenes3, scenes4, scenes5, scenes6]
         .flatMap((chapter) => Object.keys(chapter.evidenceNames || {}))
     )];
     for (const code of required) {
@@ -6123,7 +6461,7 @@ tests.push({
           throw new Error("證據圖母版無法解析：" + code + " → " + entry.sourceMaster);
       }
     }
-    if (required.length !== 31) throw new Error("五章證據宣告數改變，請重審視覺盤點：" + required.length);
+    if (required.length !== 37) throw new Error("六章證據宣告數改變，請重審視覺盤點：" + required.length);
     const s5Visual = assets.evidenceVisual.S5;
     const s5Asset = entries.get(s5Visual.items[0].asset);
     if (s5Visual.items[0].asset === "bg_ch03_marseille_harbor_dawn" || s5Asset?.kind !== "card" || !s5Asset?.path?.startsWith("ch03/cards/"))
@@ -6816,6 +7154,34 @@ tests.push({
       if (run.actualShape !== "circle" || !run.predictionMatched)
         throw new Error("v² 三組相配解未形成近圓:" + speed + "/" + strength);
     }
+
+    /* slow/short 的設定查表答案是 circle；玩家合法地把三拍分別轉
+       -12°、+36°、-18° 後，實際紙帶會成為 ellipse。這筆專門防止
+       新 run 的分類又退回設定查表，也讓匯入稽核讀同一條實際路徑。 */
+    let pathClassified = Engine4.sealOrbitRule(ch4K0K2State(), {
+      target:"earth-center", speed:"slow", strength:"short"
+    }, "ellipse").state;
+    for (const clicks of [-2, 6, -3]) {
+      for (let i = 0; i < Math.abs(clicks); i++) {
+        const turned = Engine4.nudgeOrbitAim(
+          pathClassified, Math.sign(clicks) * Math.PI / 30
+        );
+        if (turned.error) throw new Error("實際路徑分類探針無法轉動箭頭");
+        pathClassified = turned.state;
+      }
+      const beat = Engine4.commitOrbitBeat(pathClassified);
+      if (beat.error || !beat.ok)
+        throw new Error("實際路徑分類探針沒有留下合法三拍");
+      pathClassified = beat.state;
+    }
+    const pathContinuation = Engine4.continueOrbitRule(pathClassified);
+    if (pathContinuation.error ||
+        pathContinuation.run.actualShape !== "ellipse" ||
+        pathContinuation.run.classificationSource !== "simulated-path-v1" ||
+        !Engine4._orbitRunAudit(pathContinuation.run))
+      throw new Error(
+        "K1 實際路徑分類退回設定查表；slow/short 的合法偏轉紙應判為 ellipse"
+      );
   }
 });
 
@@ -6880,7 +7246,9 @@ tests.push({
         s.planetLab.revealed.mars || r.prediction.playerBandMatched)
       throw new Error("火星錯押沒有先封存、仍提前揭露，或錯押被改成正確");
     if (Engine4.revealPlanetPredictions(s).error !== "two-planet-predictions-required")
-      throw new Error("只封一顆行星即可拆觀測");
+      throw new Error(
+        "K3 雙封閘門失效：只封火星就能揭曉，應回 two-planet-predictions-required"
+      );
     if (Engine4.assertK3(s, ["mars-sealed"], "withheld-data-prediction").ok)
       throw new Error("單顆行星即可取得 K3");
     r = Engine4.sealPlanetPrediction(s, "jupiter", "short"); s = r.state;
@@ -6901,6 +7269,14 @@ tests.push({
     if (!s.evidence.k3) throw new Error("兩筆封存預測未成立 K3");
     if (typeof Engine4.unlockDistanceLaw === "function")
       throw new Error("揭露觀測後仍暴露舊解鎖 API，可把看過答案偽裝成新預測");
+    if (typeof Engine4.predictPlanet === "function")
+      throw new Error("舊 predictPlanet 仍從引擎匯出，可在同一次動作封存又揭曉");
+    const narrativeSource = readFileSync(
+      path.join(here, "../src/narrative.js"), "utf-8"
+    );
+    if (narrativeSource.includes('action === "predictPlanet"') ||
+        JSON.stringify(scenes4).includes('"labAction":"predictPlanet"'))
+      throw new Error("舊 predictPlanet 仍可由敘事資料或派送層重新接回");
   }
 });
 
@@ -7789,6 +8165,13 @@ tests.push({
     if (!sharedSpread.includes('"為什麼現在做這一步"') ||
         !sharedSpread.includes("mission[2]") || !html.includes(".orbitPurposeCard"))
       throw new Error("第四章工作台的目的欄仍未渲染給玩家看");
+    const vectorsStart = ui.indexOf('if (phase === "vectors")', renderStart);
+    const vectorsEnd = ui.indexOf('if (phase === "scale")', vectorsStart);
+    const vectorsUi = ui.slice(vectorsStart, vectorsEnd);
+    if (vectorsUi.includes('["crash",shapeLabels.crash]'))
+      throw new Error(
+        "K1 預測仍提供現行合法三拍無法達成的『切入地球』選項"
+      );
     const planetsStart = ui.indexOf('if (phase === "planets")', renderStart);
     const planetsEnd = ui.indexOf('if (phase === "comet")', planetsStart);
     const planetsUi = ui.slice(planetsStart, planetsEnd);
@@ -8904,8 +9287,10 @@ tests.push({
 
     const wrapper = N3.initialState("explore");
     wrapper.lab = s;
+    for (let index = 1; index <= 5; index++)
+      if (s.evidence["g" + index]) wrapper.evidence["G" + index] = true;
     const sanitized = San.sanitizeImport3(JSON.parse(JSON.stringify(wrapper)), scenes3);
-    if (!sanitized.ok) throw new Error("一拍中途存檔無法淨化:" + sanitized.error);
+    if (!sanitized.ok) throw new Error("一拍中途存檔無法淨化:" + sanitized.reason);
     s = sanitized.state.lab;
     if (s.caseFile.dossier.debate.p3.transformMode !== "subtract-each-beat" ||
         s.caseFile.dossier.debate.p3.transformedPoints.length !== 1)
@@ -9051,6 +9436,174 @@ tests.push({
     forged.classificationSource = "canonical-table";
     if (Engine4._orbitRunAudit(forged))
       throw new Error("K1 匯入稽核接受未知的形狀判讀來源");
+  }
+});
+
+tests.push({
+  name: "跨章資料動作|scenes labAction 逐章白名單且拼字錯誤會在測試期失敗",
+  fn: () => {
+    const debate2 = require("../data/debate2.js");
+    const chapters = [
+      ["ch1", scenes, Narrative],
+      ["ch2", scenes2, Narrative._factory(scenes2, Engine2, debate2)],
+      ["ch3", scenes3, Narrative._factory(scenes3, Engine3, {})],
+      ["ch4", scenes4, Narrative._factory(scenes4, Engine4, {})],
+      ["ch5", scenes5, Narrative._factory(scenes5, Engine5, debate5)],
+      ["ch6", scenes6, Narrative._factory(scenes6, Engine6, {})]
+    ];
+
+    function collectLabActions(root) {
+      const found = [];
+      function walk(value, at) {
+        if (!value || typeof value !== "object") return;
+        if (Object.prototype.hasOwnProperty.call(value, "labAction")) {
+          const action = value.labAction && value.labAction.action;
+          if (typeof action !== "string" || !action)
+            throw new Error("資料層 labAction 缺少 action 字串:" + at);
+          found.push({ action, at });
+        }
+        for (const [key, child] of Object.entries(value))
+          walk(child, at + "." + key);
+      }
+      walk(root, "scenes");
+      return found;
+    }
+
+    function validateInventory(label, data, narrative) {
+      const allowed = narrative.dataLabActions();
+      if (new Set(allowed).size !== allowed.length)
+        throw new Error(label + " 資料層 labAction 白名單有重複項目");
+      const used = collectLabActions(data);
+      for (const row of used) if (!allowed.includes(row.action))
+        throw new Error(label + " 資料層 labAction 未列入白名單:" + row.action + " @ " + row.at);
+      for (const action of allowed) if (!used.some((row) => row.action === action))
+        throw new Error(label + " 資料層 labAction 白名單已有腐爛項目:" + action);
+    }
+
+    for (const [label, data, narrative] of chapters)
+      validateInventory(label, data, narrative);
+
+    /* 獨立書寫探針，不從白名單欄位複製，避免同一個錯字同時騙過資料與測試。 */
+    const typoProbe = structuredClone(scenes4);
+    typoProbe.scenes[0].nodes[0].effects = [{ labAction: { action:"__lab_action_typo_probe__", args:{} } }];
+    let rejected = false;
+    try { validateInventory("ch4-probe", typoProbe, chapters[3][2]); }
+    catch (error) { rejected = String(error.message).includes("__lab_action_typo_probe__"); }
+    if (!rejected) throw new Error("資料層 labAction 靜態清冊的獨立拼字探針沒有轉紅");
+
+    const runtimeProbe = chapters[3][2].labAction(
+      chapters[3][2].initialState("explore"), "__runtime_lab_action_probe__", {}
+    );
+    if (runtimeProbe.error !== "未知實驗台動作:__runtime_lab_action_probe__")
+      throw new Error("未知 labAction 沒有在敘事引擎層具名拒絕");
+  }
+});
+
+tests.push({
+  name: "跨章共用系統|玩家推論 fail-closed、存檔投影重算、非拖曳與 844×390",
+  fn: () => {
+    const debate2 = require("../data/debate2.js");
+    for (const [label, data, modes] of [
+      ["第一章", debate, { P1:"player", P2:"player", P3:"auto" }],
+      ["第二章", debate2, { P1:"player", P2:"player", P3:"player" }],
+      ["第五章", debate5, { P1:"player", P2:"player", P3:"player" }]
+    ]) for (const [pid, mode] of Object.entries(modes)) {
+      const pillar = data.chapter.pillars[pid];
+      if (pillar.reasonMode !== mode)
+        throw new Error(label + " " + pid + " 沒有明示宣告推論模式");
+      if (mode === "player" && (!pillar.responsePrompt || pillar.responses?.length !== 3 ||
+          pillar.responses.filter((row) => row.correct === true).length !== 1 ||
+          pillar.responses.some((row) => row.correct !== true && !row.reply)))
+        throw new Error(label + " " + pid + " 的玩家推論不是一正兩誘答");
+    }
+
+    const brokenDebate = structuredClone(debate);
+    delete brokenDebate.chapter.pillars.P1.reasonMode;
+    const BrokenNarrative = Narrative._factory(scenes, Engine, brokenDebate);
+    const brokenState = BrokenNarrative.initialState("explore");
+    brokenState.debate = { status:"pending", idx:0, pressChoice:null };
+    const firstStatement = (brokenDebate.chapter.pillars.P1.statements || brokenDebate.statements)[0];
+    const blocked = BrokenNarrative.debatePresent(brokenState, {
+      target:firstStatement.id, evidence:"E1", subitem:null
+    });
+    if (blocked.error !== "reason-mode-missing:P1" ||
+        JSON.stringify(blocked.state) !== JSON.stringify(brokenState))
+      throw new Error("刪掉 reasonMode 後沒有在引擎層原子拒絕");
+
+    const San = require("../src/sanitize.js");
+    const injected1 = Narrative.initialState("explore");
+    injected1.evidence.E5 = true;
+    if (San.sanitizeImport(injected1, patterns, scenes).ok)
+      throw new Error("第一章可在章首注入 E5");
+    const N3 = Narrative._factory(scenes3, Engine3, {});
+    const injected3 = N3.initialState("explore");
+    injected3.evidence.G5 = true;
+    if (San.sanitizeImport3(injected3, scenes3).ok)
+      throw new Error("第三章可在章首注入 G5");
+    const N5 = Narrative._factory(scenes5, Engine5, debate5);
+    const injected5 = N5.initialState("explore");
+    injected5.evidence.J4 = true;
+    if (San.sanitizeImport5(injected5, scenes5, Engine5).ok)
+      throw new Error("第五章可在章首注入 J4");
+
+    const run1 = Engine.runExperiment(Engine.initialState(), {
+      ball:"銅大", surface:"打磨", incline:"緩", timer:"水鐘"
+    }).state;
+    const save1 = Narrative.initialState("explore");
+    save1.lab = run1;
+    if (!San.sanitizeImport(structuredClone(save1), patterns, scenes).ok)
+      throw new Error("第一章真實原紙被誤擋");
+    const forgedReadings1 = structuredClone(save1);
+    forgedReadings1.lab.evidence.runs[0].readings = [999, 1, 999, 1, 999];
+    if (San.sanitizeImport(forgedReadings1, patterns, scenes).ok)
+      throw new Error("第一章離譜讀值沒有用 patterns 重算拒絕");
+
+    let claimedLab1 = Engine.initialState();
+    let claimStep1 = Engine.runExperiment(claimedLab1, {
+      ball:"銅大", surface:"打磨", incline:"緩", timer:"水鐘"
+    });
+    claimedLab1 = claimStep1.state;
+    claimStep1 = Engine.judge(claimedLab1, [claimStep1.run.id], claimStep1.run.readings[4]);
+    if (claimStep1.error || !claimStep1.claim || claimStep1.claim.ok !== true)
+      throw new Error("無法建立第一章合法主張對照組");
+    const claimedSave1 = Narrative.initialState("explore");
+    claimedSave1.lab = claimStep1.state;
+    if (!San.sanitizeImport(structuredClone(claimedSave1), patterns, scenes).ok)
+      throw new Error("第一章合法主張對照組被誤擋");
+    const forgedClaim1 = structuredClone(claimedSave1);
+    forgedClaim1.lab.inference.claims[0].ok = !forgedClaim1.lab.inference.claims[0].ok;
+    const forgedClaimResult1 = San.sanitizeImport(forgedClaim1, patterns, scenes);
+    if (forgedClaimResult1.ok || forgedClaimResult1.reason !== "第一章主張結論與原始實驗紀錄不一致")
+      throw new Error("第一章 claim.ok 偽造沒有由封閉原紙重算並具名拒絕");
+
+    const collisionLab = Engine5.runCollision(Engine5.initialState()).state;
+    const save5 = N5.initialState("explore");
+    save5.lab = collisionLab;
+    if (!San.sanitizeImport5(structuredClone(save5), scenes5, Engine5).ok)
+      throw new Error("第五章真實碰撞原紙被誤擋");
+    const forgedCollision5 = structuredClone(save5);
+    forgedCollision5.lab.collisionRuns[0].after.a = 99;
+    if (San.sanitizeImport5(forgedCollision5, scenes5, Engine5).ok)
+      throw new Error("第五章互相矛盾的撞後速度沒有被重算拒絕");
+    const forgedMigration5 = N5.initialState("explore");
+    forgedMigration5.lab.evidence.j1 = true;
+    delete forgedMigration5.lab.judgments;
+    if (San.sanitizeImport5(forgedMigration5, scenes5, Engine5).ok)
+      throw new Error("第五章遷移仍會拿偽 evidence 反補正確判讀");
+
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const narrativeSource = readFileSync(path.join(here, "../src/narrative.js"), "utf-8");
+    const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const forbidden of ["pointerdown", "pointermove", "dragstart", "draggable="])
+      if ((ui + narrativeSource).includes(forbidden))
+        throw new Error("章內必要互動又綁回拖曳:" + forbidden);
+    for (const fragment of [
+      ".catSlot select { font-size: 11px; min-height: 44px; }",
+      "@media(max-width:900px),(max-height:520px)",
+      ".collision5Setting select,.collision5Action,.collision5Gate,.collision5JudgmentOption{min-height:44px}",
+      'body[data-chapter="ch5"] #panelWrap{overflow:auto}'
+    ]) if (!html.includes(fragment))
+      throw new Error("第二／五章手機橫屏契約缺失:" + fragment);
   }
 });
 

@@ -856,6 +856,24 @@
     if (!Array.isArray(runs) || runs.length > 300) return fail("實驗紀錄格式錯誤");
     /* run.config 的 incline 對應 patterns.base，不是不存在的 patterns.incline。 */
     var DIM_KEYS = { ball: "ball", surface: "surface", incline: "base", timer: "timer" };
+    var runCountByConfig = {}, expectedRunSeq = {};
+    function sameFiniteNumber(actual, expected) {
+      return typeof actual === "number" && isFinite(actual) &&
+        Math.abs(actual - expected) < 1e-12;
+    }
+    function ch1ConfigKey(config) {
+      return [config.ball, config.surface, config.incline, config.timer].join("|");
+    }
+    function ch1ExpectedReadings(config, patternIndex) {
+      var base = patterns.base[config.incline];
+      var severity = patterns.severity[config.timer][config.incline];
+      var timer = patterns.timer[config.timer][patternIndex];
+      var surface = patterns.surface[config.surface][patternIndex];
+      var ball = patterns.ball[config.ball][patternIndex];
+      return base.map(function (value, index) {
+        return Math.max(1, value + severity * timer[index] + surface[index] + ball[index]);
+      });
+    }
     for (var i = 0; i < runs.length; i++) {
       var r = runs[i];
       if (!r || !isInt(r.id) || !isInt(r.day) || !r.config) return fail("第 " + (i + 1) + " 筆實驗紀錄格式錯誤");
@@ -866,15 +884,47 @@
             !(val in patterns[patternKey]))
           return fail("第 " + (i + 1) + " 筆實驗的器材配置無法辨識");
       }
-      if (!Array.isArray(r.readings) || r.readings.length > 8) return fail("第 " + (i + 1) + " 筆實驗的讀值格式錯誤");
+      if (r.id !== i + 1) return fail("第一章實驗紀錄編號重複或跳號");
+      if (!Array.isArray(r.readings) || (r.readings.length !== 4 && r.readings.length !== 5))
+        return fail("第 " + (i + 1) + " 筆實驗的讀值格式錯誤");
       for (var j = 0; j < r.readings.length; j++)
         if (typeof r.readings[j] !== "number" || !isFinite(r.readings[j])) return fail("第 " + (i + 1) + " 筆實驗含無法辨識的讀值");
+      var configKey = ch1ConfigKey(r.config);
+      var expectedSeq = (runCountByConfig[configKey] || 0) + 1;
+      var expectedPatternIndex = (expectedSeq - 1) % 3;
+      var expectedReadings = ch1ExpectedReadings(r.config, expectedPatternIndex);
+      if (r.seq != null && r.seq !== expectedSeq)
+        return fail("第一章實驗輪次與既有紀錄不一致");
+      if (r.patternIndex != null && r.patternIndex !== expectedPatternIndex)
+        return fail("第一章實驗讀值樣式與輪次不一致");
+      if (r.readings.some(function (value, index) {
+        return !sameFiniteNumber(value, expectedReadings[index]);
+      })) return fail("第一章實驗讀值與封閉資料源不一致");
+      runCountByConfig[configKey] = expectedSeq;
+      expectedRunSeq[configKey] = expectedSeq;
     }
+    var savedRunSeq = lab.runSeq || {};
+    if (Object.keys(savedRunSeq).some(function (key) {
+      return !isInt(savedRunSeq[key]) || savedRunSeq[key] < 1 || expectedRunSeq[key] !== savedRunSeq[key];
+    }) || Object.keys(expectedRunSeq).some(function (key) {
+      return savedRunSeq[key] !== expectedRunSeq[key];
+    })) return fail("第一章實驗流水號與原始紀錄不一致");
     var claims = lab.inference && lab.inference.claims;
     if (!Array.isArray(claims) || claims.length > 300) return fail("主張紀錄格式錯誤");
+    var claimById = {};
+    var derivedE3a = false;
+    function sameCh1Config(left, right) {
+      return left && right && ch1ConfigKey(left) === ch1ConfigKey(right);
+    }
+    function ch1FifthReading(run) {
+      if (run.readings.length === 5) return run.readings[4];
+      return ch1ExpectedReadings(run.config, (run.seq - 1) % 3)[4];
+    }
     for (var c = 0; c < claims.length; c++) {
       var cl = claims[c];
       if (!cl || !isInt(cl.id) || !cl.config) return fail("第 " + (c + 1) + " 筆主張紀錄格式錯誤");
+      if (cl.id !== c + 1 || !Array.isArray(cl.runIds) || cl.runIds.length < 1 || cl.runIds.length > 3)
+        return fail("第一章主張編號或來源紀錄格式錯誤");
       if (typeof cl.prediction !== "number" || !isFinite(cl.prediction)) return fail("第 " + (c + 1) + " 筆主張的預測值錯誤");
       for (var dk2 in DIM_KEYS) {
         var v2 = cl.config[dk2];
@@ -883,7 +933,88 @@
             !(v2 in patterns[claimPatternKey]))
           return fail("第 " + (c + 1) + " 筆主張的器材配置無法辨識");
       }
+      var selectedRuns = [], seenRunIds = {};
+      for (var cri = 0; cri < cl.runIds.length; cri++) {
+        var sourceId = cl.runIds[cri];
+        if (!isInt(sourceId) || seenRunIds[sourceId] || !runs[sourceId - 1] || runs[sourceId - 1].id !== sourceId)
+          return fail("第一章主張引用了重複或不存在的實驗紀錄");
+        seenRunIds[sourceId] = true;
+        selectedRuns.push(runs[sourceId - 1]);
+      }
+      if (!selectedRuns.every(function (run) { return sameCh1Config(run.config, selectedRuns[0].config); }) ||
+          !sameCh1Config(cl.config, selectedRuns[0].config))
+        return fail("第一章主張混入了不同器材配置的紀錄");
+      var avg = [0, 1, 2, 3].map(function (index) {
+        return selectedRuns.reduce(function (sum, run) { return sum + run.readings[index]; }, 0) / selectedRuns.length;
+      });
+      var observedFifth = selectedRuns.reduce(function (sum, run) {
+        return sum + ch1FifthReading(run);
+      }, 0) / selectedRuns.length;
+      var predDev = Math.abs(cl.prediction - observedFifth) / observedFifth;
+      var predHit = predDev <= 0.12;
+      var odd = [3, 5, 7];
+      var devs = odd.map(function (value, index) {
+        return Math.abs(avg[index + 1] / avg[0] - value) / value;
+      });
+      var consistent = devs.every(function (value) { return value <= 0.12; });
+      var claimOk = predHit && consistent;
+      var maxDev = Math.max.apply(null, devs);
+      if (!sameFiniteNumber(cl.observedFifth, observedFifth) || cl.predHit !== predHit ||
+          cl.consistent !== consistent || cl.ok !== claimOk ||
+          !sameFiniteNumber(cl.predDev, predDev) || !sameFiniteNumber(cl.maxDev, maxDev))
+        return fail("第一章主張結論與原始實驗紀錄不一致");
+      if (cl.day != null && (!isInt(cl.day) || cl.day < 0 || cl.day > lab.days))
+        return fail("第一章主張日期超出實驗時間範圍");
+      claimById[cl.id] = cl;
+      if (claimOk) derivedE3a = true;
     }
+    var assertions = lab.inference && lab.inference.assertions;
+    if (!Array.isArray(assertions) || assertions.length > 300) return fail("斷言紀錄格式錯誤");
+    var derivedE3b = false, derivedE3c = false;
+    for (var ai = 0; ai < assertions.length; ai++) {
+      var assertion = assertions[ai];
+      if (!assertion || assertion.id !== ai + 1 || (assertion.type !== "b" && assertion.type !== "c") ||
+          !Array.isArray(assertion.claimIds) || assertion.claimIds.length !== 2 || typeof assertion.ok !== "boolean")
+        return fail("第一章跨配置斷言格式錯誤");
+      var assertionClaims = assertion.claimIds.map(function (id) { return claimById[id]; });
+      var assertionOk = false;
+      if (assertionClaims.every(function (claim) { return claim && claim.ok; })) {
+        var configDiff = Object.keys(DIM_KEYS).filter(function (dimension) {
+          return assertionClaims[0].config[dimension] !== assertionClaims[1].config[dimension];
+        });
+        if (assertion.type === "b" && configDiff.length === 1 && configDiff[0] === "ball") {
+          var balls = {};
+          assertionClaims.forEach(function (claim) { balls[claim.config.ball] = true; });
+          assertionOk = !!(balls["銅大"] && balls["銅小"]);
+        } else if (assertion.type === "c" && configDiff.length === 1 && configDiff[0] === "incline") {
+          assertionOk = true;
+        }
+      }
+      if (assertion.ok !== assertionOk) return fail("第一章跨配置斷言與主張紀錄不一致");
+      if (assertionOk && assertion.type === "b") derivedE3b = true;
+      if (assertionOk && assertion.type === "c") derivedE3c = true;
+    }
+    if (!lab.evidence || !lab.evidence.e3 || lab.evidence.e3.a !== derivedE3a ||
+        lab.evidence.e3.b !== derivedE3b || lab.evidence.e3.c !== derivedE3c)
+      return fail("第一章 E3 內部證據狀態與主張／斷言不一致");
+    var chapterEvidence1 = state.evidence;
+    var allowedEvidence1 = { S1:1, S2:1, E1:1, E2:1, E3:1, E4:1, E5:1 };
+    if (!chapterEvidence1 || typeof chapterEvidence1 !== "object" || Array.isArray(chapterEvidence1) ||
+        Object.keys(chapterEvidence1).some(function (id) {
+          return !allowedEvidence1[id] || chapterEvidence1[id] !== true;
+        })) return fail("第一章章節證據狀態無法辨識");
+    if (!!chapterEvidence1.E3 !== !!(derivedE3a && derivedE3b))
+      return fail("E3 章節證據與斜面實驗斷言不一致");
+    if (chapterEvidence1.E5) {
+      var e5Events1 = state.eventLog.filter(function (event) {
+        return event && event.t === "evidence" && event.id === "E5" && event.at === "debate.fr";
+      });
+      var debateWins1 = state.eventLog.filter(function (event) { return event && event.t === "debateWon"; });
+      if (!state.debate || state.debate.status !== "won" || e5Events1.length !== 1 ||
+          debateWins1.length !== 1 || state.eventLog.indexOf(debateWins1[0]) <= state.eventLog.indexOf(e5Events1[0]))
+        return fail("E5 缺少完整的辯論勝利事件鏈");
+    }
+    if (state.ended && !chapterEvidence1.E5) return fail("第一章完章狀態提前成立");
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
     for (var t = 0; t < state.transcript.length; t++) {
       var line = state.transcript[t];
@@ -1645,6 +1776,18 @@
         }
       }
     }
+    var chapterEvidence3 = state.evidence;
+    var allowedEvidence3 = { S5:1, G1:1, G2:1, G3:1, G4:1, G5:1 };
+    if (!chapterEvidence3 || typeof chapterEvidence3 !== "object" || Array.isArray(chapterEvidence3) ||
+        Object.keys(chapterEvidence3).some(function (id) {
+          return !allowedEvidence3[id] || chapterEvidence3[id] !== true;
+        })) return fail("第三章章節證據狀態無法辨識");
+    for (var gei = 1; gei <= 5; gei++) {
+      var storyG = "G" + gei, labG = "g" + gei;
+      if (!!chapterEvidence3[storyG] !== !!lab.evidence[labG])
+        return fail("第三章章節證據與航船卷宗不一致:" + storyG);
+    }
+    if (state.ended && !chapterEvidence3.G5) return fail("第三章完章狀態提前成立");
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
     var legacyTranscriptScenes = { "C2-2B": 1, "C3-3": 1, "C3-4": 1 };
     for (var t = 0; t < state.transcript.length; t++) {
@@ -3633,7 +3776,7 @@
   }
 
   /* 第五章白名單：碰撞紀錄、同批重算來源、追一筆與黏土深度。 */
-  function sanitizeImport5(state, scenes) {
+  function sanitizeImport5(state, scenes, engine5) {
     if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
     var generic = scrub(state, 0, { n: LIMITS.maxNodes });
     if (generic) return fail(generic);
@@ -3651,15 +3794,22 @@
     var reputation = sanitizeReputationLifecycle(state, scenes, "ch5");
     if (!reputation.ok) return reputation;
     var lab = state.lab;
-    /* GB-ADR-036：舊存檔沒有選紙／判讀欄位；只在整個欄位缺席時依既有證據補相容值。
-       新格式若刻意把單一判讀清空，仍須 fail closed。 */
+    /* GB-ADR-036：舊存檔沒有選紙／判讀欄位。相容轉換只能由原紙與
+       斷言來源重建，不得拿 evidence 布林反向補出「玩家當時怎麼判讀」。 */
     if (lab && !lab.selections) lab.selections = { collision: [], clay: [] };
-    if (lab && !lab.judgments) lab.judgments = {
-      j1: lab.evidence && lab.evidence.j1 ? "both-close" : null,
-      j2: lab.evidence && lab.evidence.j2 ? "steel-close-putty-short" : null,
-      j3: lab.evidence && lab.evidence.j3 ? "speed-squared" : null,
-      followup: lab.evidence && lab.evidence.followup ? "legacy-unsealed" : null
-    };
+    if (lab && !lab.judgments) {
+      var legacyFollowupRow = Array.isArray(lab.collisionRuns) && lab.collisionRuns.some(function (row) {
+        return row && row.masses === "4/8" && row.head === "putty" &&
+          row.momentum && row.visViva && row.momentum.before === 24 && row.momentum.after === 24 &&
+          row.visViva.before === 144 && row.visViva.after === 48;
+      });
+      lab.judgments = {
+        j1: lab.assertions && lab.assertions.j1 && lab.assertions.j1.done ? "both-close" : null,
+        j2: lab.assertions && lab.assertions.j2 && lab.assertions.j2.done ? "steel-close-putty-short" : null,
+        j3: lab.assertions && lab.assertions.j3 && lab.assertions.j3.done ? "speed-squared" : null,
+        followup: legacyFollowupRow ? "legacy-unsealed" : null
+      };
+    }
     if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
         !lab.draft || !Array.isArray(lab.collisionRuns) || !Array.isArray(lab.clayRuns) ||
         !lab.assertions || !lab.evidence || !lab.selections || !lab.judgments ||
@@ -3673,6 +3823,18 @@
         ["h1", "h4", "h9"].indexOf(lab.draft.clayHeight) < 0 ||
         ["light", "heavy"].indexOf(lab.draft.ballMass) < 0)
       return fail("第五章工作台設定無法辨識");
+    function sameNumber5(actual, expected) {
+      return typeof actual === "number" && isFinite(actual) && Math.abs(actual - expected) < 1e-12;
+    }
+    function totals5(mA, mB, beforeA, beforeB, afterA, afterB) {
+      var pBefore = mA * beforeA + mB * beforeB;
+      var pAfter = mA * afterA + mB * afterB;
+      var vvBefore = mA * beforeA * beforeA + mB * beforeB * beforeB;
+      var vvAfter = mA * afterA * afterA + mB * afterB * afterB;
+      return { pBefore:pBefore, pAfter:pAfter, vvBefore:vvBefore,
+        vvAfter:vvAfter, deficit:vvBefore - vvAfter };
+    }
+    var allRecordIds5 = {}, maxRecordId5 = 0;
     for (var i = 0; i < lab.collisionRuns.length; i++) {
       var row = lab.collisionRuns[i];
       if (!row || !isInt(row.id) || row.kind !== "collision" ||
@@ -3684,6 +3846,23 @@
           !isFinite(row.visViva.before) || !isFinite(row.visViva.after) ||
           !isFinite(row.visViva.deficit))
         return fail("第五章碰撞紀錄格式錯誤");
+      if (allRecordIds5[row.id]) return fail("第五章原紙編號重複");
+      allRecordIds5[row.id] = true; maxRecordId5 = Math.max(maxRecordId5, row.id);
+      var speed5 = { low:2, mid:4, high:6 }[row.speedBand];
+      var expectedMB5 = row.masses === "4/8" ? 8 : 4;
+      var expectedAfter5 = row.head === "steel"
+        ? (expectedMB5 === 4 ? { a:0, b:speed5 } : { a:-speed5 / 3, b:speed5 * 2 / 3 })
+        : (expectedMB5 === 4 ? { a:speed5 / 2, b:speed5 / 2 } : { a:speed5 / 3, b:speed5 / 3 });
+      var expectedTotals5 = totals5(4, expectedMB5, speed5, 0, expectedAfter5.a, expectedAfter5.b);
+      if (row.mA !== 4 || row.mB !== expectedMB5 || !row.before || !row.after ||
+          !sameNumber5(row.before.a, speed5) || !sameNumber5(row.before.b, 0) ||
+          !sameNumber5(row.after.a, expectedAfter5.a) || !sameNumber5(row.after.b, expectedAfter5.b) ||
+          !sameNumber5(row.momentum.before, expectedTotals5.pBefore) ||
+          !sameNumber5(row.momentum.after, expectedTotals5.pAfter) ||
+          !sameNumber5(row.visViva.before, expectedTotals5.vvBefore) ||
+          !sameNumber5(row.visViva.after, expectedTotals5.vvAfter) ||
+          !sameNumber5(row.visViva.deficit, expectedTotals5.deficit))
+        return fail("第五章碰撞原紙與引擎封閉資料不一致");
     }
     for (var j = 0; j < lab.clayRuns.length; j++) {
       var clay = lab.clayRuns[j];
@@ -3692,7 +3871,19 @@
           ["light", "heavy"].indexOf(clay.ballMass) < 0 ||
           !isFinite(clay.depth) || !isFinite(clay.readingError))
         return fail("第五章黏土紀錄格式錯誤");
+      if (allRecordIds5[clay.id]) return fail("第五章原紙編號重複");
+      allRecordIds5[clay.id] = true; maxRecordId5 = Math.max(maxRecordId5, clay.id);
+      var expectedClay = { 1:{ speed:2 }, 4:{ speed:4 }, 9:{ speed:6 } }[clay.height];
+      var expectedMassFactor = clay.ballMass === "heavy" ? 2 : 1;
+      var expectedIdeal = expectedMassFactor * expectedClay.speed * expectedClay.speed / 8;
+      var expectedError = [0, 0.1, -0.1][j % 3];
+      var expectedDepth = Math.round((expectedIdeal + expectedError) * 10) / 10;
+      if (clay.speed !== expectedClay.speed || !sameNumber5(clay.idealDepth, expectedIdeal) ||
+          !sameNumber5(clay.readingError, expectedError) || !sameNumber5(clay.depth, expectedDepth))
+        return fail("第五章黏土原紙與引擎封閉資料不一致");
     }
+    if (lab.runSeq !== maxRecordId5 || lab.claySeq !== lab.clayRuns.length)
+      return fail("第五章實驗流水號與原始紀錄不一致");
     var assertionKeys = ["j1", "j2", "j3"];
     for (var ak = 0; ak < assertionKeys.length; ak++) {
       var assertion = lab.assertions[assertionKeys[ak]];
@@ -3750,6 +3941,27 @@
             row.visViva.before === 144 && row.visViva.after === 48;
         }))
       return fail("第五章追一筆狀態與紀錄不一致");
+    var chapterEvidence5 = state.evidence;
+    var allowedEvidence5 = { S6:1, S7:1, J1:1, J2:1, J3:1, J4:1 };
+    if (!chapterEvidence5 || typeof chapterEvidence5 !== "object" || Array.isArray(chapterEvidence5) ||
+        Object.keys(chapterEvidence5).some(function (id) {
+          return !allowedEvidence5[id] || chapterEvidence5[id] !== true;
+        })) return fail("第五章章節證據狀態無法辨識");
+    for (var jei = 1; jei <= 3; jei++) {
+      var storyJ = "J" + jei, labJ = "j" + jei;
+      if (!!chapterEvidence5[storyJ] !== !!lab.evidence[labJ])
+        return fail("第五章章節證據與工作台斷言不一致:" + storyJ);
+    }
+    if (chapterEvidence5.J4) {
+      var j4Events5 = state.eventLog.filter(function (event) {
+        return event && event.t === "evidence" && event.id === "J4" && event.at === "debate.fr5";
+      });
+      var debateWins5 = state.eventLog.filter(function (event) { return event && event.t === "debateWon"; });
+      if (!state.debate || state.debate.status !== "won" || j4Events5.length !== 1 ||
+          debateWins5.length !== 1 || state.eventLog.indexOf(debateWins5[0]) <= state.eventLog.indexOf(j4Events5[0]))
+        return fail("J4 缺少完整的辯論勝利事件鏈");
+    }
+    if (state.ended && !chapterEvidence5.J4) return fail("第五章完章狀態提前成立");
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000)
       return fail("對話紀錄格式錯誤");
     for (var t = 0; t < state.transcript.length; t++) {
@@ -3760,9 +3972,182 @@
     return { ok: true, state: state };
   }
 
+  /* 第六章白名單：來源封條、長時段原紙、逐來源判讀與原子共同頁。 */
+  function sanitizeImport6(state, scenes, engine6) {
+    if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
+    var generic = scrub(state, 0, { n: LIMITS.maxNodes });
+    if (generic) return fail(generic);
+    if (state.schemaVersion !== 1 || state.chapter !== "ch6") return fail("存檔版本或章節不相容");
+    if (state.mode !== "explore" && state.mode !== "scholar") return fail("遊戲模式無法辨識");
+    if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("信譽數值錯誤");
+    if (!engine6 || typeof engine6.gate !== "function") return fail("第六章引擎未就緒");
+    var sceneIds = {}, nodeIds = {}, sceneOrder = {};
+    (scenes && scenes.scenes || []).forEach(function (scene, index) {
+      sceneIds[scene.id] = 1;
+      sceneOrder[scene.id] = index;
+      nodeIds[scene.id] = {};
+      (scene.nodes || []).forEach(function (node) { nodeIds[scene.id][node.id] = 1; });
+    });
+    if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
+      return fail("存檔中的故事位置無法辨識");
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch6");
+    if (!reputation.ok) return reputation;
+    var lab = state.lab;
+    if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
+        !isInt(lab.recordSeq) || lab.recordSeq < 0 || !Array.isArray(lab.records) ||
+        !lab.sourceLedger || !lab.chipBench || !lab.frictionBench || !lab.dryBench ||
+        !lab.airBench || !lab.waterBench || !lab.finiteSources || !lab.continuousRun ||
+        !lab.auditBoard || !lab.jointPage || !lab.evidence)
+      return fail("第六章工作台紀錄格式錯誤");
+    if (lab.records.length > 500 || lab.recordSeq > 9999) return fail("第六章原紙過多");
+    var phases = ["source-ledger", "chips", "friction", "dry", "air", "water",
+      "finite-predictions", "continuous-run", "finite-verdict", "audit", "joint-page", "complete"];
+    if (phases.indexOf(lab.phase) < 0) return fail("第六章工作階段無法辨識");
+    var sources6 = ["chips", "cannon", "air", "water"];
+    var sourceLedger = lab.sourceLedger;
+    if (!sourceLedger.placements || !sourceLedger.consequences || !sourceLedger.modelPredictions ||
+        typeof sourceLedger.sealed !== "boolean") return fail("第六章來源帳格式錯誤");
+    if (sourceLedger.sealed && (!sources6.every(function (source) {
+      return typeof sourceLedger.placements[source] === "string" && !!sourceLedger.placements[source] &&
+        typeof sourceLedger.consequences[source] === "string" && !!sourceLedger.consequences[source];
+    }) || typeof sourceLedger.modelPredictions.caloric !== "string" ||
+      typeof sourceLedger.modelPredictions.motion !== "string"))
+      return fail("第六章來源帳封存缺少內容");
+    var recordIds = {}, maxRecordId = 0;
+    var recordKinds = ["chip-comparison", "friction-condition", "dry-strip", "air-comparison",
+      "water-box-preparation", "continuous-segment"];
+    for (var ri = 0; ri < lab.records.length; ri++) {
+      var row = lab.records[ri];
+      if (!row || !isInt(row.id) || row.id <= 0 || recordIds[row.id] ||
+          recordKinds.indexOf(row.kind) < 0 || !isInt(row.day) || row.day < 0 || row.day > lab.days)
+        return fail("第六章有一筆原紙格式錯誤");
+      recordIds[row.id] = row;
+      maxRecordId = Math.max(maxRecordId, row.id);
+      if ((row.kind === "chip-comparison" || row.kind === "dry-strip" || row.kind === "air-comparison") &&
+          typeof row.clean !== "boolean") return fail("第六章原紙缺乾淨狀態");
+      if (row.kind === "continuous-segment" && (!isInt(row.segment) || row.segment < 1 || row.segment > 6 ||
+          ["continue", "calibrate", "repair-leak"].indexOf(row.action) < 0 ||
+          typeof row.temperature !== "number" || !isFinite(row.temperature)))
+        return fail("第六章長時段原紙格式錯誤");
+    }
+    if (lab.recordSeq < maxRecordId) return fail("第六章原紙序號倒退");
+    function idsValid(ids, kind) {
+      return Array.isArray(ids) && ids.length <= 500 && new Set(ids).size === ids.length &&
+        ids.every(function (id) { return recordIds[id] && (!kind || recordIds[id].kind === kind); });
+    }
+    if (!Array.isArray(lab.chipBench.attempts) || !idsValid(lab.chipBench.attempts, "chip-comparison") ||
+        !idsValid(lab.chipBench.cleanRecordIds, "chip-comparison") || typeof lab.chipBench.judged !== "boolean" ||
+        lab.chipBench.cleanRecordIds.some(function (id) { return !recordIds[id].clean; }))
+      return fail("第六章碎屑比較紀錄不一致");
+    if (!lab.frictionBench.sealed || !idsValid(lab.frictionBench.recordIds, "friction-condition") ||
+        typeof lab.frictionBench.judged !== "boolean") return fail("第六章摩擦條件紀錄不一致");
+    if (!Array.isArray(lab.dryBench.attempts) || !idsValid(lab.dryBench.attempts, "dry-strip") ||
+        typeof lab.dryBench.judged !== "boolean" ||
+        (lab.dryBench.cleanRecordId != null && (!recordIds[lab.dryBench.cleanRecordId] || !recordIds[lab.dryBench.cleanRecordId].clean)))
+      return fail("第六章乾式紙帶紀錄不一致");
+    if (typeof lab.airBench.sealed !== "boolean" || !Array.isArray(lab.airBench.attempts) ||
+        !idsValid(lab.airBench.attempts, "air-comparison") || !idsValid(lab.airBench.cleanRecordIds, "air-comparison") ||
+        typeof lab.airBench.judged !== "boolean") return fail("第六章空氣對照紀錄不一致");
+    if (!lab.waterBench.draft || !Array.isArray(lab.waterBench.attempts) ||
+        !idsValid(lab.waterBench.attempts, "water-box-preparation") || typeof lab.waterBench.ready !== "boolean")
+      return fail("第六章水箱紀錄不一致");
+    var finite = lab.finiteSources;
+    var bands = [null, "soon", "within-shift", "no-endpoint"];
+    var verdicts = [null, "fulfilled", "not-fulfilled", "insufficient"];
+    var sealStates = ["intact", "cracked"];
+    if (!finite.bands || !finite.sealState || !finite.verdicts ||
+        typeof finite.sealed !== "boolean" || typeof finite.complete !== "boolean")
+      return fail("第六章有限來源狀態格式錯誤");
+    for (var si = 0; si < sources6.length; si++) {
+      var source = sources6[si];
+      if (bands.indexOf(finite.bands[source]) < 0 || verdicts.indexOf(finite.verdicts[source]) < 0 ||
+          sealStates.indexOf(finite.sealState[source]) < 0)
+        return fail("第六章來源封條狀態無法辨識");
+      if (finite.verdicts[source] === "not-fulfilled" && finite.sealState[source] !== "cracked")
+        return fail("第六章來源已否證但封條未裂");
+      if (!finite.verdicts[source] && finite.sealState[source] !== "intact")
+        return fail("第六章未判讀封條被提前改變");
+    }
+    if (finite.sealed && !sources6.every(function (source) { return bands.indexOf(finite.bands[source]) > 0; }))
+      return fail("第六章有限來源封存不完整");
+    var continuous = lab.continuousRun;
+    if (!idsValid(continuous.segments, "continuous-segment") || typeof continuous.complete !== "boolean" ||
+        typeof continuous.reachedBoiling !== "boolean") return fail("第六章長時段狀態格式錯誤");
+    if (continuous.complete !== (continuous.segments.length === 6) || continuous.reachedBoiling !== continuous.complete)
+      return fail("第六章長時段完成狀態與原紙不一致");
+    var allNotFulfilled = sources6.every(function (source) { return finite.verdicts[source] === "not-fulfilled"; });
+    if (finite.complete !== allNotFulfilled || finite.complete && !continuous.complete)
+      return fail("第六章來源判讀完成狀態不一致");
+    var evidenceKeys6 = ["s8", "t1", "t2", "t3", "t4", "t5"];
+    if (!evidenceKeys6.every(function (key) { return typeof lab.evidence[key] === "boolean"; }))
+      return fail("第六章證據狀態格式錯誤");
+    if (lab.evidence.t1 !== !!lab.chipBench.judged || lab.evidence.t2 !== !!lab.frictionBench.judged ||
+        lab.evidence.t3 !== !!lab.airBench.judged || lab.evidence.t4 !== !!finite.complete)
+      return fail("第六章 T1–T4 與玩家判讀不一致");
+    if (lab.evidence.t1 && !lab.chipBench.cleanRecordIds.length) return fail("第六章 T1 缺乾淨來源");
+    if (lab.evidence.t2 && ["rotation-only", "pressure-only", "contact-motion"].some(function (condition) {
+      return !lab.frictionBench.sealed[condition];
+    })) return fail("第六章 T2 缺三條條件紙");
+    if (lab.evidence.t3) {
+      var airRows = lab.airBench.cleanRecordIds.map(function (id) { return recordIds[id]; });
+      if (!airRows.some(function (row) { return row.condition === "open"; }) ||
+          !airRows.some(function (row) { return row.condition === "sealed"; }))
+        return fail("第六章 T3 缺密合與未密合對照");
+    }
+    var audit = lab.auditBoard;
+    if (!audit.placements || typeof audit.complete !== "boolean" ||
+        [null, "motion-unresolved"].indexOf(audit.latentDisposition) < 0)
+      return fail("第六章模型稽核狀態格式錯誤");
+    var auditReady = audit.placements.chips === "T1" && audit.placements.air === "T3" &&
+      audit.placements.cannon === "T4" && audit.placements.water === "T4" &&
+      audit.placements.condition === "T2" && audit.latentDisposition === "motion-unresolved";
+    if (audit.complete !== auditReady || audit.complete && !lab.evidence.t4)
+      return fail("第六章模型稽核完成狀態不一致");
+    var joint = lab.jointPage;
+    if (!joint.columns || !joint.signedBy || typeof joint.complete !== "boolean")
+      return fail("第六章共同頁格式錯誤");
+    var columnKeys = ["operation", "readings", "caloric", "motion"];
+    var jointValues = engine6.JOINT_VALUES || {};
+    if (!columnKeys.every(function (key) { return joint.columns[key] === null || joint.columns[key] === jointValues[key]; }) ||
+        [null, "scope-unresolved"].indexOf(joint.scopeDebt) < 0 ||
+        [null, "conversion-rate-unmeasured"].indexOf(joint.rateDebt) < 0 ||
+        !["stang", "kessler", "rumford", "traveler"].every(function (key) { return typeof joint.signedBy[key] === "boolean"; }))
+      return fail("第六章共同頁欄位無法辨識");
+    var allSigned = ["stang", "kessler", "rumford", "traveler"].every(function (key) { return joint.signedBy[key]; });
+    var jointReady = audit.complete && columnKeys.every(function (key) { return !!joint.columns[key]; }) &&
+      joint.scopeDebt === "scope-unresolved" && joint.rateDebt === "conversion-rate-unmeasured" && allSigned;
+    if (joint.complete !== jointReady || lab.evidence.t5 !== joint.complete)
+      return fail("第六章 T5／兩筆未決／四方署名不一致");
+    for (var ei = 1; ei <= 5; ei++) {
+      var upper = "T" + ei, lower = "t" + ei;
+      if (!!state.evidence[upper] !== !!lab.evidence[lower]) return fail("第六章章證據與工作台真相不一致:" + upper);
+    }
+    if (!!state.evidence.S8 !== !!lab.evidence.s8) return fail("第六章 S8 與來源簿真相不一致");
+    if (state.ended && !(joint.complete && lab.evidence.t5)) return fail("第六章完章狀態提前成立");
+    var milestone = [
+      ["H1-2", lab.evidence.t1, "T1"], ["H1-3", lab.evidence.t2, "T2"],
+      ["H2-2", lab.evidence.t3, "T3"], ["H3-1", lab.evidence.t4, "T4"],
+      ["H3-2", audit.complete, "模型稽核"]
+    ];
+    for (var mi = 0; mi < milestone.length; mi++) {
+      /* 信譽修復場景附加在主線之後，但它只是暫時轉址；不得因陣列順序
+         被誤判成玩家已越過整章所有證據門。 */
+      if (state.cursor.scene !== "SC6-R1" &&
+          sceneOrder[state.cursor.scene] > sceneOrder[milestone[mi][0]] && !milestone[mi][1])
+        return fail("故事位置已越過尚未完成的" + milestone[mi][2]);
+    }
+    if (!Array.isArray(state.transcript) || state.transcript.length > 4000) return fail("對話紀錄格式錯誤");
+    for (var ti = 0; ti < state.transcript.length; ti++) {
+      var line = state.transcript[ti];
+      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2400)
+        return fail("對話紀錄中有一筆格式錯誤");
+    }
+    return { ok: true, state: state };
+  }
+
   var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2,
     sanitizeImport3: sanitizeImport3, sanitizeImport4: sanitizeImport4,
-    sanitizeImport5: sanitizeImport5,
+    sanitizeImport5: sanitizeImport5, sanitizeImport6: sanitizeImport6,
     _scrub: scrub, LIMITS: LIMITS };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Sanitize = api; }

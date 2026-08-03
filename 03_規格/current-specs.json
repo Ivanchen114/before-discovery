@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "updatedAt": "2026-08-03",
   "documents": [
     {
@@ -31,6 +31,11 @@
       "id": "ch05",
       "version": "v0.2",
       "path": "03_規格/發現之前_第五章功能規格書_v0.2.md"
+    },
+    {
+      "id": "ch06",
+      "version": "v0.1",
+      "path": "03_規格/發現之前_第六章功能規格書_v0.1.md"
     }
   ],
   "designs": [
@@ -44,5 +49,48 @@
       "version": "v1.0",
       "path": "02_設計/發現之前_第四章書桌探究現行設計定案_v1.0.md"
     }
-  ]
+  ],
+  "adrCoverage": {
+    "GB-ADR-001": ["ch01"],
+    "GB-ADR-002": ["ch01"],
+    "GB-ADR-003": ["ch01"],
+    "GB-ADR-004": ["ch01"],
+    "GB-ADR-005": ["shared"],
+    "GB-ADR-006": ["ch01"],
+    "GB-ADR-007": ["ch01"],
+    "GB-ADR-008": ["ch01"],
+    "GB-ADR-009": ["ch01"],
+    "GB-ADR-010": ["ch01"],
+    "GB-ADR-011": ["ch01"],
+    "GB-ADR-012": ["ch01", "ch06"],
+    "GB-ADR-013": ["ch01"],
+    "GB-ADR-014": ["shared"],
+    "GB-ADR-015": ["shared"],
+    "GB-ADR-016": ["shared"],
+    "GB-ADR-017": ["shared"],
+    "GB-ADR-018": ["ch02"],
+    "GB-ADR-019": ["ch02"],
+    "GB-ADR-020": ["ch02"],
+    "GB-ADR-021": ["ch02"],
+    "GB-ADR-022": ["ch02"],
+    "GB-ADR-023": ["ch02"],
+    "GB-ADR-025": ["shared", "ch02"],
+    "GB-ADR-026": ["ch03"],
+    "GB-ADR-027": ["shared", "ch02"],
+    "GB-ADR-028": ["shared", "ch02", "ch03"],
+    "GB-ADR-029": ["ch03"],
+    "GB-ADR-030": ["ch04"],
+    "GB-ADR-031": ["ch03"],
+    "GB-ADR-032": ["ch04"],
+    "GB-ADR-033": ["ch04"],
+    "GB-ADR-034": ["ch03"],
+    "GB-ADR-035": ["ch03"],
+    "GB-ADR-036": ["ch05"],
+    "GB-ADR-037": ["shared", "ch01", "ch02", "ch03", "ch04", "ch05", "ch06"],
+    "GB-ADR-038": ["ch01", "ch02"],
+    "GB-ADR-039": ["ch04"],
+    "GB-ADR-040": ["ch01", "ch03", "ch04", "ch05", "ch06"],
+    "GB-ADR-041": ["shared", "ch01", "ch02", "ch03", "ch04", "ch05", "ch06"],
+    "GB-ADR-042": ["ch06"]
+  }
 }

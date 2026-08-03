@@ -55,6 +55,27 @@
     "pillars": {
       "P1": {
         "title": "第一支柱:感官經驗",
+        "reasonMode": "player",
+        "responsePrompt": "E4 把形狀和介質拆開了。這張紙能推出哪一步?",
+        "responses": [
+          {
+            "id": "cause-not-eye",
+            "text": "眼睛看到的一快一慢是真的;但重量沒變時,只換形狀或介質,快慢就跟著變。不能把原因直接記在重量上。",
+            "correct": true
+          },
+          {
+            "id": "eyes-false",
+            "text": "這證明人的眼睛根本不可信;看見鐵球先落也不算數。",
+            "correct": false,
+            "reply": "紙攤平和揉成團,差別確實看得見。問題不是眼睛說謊,是你把原因認錯了。"
+          },
+          {
+            "id": "weight-never-matters",
+            "text": "這已經證明重量在任何情況下都不會影響快慢。",
+            "correct": false,
+            "reply": "你只拆開了形狀和介質。『任何情況』要靠另一組紙,不能先寫上去。"
+          }
+        ],
         "statements": [
           {
             "id": "p1s1",
@@ -91,6 +112,27 @@
       },
       "P2": {
         "title": "第二支柱:權威",
+        "reasonMode": "player",
+        "responsePrompt": "E2 讓同一個前提推出兩個相反結果。這代表什麼?",
+        "responses": [
+          {
+            "id": "premise-conflicts",
+            "text": "若重的快、輕的慢,綁起來既該被小球拖慢,又該因更重而加快。同一前提互相衝突,不必再換一位權威。",
+            "correct": true
+          },
+          {
+            "id": "new-authority",
+            "text": "這證明斯泰文比亞里斯多德更有資格當新的權威。",
+            "correct": false,
+            "reply": "你只是把一個名字換成另一個名字。這張紙要你檢查的是前提,不是排座次。"
+          },
+          {
+            "id": "heavier-wins",
+            "text": "兩球綁起來更重,所以它一定落得更快;這正好支持原來的說法。",
+            "correct": false,
+            "reply": "那小球拖慢大球的推論呢?同一前提的另一半不能因為不方便就擦掉。"
+          }
+        ],
         "statements": [
           {
             "id": "p2s1",
@@ -140,6 +182,7 @@
       },
       "P3": {
         "title": "第三支柱:目的論",
+        "reasonMode": "auto",
         "useLegacy": true,
         "playerCorrect": "如果重量真是渴望的尺度,大球和小球就不該寫出同一組數字。可它們都是一、三、五、七。這裡說話的不是渴望,是同一條數學規律。",
         "breakReply": "(逐行細看數據,很久)……一、三、五、七。(抬頭)回回如此?球球如此?"

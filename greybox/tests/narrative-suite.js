@@ -482,6 +482,15 @@
     if (r.error) throw new Error(fn + ":" + r.error);
     return r;
   }
+  function presentAndReason(s, payload, optionId, label) {
+    var paired = deb(s, "debatePresent", [payload]);
+    eq(paired.outcome, "reason", label + ":配證後應先等玩家判讀");
+    ok(!paired.state.debate.pillars[paired.state.debate.pendingReason.pid].broken,
+      label + ":系統不得在玩家作答前破柱");
+    var reasoned = deb(paired.state, "debateReason", [optionId]);
+    eq(reasoned.outcome, "correct", label + ":玩家親判後才破柱");
+    return reasoned;
+  }
 
   t("M3|辯論黃金路徑(探索):E1 特殊回應→三支柱→反問選項→FR→trap 說謊後親自改口→勝利→尾聲兩題→史實頁→終", function () {
     var s = toDebate("explore");
@@ -490,16 +499,18 @@
     r = deb(s, "debatePresent", [{ evidence: "E1", subitem: null, target: "p1s2" }]); s = r.state;
     eq(r.outcome, "special", "E1 又是幾乎——不扣分");
     eq(s.debate.persuasion, 5);
-    r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
-    eq(r.outcome, "correct"); ok(s.debate.pillars.P1.broken, "P1 破");
+    r = presentAndReason(s, { evidence: "E4", subitem: null, target: "p1s2" },
+      "cause-not-eye", "P1"); s = r.state;
+    ok(s.debate.pillars.P1.broken, "P1 破");
     r = deb(s, "debatePress", ["p2s3"]); s = r.state;
     ok(r.choice, "反問選項出現");
     r = deb(s, "debatePressChoice", ["a"]); s = r.state;
     eq(s.debate.persuasion, 4, "住在明天:說服力−1");
     eq(s.rep, 1, "信譽−1(2→1)");
     r = deb(s, "debatePressChoice", ["b"]); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
-    eq(r.outcome, "correct"); ok(s.debate.pillars.P2.broken, "P2 破");
+    r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
+      "premise-conflicts", "P2"); s = r.state;
+    ok(s.debate.pillars.P2.broken, "P2 破");
     r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "a", target: "s2" }]); s = r.state;
     eq(r.outcome, "wrong", "E3 確立後 a 出示=其餘三元組(依規格)");
     eq(s.debate.persuasion, 3);
@@ -544,7 +555,8 @@
 
   t("M3|中止與再入:錯誤出示×5→中止→伽利略複盤→再入(量表重置,已破支柱保留)", function () {
     var s = toDebate("explore");
-    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    var r = presentAndReason(s, { evidence: "E4", subitem: null, target: "p1s2" },
+      "cause-not-eye", "P1"); s = r.state;
     r = deb(s, "debatePress", ["p2s1"]); s = r.state;
     for (var i = 0; i < 5; i++) {
       r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p2s1" }]); s = r.state;
@@ -588,8 +600,10 @@
 
   t("M3|學者 FR:干擾項−1、亂序不罰、三環組鏈→trap 誠實(零代價)→勝", function () {
     var s = toDebate("scholar");
-    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    var r = presentAndReason(s, { evidence: "E4", subitem: null, target: "p1s2" },
+      "cause-not-eye", "P1"); s = r.state;
+    r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
+      "premise-conflicts", "P2"); s = r.state;
     r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
     ok(s.debate.fr.opened);
     r = deb(s, "debateFr", ["d2"]); s = r.state;
@@ -611,8 +625,10 @@
 
   t("A-1 負向|E3.c=false 不得推進 FR;state 不變", function () {
     var s = toDebate("explore");
-    var r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    var r = presentAndReason(s, { evidence: "E4", subitem: null, target: "p1s2" },
+      "cause-not-eye", "P1"); s = r.state;
+    r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
+      "premise-conflicts", "P2"); s = r.state;
     r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
     ok(s.debate.fr.opened, "FR 已開");
     var s2 = JSON.parse(JSON.stringify(s));
@@ -647,12 +663,14 @@
     for (var i = 0; i < 4; i++) { r = deb(s, "debatePresent", [{ evidence: "S1", subitem: null, target: "p1s1" }]); s = r.state; }
     ok(s.debate.firstMissUsed === true, "首發試射旗標");
     eq(s.debate.persuasion, 2);
-    r = deb(s, "debatePresent", [{ evidence: "E4", subitem: null, target: "p1s2" }]); s = r.state;
+    r = presentAndReason(s, { evidence: "E4", subitem: null, target: "p1s2" },
+      "cause-not-eye", "P1"); s = r.state;
     r = deb(s, "debatePress", ["p2s3"]); s = r.state;
     r = deb(s, "debatePressChoice", ["a"]); s = r.state;   /* 說服力 2→1;信譽 2→1 */
     eq(s.debate.persuasion, 1); eq(s.rep, 1);
     r = deb(s, "debatePressChoice", ["b"]); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E2", subitem: null, target: "p2s2" }]); s = r.state;
+    r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
+      "premise-conflicts", "P2"); s = r.state;
     r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
     r = deb(s, "debateFr", ["a"]); s = r.state;
     r = deb(s, "debateFr", ["a"]); s = r.state;

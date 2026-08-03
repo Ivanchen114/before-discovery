@@ -31,7 +31,7 @@
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship"
       : (d.system === "orbit" ? "orbit"
-      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision") ? "lab" : "debate"));
+      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision" || d.system === "heat") ? "lab" : "debate"));
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
@@ -80,7 +80,15 @@
           nc.querySelector(".ncNext").textContent = "下一個問題";
           nc.querySelector(".ncTitle").textContent = "短少的那一截，去了哪裡？";
           nc.querySelector(".ncHook").textContent = "黏土留下了可量的痕跡；要把去向全帳對平，還得學會怎麼量熱。";
-          nc.querySelector(".ncSys").textContent = "第五章進度與筆記已封存於這台裝置。";
+          nc.querySelector(".ncSys").textContent = "第六章現已開放。第五章進度與筆記已封存於這台裝置。";
+          nextBtn.textContent = "進入第六章";
+          nextHref = "stage.html?chapter=ch06";
+        } else if (CHAPTER_ID === "ch6") {
+          nc.querySelector(".ncSealed").textContent = "第六章《熱從哪裡來？》——已封存";
+          nc.querySelector(".ncNext").textContent = "下一筆債";
+          nc.querySelector(".ncTitle").textContent = "熱與功，究竟怎麼換算？";
+          nc.querySelector(".ncHook").textContent = "來源退下了，兌換率仍未量出。下一次，要讓兩種帳在同一把尺上相遇。";
+          nc.querySelector(".ncSys").textContent = "第六章進度與共同驗證頁已封存於這台裝置。";
         }
         nextBtn.hidden = !nextHref;
         nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
@@ -99,20 +107,22 @@
       ((d.scene === "A2-2" && d.nodeId === "e1") ||
        (d.scene === "B2-3" && d.nodeId === "e1") ||
        (d.scene === "C1-1" && d.nodeId === "e1") ||
+       (d.scene === "H0-3" && d.nodeId === "e1") ||
        (d.scene === "E1-2" && d.nodeId === "lab1") ||
        /* D1-1/e1 的 K0 封存刻意維持短操作；第四章大型工作台轉場
           放在 D1-2/e1 的同尺紙，避免切線紙剛封好就被整章備忘蓋住。 */
-       (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1");
+       (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1" || d.scene === "SC6-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
       pendingEmbarkScene = d.scene || null;
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
-        : (d.scene === "SC-R1" ? "▸ 用一筆乾淨紀錄道歉"
+        : ((d.scene === "SC-R1" || d.scene === "SC6-R1") ? "▸ 用一筆乾淨紀錄道歉"
+        : (CHAPTER_ID === "ch6" ? "▸ 攤開四種來源的帳"
         : (CHAPTER_ID === "ch5" ? "▸ 攤開兩本帳"
         : (CHAPTER_ID === "ch4" ? "▸ 攤開兩張紙開始對帳"
-        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")))));
+        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))))));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {

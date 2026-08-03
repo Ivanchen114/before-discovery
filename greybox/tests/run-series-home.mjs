@@ -39,7 +39,8 @@ const introHistoryAnchors = {
   ch2: "圭多巴爾多",
   ch3: "1632 年《對話》",
   ch4: "1684 年哈雷",
-  ch5: "杜夏特萊"
+  ch5: "杜夏特萊",
+  ch6: "Rumford"
 };
 seriesJson.chapters.forEach((chapter, index) => {
   assert(chapter.id === `ch${index + 1}`, `章節 id 次序錯誤:${chapter.id}`);

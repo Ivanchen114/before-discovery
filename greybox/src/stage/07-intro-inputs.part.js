@@ -269,6 +269,16 @@
         "資料不因失手消失——勾選、已破支柱與所有原紀錄都會保留。"
       ];
       $("btnLabIntroGo").textContent = "開始記第一本帳";
+    } else if (CHAPTER_ID === "ch6") {
+      title.textContent = "旅人筆記・四種來源追債台";
+      lines = [
+        "先封存，再揭示——四種有限來源都要先押下終點帶；未封存時，長時間實驗不會啟動。",
+        "一次只查一件事——熱容量、接觸運動、空氣與水箱各有自己的對照；失敗紀錄保留，但不能冒充乾淨證據。",
+        "封條只會裂，不會消失——長時間曲線出現後，你要逐一判讀四張預測；只有判讀完成，T4 才會入卷。",
+        "反例有邊界——資料能逼來源說退下，不能自動證明運動說，也不能抹掉潛熱等未查現象。",
+        "最後一頁分責任——操作、讀數、兩種解讀與未決債務分欄；四方署名只在最後交棒一次成立。"
+      ];
+      $("btnLabIntroGo").textContent = "開始追第一筆來源";
     } else {
       return;
     }
@@ -280,7 +290,7 @@
     if (!box || box.children.length) return;
     var ids = CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] :
       CHAPTER_ID === "ch3" ? ["ship3_g1_mast_dock", "ship3_g2_cabin"] :
-      CHAPTER_ID === "ch4" ? [] : ["prop_water_clock", "prop_ball_groove"];
+      (CHAPTER_ID === "ch4" || CHAPTER_ID === "ch6") ? [] : ["prop_water_clock", "prop_ball_groove"];
     ids.forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;

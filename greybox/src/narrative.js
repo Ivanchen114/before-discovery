@@ -16,7 +16,7 @@
 
   /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
      不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
-  var CHAPTER_ID = /^ch[1-5]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var CHAPTER_ID = /^ch[1-6]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
   var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : (CHAPTER_ID === "ch4" ? 2 : 1);
   var REP_MIN = 0, REP_MAX = 5;
   var REPAIR_SCENE = {
@@ -24,9 +24,30 @@
     ch2: "SC-R1",
     ch3: "SC3-R1",
     ch4: "SC4-R1",
-    ch5: "SC5-R1"
+    ch5: "SC5-R1",
+    ch6: "SC6-R1"
   }[CHAPTER_ID];
   var CH = (DEBATE && DEBATE.chapter) || {};
+
+  /* ENGINE-CR-034：只有場景資料可自動派送的章別動作。
+     工作台 UI 仍可直接呼叫其他 labAction；這份清單只約束 scenes*.json 的 effects[].labAction，
+     讓資料層的拼字錯誤在測試與敘事引擎中都能提早失敗。 */
+  var DATA_LAB_ACTIONS = {
+    ch1: [],
+    ch2: [],
+    ch3: [],
+    ch4: ["sealTangentPrediction", "archiveEvidenceSet"],
+    ch5: [],
+    ch6: ["writeScopeDebt", "finalizeJointPage"]
+  };
+
+  function dataLabActions() {
+    return (DATA_LAB_ACTIONS[CHAPTER_ID] || []).slice();
+  }
+
+  function isDataLabActionAllowed(action) {
+    return typeof action === "string" && dataLabActions().indexOf(action) >= 0;
+  }
 
   var sceneMap = {};
   SCENES.scenes.forEach(function (s) {
@@ -125,6 +146,8 @@
       state.evidence[id] = true;
       state.eventLog.push({ t: "evidence", id: id, at: at });
     }
+    if (CHAPTER_ID === "ch6" && id === "S8" && state.lab && state.lab.evidence)
+      state.lab.evidence.s8 = true;
   }
   function applyEffects(state, effects, sourceId) {
     (effects || []).forEach(function (e) {
@@ -172,6 +195,23 @@
 
   /* ---------- 辯論引擎(R-DEB-09~13) ---------- */
   function pillarDef(pid) { return CH.pillars[pid]; }
+  function reasonConfigError(def) {
+    if (!def || (def.reasonMode !== "player" && def.reasonMode !== "auto"))
+      return "reason-mode-missing";
+    var rows = Array.isArray(def.responses) ? def.responses : [];
+    if (def.reasonMode === "auto")
+      return rows.length ? "auto-reason-has-responses" : null;
+    if (!def.responsePrompt || rows.length !== 3)
+      return "player-reason-incomplete";
+    var ids = {}, correct = 0, invalid = false;
+    rows.forEach(function (row) {
+      if (!row || !row.id || !row.text || ids[row.id]) invalid = true;
+      if (row && row.id) ids[row.id] = true;
+      if (row && row.correct === true) correct += 1;
+      if (row && row.correct !== true && !row.reply) invalid = true;
+    });
+    return invalid || correct !== 1 ? "player-reason-invalid" : null;
+  }
   function opponentSpeaker() {
     return CH.speakers && CH.speakers.opponent || "辛普里奧";
   }
@@ -309,6 +349,8 @@
     var pid = curPillarId(d);
     var stmt = findStmt(pid, p.target);
     if (!stmt) return { state: state0, error: "無此證詞" };
+    var reasonErr = reasonConfigError(pillarDef(pid));
+    if (reasonErr) return { state: state0, error: reasonErr + ":" + pid };
     if (pillarDef(pid).requirePress && d.pillars[pid].s[p.target] !== "pressed")
       return { state: state0, error: "先把這一句問清，再決定用哪張證據" };
     if (!ownsEvidence(state, p.evidence, p.subitem)) {
@@ -326,12 +368,16 @@
     var isInsufficientP3 = pid === "P3" && p.evidence === "E3" && p.subitem === "a" &&
       p.target === "s2" && e3.a && !e3.b;
     if (isCorrect) {
-      if (Array.isArray(pillarDef(pid).responses) && pillarDef(pid).responses.length) {
+      if (pillarDef(pid).reasonMode === "player") {
         d.pendingReason = {
           pid: pid, target: p.target, evidence: p.evidence,
           subitem: p.subitem || null
         };
         say(state, "旅人筆記", "【證據已對上】還差一步：這張紙究竟推得出什麼？");
+        state.eventLog.push({
+          t: "reasonPending", pid: pid, target: p.target,
+          evidence: p.evidence, subitem: p.subitem || null
+        });
         outcome = "reason";
       } else {
         say(state, "旅人(你)", pillarDef(pid).playerCorrect);
@@ -382,6 +428,9 @@
     if (!pending || pending.pid !== curPillarId(d))
       return { state: state0, error: "目前沒有待完成的推論" };
     var def = pillarDef(pending.pid);
+    var reasonErr = reasonConfigError(def);
+    if (reasonErr || def.reasonMode !== "player")
+      return { state: state0, error: (reasonErr || "reason-mode-not-player") + ":" + pending.pid };
     var option = null;
     (def.responses || []).forEach(function (row) { if (row.id === optionId) option = row; });
     if (!option) return { state: state0, error: "推論選項不存在" };
@@ -393,6 +442,7 @@
         evidence: pending.evidence, target: pending.target
       });
       debatePersuasion(state, -1, "debate.reason");
+      state.eventLog.push({ t: "reasonAnswered", pid: pending.pid, option: option.id, correct: false });
       return { state: state, outcome: d.status === "suspended" ? "suspended" : "retry" };
     }
     say(state, opponentSpeaker(), def.breakReply);
@@ -400,6 +450,7 @@
     d.pillars[pending.pid].broken = true;
     d.pendingReason = null;
     d.idx += 1;
+    state.eventLog.push({ t: "reasonAnswered", pid: pending.pid, option: option.id, correct: true });
     state.eventLog.push({ t: "pillarBroken", pid: pending.pid });
     if (d.idx === 3) {
       d.fr.opened = true;
@@ -899,6 +950,7 @@
       if (until.collision === "followup") return !!ce.followup;
       if (until.collision === "j3") return !!ce.j3;
     }
+    if (until.heat) return !!(Engine.gate && Engine.gate(state.lab, until.heat));
     return true;
   }
 
@@ -923,10 +975,23 @@
   }
 
   function chapterEndReady(state) {
-    if (CHAPTER_ID !== "ch4") return true;
-    return !!(state && state.lab && state.lab.evidence &&
-      state.lab.evidence.k5 && state.lab.archiveLab &&
-      state.lab.archiveLab.complete);
+    if (CHAPTER_ID === "ch4") return !!(state && state.lab && state.lab.evidence &&
+      state.lab.evidence.k5 && state.lab.archiveLab && state.lab.archiveLab.complete);
+    if (CHAPTER_ID === "ch6") return !!(state && state.lab && state.lab.evidence &&
+      state.lab.evidence.t5 && state.lab.jointPage && state.lab.jointPage.complete);
+    return true;
+  }
+
+  function applyLabEffects(state0, effects) {
+    var labEffects = (effects || []).filter(function (effect) { return effect && effect.labAction; });
+    if (labEffects.length > 1) return { state: state0, error: "單一節點不可執行多個章別動作" };
+    if (!labEffects.length) return { state: state0 };
+    var spec = labEffects[0].labAction || {};
+    if (!isDataLabActionAllowed(spec.action))
+      return { state: state0, error: "資料層實驗台動作未列入章別白名單:" + (spec.action || "(空白)") };
+    var result = labAction(state0, spec.action, spec.args || {});
+    if (result.error) return result;
+    return { state: result.state };
   }
 
   function advance(state0) {
@@ -953,7 +1018,12 @@
       return { state: state, node: node };
     }
     state.transcript.push({ scene: state.cursor.scene, node: node.id, speaker: node.speaker || "", text: node.text || "" });
-    if (node.type === "system") applyEffects(state, node.effects, state.cursor.scene + "/" + node.id);
+    if (node.type === "system") {
+      applyEffects(state, node.effects, state.cursor.scene + "/" + node.id);
+      var systemLab = applyLabEffects(state, node.effects);
+      if (systemLab.error) return { state: state0, error: systemLab.error, result: systemLab.result };
+      state = systemLab.state;
+    }
     state.cursor.node = node.next;
     var nxt = skipInvisible(state);
     if (nxt.type === "end") {
@@ -976,15 +1046,8 @@
     applyEffects(state, opt.effects, state.cursor.scene + "/" + node.id + "." + opt.id);
     /* ENGINE-CR-033：只允許一個受 labAction 白名單約束的章別動作。
        ok:false 是可留下的錯答；error 才整次拒絕並回復原 state。 */
-    var labEffects = (opt.effects || []).filter(function (effect) {
-      return effect && effect.labAction;
-    });
-    if (labEffects.length > 1)
-      return { state: state0, error: "單一選項不可執行多個章別動作" };
-    if (labEffects.length === 1) {
-      var spec = labEffects[0].labAction || {};
-      var labResult = labAction(state, spec.action, spec.args || {});
-      if (labResult.error) {
+    var labResult = applyLabEffects(state, opt.effects);
+    if (labResult.error) {
         var labError = labResult.result && labResult.result.userMessage;
         return {
           state: state0,
@@ -992,9 +1055,8 @@
           errorCode: labResult.error,
           result: labResult.result
         };
-      }
-      state = labResult.state;
     }
+    state = labResult.state;
     state.cursor.node = opt.next;
     return { state: state, option: opt };
   }
@@ -1154,7 +1216,6 @@
     else if (action === "judgeScaleRelation" && Engine.judgeScaleRelation)
       r = Engine.judgeScaleRelation(state.lab, args.choice);
     else if (action === "resetPlanetReveals" && Engine.resetPlanetReveals) r = Engine.resetPlanetReveals(state.lab);
-    else if (action === "predictPlanet" && Engine.predictPlanet) r = Engine.predictPlanet(state.lab, args.id);
     else if (action === "sealPlanetPrediction" && Engine.sealPlanetPrediction)
       r = Engine.sealPlanetPrediction(state.lab, args.id, args.bandId);
     else if (action === "revealPlanetPredictions" && Engine.revealPlanetPredictions)
@@ -1199,6 +1260,15 @@
     else if (action === "assertJ2" && Engine.assertJ2) r = Engine.assertJ2(state.lab, args.runIds, args.concept);
     else if (action === "runClay" && Engine.runClay) r = Engine.runClay(state.lab);
     else if (action === "assertJ3" && Engine.assertJ3) r = Engine.assertJ3(state.lab, args.runIds, args.concept);
+    /* 第六章：只開放明列的來源追債 action；Engine 上其他方法不可由資料任意呼叫。 */
+    else if (CHAPTER_ID === "ch6" && [
+      "setSourceLedger", "sealModels", "setChipDraft", "runChipComparison", "judgeChipComparison",
+      "runFrictionCondition", "judgeFrictionConditions", "setDryDraft", "runDryStrip", "judgeDryStrip",
+      "sealAirPrediction", "runAirComparison", "judgeAirComparison", "setWaterDraft", "prepareWaterBox",
+      "setFinitePrediction", "sealFinitePredictions", "runContinuousSegment", "judgeFiniteSource",
+      "placeAuditEvidence", "setLatentDisposition", "completeAudit", "setJointColumn", "writeScopeDebt",
+      "prepareJointPage", "finalizeJointPage"
+    ].indexOf(action) >= 0 && Engine[action]) r = Engine[action](state.lab, args || {});
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
@@ -1227,10 +1297,15 @@
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
         grantEvidence(state, id, "collision5");
     });
+    ["T1", "T2", "T3", "T4", "T5"].forEach(function (id) {
+      if (CHAPTER_ID === "ch6" && state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
+        grantEvidence(state, id, "heat6");
+    });
     if (r.repDelta) {
       var repSource = CHAPTER_ID === "ch3" ? "ship3." :
         (CHAPTER_ID === "ch4" ? "orbit4." :
-          (CHAPTER_ID === "ch5" ? "collision5." : "lab."));
+          (CHAPTER_ID === "ch5" ? "collision5." :
+            (CHAPTER_ID === "ch6" ? "heat6." : "lab.")));
       applyRep(state, r.repDelta, repSource + action, r.repReason);
     }
     if (action === "judge") {
@@ -1326,6 +1401,7 @@
     initialState: initialState,
     view: view, advance: advance, choose: choose, setReview: setReview,
     labAction: labAction, embedReady: embedReady, embedComplete: embedComplete,
+    dataLabActions: dataLabActions,
     assertStage: assertStage,
     debatePress: debatePress, debatePressChoice: debatePressChoice,
     debatePresent: debatePresent, debateReason: debateReason, debateFr: debateFr,

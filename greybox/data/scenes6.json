@@ -1,0 +1,3228 @@
+{
+ "chapter": "ch6",
+ "startScene": "H0-1",
+ "title": "熱從哪裡來？",
+ "evidenceNames": {
+  "S8": "冰融化時吸熱而溫度停住的現象簿",
+  "T1": "碎屑與薄片的同一把熱尺",
+  "T2": "只有接觸轉動才持續升溫",
+  "T3": "關住空氣後沒有消失的熱",
+  "T4": "越過各個有限來源的長時段曲線",
+  "T5": "一頁四種署名、兩筆未決"
+ },
+ "evidenceSummaries": {
+  "S8": "冰融化時持續吸熱，溫度暫不升高；這不是炮鑽的新結果。",
+  "T1": "等重、同溫、等水量的碎屑與薄片，量熱曲線近似重合。",
+  "T2": "只轉與只壓都不持續升溫；接觸轉動才持續升。",
+  "T3": "封住外界空氣後，乾淨紙帶仍與未封時近似重合。",
+  "T4": "曲線越過已封的有限來源衰減帶；每張裂封與原預測都保留。",
+  "T5": "共同頁分四欄署名，保留範圍未決與尚未量得的兌換率。"
+ },
+ "conclusionLint": {
+  "note": "本章不提前宣稱熱就是運動、熱質說全滅或功熱定量兌換率。",
+  "rules": [
+   {
+    "term": "熱質說已被摧毀",
+    "kind": "speaker-only",
+    "speaker": "朗福德伯爵"
+   },
+   {
+    "term": "兌換率：未量得",
+    "kind": "after-node",
+    "scene": "HE-1",
+    "node": "x_final"
+   }
+  ]
+ },
+ "decisionRegistry": [
+  {
+   "id": "H0-1.c1",
+   "scene": "H0-1",
+   "node": "c1",
+   "nodeIndex": 7,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "ask-measure",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "give-future",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-1/n5",
+      "H0-1/n7"
+     ]
+    },
+    {
+     "id": "give-future-again",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-1/n5",
+      "H0-1/n7"
+     ]
+    },
+    {
+     "id": "call-miracle",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-1/n5",
+      "H0-1/n7"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H0-2.c1",
+   "scene": "H0-2",
+   "node": "c1",
+   "nodeIndex": 11,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "list-sources",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "vote-theory",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-2/n6",
+      "H0-2/n11"
+     ]
+    },
+    {
+     "id": "trust-rumford",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-2/n6",
+      "H0-2/n11"
+     ]
+    },
+    {
+     "id": "trust-rumford-again",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-2/n6",
+      "H0-2/n11"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H0-2.c2",
+   "scene": "H0-2",
+   "node": "c2",
+   "nodeIndex": 19,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "operation-only",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "rumford-theory",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-2/n6",
+      "H0-2/n7"
+     ]
+    },
+    {
+     "id": "winning-side",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-2/n6",
+      "H0-2/n7"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H0-3.c1",
+   "scene": "H0-3",
+   "node": "c1",
+   "nodeIndex": 10,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "not-yet",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "boiling-wins",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-3/n2",
+      "H0-3/n4"
+     ]
+    },
+    {
+     "id": "heat-proves-caloric",
+     "isCorrect": false,
+     "refutedBy": [
+      "H0-3/n2",
+      "H0-3/n4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H1-1.c1",
+   "scene": "H1-1",
+   "node": "c1",
+   "nodeIndex": 7,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "narrow",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "no-caloric",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-1/n1",
+      "H1-1/n4"
+     ]
+    },
+    {
+     "id": "same-everywhere",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-1/n1",
+      "H1-1/n4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H1-2.c1",
+   "scene": "H1-2",
+   "node": "c1",
+   "nodeIndex": 5,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "contact-motion",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "pressure-only",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-2/n2",
+      "H1-2/n4"
+     ]
+    },
+    {
+     "id": "rotation-only",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-2/n2",
+      "H1-2/n4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H1-3.c1",
+   "scene": "H1-3",
+   "node": "c1",
+   "nodeIndex": 8,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "observed-range",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "heat-is-motion",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-3/n3",
+      "H1-3/n5"
+     ]
+    },
+    {
+     "id": "heat-is-motion-again",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-3/n3",
+      "H1-3/n5"
+     ]
+    },
+    {
+     "id": "body-source",
+     "isCorrect": false,
+     "refutedBy": [
+      "H1-3/n3",
+      "H1-3/n5"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H2-1.c1",
+   "scene": "H2-1",
+   "node": "c1",
+   "nodeIndex": 3,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "air-necessary",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "any-change",
+     "isCorrect": false,
+     "refutedBy": [
+      "H2-1/n2",
+      "H2-1/n3"
+     ]
+    },
+    {
+     "id": "no-change-proves-motion",
+     "isCorrect": false,
+     "refutedBy": [
+      "H2-1/n2",
+      "H2-1/n3"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H2-1.c2",
+   "scene": "H2-1",
+   "node": "c2",
+   "nodeIndex": 11,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "withdraw-air",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "erase-air",
+     "isCorrect": false,
+     "refutedBy": [
+      "H2-1/a1",
+      "H2-1/n4"
+     ]
+    },
+    {
+     "id": "keep-air",
+     "isCorrect": false,
+     "refutedBy": [
+      "H2-1/a1",
+      "H2-1/n4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H2-2.c1",
+   "scene": "H2-2",
+   "node": "c1",
+   "nodeIndex": 4,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "full-water-record",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "final-temperature",
+     "isCorrect": false,
+     "refutedBy": [
+      "H2-2/n2",
+      "H2-2/a1"
+     ]
+    },
+    {
+     "id": "steam-time",
+     "isCorrect": false,
+     "refutedBy": [
+      "H2-2/n2",
+      "H2-2/a1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H3-1.c1",
+   "scene": "H3-1",
+   "node": "c1",
+   "nodeIndex": 10,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "explained",
+     "isCorrect": false,
+     "refutedBy": [
+      "S8",
+      "H3-1/n9"
+     ]
+    },
+    {
+     "id": "unresolved",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "refutes-motion",
+     "isCorrect": false,
+     "refutedBy": [
+      "S8",
+      "H3-1/n9"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H3-1.c2",
+   "scene": "H3-1",
+   "node": "c2",
+   "nodeIndex": 16,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "separate-tool-theory",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "dismiss-all",
+     "isCorrect": false,
+     "refutedBy": [
+      "T1",
+      "S8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H3-2.c1",
+   "scene": "H3-2",
+   "node": "c1",
+   "nodeIndex": 5,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "common-seal",
+     "isCorrect": false,
+     "refutedBy": [
+      "H3-2/n2",
+      "H3-2/n4",
+      "H3-2/n5"
+     ]
+    },
+    {
+     "id": "common-seal-again",
+     "isCorrect": false,
+     "refutedBy": [
+      "H3-2/n2",
+      "H3-2/n4",
+      "H3-2/n5"
+     ]
+    },
+    {
+     "id": "edit-rumford-paper",
+     "isCorrect": false,
+     "refutedBy": [
+      "H3-2/n2",
+      "H3-2/n4",
+      "H3-2/n5"
+     ]
+    },
+    {
+     "id": "split-page",
+     "isCorrect": true,
+     "refutedBy": []
+    }
+   ]
+  },
+  {
+   "id": "H3-2.c2",
+   "scene": "H3-2",
+   "node": "c2",
+   "nodeIndex": 14,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "bounded-scope",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "all-dead",
+     "isCorrect": false,
+     "refutedBy": [
+      "S8",
+      "T4"
+     ]
+    },
+    {
+     "id": "nothing-learned",
+     "isCorrect": false,
+     "refutedBy": [
+      "T1",
+      "T3",
+      "T4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "HE-1.c1",
+   "scene": "HE-1",
+   "node": "c1",
+   "nodeIndex": 2,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "operation-records",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "all-including-theory",
+     "isCorrect": false,
+     "refutedBy": [
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "H3-2/n4"
+     ]
+    },
+    {
+     "id": "boiling-only",
+     "isCorrect": false,
+     "refutedBy": [
+      "T1",
+      "T2",
+      "T3",
+      "T4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "HE-1.c2",
+   "scene": "HE-1",
+   "node": "c2",
+   "nodeIndex": 15,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "keep-scope",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "erase-latent",
+     "isCorrect": false,
+     "refutedBy": [
+      "S8",
+      "H3-2/a2"
+     ]
+    },
+    {
+     "id": "erase-results",
+     "isCorrect": false,
+     "refutedBy": [
+      "T1",
+      "T3",
+      "T4",
+      "H3-2/a2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "HE-1.c3",
+   "scene": "HE-1",
+   "node": "c3",
+   "nodeIndex": 25,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "drill-longer",
+     "isCorrect": false,
+     "refutedBy": [
+      "HE-1/n13",
+      "T4"
+     ]
+    },
+    {
+     "id": "name-particles",
+     "isCorrect": false,
+     "refutedBy": [
+      "HE-1/n13",
+      "T1",
+      "T4"
+     ]
+    },
+    {
+     "id": "measure-rate",
+     "isCorrect": true,
+     "refutedBy": []
+    }
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "H0-1",
+   "title": "留白燒了起來",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人的筆記停在西雷莊園那一頁。「活力」旁邊留著一格空白。杜夏特萊寫下的「未決」已經乾成褐色。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_debt",
+     "text": "油灰上的坑證明有東西發生了。可那兩顆球短少的，到底去了哪裡？上一頁沒有收據。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "空白處先冒出一點熱。墨沒有燃起來，紙卻燙得旅人縮手。下一瞬，鐵輪的轟響從頁縫裡撞了出來。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "1798 年，巴伐利亞・慕尼黑兵工廠。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "一塊剛削下的黃銅碎屑從工作臺滑落。史坦格用鉗子夾起來，丟進牆邊的水桶。水面立刻冒出一層白氣。",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "別用手。這東西比爐口還燙。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "（從轉床另一頭探出身）更有意思的是，爐子根本沒有碰這片碎屑。",
+     "next": "c1",
+     "id": "n7"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "你先看哪一件事？",
+     "options": [
+      {
+       "id": "ask-measure",
+       "text": "「先量碎屑、水量和兩邊起溫，再追熱從哪裡來。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6IntroChoice",
+          "ask-measure"
+         ]
+        }
+       ],
+       "next": "a1"
+      },
+      {
+       "id": "give-future",
+       "text": "「先記短少的活力已變成熱，再回頭補眼前數字。」",
+       "refutedBy": [
+        "H0-1/n5",
+        "H0-1/n7"
+       ],
+       "require": {
+        "flagAbsent": "ch6FutureAnswerTried"
+       },
+       "effects": [
+        {
+         "rep": -1,
+         "reason": "把未來知道的去向當成已由眼前碎屑證明的結論"
+        },
+        {
+         "flag": [
+          "ch6FutureAnswerTried",
+          1
+         ]
+        }
+       ],
+       "next": "b1"
+      },
+      {
+       "id": "give-future-again",
+       "text": "「先記短少的活力已變成熱，再回頭補眼前數字。」",
+       "refutedBy": [
+        "H0-1/n5",
+        "H0-1/n7"
+       ],
+       "require": {
+        "flag": [
+         "ch6FutureAnswerTried",
+         1
+        ]
+       },
+       "next": "b1"
+      },
+      {
+       "id": "call-miracle",
+       "text": "「先記沒有火卻會發熱，再替這件怪事取個名字。」",
+       "refutedBy": [
+        "H0-1/n5",
+        "H0-1/n7"
+       ],
+       "next": "c1a"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "你從一片碎屑跳到「去了哪裡」，中間少了整座橋。橋呢？",
+     "next": "b2",
+     "id": "b1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這裡每天都有燙碎屑。你若只會替這股熱取名字，站遠一點取。",
+     "next": "c1",
+     "id": "b2"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "清楚的是碎屑很燙。熱從哪裡來，還一個字都沒量。",
+     "next": "c1",
+     "id": "c1a"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "朗福德抬了一下眉。史坦格則把鉗子停在半空，第一次正眼看旅人。",
+     "next": "a2",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "好。你先問的是尺，不是答案。我叫班傑明・湯普森，這裡多半叫我朗福德。",
+     "next": "a3",
+     "id": "a2"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "叫我旅人就好。那幾個數字，你們記了嗎？",
+     "next": "a4",
+     "id": "a3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "平常只記炮，不記水桶。今天也一樣。",
+     "next": "a5",
+     "id": "a4"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "那就從今天開始不一樣。你替我記。史坦格看著你，漏一欄就作廢。",
+     "next": "a6",
+     "id": "a5"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "朗福德把一張空白工單壓到旅人面前。紙角被黃銅碎屑燙出一小塊焦痕，剛好落在「熱從何來」那一欄。",
+     "next": "g1",
+     "id": "a6"
+    },
+    {
+     "type": "goto",
+     "scene": "H0-2",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-setting + fictional-bridge",
+   "purpose": "承接第五章的「未決」空欄；讓旅人以可檢查的問題取得入場資格，不靠報答案。"
+  },
+  {
+   "id": "H0-2",
+   "title": "只剩這一截",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "史坦格帶旅人繞到炮口前。炮身末端多出一截粗短的黃銅柱，還連在炮上，表面已有一圈圈車削痕。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這叫「要丟掉的炮頭」。鑄炮時留著壓實炮口，正式鑽膛前就得切掉。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "所以沒有人能說我為一個實驗毀了一門炮。我只借一塊本來就要丟的金屬。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "借到明晚。後天這門炮要進下一道工序。炮頭一切，就沒有第二塊一樣的。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "他翻開馬班簿。上午、午後、明早三段空格，每格旁邊都有工頭的印記。",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "馬、轉床、工人，我照伯爵的命令給。可我只簽兩件事：這套工序怎麼做，紙上有沒有照實記。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "理論我自己簽。別怕，他連我的紙也照退。",
+     "next": "n8",
+     "id": "n7"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "木門外傳來手杖點地的聲音。來人把帽沿上的雪水彈掉，先看炮頭，再看焦掉的工單。",
+     "next": "n9",
+     "id": "n8"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我還以為你今天會先準備一個答案。原來只準備了一門炮。",
+     "next": "n10",
+     "id": "n9"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "炮比較誠實。它不會因為你穿得像科學院，就少燙一點。",
+     "next": "n11",
+     "id": "n10"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我不否認炮頭和碎屑都燙。我只問：那份熱由誰付？金屬、碎屑、空氣，還是你還沒看見的地方？",
+     "next": "c1",
+     "id": "n11"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "你要怎麼把爭點留在紙上？",
+     "options": [
+      {
+       "id": "list-sources",
+       "text": "「把每個可能來源和它應留下的痕跡寫進馬班簿。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6SourceRuleProposed",
+          1
+         ]
+        }
+       ],
+       "next": "a1"
+      },
+      {
+       "id": "vote-theory",
+       "text": "「把兩套說法和最後的舉手票數寫進馬班簿。」",
+       "refutedBy": [
+        "H0-2/n6",
+        "H0-2/n11"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "trust-rumford",
+       "text": "「把朗福德的判斷和他對機器的熟悉寫進馬班簿。」",
+       "refutedBy": [
+        "H0-2/n6",
+        "H0-2/n11"
+       ],
+       "require": {
+        "flagAbsent": "ch6AuthorityTried"
+       },
+       "effects": [
+        {
+         "rep": -1,
+         "reason": "用主事者權威代替來源與可見後果"
+        },
+        {
+         "flag": [
+          "ch6AuthorityTried",
+          1
+         ]
+        }
+       ],
+       "next": "w2"
+      },
+      {
+       "id": "trust-rumford-again",
+       "text": "「把朗福德的判斷和他對機器的熟悉寫進馬班簿。」",
+       "refutedBy": [
+        "H0-2/n6",
+        "H0-2/n11"
+       ],
+       "require": {
+        "flag": [
+         "ch6AuthorityTried",
+         1
+        ]
+       },
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "多一隻手舉起來，不會讓熱多一個來源。把來源寫清楚。",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "伯爵熟機器，不等於機器只能照伯爵的理論發熱。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "可以。我的說法若要改，每次都得先寫下一個看得見的後果。",
+     "next": "a2",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "而你寫過的舊版本不能消失。划掉可以，紙要留。",
+     "next": "a3",
+     "id": "a2"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "再加一條：漏記水量、換馬不記、曲線斷了，都只能算一張壞紙。壞紙也留著。",
+     "next": "a4",
+     "id": "a3"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人把三條規矩寫進馬班簿背面。史坦格在最下方壓了一枚沒有沾蠟的印章——等全部做完，他才決定要不要真的蓋下去。",
+     "next": "a5",
+     "id": "a4"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "期限成立｜炮頭拆除前，必須留下可重做、有人願意署名的原紙。失敗不刪紀錄，只會讓這次無法裁決。",
+     "effects": [
+      {
+       "flag": [
+        "ch6DeadlineAccepted",
+        1
+       ]
+      }
+     ],
+     "next": "c2",
+     "id": "a5"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "把史坦格的空印放到哪一欄？",
+     "options": [
+      {
+       "id": "operation-only",
+       "text": "「放在操作與讀數欄，讓他只替親眼核過的紙簽名。」",
+       "next": "a6"
+      },
+      {
+       "id": "rumford-theory",
+       "text": "「放在朗福德解讀欄，讓他替主事者的理論簽名。」",
+       "refutedBy": [
+        "H0-2/n6",
+        "H0-2/n7"
+       ],
+       "next": "w3"
+      },
+      {
+       "id": "winning-side",
+       "text": "「放在最後勝方欄，讓他替贏下爭論的一邊簽名。」",
+       "refutedBy": [
+        "H0-2/n6",
+        "H0-2/n7"
+       ],
+       "next": "w4"
+      }
+     ],
+     "id": "c2"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "我守的是轉床，不是伯爵的腦袋。再說一次。",
+     "next": "c2",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "我若等贏家出來才決定紙真不真，這枚印章就沒有用。",
+     "next": "c2",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這句可以。現在去把你們各自要看的痕跡寫下來。",
+     "next": "g1",
+     "id": "a6"
+    },
+    {
+     "type": "goto",
+     "scene": "H0-3",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-apparatus + fictional-stakes",
+   "purpose": "完成戲劇立約；建立朗福德、史坦格、凱斯勒三種不同權力。"
+  },
+  {
+   "id": "H0-3",
+   "title": "先把供應者寫下",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "炮頭的剖面圖攤在長桌中央。碎屑、炮身、進氣口、水箱四個位置，各釘著一條空白紙籤。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "熱質可以藏在物體裡，也可以在物體之間流動。你若只盯著一個地方，我當然總能從另一處找到路。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "所以每一條路都要先掛牌。牌上不只寫「從哪裡來」，還要寫「來過之後，哪裡會改變」。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "我的也一起封。只要接觸還在、轉動還在，熱就不該因為某個庫存見底而自己停下。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "凱斯勒沒有立刻接話。他從皮匣取出一本薄冊，翻到夾著藍紙的那頁。",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "先讓你看一筆我們這套帳能處理、你們現在還不能處理的事。冰一邊融，一邊收熱，可溫度就是不動。這筆熱，我們記在融化裡。",
+     "next": "s8",
+     "id": "n6"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "receiptKind": "source",
+     "text": "收入來源紙 S8｜冰融化時持續吸熱，溫度卻暫不升高。這是早已公開的現象，不是這幾天炮鑽的新結果。",
+     "effects": [
+      {
+       "evidence": "S8"
+      },
+      {
+       "flag": [
+        "ch6LatentCardSeen",
+        1
+       ]
+      }
+     ],
+     "next": "n7",
+     "id": "s8"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我不拿這筆冰的紀錄替炮頭作答。只是先放在這裡，免得你們最後說這整本帳從未解釋過任何東西。",
+     "next": "e1",
+     "id": "n7"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "把來源封條掛到實物位置，再寫清楚：如果熱真從這裡來，哪裡會先變。最後分別封存兩套預測。",
+     "operationContract": [
+      "玩家直接把來源封條拖到碎屑、炮身、進氣口、水箱，不以四格勾選呈現。",
+      "每個來源只能和一項可見後果成對，例如容量改變、某處降溫、曲線衰減、隔絕後曲線改變。",
+      "兩套預測都沒有預選值；封蠟後不得改寫，只能新增下一版並保留舊版。",
+      "第一輪允許兩模型都預測「會發熱」；不可把第一次升溫設成決勝點。"
+     ],
+     "until": {
+      "heat": "source-ledger"
+     },
+     "next": "n8",
+     "id": "e1",
+     "system": "heat",
+     "phase": "heat-source-ledger",
+     "hint": "把來源封條掛到實物位置，再寫清楚：如果熱真從這裡來，哪裡會先變。最後分別封存兩套預測。"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "四條來源封條掛在炮圖周圍。兩張模型紙各有一枚不同顏色的蠟。封口底下的字仍看得見，卻再也抽不出來。",
+     "next": "c1",
+     "id": "n8"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "開機前，眼前這兩套模型能否只靠「第一次變熱」分出勝負？",
+     "options": [
+      {
+       "id": "not-yet",
+       "text": "「這一輪還不能分勝負，因為兩邊都預測會變熱。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6FirstRoundBoundary",
+          1
+         ]
+        }
+       ],
+       "next": "a1"
+      },
+      {
+       "id": "boiling-wins",
+       "text": "「這一輪能讓運動說勝出，因為水最後會煮開。」",
+       "refutedBy": [
+        "H0-3/n2",
+        "H0-3/n4"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "heat-proves-caloric",
+       "text": "「這一輪能讓熱質說勝出，因為溫度確實會升高。」",
+       "refutedBy": [
+        "H0-3/n2",
+        "H0-3/n4"
+       ],
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我也預測炮頭會熱。你把共同預測當成自己的戰利品了。",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "我也預測炮頭會熱。院士沒有獨占溫度計。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "那就別盯著蒸氣歡呼。先看第一個債主：碎屑。",
+     "next": "g1",
+     "id": "a1"
+    },
+    {
+     "type": "goto",
+     "scene": "H1-1",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "historically-grounded-concepts + reconstructed-procedure",
+   "purpose": "資料出現前封存兩套模型；早段公開潛熱卡，避免終局空降。"
+  },
+  {
+   "id": "H1-1",
+   "title": "碎屑的帳",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "史坦格端來兩個相同的錫杯、一盤鑽下的碎屑，以及從同一塊炮金屬鋸下的薄片。四支溫度計平放在白布上。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "若鑽削讓金屬放出大量熱質，碎屑容納熱的本事就該和原來不同。這一版，我先簽。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "等重、同溫、同一桶冷水。少一項，他就會說你比較的是兩件事。",
+     "next": "e1",
+     "id": "n3"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "配成兩組可比較的量熱紀錄。",
+     "operationContract": [
+      "從樣品盤直接拖出碎屑與薄片；天平、熱水浴、量水杯都是可操作物件。",
+      "必須等重、在同一熱水浴達到同溫、投入等量且同初溫的冷水。",
+      "每次實驗保留兩杯逐時原讀數，不以平均值覆蓋。",
+      "質量或初溫不同時不亮紅燈；兩條紙帶會從不同起點展開，留下肉眼可見的爛對照。"
+     ],
+     "until": {
+      "heat": "chips"
+     },
+     "id": "e1",
+     "system": "heat",
+     "phase": "chip-capacity-bench",
+     "hint": "配成兩組可比較的量熱紀錄。",
+     "next": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "兩條溫度紙帶從不同高度出發，交叉後又分開。單看終點，誰都能挑一段替自己說話。",
+     "next": "w2",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這張我不封。原紙留著。把不同的質量和初溫修正後，再做一組。",
+     "effects": [
+      {
+       "flagClear": "ch6ChipComparisonDirty"
+      }
+     ],
+     "next": "e1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "兩杯水從相同溫度起步。投入等重、同溫的碎屑與薄片後，兩條紙帶幾乎疊在一起。",
+     "next": "c1",
+     "id": "n4"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "這組紙最多支持到哪裡？",
+     "options": [
+      {
+       "id": "narrow",
+       "text": "「這張紙只夠排除：碎屑比薄片少裝很多熱。」",
+       "next": "a1"
+      },
+      {
+       "id": "no-caloric",
+       "text": "「這張紙只夠排除：炮身裡還藏著別處的熱。」",
+       "refutedBy": [
+        "H1-1/n1",
+        "H1-1/n4"
+       ],
+       "next": "w3"
+      },
+      {
+       "id": "same-everywhere",
+       "text": "「這張紙只夠排除：不同金屬裝熱的本事不同。」",
+       "refutedBy": [
+        "H1-1/n1",
+        "H1-1/n4"
+       ],
+       "next": "w4"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "你只比較了同一塊金屬的兩種形狀。這張紙沒有搜遍整塊炮，也沒有搜遍所有物質。",
+     "next": "c1",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "兩份炮金屬，怎麼替所有金屬說話？把範圍收回桌上。",
+     "next": "c1",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "這一版我撤回。碎屑沒有留下我寫的容量變化。",
+     "next": "a2",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "他在「碎屑供熱」封條上劃了一道斜線，卻沒有把紙撕掉。接著另取一張，掛到炮身與進氣口之間。",
+     "next": "a3",
+     "id": "a2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "你殺掉的是「碎屑改變容量」這一版，不是熱質。下一筆：炮身本身，或外面的空氣。",
+     "next": "t1",
+     "id": "a3"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 T1｜碎屑與薄片的同一把熱尺。舊版本已劃掉但保留，下一張來源紙已掛上。",
+     "effects": [
+      {
+       "evidence": "T1"
+      },
+      {
+       "flag": [
+        "ch6ChipVariantWithdrawn",
+        1
+       ]
+      }
+     ],
+     "next": "n5",
+     "id": "t1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "第一張可以封。下一張別急著量總熱。先弄清楚，到底是哪個動作讓溫度一直升。",
+     "next": "g1",
+     "id": "n5"
+    },
+    {
+     "type": "goto",
+     "scene": "H1-2",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-experiment + reconstructed-player-operation",
+   "purpose": "以等重、同溫、等水量的比較，處理「碎屑容量改變供熱」版本；錯誤留下不可比較的紙。"
+  },
+  {
+   "id": "H1-2",
+   "title": "不切，只磨",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "史坦格拆下利鑽，換上一塊邊角磨圓的鈍鋼片。鈍鋼片頂住炮孔底部，卻幾乎削不出屑。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "三種做法。只讓炮轉，不讓鋼片碰。只壓住，不讓炮轉。最後壓住，再讓炮轉。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "這一輪兩邊都別搶結論。先看熱跟哪個動作一起出現。",
+     "next": "e1",
+     "id": "n3"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "親手完成三種條件，保留三條分開的溫度紙帶。",
+     "operationContract": [
+      "玩家直接拖動傳動接合桿與鋼片壓桿，不使用裸滑桿。",
+      "三種條件各自封存後才執行；沒有新決策的同條件重複可一次啟動，但逐次原讀數仍保留。",
+      "只轉不接觸：接近室溫漂移；只壓不轉：沒有持續增溫；接觸轉動：溫度隨時間上升。",
+      "若操作中途改條件，紙帶在改動處折斷並標出接合狀態，不自動判錯。"
+     ],
+     "until": {
+      "heat": "friction"
+     },
+     "next": "n4",
+     "id": "e1",
+     "system": "heat",
+     "phase": "friction-condition-bench",
+     "hint": "親手完成三種條件，保留三條分開的溫度紙帶。"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "三條紙帶並排。前兩條伏在原處。第三條從鋼片壓上、炮身轉動的那一刻開始抬頭。",
+     "next": "c1",
+     "id": "n4"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "這三條紙讓你先寫下哪一句？",
+     "options": [
+      {
+       "id": "contact-motion",
+       "text": "「這三條紙顯示：接觸和轉動同時出現，溫度才持續升。」",
+       "next": "a1"
+      },
+      {
+       "id": "pressure-only",
+       "text": "「這三條紙顯示：只要鋼片壓得夠緊，溫度就持續升。」",
+       "refutedBy": [
+        "H1-2/n2",
+        "H1-2/n4"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "rotation-only",
+       "text": "「這三條紙顯示：只要炮身開始轉動，溫度就持續升。」",
+       "refutedBy": [
+        "H1-2/n2",
+        "H1-2/n4"
+       ],
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "只壓那條就在你手邊。那條紙沒有一直升。",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "不接觸那條也在你手邊。轉動不是獨自做成這件事的。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我接受這句。但摩擦把熱質擠出來，也只會在接觸轉動時發生。眼下還分不出哪邊。",
+     "next": "a2",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "那就不宣布勝負。下一張紙要看升溫線會不會自己慢下來。",
+     "next": "a3",
+     "id": "a2"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "先把馬速、壓力和讀溫度的拍子固定。曲線若亂，誰都能把亂處說成耗盡。",
+     "next": "g1",
+     "id": "a3"
+    },
+    {
+     "type": "goto",
+     "scene": "H1-3",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-apparatus + reconstructed-controls",
+   "purpose": "讓玩家直接操控接觸與轉動，建立「持續過程」的因果條件；本場不裁理論勝負。"
+  },
+  {
+   "id": "H1-3",
+   "title": "第一張升溫紙帶",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "馬具扣上傳動輪。史坦格把鼓手叫到轉床旁。每十六拍，旅人讀一次溫度，另一名工人記一次壓桿刻度。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "讓轉床跑久一點。我要一條不會被「剛好」兩個字吞掉的線。",
+     "next": "e1",
+     "id": "n2"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "固定馬速、接觸壓力與採樣節拍，取得第一張能拿來比較的乾式紙帶。",
+     "operationContract": [
+      "玩家先鎖定鼓點、壓桿刻度與採樣節拍，再放行馬班。",
+      "曲線依每一段真實操作長出；馬速飄、壓力改、漏讀都在原紙留下缺口。",
+      "有缺口時可停機校準再做；壞紙保留在卷宗，不扣信譽。",
+      "只有隱瞞缺口、移除不利讀數或冒用史坦格簽名才是研究失信。"
+     ],
+     "until": {
+      "heat": "dry"
+     },
+     "id": "e1",
+     "system": "heat",
+     "phase": "dry-strip-bench",
+     "hint": "固定馬速、接觸壓力與採樣節拍，取得第一張能拿來比較的乾式紙帶。",
+     "next": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "紙帶在換馬後突然變平，又在壓桿加重時陡升。水確實熱了，可這張紙分不出是來源衰減，還是工序自己變了。",
+     "next": "w2",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這張我寫「條件混雜」。不撕。你若要我再排一班，就先把鼓點和壓桿鎖住。",
+     "effects": [
+      {
+       "flagClear": "ch6DryStripDirty"
+      }
+     ],
+     "next": "e1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "乾淨紙帶越拉越長。鼓點、壓力與採樣欄保持齊整。溫度線在整個短時段裡持續上升，沒有突然折下。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "看見了嗎？只要運動不停，熱就不停。這已經——",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "伯爵，你要我替哪一句簽？「這一班的條件固定」，還是「宇宙裡的熱就是什麼」？",
+     "next": "c1",
+     "id": "n5"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "這張短時段紙帶最多能讓史坦格簽哪一句？",
+     "options": [
+      {
+       "id": "observed-range",
+       "text": "「這張紙只記到：固定條件下，接觸轉動伴隨升溫，這一班沒見升溫線變弱。」",
+       "next": "a1"
+      },
+      {
+       "id": "heat-is-motion",
+       "text": "「這張紙只記到：固定條件下，升溫證明熱就是運動，這一班已分出勝負。」",
+       "refutedBy": [
+        "H1-3/n3",
+        "H1-3/n5"
+       ],
+       "require": {
+        "flagAbsent": "ch6DryOverreachTried"
+       },
+       "effects": [
+        {
+         "rep": -1,
+         "reason": "要求共同原紙替超出本輪觀測範圍的本體論宣稱背書"
+        },
+        {
+         "flag": [
+          "ch6DryOverreachTried",
+          1
+         ]
+        }
+       ],
+       "next": "w3"
+      },
+      {
+       "id": "heat-is-motion-again",
+       "text": "「這張紙只記到：固定條件下，升溫證明熱就是運動，這一班已分出勝負。」",
+       "refutedBy": [
+        "H1-3/n3",
+        "H1-3/n5"
+       ],
+       "require": {
+        "flag": [
+         "ch6DryOverreachTried",
+         1
+        ]
+       },
+       "next": "w3"
+      },
+      {
+       "id": "body-source",
+       "text": "「這張紙只記到：固定條件下，升溫來自炮身熱質，這一班已找到來源。」",
+       "refutedBy": [
+        "H1-3/n3",
+        "H1-3/n5"
+       ],
+       "next": "w4"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "（看了史坦格一眼，把話吞回去）那句由我自己寫。先讓這張紙只說它量到的。",
+     "next": "c1",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "你可以把炮身列成來源，不能把「一定」寫在還沒隔絕其他來源的紙上。",
+     "next": "c1",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這句我簽。",
+     "next": "t2",
+     "id": "a1"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 T2｜只有接觸轉動才持續升溫。短時段內未見衰減，但兩模型尚未分開。",
+     "effects": [
+      {
+       "evidence": "T2"
+      }
+     ],
+     "next": "n6",
+     "id": "t2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我的下一版寫「空氣持續補入」。你若要堵這條路，就在開機前把空氣關在外面。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "他把新封條掛到進氣口。舊的「碎屑」封條仍在旁邊，斜線清清楚楚。",
+     "next": "g1",
+     "id": "n7"
+    },
+    {
+     "type": "goto",
+     "scene": "H2-1",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "reconstructed-run + documented-principle",
+   "purpose": "取得乾式、短時段的乾淨曲線；讓朗福德第一次搶結論，炮匠以署名範圍攔住他。"
+  },
+  {
+   "id": "H2-1",
+   "title": "把空氣關在外面",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "史坦格把一只圓形活塞放到炮孔前。中央只有一個方孔，剛好讓連著鈍鋼片的鐵桿穿過。皮圈沾了油，壓進去後幾乎不漏氣。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "若外面的空氣一直把熱質補進摩擦處，關住空氣以後，同樣的馬速與壓力，升溫就該慢下來。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "寫在封條上。還要一張沒裝活塞、其他條件相同的舊紙，才能比。",
+     "next": "c1",
+     "id": "n3"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "把凱斯勒願意署名的曲線形狀封進信封。",
+     "options": [
+      {
+       "id": "air-necessary",
+       "visual": "curve-below-t2",
+       "text": "「封存低於 T2 的曲線：密合後升溫應較慢。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6AirPredictionSealed",
+          1
+         ]
+        }
+       ],
+       "next": "a1"
+      },
+      {
+       "id": "any-change",
+       "visual": "curve-any-difference",
+       "text": "「封存偏離 T2 的曲線：密合後任何改變都算。」",
+       "refutedBy": [
+        "H2-1/n2",
+        "H2-1/n3"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "no-change-proves-motion",
+       "visual": "curve-overlap-t2",
+       "text": "「封存重合 T2 的曲線：密合後不變就證明運動說。」",
+       "refutedBy": [
+        "H2-1/n2",
+        "H2-1/n3"
+       ],
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "「任何改變」不是預測。皮圈多一點摩擦、鐵桿偏一點，都算改變。你得先說哪個方向、和哪張紙比。",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "不變最多讓「空氣是必要來源」失去支持。別替我的理論多領一整個宇宙。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "凱斯勒在封條末端寫下「密合後應較低」，旅人把乾式紙帶 T2 釘在旁邊。史坦格封住兩張紙的接縫。",
+     "next": "e1",
+     "id": "a1"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "裝上密合活塞，重現 T2 的馬速、接觸壓力與採樣節拍。",
+     "operationContract": [
+      "玩家直接裝活塞、壓皮圈、接合傳動；未密合時可看見皂水泡沿縫冒出。",
+      "乾式 T2 的條件卡保持在畫面上，可逐項對照馬速、壓力與採樣節拍。",
+      "若皮圈過緊造成額外摩擦，原紙會標出「封口摩擦增加」，不能冒充空氣差異。",
+      "成功時密合紙帶與 T2 在合理誤差內近似重合。"
+     ],
+     "until": {
+      "heat": "air"
+     },
+     "id": "e1",
+     "system": "heat",
+     "phase": "airtight-bench",
+     "hint": "裝上密合活塞，重現 T2 的馬速、接觸壓力與採樣節拍。",
+     "next": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "活塞雖然不漏，皮圈卻咬得太緊。傳動每一圈都多拖了一段摩擦。新紙帶高於舊紙，差異正好來自封口本身。",
+     "next": "w4",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "這張能證明皮圈會磨，不能證明空氣供不供熱。換一圈合適的皮，再做。",
+     "effects": [
+      {
+       "flagClear": "ch6AirtightDirty"
+      }
+     ],
+     "next": "e1",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "新紙帶貼到舊紙旁。兩條線在同一拍抬頭，也以近似的斜率往上。封住外界空氣後，升溫沒有按封條上的預測變慢。",
+     "next": "c2",
+     "id": "n4"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "現在應如何處理「空氣是必要來源」這一版？",
+     "options": [
+      {
+       "id": "withdraw-air",
+       "text": "「保留封條，劃掉這一版：密合後沒有照預測變慢。」",
+       "next": "a2"
+      },
+      {
+       "id": "erase-air",
+       "text": "「移走封條，刪掉這一版：當作從來沒有人說過。」",
+       "refutedBy": [
+        "H2-1/a1",
+        "H2-1/n4"
+       ],
+       "next": "w5"
+      },
+      {
+       "id": "keep-air",
+       "text": "「保留封條，改寫這一版：空氣雖進不去仍然有用。」",
+       "refutedBy": [
+        "H2-1/a1",
+        "H2-1/n4"
+       ],
+       "next": "w6"
+      }
+     ],
+     "id": "c2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "不必替我擦。那是我簽過的版本，讓它留著。",
+     "next": "c2",
+     "id": "w5"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "那是看完資料才換的句子。可以另開下一版，不能回頭說這次原本就猜中了。",
+     "next": "c2",
+     "id": "w6"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我撤回「外界空氣是必要來源」。下一版：熱質可能來自炮身，或從包住炮身的物質重新分配。",
+     "next": "t3",
+     "id": "a2"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 T3｜關住空氣後沒有消失的熱。「空氣為必要來源」已撤回，舊封條仍可查。",
+     "effects": [
+      {
+       "evidence": "T3"
+      },
+      {
+       "flag": [
+        "ch6AirClaimWithdrawn",
+        1
+       ]
+      }
+     ],
+     "next": "n5",
+     "id": "t3"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "那就把整個摩擦處泡進水裡。水若是你的來源，我們也讓它留下帳。",
+     "next": "g1",
+     "id": "n5"
+    },
+    {
+     "type": "goto",
+     "scene": "H2-2",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-experiment + reconstructed-prediction-seal",
+   "purpose": "讓「空氣補入」先留下可見後果，再以密合活塞測它；舊版本保留，不讓模型事後換詞。"
+  },
+  {
+   "id": "H2-2",
+   "title": "讓水包住它",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "木匠抬來一只長方水箱。炮頭穿過箱壁，鈍鋼片仍頂在孔底。箱板接縫塗滿瀝青，兩端用上油皮圈封住。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "水箱裝上去，漏一杯就少一杯。水量沒記全，最後再多蒸氣也只是好看。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "水可能帶來熱質，也可能只是接住從炮身流出的熱。兩件事在起初都會讓水變暖。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "那就不能只看水有沒有暖。水若在供熱，總該有地方先冷下來，或越來越供不動。水若只在接熱，升溫應從摩擦處往外傳。",
+     "next": "a1",
+     "id": "n4"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "要算清這桶水收了多少熱，哪四欄不能少？",
+     "options": [
+      {
+       "id": "full-water-record",
+       "text": "「記水量、初溫、漏失、每半小時的溫度。」",
+       "next": "e1"
+      },
+      {
+       "id": "final-temperature",
+       "text": "「記水量、終溫、蒸氣、每半小時的馬速。」",
+       "refutedBy": [
+        "H2-2/n2",
+        "H2-2/a1"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "steam-time",
+       "text": "「記炮重、終溫、蒸氣、第一次冒泡的時間。」",
+       "refutedBy": [
+        "H2-2/n2",
+        "H2-2/a1"
+       ],
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "中間漏過、停過、換過馬，你只看終點就全吞在一起了。",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "蒸氣能讓觀眾鼓掌，不能告訴我有多少水、從幾度開始。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "先別開馬。熱水碰冷杯，杯子自己就會暖。炮頭和水若不是從差不多的溫度起步，開機前就先多出一筆熱，那一筆不能算給摩擦。",
+     "next": "c1",
+     "id": "a1"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "裝水箱、量水、檢漏，讓炮頭與水達到可比較的初溫。",
+     "operationContract": [
+      "玩家直接裝箱、扣皮圈、倒入定量水、移動溫度計位置並做靜置檢漏。",
+      "水量刻線、初溫差與漏水痕跡都持續可見；不以「完成清單」取代實物狀態。",
+      "若漏水，地面出現水痕且量尺下降；修漏後須重新記起始水量，舊準備紙保留。",
+      "水與炮頭初溫差過大時，未啟動就會先出現一段自然熱交換曲線。"
+     ],
+     "until": {
+      "heat": "water"
+     },
+     "id": "e1",
+     "system": "heat",
+     "phase": "water-box-bench",
+     "hint": "裝水箱、量水、檢漏，讓炮頭與水達到可比較的初溫。",
+     "next": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "機器還沒動，水溫就先緩緩上升。這一段不是摩擦造成的，卻已經占了紙帶的開頭。",
+     "next": "w4",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "起點沒對齊。這張留著當自然回溫紙。等炮頭和水站到同一條線，再開馬班。",
+     "effects": [
+      {
+       "flagClear": "ch6WaterBoxDirty"
+      }
+     ],
+     "next": "e1",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "水面停在刻線上。三支溫度計分別靠近摩擦處、箱壁與水面。在馬匹尚未起步時，三個讀數只差不到一個小格。",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我把「水或炮身供應」封在這裡。若是有限存量，長時間輸出總該留下冷卻、衰減，或某一處先見底。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "我的版本照舊：接觸和轉動不停，就不必先假定有一份熱質總會用完。",
+     "next": "n8",
+     "id": "n7"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "把每個已登記的有限來源放到長紙上，封住它應在何時變弱。",
+     "operationContract": [
+      "左側攤開碎屑、外界空氣、炮身與水四張來源紙；T1 與 T3 已撤回的版本仍保留斜線，不得消失。",
+      "玩家必須逐張放入「很快應變弱」「本班內應變弱」「目前無法標出終點」三種預測帶之一，不能略過任何來源。",
+      "已撤回的碎屑與空氣版本仍按原預測放帶，用來顯示它們為何退出；「水或炮身供應」必須在前兩帶擇一，不能把有限來源偷放進沒有終點。",
+      "朗福德的運動版本另封一張空白長帶：只要接觸、轉動與條件持續，這張紙不先畫固定終點。",
+      "封蠟後不得移動預測帶；H2-3 的曲線會在它們上方逐格長出。"
+     ],
+     "until": {
+      "heat": "finite-predictions"
+     },
+     "next": "g1",
+     "id": "n8",
+     "system": "heat",
+     "phase": "finite-source-prediction-bands",
+     "hint": "把每個已登記的有限來源放到長紙上，封住它應在何時變弱。"
+    },
+    {
+     "type": "goto",
+     "scene": "H2-3",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-apparatus + reconstructed-source-account",
+   "purpose": "把水同時當成候選來源與接收者，逼玩家先分清可見後果；建立長時段實驗的乾淨起點。"
+  },
+  {
+   "id": "H2-3",
+   "title": "工時一格一格燒掉",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "天剛亮。馬匹套上長桿，鼓手坐到轉床外圈。旅人把一張畫好時間格的長紙沿木尺攤開，第一格尚空。水箱沒有一絲蒸氣。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "每半小時你只有三件事可做：續鑽、停下校準、先修漏。別為了追溫度，把一張壞紙追到底。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "但條件乾淨時別膽小。這個實驗問的正是：這條升溫線能走多遠。",
+     "next": "e1",
+     "id": "n3"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "讓長時段曲線一格一格長出來。每半小時依現場狀態決定續鑽、校準或修漏。",
+     "operationContract": [
+      "每段開始前玩家能看見馬速、壓力、水位、三支溫度計與紙帶連續性。",
+      "條件穩定時「續鑽」才能多記下一格；馬速漂移時「校準」、水位下降異常時「修漏」才是合理動作。",
+      "盲目續鑽不扣血：曲線會在相應位置折斷、變斜或失去水量基準，留下可讀後果。",
+      "修復後可續做，但受污染段永遠留在原紙，不能剪掉。",
+      "H2-2 封好的預測帶始終壓在長紙下方；曲線越過「很快應變弱」或「本班內應變弱」而沒有衰減時，對應蠟封裂開但紙帶不消失。",
+      "乾淨路徑約 2.5 小時後，約 18.77 磅水由 60°F 升至慕尼黑沸點；數字只出現在儀器與史實頁，不由角色背成課文。"
+     ],
+     "until": {
+      "heat": "continuous-run"
+     },
+     "id": "e1",
+     "system": "heat",
+     "phase": "continuous-run-bench",
+     "hint": "讓長時段曲線一格一格長出來。每半小時依現場狀態決定續鑽、校準或修漏。",
+     "next": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "水終於沸了，紙帶卻在第二段少了水位，第三段換馬沒有記鼓點。蒸氣漫過屋梁，原紙上留下兩個不能補寫的洞。",
+     "next": "w2",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "水還是煮開了。",
+     "next": "w3",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "是。可我只能簽「煮開」，不能簽這段升溫一路怎麼來。壞紙留著。你們要結論，就把漏掉的那一段重做。",
+     "effects": [
+      {
+       "flagClear": "ch6ContinuousRunCompromised"
+      }
+     ],
+     "next": "e1",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "第一縷蒸氣貼著水面爬起來，接著整箱水翻滾。工人先笑，馬夫也回頭。鼓點仍沒有停，旅人在長紙的下一格繼續落點。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "（像個等了整天的孩子）讓水再滾一段。我要院士親眼看著它在沸點上還得繼續付熱。",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我在看。也請你記住：沸騰是結果，不是熱從何而來的署名。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人把最後一段紙帶壓平。各段馬速、壓力、水位與溫度都有對應記號。幾條預測帶的蠟封已被曲線越過，裂口仍留在原位。",
+     "next": "e2",
+     "id": "n7"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "沿著長紙逐一拆看預測帶，判斷哪些來源沒有兌現自己封存的變化。",
+     "operationContract": [
+      "玩家把每張來源紙拖到「預測未兌現」「本輪尚未走到終點」「這張紙不能判」三欄之一。",
+      "作答前始終並列來源封條、預測帶、裂開位置與長時段曲線，不用文字提示哪一欄是正解。",
+      "碎屑與空氣要連回 T1、T3 的撤回記錄；炮身或水的有限供應版本，必須以曲線越過封帶且未衰減為依據。",
+      "「目前無法標出終點」只能維持未決，不能被記成預測命中，也不能冒充已遭排除。",
+      "錯放時不亮答案；來源紙會彈回原位，並把其封存預測與相應曲線段並排。"
+     ],
+     "until": {
+      "heat": "finite-verdict"
+     },
+     "next": "t4",
+     "id": "e2",
+     "system": "heat",
+     "phase": "source-prediction-verdict",
+     "hint": "沿著長紙逐一拆看預測帶，判斷哪些來源沒有兌現自己封存的變化。"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "取得證據 T4｜越過各個有限來源的長時段曲線。水已沸騰，真正能比較的是完整條件、封存預測與未見耗竭的連續原紙。",
+     "require": {
+      "evidence": "T4"
+     },
+     "effects": [
+      {
+       "evidence": "T4"
+      }
+     ],
+     "next": "n8",
+     "id": "t4"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "（在紙帶末端蓋章）操作和讀數，我簽。至於熱究竟是熱質還是運動，搬到桌上再吵。",
+     "next": "n9",
+     "id": "n8"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "蒸氣還在屋頂凝成水滴。四人卻把視線從水箱移開，轉向那疊一直沒被丟掉的舊封條。",
+     "next": "g1",
+     "id": "n9"
+    },
+    {
+     "type": "goto",
+     "scene": "H3-1",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-result + reconstructed-continuous-operation",
+   "purpose": "本章主操作與物理奇觀；讓玩家管理持續過程，取得可署名的長時段曲線。沸騰不是結論高潮。"
+  },
+  {
+   "id": "H3-1",
+   "title": "每一筆熱都要有付款人",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "長桌換成對帳板。左邊掛著碎屑、炮身、空氣、水四張來源封條，右邊攤著 T1 到 T4。被劃掉的舊版本一張也沒有少。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "你們不是來排一列勝利。把每一張紙送回它真正回答的那筆債。",
+     "next": "e1",
+     "id": "n2"
+    },
+    {
+     "type": "embed",
+     "speaker": "system",
+     "text": "把每張原紙放回它正在查的來源旁，再看封條寫的變化有沒有出現。",
+     "operationContract": [
+      "所有證據卡同時攤開，第一層顯示圖、條件與最多支持範圍；原紙可展開。",
+      "玩家必須把 T1 接到「碎屑容量改變」、T3 接到「空氣必要」、T4 接到「有限來源應衰減」；T2 只建立接觸轉動條件，不能獨自處決任何來源。",
+      "接錯時不亮答案：原紙與債務的條件並排，留下「問的是不同問題」的斷線。",
+      "全部正確後，舊版本標成「與預測不合」；「尚未量到的持續補流」只能進未決，不能冒充命中。"
+     ],
+     "until": {
+      "heat": "audit"
+     },
+     "next": "n3",
+     "id": "e1",
+     "system": "heat",
+     "phase": "model-audit-board",
+     "hint": "把每張原紙放回它正在查的來源旁，再看封條寫的變化有沒有出現。",
+     "require": {
+      "evidence": "T4"
+     }
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "碎屑封條下面是 T1，空氣封條下面是 T3，炮身與水的有限供應版本壓著 T4。T2 被留在中央，只標示「接觸轉動時持續升溫」。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我撤回碎屑，撤回外界空氣，也撤回「這幾個有限來源會在你們記錄的時段內耗盡」。這三筆，你們贏。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "三筆？水都煮開了，你還想把熱質藏去哪裡？",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我可以寫「尚未量到的持續補流」。這只算一筆新債。下一次得說流從哪裡進、哪裡少。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "可以活在「未決」，不能搬回「已解釋」。",
+     "next": "n8",
+     "id": "n7"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "凱斯勒點頭，卻沒有收起自己的薄冊。他把 H0-3 那張藍紙重新放到桌上：冰融化，持續吸熱，溫度停住。",
+     "next": "n9",
+     "id": "n8"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "現在輪到你們這套說法。這筆現象，我的帳已有「潛熱」一欄。你們說熱是運動，那麼冰融而不升溫時，運動記在哪裡？",
+     "next": "c1",
+     "id": "n9"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "把 S8 放進目前的運動模型哪一欄？",
+     "options": [
+      {
+       "id": "explained",
+       "text": "「放進已解釋：現象成立，運動模型已說清升溫為何停住。」",
+       "refutedBy": [
+        "S8",
+        "H3-1/n9"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "unresolved",
+       "text": "「放進機制未決：現象成立，運動模型還沒說清升溫為何停住。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6LatentUnresolved",
+          1
+         ]
+        }
+       ],
+       "next": "a1"
+      },
+      {
+       "id": "refutes-motion",
+       "text": "「放進模型不合：現象成立，運動模型不可能說清升溫為何停住。」",
+       "refutedBy": [
+        "S8",
+        "H3-1/n9"
+       ],
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "「熱是運動」只是欄名。請指給我看：哪一行預測了熱進去、溫度卻停住？",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "一格空白只能證明我們現在填不出來，不能證明永遠沒有寫法。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "cost_of_knowing",
+     "text": "原來輪到我們自己留下空白，真的這麼沉。",
+     "next": "a2",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "這一筆，我贏。不是因為你的炮紙是假的，而是因為你們這套說法還沒有吃下所有熱現象。",
+     "next": "a3",
+     "id": "a2"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "但你的幾個炮頭來源，已經一個個倒了。",
+     "next": "c2",
+     "id": "a3"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "你怎麼評價熱質傳統留下的東西？",
+     "options": [
+      {
+       "id": "separate-tool-theory",
+       "text": "「留下量熱方法與比熱數字，另查熱的解釋是否站得住。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6TraditionBoundaryKept",
+          1
+         ]
+        }
+       ],
+       "next": "a4"
+      },
+      {
+       "id": "dismiss-all",
+       "text": "「撤掉量熱方法與比熱數字，因炮鑽已讓整套傳統失效。」",
+       "refutedBy": [
+        "T1",
+        "S8"
+       ],
+       "effects": [
+        {
+         "flag": [
+          "ch6TraditionDismissed",
+          1
+         ]
+        }
+       ],
+       "next": "k1"
+      }
+     ],
+     "id": "c2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "require": {
+      "flag": [
+       "ch6TraditionDismissed",
+       1
+      ]
+     },
+     "text": "你剛拿來比較碎屑和薄片的比熱，是照誰的規則量的？",
+     "next": "k2",
+     "id": "k1"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "他翻開 T1 的來源欄。比熱計算沿用的是既有量熱規則。數字確實量得，卻不是旅人今天憑空造出的尺。",
+     "next": "k3",
+     "id": "k2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "你可以反對我們怎麼解釋熱，不能一面借這把尺，一面說這把尺從未做成過任何事。",
+     "next": "k4",
+     "id": "k3"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "我收回「從來沒有」。這些量法有用，但熱質的解釋還得另外查。",
+     "effects": [
+      {
+       "flag": [
+        "ch6TraditionDismissalRepaired",
+        1
+       ]
+      }
+     ],
+     "next": "k4a",
+     "id": "k4"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "self_correction",
+     "text": "我剛才差點把一整代人的量法也一起抹掉。",
+     "next": "a4",
+     "id": "k4a"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "這句我簽。炮鑽這一案，我的幾個來源失利。潛熱這一案，你們仍欠一欄。",
+     "next": "n10",
+     "id": "a4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "對帳板沒有勝負燈。左邊三張熱質來源被劃線，右邊一張潛熱卡留在運動模型的未決欄。兩邊都留下不能擦掉的空處。",
+     "next": "n11",
+     "id": "n10"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "好。我的論文我自己寫。但共同驗證頁，現在就把範圍結清。",
+     "next": "g1",
+     "id": "n11"
+    },
+    {
+     "type": "goto",
+     "scene": "H3-2",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "reconstructed-public-audit + historically-grounded-counterexample",
+   "purpose": "高潮重用全部原紙；先讓已登記的有限來源逐項失效，再由潛熱卡讓評議員真正贏一輪。認識論補刀只在全盤抹黑時觸發。"
+  },
+  {
+   "id": "H3-2",
+   "title": "也審朗福德",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "朗福德在自己的論文稿上寫得很快。另一張「共同驗證頁」放在四人中央，最上方只有一個大標題空格，底下原本預留同一排署名。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "我的標題不改：摩擦所激起的熱，來源似乎不可耗盡。除了運動，我想不出它還能是什麼。",
+     "next": "n3",
+     "id": "n2"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "他把自己的論文稿收在右手邊，沒有遞給任何人。接著在共同驗證頁寫下：「熱質說已被摧毀」，把封蠟推到桌中央。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "我的印章只能蓋在馬速、水量、壓力和溫度上。這句太大。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "我的名字也不會壓在一張仍放著潛熱未決卡的紙下面。",
+     "next": "c1",
+     "id": "n5"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "你怎麼處理共同驗證頁？",
+     "options": [
+      {
+       "id": "common-seal",
+       "text": "「私稿保留原說法，共同頁照原句請四人一起簽名。」",
+       "refutedBy": [
+        "H3-2/n2",
+        "H3-2/n4",
+        "H3-2/n5"
+       ],
+       "require": {
+        "flagAbsent": "ch6JointOverreachTried"
+       },
+       "effects": [
+        {
+         "rep": -1,
+         "reason": "要求共同觀測者替超出已測來源與現象範圍的普遍結論背書"
+        },
+        {
+         "flag": [
+          "ch6JointOverreachTried",
+          1
+         ]
+        }
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "common-seal-again",
+       "text": "「私稿保留原說法，共同頁照原句請四人一起簽名。」",
+       "refutedBy": [
+        "H3-2/n2",
+        "H3-2/n4",
+        "H3-2/n5"
+       ],
+       "require": {
+        "flag": [
+         "ch6JointOverreachTried",
+         1
+        ]
+       },
+       "next": "w1"
+      },
+      {
+       "id": "edit-rumford-paper",
+       "text": "「私稿改成共同說法，共同頁再請四人一起簽名。」",
+       "refutedBy": [
+        "H3-2/n2",
+        "H3-2/n4",
+        "H3-2/n5"
+       ],
+       "next": "w2"
+      },
+      {
+       "id": "split-page",
+       "text": "「私稿保留原說法，共同頁分欄讓各人各自簽名。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6JointPageSplit",
+          1
+         ]
+        }
+       ],
+       "next": "a1"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "封蠟停在半空。史坦格把 T1 到 T4 拉回自己面前，凱斯勒則把 S8 壓在那句說遍所有情況的話上。四個名字沒有一個落下。",
+     "next": "w1a",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "你拿不到他們的名字。若要共同簽，就先把共同量到的和我自己的解讀分開。",
+     "next": "c1",
+     "id": "w1a"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "我的論文由我負責。你可以不簽，不能替我改成你會寫的語氣。",
+     "next": "w2a",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "對。我能決定自己簽不簽，不能替你改自己的稿子。",
+     "next": "c1",
+     "id": "w2a"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人抽出尺，在共同驗證頁上劃出四欄：「操作與觀測」「量熱來源、反例與保留」「運動說解讀」「證據邊界與下一筆債」。原本那句大標題留在朗福德自己的稿上。",
+     "next": "n6",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "我不喜歡一頁紙被切成四塊。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "四種簽名本來就不是同一件事。硬擠成一句，才會把紙弄壞。",
+     "next": "n8",
+     "id": "n7"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "先寫範圍。你們這次到底讓哪一種說法失去支持？",
+     "next": "c2",
+     "id": "n8"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "「範圍未決」欄應寫哪一句？",
+     "options": [
+      {
+       "id": "bounded-scope",
+       "text": "「這次排除已登記的有限來源，其他版本和熱現象另查。」",
+       "effects": [
+        {
+         "flag": [
+          "ch6ScopeDebtWritten",
+          1
+         ]
+        },
+        {
+         "labAction": {
+          "action": "writeScopeDebt",
+          "args": {
+           "debt": "scope-unresolved"
+          }
+         }
+        }
+       ],
+       "next": "a2"
+      },
+      {
+       "id": "all-dead",
+       "text": "「這次排除熱質說的所有版本，其他用途也一起撤下。」",
+       "refutedBy": [
+        "S8",
+        "T4"
+       ],
+       "next": "w3"
+      },
+      {
+       "id": "nothing-learned",
+       "text": "「這次沒有排除任何熱質來源，所有舊版本全部恢復。」",
+       "refutedBy": [
+        "T1",
+        "T3",
+        "T4"
+       ],
+       "next": "w4"
+      }
+     ],
+     "id": "c2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "桌上的潛熱卡，就足以讓大家不能一起簽這種一口氣說遍所有情況的話。你推翻的是先前封存、而且沒有留下痕跡的那些版本。",
+     "next": "c2",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "我那張長紙量到了東西。那張紙把幾個來源逼退了，還沒有把宇宙一次寫完。",
+     "next": "c2",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人在「範圍未決」下落筆。凱斯勒把被劃線的三張來源封條釘在句子旁，又把潛熱卡留在「其他熱現象」下面。",
+     "next": "n9",
+     "id": "a2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "這個範圍，我認。",
+     "next": "n10",
+     "id": "n9"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "那最後一欄呢？你一直不肯替我寫滿的那一格。",
+     "next": "n11",
+     "id": "n10"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "等所有人簽完再放。今天到這裡為止。下一次從那一格開始。",
+     "next": "g1",
+     "id": "n11"
+    },
+    {
+     "type": "goto",
+     "scene": "HE-1",
+     "id": "g1"
+    }
+   ],
+   "historyTag": "documented-strong-interpretation + fictional-joint-certification",
+   "purpose": "保留朗福德歷史上強烈的運動說立場；玩家只拒絕讓共同驗證頁替個人解讀集體背書。"
+  },
+  {
+   "id": "HE-1",
+   "title": "簽觀測，不簽宇宙",
+   "nodes": [
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "蒸氣散去後，水箱外壁只剩一圈白垢。共同驗證頁平放在桌上，四欄都還沒有名字。",
+     "next": "n2",
+     "id": "n1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "我先來。哪幾張，是我親眼看著做完、而且能照同樣工序重做的？",
+     "next": "c1",
+     "id": "n2"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "把哪些內容送進「操作與觀測」欄？",
+     "options": [
+      {
+       "id": "operation-records",
+       "text": "「送入 T1–T4 的操作和讀數，不附熱的解釋。」",
+       "next": "a1"
+      },
+      {
+       "id": "all-including-theory",
+       "text": "「送入 T1–T4 和運動說結論，一起交他簽名。」",
+       "refutedBy": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "H3-2/n4"
+       ],
+       "next": "w1"
+      },
+      {
+       "id": "boiling-only",
+       "text": "「送入沸騰那一幕和終溫，前面原紙全部收掉。」",
+       "refutedBy": [
+        "T1",
+        "T2",
+        "T3",
+        "T4"
+       ],
+       "next": "w2"
+      }
+     ],
+     "id": "c1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "又把我的名字拿去替理論站隊了。我的欄只收我看過的工序和讀數。",
+     "next": "c1",
+     "id": "w1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "沒有前面的對照，沸騰只剩一幕好戲。壞紙也得留，別替我打掃。",
+     "next": "c1",
+     "id": "w2"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "史坦格逐張摸過封口，確認水量、馬速、壓力與採樣欄都在，才把印章蓋進第一欄。",
+     "next": "n3",
+     "id": "a1"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "操作與讀數，我認。",
+     "next": "n4",
+     "id": "n3"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "第二欄由我來。我的碎屑、空氣與有限來源版本撤回。潛熱與量熱尺的來源保留。",
+     "next": "n5",
+     "id": "n4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "他沒有在失利的封條上重新塗蠟，只在撤回日期旁署名。接著在 S8 下方寫：「此現象尚未由桌上這套運動說明。」",
+     "next": "n6",
+     "id": "n5"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "反例與保留，我認。至於熱質到底是不是一種物質，我也不會在你們的炮紙上假裝熱質已經贏回這一局。",
+     "next": "n7",
+     "id": "n6"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "第三欄不用你們替我變溫和。",
+     "next": "n8",
+     "id": "n7"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "朗福德把自己的論文稿放在「運動說解讀」旁，抄下那句強烈的判斷，然後只簽自己的名字。他沒有把紙推給另外三人。",
+     "next": "n9",
+     "id": "n8"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "這是我的解讀，我自己負責。你們不必替我相信。",
+     "next": "n10",
+     "id": "n9"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "最後只剩旅人的欄。上半已寫著「範圍未決」，下半還是一個空框，和西雷莊園那頁幾乎一樣。",
+     "next": "joint",
+     "id": "n10"
+    },
+    {
+     "id": "joint",
+     "type": "embed",
+     "speaker": "system",
+     "system": "heat",
+     "phase": "joint-verification-page",
+     "text": "把四種責任分欄放回共同頁。先完成暫稿；旅人的最後簽名仍留白。",
+     "hint": "四欄與範圍未決都要保留；這裡不授予 T5。",
+     "operationContract": [
+      "操作與讀數、量熱來源與反例、朗福德個人解讀、證據邊界與下一筆債分欄。",
+      "只建立暫稿；第二筆兌換率未決、旅人署名、T5 與完章都留到 x_final。"
+     ],
+     "until": {
+      "heat": "joint-draft"
+     },
+     "next": "c2"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "你先替共同驗證頁確認哪一條邊界？",
+     "options": [
+      {
+       "id": "keep-scope",
+       "text": "「保留已退下的來源，也保留潛熱和其他未查現象。」",
+       "require": {
+        "flag": [
+         "ch6ScopeDebtWritten",
+         1
+        ]
+       },
+       "next": "a2"
+      },
+      {
+       "id": "erase-latent",
+       "text": "「保留已退下的來源，移走潛熱和其他未查現象。」",
+       "refutedBy": [
+        "S8",
+        "H3-2/a2"
+       ],
+       "next": "w3"
+      },
+      {
+       "id": "erase-results",
+       "text": "「恢復已退下的來源，也保留潛熱和其他未查現象。」",
+       "refutedBy": [
+        "T1",
+        "T3",
+        "T4",
+        "H3-2/a2"
+       ],
+       "next": "w4"
+      }
+     ],
+     "id": "c2"
+    },
+    {
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "那張卡正是你沒有讓共同結論越界的理由。拿掉它，範圍也跟著失去依據。",
+     "next": "c2",
+     "id": "w3"
+    },
+    {
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "未決留空。已量到的照舊留在原紙上。那三張封條是按各自預測退下來的。",
+     "next": "c2",
+     "id": "w4"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人把「範圍未決」釘進最後一欄，卻把筆放在空框旁。第二筆債還沒寫下，這一欄暫時不能簽。",
+     "next": "t5",
+     "id": "a2"
+    },
+    {
+     "type": "system",
+     "speaker": "system",
+     "text": "共同頁暫存｜前三欄已署名。旅人欄只有「範圍未決」，第二筆債與最後簽名仍空著。",
+     "next": "review",
+     "id": "t5"
+    },
+    {
+     "type": "review",
+     "prompts": [
+      "「哪幾份原紙讓碎屑、空氣與已登記的有限來源失去支持？」",
+      "「為什麼潛熱卡必須留在運動模型的未決欄，而不是被炮鑽勝利蓋掉？」",
+      "「史坦格、凱斯勒、朗福德各自先簽了什麼？旅人為什麼還不能簽？」"
+     ],
+     "next": "facts",
+     "id": "review"
+    },
+    {
+     "type": "histfacts",
+     "next": "n11",
+     "id": "facts"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "史實頁末端另留一行：比熱與量熱方法在熱質框架中成長，後來仍被不同理論沿用。能留下好尺，不等於對尺的解釋永遠正確。",
+     "next": "n12",
+     "id": "n11"
+    },
+    {
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "你還欠最後一格。",
+     "next": "n13",
+     "id": "n12"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人把兩頁攤在一起。左頁記馬匹、壓力與時間，右頁記水量與升溫。兩頁都有數字，卻沒有一條線把它們接起來。",
+     "next": "c3",
+     "id": "n13"
+    },
+    {
+     "type": "choice",
+     "speaker": "system",
+     "text": "寫下交給下一個年代的問題。",
+     "options": [
+      {
+       "id": "drill-longer",
+       "text": "「換一門更大的炮，繼續比較同一裝置能熱到哪裡。」",
+       "refutedBy": [
+        "HE-1/n13",
+        "T4"
+       ],
+       "next": "w5"
+      },
+      {
+       "id": "name-particles",
+       "text": "「換幾種熱的名字，繼續比較哪個名稱最能說明紙帶。」",
+       "refutedBy": [
+        "HE-1/n13",
+        "T1",
+        "T4"
+       ],
+       "next": "w6"
+      },
+      {
+       "id": "measure-rate",
+       "text": "「換幾套不同裝置，逐次比較機械作用和升溫能否固定對上。」",
+       "next": "x_pre"
+      }
+     ],
+     "id": "c3"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "長時段曲線已經越過封好的預測帶。把同一件事做得更久，會多出哪一種新的比較？",
+     "next": "c3",
+     "id": "w5"
+    },
+    {
+     "type": "line",
+     "speaker": "stage",
+     "text": "名字換了，左右兩頁的數字還是沒有接起來。再看兩頁各自記了什麼。",
+     "next": "c3",
+     "id": "w6"
+    },
+    {
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "osPurpose": "cross_chapter_debt",
+     "text": "上一頁問短少的那一截去了哪裡。這一頁還欠一把尺，量出兩本帳的固定換法。",
+     "next": "x_final",
+     "id": "x_pre"
+    },
+    {
+     "type": "system",
+     "speaker": "stage",
+     "text": "旅人在最後一格寫下：「兌換率：未量得。下一次，要量一份機械作用究竟能換來多少升溫。」他在「範圍未決」與這筆新債旁簽下名字，最後一欄到此才封口。",
+     "effects": [
+      {
+       "labAction": {
+        "action": "finalizeJointPage",
+        "args": {
+         "rateDebt": "conversion-rate-unmeasured"
+        }
+       }
+      }
+     ],
+     "next": "end",
+     "id": "x_final"
+    },
+    {
+     "type": "end",
+     "id": "end"
+    }
+   ],
+   "historyTag": "documented-publication + fictional-joint-verification + explicit-boundary",
+   "purpose": "四方分欄署名；史實頁保底交付「錯誤本體論也可留下好工具」；最後一句只交棒 H2 的定量問題。"
+  },
+  {
+   "id": "SC6-R1",
+   "title": "修復：把越界的名字收回來",
+   "supportOnly": true,
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "信譽歸零。史坦格把被拿去替理論背書的印章收回桌上；裂開的封條與原紙一張也沒有丟。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "錯押可以留下。拿別人的名字替沒量到的話背書，得公開收回。",
+     "next": "c1"
+    },
+    {
+     "id": "c1",
+     "type": "choice",
+     "text": "收回剛才越過證據與署名範圍的話。",
+     "options": [
+      {
+       "id": "withdraw",
+       "text": "「我收回越過原紙與署名範圍的話。封條、壞紙和未決都照原樣留著。」",
+       "effects": [
+        {
+         "rep": 1,
+         "reason": "公開撤回越界結論，恢復原紙、未決與署名邊界"
+        },
+        {
+         "flagClear": "repLocked"
+        }
+       ],
+       "next": "n3"
+      },
+      {
+       "id": "erase",
+       "text": "「把不利原紙收掉，再請大家重新簽一次。」",
+       "next": "w1"
+      },
+      {
+       "id": "rename",
+       "text": "「把那句話換個名稱，內容照舊一起簽。」",
+       "next": "w2"
+      }
+     ]
+    },
+    {
+     "id": "w1",
+     "type": "line",
+     "speaker": "凱斯勒院士",
+     "text": "你要修的是自己的越界，不是把反例修掉。原紙留下。",
+     "next": "c1"
+    },
+    {
+     "id": "w2",
+     "type": "line",
+     "speaker": "朗福德伯爵",
+     "text": "換名字沒有縮小一句話。誰說的，誰負責；共同頁只收共同量到的。",
+     "next": "c1"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "史坦格・鑽炮長",
+     "text": "好。印章還你。回到剛才那張紙，照它真正量到的繼續。",
+     "next": "r1"
+    },
+    {
+     "id": "r1",
+     "type": "return"
+    }
+   ]
+  }
+ ]
+}

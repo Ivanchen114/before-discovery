@@ -99,7 +99,20 @@
   "ch5:E3-2": "bg_ch05_cirey_debate_evening",
   "ch5:EE-1": "bg_ch05_cirey_epilogue_night",
   "ch5:EE-2": "bg_ch05_cirey_epilogue_night",
-  "ch5:SC5-R1": "bg_ch05_cirey_debate_evening"
+  "ch5:SC5-R1": "bg_ch05_cirey_debate_evening",
+  "ch6:H0-1": "bg_ch06_munich_arsenal_boring_floor_day",
+  "ch6:H0-2": "bg_ch06_munich_arsenal_boring_floor_day",
+  "ch6:H0-3": "bg_ch06_munich_chip_calorimetry_bench",
+  "ch6:H1-1": "bg_ch06_munich_chip_calorimetry_bench",
+  "ch6:H1-2": "bg_ch06_munich_arsenal_boring_floor_day",
+  "ch6:H1-3": "bg_ch06_munich_arsenal_boring_floor_day",
+  "ch6:H2-1": "bg_ch06_munich_airtight_bore_test",
+  "ch6:H2-2": "bg_ch06_munich_water_box_setup",
+  "ch6:H2-3": "bg_ch06_munich_water_box_boiling_evening",
+  "ch6:H3-1": "bg_ch06_munich_model_audit_night",
+  "ch6:H3-2": "bg_ch06_munich_model_audit_night",
+  "ch6:HE-1": "bg_ch06_munich_joint_page_dawn",
+  "ch6:SC6-R1": "bg_ch06_munich_model_audit_night"
  },
  "apparatusBriefings": {
   "ch3:C1-1": {
@@ -1889,6 +1902,66 @@
    "sourceMaster": "art/source/production/ch05/evidence/ch05_card_J4_two_ledgers_master_v02.png"
   },
   {
+   "id": "card_S8",
+   "kind": "card",
+   "label": "S8 潛熱未決卡",
+   "path": "ch06/evidence/ch06_card_S8_latent_heat_boundary_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/evidence/ch06_evidence_cards_master_v01.svg"
+  },
+  {
+   "id": "card_T1",
+   "kind": "card",
+   "label": "T1 碎屑與薄片同尺量熱",
+   "path": "ch06/evidence/ch06_card_T1_equal_heat_scale_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/evidence/ch06_evidence_cards_master_v01.svg"
+  },
+  {
+   "id": "card_T2",
+   "kind": "card",
+   "label": "T2 接觸運動條件紙",
+   "path": "ch06/evidence/ch06_card_T2_contact_motion_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/evidence/ch06_evidence_cards_master_v01.svg"
+  },
+  {
+   "id": "card_T3",
+   "kind": "card",
+   "label": "T3 密合與開放對照",
+   "path": "ch06/evidence/ch06_card_T3_airtight_comparison_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/evidence/ch06_evidence_cards_master_v01.svg"
+  },
+  {
+   "id": "card_T4",
+   "kind": "card",
+   "label": "T4 封存終點帶與長時段曲線",
+   "path": "ch06/evidence/ch06_card_T4_prediction_bands_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/evidence/ch06_evidence_cards_master_v01.svg"
+  },
+  {
+   "id": "card_T5",
+   "kind": "card",
+   "label": "T5 共同驗證頁",
+   "path": "ch06/evidence/ch06_card_T5_joint_page_v01.svg",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/evidence/ch06_evidence_cards_master_v01.svg"
+  },
+  {
    "id": "dialogue_newton22",
    "kind": "portrait",
    "label": "Isaac Newton 22 歲（合理重建）",
@@ -2047,6 +2120,256 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch05/backgrounds/ch05_bg_cirey_library_day_master_v01.png"
+  },
+  {
+   "id": "ch06_transition_1740_unpaid_heat_debt_v01",
+   "kind": "bg",
+   "label": "章首轉場・1740 未清熱債",
+   "path": "ch06/transitions/ch06_transition_1740_unpaid_heat_debt_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch06/transitions/ch06_transition_1740_unpaid_heat_debt_master_v01.png"
+  },
+  {
+   "id": "ch06_transition_1740_1798_pagefold_v01",
+   "kind": "bg",
+   "label": "章首轉場・1740 至 1798 紙頁時間通道",
+   "path": "ch06/transitions/ch06_transition_1740_1798_pagefold_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch06/transitions/ch06_transition_1740_1798_pagefold_master_v01.png"
+  },
+  {
+   "id": "ch06_transition_1798_munich_arsenal_arrival_v01",
+   "kind": "bg",
+   "label": "章首轉場・1798 抵達慕尼黑軍械庫",
+   "path": "ch06/transitions/ch06_transition_1798_munich_arsenal_arrival_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch06/transitions/ch06_transition_1798_munich_arsenal_arrival_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_arsenal_boring_floor_day",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・日間鑽炮工場（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_arsenal_boring_floor_day_v01.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_arsenal_boring_floor_day_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_chip_calorimetry_bench",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・雙杯量熱桌（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_chip_calorimetry_bench_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_chip_calorimetry_bench_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_airtight_bore_test",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・密合活塞對照（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_airtight_bore_test_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_airtight_bore_test_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_water_box_setup",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・水箱長時段起點（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_water_box_setup_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_water_box_setup_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_water_box_boiling_evening",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・水箱沸騰晚間（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_water_box_boiling_evening_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_water_box_boiling_evening_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_model_audit_night",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・模型稽核夜間（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_model_audit_night_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_model_audit_night_master_v01.png"
+  },
+  {
+   "id": "bg_ch06_munich_joint_page_dawn",
+   "kind": "bg",
+   "label": "1798 慕尼黑軍械庫・四欄共同頁清晨（合理重建）",
+   "path": "ch06/backgrounds/ch06_bg_munich_joint_page_dawn_v01.webp",
+   "firstScreen": false,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_joint_page_dawn_master_v01.png"
+  },
+  {
+   "id": "dialogue_rumford45",
+   "kind": "portrait",
+   "label": "朗福德伯爵約 45 歲（合理重建）",
+   "path": "ch06/characters/ch06_char_rumford45_v01.webp",
+   "firstScreen": true,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch06/characters/ch06_char_rumford45_alpha_v01.png"
+  },
+  {
+   "id": "dialogue_stang52",
+   "kind": "portrait",
+   "label": "史坦格・鑽炮長約 52 歲（虛構複合角色）",
+   "path": "ch06/characters/ch06_char_stang52_v01.webp",
+   "firstScreen": false,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch06/characters/ch06_char_stang52_alpha_v01.png"
+  },
+  {
+   "id": "dialogue_kessler58",
+   "kind": "portrait",
+   "label": "凱斯勒院士約 58 歲（虛構複合角色）",
+   "path": "ch06/characters/ch06_char_kessler58_v01.webp",
+   "firstScreen": false,
+   "w": 900,
+   "h": 1200,
+   "sourceMaster": "art/source/production/ch06/characters/ch06_char_kessler58_alpha_v01.png"
+  },
+  {
+   "id": "ch06_lab_source_ledger",
+   "kind": "prop",
+   "label": "第六章四來源追債台",
+   "path": "ch06/experiments/ch06_lab_source_ledger_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/experiments/ch06_lab_source_ledger_master_v01.png"
+  },
+  {
+   "id": "ch06_lab_chip_capacity",
+   "kind": "prop",
+   "label": "第六章碎屑與薄片量熱台",
+   "path": "ch06/experiments/ch06_lab_chip_capacity_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_chip_calorimetry_bench_master_v01.png"
+  },
+  {
+   "id": "ch06_lab_friction_conditions",
+   "kind": "prop",
+   "label": "第六章摩擦三條件工作台",
+   "path": "ch06/experiments/ch06_lab_friction_conditions_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/experiments/ch06_lab_friction_conditions_master_v01.png"
+  },
+  {
+   "id": "ch06_lab_paper_strip",
+   "kind": "prop",
+   "label": "第六章乾式無數字紙帶台",
+   "path": "ch06/experiments/ch06_lab_paper_strip_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/experiments/ch06_lab_paper_strip_master_v01.png"
+  },
+  {
+   "id": "ch06_lab_airtight_piston",
+   "kind": "prop",
+   "label": "第六章開放與密合活塞對照",
+   "path": "ch06/experiments/ch06_lab_airtight_piston_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_airtight_bore_test_master_v01.png"
+  },
+  {
+   "id": "ch06_lab_water_box_setup",
+   "kind": "prop",
+   "label": "第六章水箱長時段起點",
+   "path": "ch06/experiments/ch06_lab_water_box_setup_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_water_box_setup_master_v01.png"
+  },
+  {
+   "id": "ch06_lab_water_box_boiling",
+   "kind": "prop",
+   "label": "第六章水箱長時段沸騰結果",
+   "path": "ch06/experiments/ch06_lab_water_box_boiling_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_water_box_boiling_evening_master_v01.png"
+  },
+  {
+   "id": "ch06_focus_model_audit",
+   "kind": "prop",
+   "label": "第六章四來源模型稽核板",
+   "path": "ch06/focus/ch06_focus_model_audit_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_model_audit_night_master_v01.png"
+  },
+  {
+   "id": "ch06_focus_joint_page",
+   "kind": "prop",
+   "label": "第六章四欄共同驗證頁",
+   "path": "ch06/focus/ch06_focus_joint_page_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_joint_page_dawn_master_v01.png"
+  },
+  {
+   "id": "ch06_focus_hot_chip_water",
+   "kind": "prop",
+   "label": "第六章熱碎屑入水聚焦",
+   "path": "ch06/focus/ch06_focus_hot_chip_water_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/focus/ch06_focus_hot_chip_water_master_v01.png"
+  },
+  {
+   "id": "ch06_focus_latent_heat_notebook",
+   "kind": "prop",
+   "label": "第六章潛熱未決薄冊聚焦",
+   "path": "ch06/focus/ch06_focus_latent_heat_notebook_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch06/focus/ch06_focus_latent_heat_notebook_master_v01.png"
+  },
+  {
+   "id": "chapter_thumbnail_ch06",
+   "kind": "cg",
+   "label": "第六章章節縮圖",
+   "path": "ch06/backgrounds/ch06_bg_munich_arsenal_boring_floor_day_v01.webp",
+   "firstScreen": true,
+   "w": 1920,
+   "h": 1080,
+   "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_arsenal_boring_floor_day_master_v01.png"
   }
  ],
  "sceneDialoguePortrait": {
@@ -2367,7 +2690,10 @@
   "牛頓": "dialogue_newton41",
   "哈雷": "dialogue_halley28",
   "杜夏特萊": "dialogue_du_chatelet34",
-  "杜佩院士": "dialogue_dupre58"
+  "杜佩院士": "dialogue_dupre58",
+  "朗福德伯爵": "dialogue_rumford45",
+  "史坦格・鑽炮長": "dialogue_stang52",
+  "凱斯勒院士": "dialogue_kessler58"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -2384,7 +2710,10 @@
   "牛頓": "right",
   "哈雷": "left",
   "杜夏特萊": "right",
-  "杜佩院士": "left"
+  "杜佩院士": "left",
+  "朗福德伯爵": "right",
+  "史坦格・鑽炮長": "left",
+  "凱斯勒院士": "left"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -2827,6 +3156,28 @@
     }
    ],
    "caption": "第三章只把弧延長了；月亮為什麼沒有沿直線離開，仍在下一頁等答案。"
+  },
+  {
+   "scene": "H0-1",
+   "match": "一塊剛削下的黃銅碎屑",
+   "items": [
+    {
+     "asset": "ch06_focus_hot_chip_water",
+     "alt": "史坦格用鐵鉗夾住剛削下的黃銅碎屑，放向一桶水；水面冒出白氣，畫面不含溫度數字"
+    }
+   ],
+   "caption": "碎屑確實很熱；它是不是熱的來源，還要用等質量、等初溫的比較來追問。"
+  },
+  {
+   "scene": "H0-3",
+   "match": "從皮匣取出一本薄冊",
+   "items": [
+    {
+     "asset": "ch06_focus_latent_heat_notebook",
+     "alt": "凱斯勒的薄冊攤在冰水杯旁，紙頁保留留白，沒有把潛熱現象寫成已解答案"
+    }
+   ],
+   "caption": "薄冊把未查現象留在桌上：有限來源受挫，不等於熱的機制已經證明。"
   }
  ],
  "viewFocusVisual": [
@@ -2964,6 +3315,26 @@
      "plate": "ch05_transition_1740_cirey_arrival_v01",
      "label": "約 1740｜法國・西雷莊園",
      "caption": "白光退去。書房裡已有兩本帳，等著被分開算清。"
+    }
+   ]
+  },
+  "H0-1": {
+   "fx": "montage",
+   "steps": [
+    {
+     "plate": "ch06_transition_1740_unpaid_heat_debt_v01",
+     "label": "約 1740｜法國・西雷莊園",
+     "caption": "兩本碰撞帳已經分開；熱從哪裡來，仍是一張沒有付清的收據。"
+    },
+    {
+     "plate": "ch06_transition_1740_1798_pagefold_v01",
+     "label": "約 1740→1798｜筆記翻過五十八年",
+     "caption": "五十八年折進紙縫。旅人沒有變，問題換了一座工場。"
+    },
+    {
+     "plate": "ch06_transition_1798_munich_arsenal_arrival_v01",
+     "label": "1798｜巴伐利亞・慕尼黑軍械庫",
+     "caption": "白光退去。炮身正在旋轉，固定的鈍鑽把熱一刻一刻留進原紙。"
     }
    ]
   }
@@ -3337,7 +3708,13 @@
   "J1": "鋼頭、油灰頭各三筆：帶方向的 mv 在碰撞前後都閉合。",
   "J2": "同一批紀錄改算 mv²：鋼頭閉合，油灰碰撞後的可見運動出現短少。",
   "J3": "同一顆球用三種速度撞黏土：坑深與 v² 的變化吻合；短少的完整去向仍未對平。",
-  "J4": "兩本帳記的是不同問題，各有用途；不能硬合成一本，也不能只留其中一本。"
+  "J4": "兩本帳記的是不同問題，各有用途；不能硬合成一本，也不能只留其中一本。",
+  "S8": "冰融化時持續吸熱而溫度暫停；這張卡限制本章反例能說到哪裡，不是鑽炮的新結果。",
+  "T1": "等重、同溫、等水量下，碎屑與實心薄片的回溫曲線近似重合。",
+  "T2": "只轉或只壓都不持續升溫；接觸與相對運動同時存在時，紙帶才持續上升。",
+  "T3": "扣緊皮圈後曲線仍與開放進氣時近似重合；空氣必要來源版本撤回，舊封條保留。",
+  "T4": "長曲線越過四張有限來源的封存終點帶，玩家逐張判讀後封蠟裂開但不消失。",
+  "T5": "共同頁分開操作、讀數與兩種解讀，保留範圍未決與兌換率未量得；四方各簽自己負責的欄。"
  },
  "evidenceVisual": {
   "E1": {
@@ -3630,6 +4007,60 @@
     }
    ],
    "caption": "取得證據：兩本帳各答一種問題，短少的完整去向仍留白。"
+  },
+  "S8": {
+   "items": [
+    {
+     "asset": "card_S8",
+     "alt": "冰融化時持續吸熱但溫度暫停的未決現象卡"
+    }
+   ],
+   "caption": "取得現象簿：潛熱等未查現象仍保留，不能由鑽炮反例一併抹去。"
+  },
+  "T1": {
+   "items": [
+    {
+     "asset": "card_T1",
+     "alt": "等重同溫的金屬碎屑與實心薄片回溫曲線近似重合"
+    }
+   ],
+   "caption": "取得證據：碎屑與薄片放上同一把熱尺，碎屑來源版本失去熱容量退路。"
+  },
+  "T2": {
+   "items": [
+    {
+     "asset": "card_T2",
+     "alt": "只轉、只壓、接觸並轉動三條條件紙帶的比較"
+    }
+   ],
+   "caption": "取得證據：持續升溫跟著接觸與相對運動同時出現。"
+  },
+  "T3": {
+   "items": [
+    {
+     "asset": "card_T3",
+     "alt": "開放進氣與皮圈密合兩組升溫曲線近似重合"
+    }
+   ],
+   "caption": "取得證據：關住外界空氣後升溫沒有按封存預測變慢。"
+  },
+  "T4": {
+   "items": [
+    {
+     "asset": "card_T4",
+     "alt": "四張封存終點帶被長時段曲線越過，封蠟裂開但原帶保留"
+    }
+   ],
+   "caption": "取得證據：四個有限來源逐張判讀完成；裂封與原預測仍可追查。"
+  },
+  "T5": {
+   "items": [
+    {
+     "asset": "card_T5",
+     "alt": "共同驗證頁分四欄署名，並保留範圍未決與兌換率未量得"
+    }
+   ],
+   "caption": "取得證據：一頁四種署名、兩筆未決；旅人只在最後交棒一次簽名。"
   }
  },
  "collision5Visual": {
@@ -3638,6 +4069,19 @@
   "followup": "ch05_focus_unequal_putty_question",
   "clay": "ch05_lab_clay_depth_rig",
   "complete": "ch05_lab_clay_depth_rig"
+ },
+ "heat6Visual": {
+  "heat-source-ledger": "ch06_lab_source_ledger",
+  "chip-capacity-bench": "ch06_lab_chip_capacity",
+  "friction-condition-bench": "ch06_lab_friction_conditions",
+  "dry-strip-bench": "ch06_lab_paper_strip",
+  "airtight-bench": "ch06_lab_airtight_piston",
+  "water-box-bench": "ch06_lab_water_box_setup",
+  "finite-source-prediction-bands": "ch06_lab_source_ledger",
+  "continuous-run-bench": "ch06_lab_water_box_setup",
+  "source-prediction-verdict": "ch06_lab_water_box_boiling",
+  "model-audit-board": "ch06_focus_model_audit",
+  "joint-verification-page": "ch06_focus_joint_page"
  },
  "workshopApparatusAsset": "workshop2_projectile_apparatus_master",
  "workshopPartAsset": {
@@ -3683,7 +4127,8 @@
   "ch02": "chapter_thumbnail_ch02",
   "ch03": "chapter_thumbnail_ch03",
   "ch04": "chapter_thumbnail_ch04",
-  "ch05": "chapter_thumbnail_ch05"
+  "ch05": "chapter_thumbnail_ch05",
+  "ch06": "chapter_thumbnail_ch06"
  }
 };
  if (typeof module === "object" && module.exports) { module.exports = data; }

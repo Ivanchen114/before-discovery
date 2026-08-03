@@ -1376,35 +1376,6 @@
     return { state: s, unlocked: old };
   }
 
-  function predictPlanet(state0, id) {
-    if (!state0.evidence || !state0.evidence.k1 || !state0.evidence.k2)
-      return err(state0, "k1-k2-required");
-    if (state0.scaleLab.lawLocked == null) return err(state0, "law-lock-required");
-    if (id !== "mars" && id !== "jupiter") return err(state0, "unknown-planet");
-    if (state0.planetLab.revealed[id]) return err(state0, "observation-already-revealed");
-    var s = clone(state0), exponent = s.scaleLab.lawLocked;
-    var prediction = Math.pow(PLANETS[id].radiusRatio, (exponent + 1) / 2);
-    var actual = PLANETS[id].periodRatio;
-    var residualPct = Math.abs(prediction - actual) / actual * 100;
-    var sealedAt = tick(s);
-    var row = {
-      id: s.planetLab.predictions.length + 1, planet: id, exponent: exponent,
-      prediction: round(prediction, 3), sealed: true, sealedAt: sealedAt,
-      openedAt: null, revealedAfterSeal: false,
-      actual: actual, residualPct: round(residualPct, 2), pass: residualPct <= 3,
-      superseded: false
-    };
-    row.openedAt = tick(s);
-    row.revealedAfterSeal = row.openedAt > row.sealedAt;
-    s.planetLab.predictions.push(row);
-    s.planetLab.revealed[id] = true;
-    s.planetLab.residuals[id] = row.residualPct;
-    s.planetLab.crossScalePass = ["mars", "jupiter"].every(function (p) {
-      return s.planetLab.predictions.some(function (r) { return r.planet === p && r.pass && !r.superseded; });
-    });
-    return { state: s, prediction: clone(row) };
-  }
-
   function sealPlanetPrediction(state0, id, bandId) {
     if (!state0.evidence || !state0.evidence.k1 || !state0.evidence.k2)
       return err(state0, "k1-k2-required");
@@ -1443,7 +1414,10 @@
     });
     if (!(current.mars && current.jupiter))
       return err(state0, "two-planet-predictions-required");
-    if (current.mars.revealedAfterSeal || current.jupiter.revealedAfterSeal)
+    /* 這兩個存在檢查看似和上一個守衛重複，實際上是讓雙封守衛遭
+       誤刪時仍走到具名契約失敗，而不是先因 undefined 解參考崩潰。 */
+    if ((current.mars && current.mars.revealedAfterSeal) ||
+        (current.jupiter && current.jupiter.revealedAfterSeal))
       return err(state0, "planet-observations-already-open");
     var s = clone(state0);
     s.planetLab.predictions.forEach(function (row) {
@@ -2356,7 +2330,6 @@
     sealScalePrediction: sealScalePrediction, convertMoonTime: convertMoonTime,
     judgeScaleRatio: judgeScaleRatio, judgeScaleRelation: judgeScaleRelation,
     resetPlanetReveals: resetPlanetReveals,
-    predictPlanet: predictPlanet,
     sealPlanetPrediction: sealPlanetPrediction,
     revealPlanetPredictions: revealPlanetPredictions,
     assertK2: assertK2, assertK3: assertK3,

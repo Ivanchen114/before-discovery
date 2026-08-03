@@ -20,6 +20,7 @@
   "pillars": {
    "P2": {
     "title": "第一問：帳只能有一本",
+    "reasonMode": "player",
     "requirePress": true,
     "responsePrompt": "J1 每筆都對平。這能推出哪一步？",
     "responses": [
@@ -69,6 +70,7 @@
    },
    "P1": {
     "title": "第二問：短少的那一截",
+    "reasonMode": "player",
     "requirePress": true,
     "responsePrompt": "J3 留下了可量的坑。這能反駁院士哪一步？",
     "responses": [
@@ -118,6 +120,7 @@
    },
    "P3": {
     "title": "第三問：一本帳的兩種寫法",
+    "reasonMode": "player",
     "requirePress": true,
     "responsePrompt": "同一批碰撞在兩本帳裡不同進退。這代表什麼？",
     "responses": [

@@ -14,6 +14,27 @@
   "pillars": {
    "P1": {
     "title": "第一支柱:匠人經驗與圖",
+    "reasonMode": "player",
+    "responsePrompt": "F4 的墨跡從離手就開始彎。這能反駁哪一步?",
+    "responses": [
+     {
+      "id": "no-straight-stage",
+      "text": "墨跡從第一寸就在彎。眼睛以為有一段直飛,只是彎得太淺,不是軌跡真的分成三段。",
+      "correct": true
+     },
+     {
+      "id": "all-gunners-wrong",
+      "text": "這證明砲手的圖毫無用處,戰場上的經驗全都錯了。",
+      "correct": false,
+      "reply": "夠用的近似不等於完整真相。你能劃掉三段說,不能把砲手的經驗整頁撕掉。"
+     },
+     {
+      "id": "table-only-curve",
+      "text": "桌上的球會彎,只因路程太短;遠砲起初仍可能完全走直線。",
+      "correct": false,
+      "reply": "路程短不會憑空造出第一寸的彎。遠砲能否照搬,留到邊界再問。"
+     }
+    ],
     "statements": [
      {
       "id": "p1s1",
@@ -42,6 +63,27 @@
    },
    "P2": {
     "title": "第二支柱:要等向前的力用完,才會開始下墜?",
+    "reasonMode": "player",
+    "responsePrompt": "F3 的一拋一放,三種高度都分不出先後。這張紙能推出哪一步?",
+    "responses": [
+     {
+      "id": "fall-not-delayed",
+      "text": "若向前運動會等一段時間才下墜,拋出的球就該晚落。三種高度都分不出先後,表示它從離手就已經往下掉。",
+      "correct": true
+     },
+     {
+      "id": "exact-all-speeds",
+      "text": "這證明不論拋得多快、多遠,兩顆球都會在完全同一瞬間落地。",
+      "correct": false,
+      "reply": "門閂只量了三種高度與這套裝置能分辨的範圍。別把『分不開』說成天下所有速度都完全相同。"
+     },
+     {
+      "id": "forward-force-ended",
+      "text": "兩球一起落地,表示向前的力剛好在落地前一刻用完。",
+      "correct": false,
+      "reply": "如果落地前才用完,拋出的球先前就不該往下。墨跡與落點不是這樣寫的。"
+     }
+    ],
     "statements": [
      {
       "id": "p2s1",
@@ -70,6 +112,27 @@
    },
    "P3": {
     "title": "第三支柱:二運動不並存",
+    "reasonMode": "player",
+    "responsePrompt": "同一顆拋出的球留下前行與下墜。這能推出哪一步?",
+    "responses": [
+     {
+      "id": "motions-coexist",
+      "text": "拋出的球一面向前、一面下落;不然它不會留下彎曲墨跡,也不會和直落球幾乎同時撞地。",
+      "correct": true
+     },
+     {
+      "id": "ship-proven",
+      "text": "這已經證明船在平穩前進時,桅頂落球一定會落在桅腳。",
+      "correct": false,
+      "reply": "桌上的紙支持兩種運動能並存;船桅那一筆仍是預測,不能先簽成做過的實驗。"
+     },
+     {
+      "id": "two-balls-two-motions",
+      "text": "一顆球負責前行,另一顆球負責下墜,所以兩種運動沒有落在同一個物體上。",
+      "correct": false,
+      "reply": "看拋出的那一顆。它自己既往前留下墨跡,也同時往下接近地面。"
+     }
+    ],
     "statements": [
      {
       "id": "p3s1",

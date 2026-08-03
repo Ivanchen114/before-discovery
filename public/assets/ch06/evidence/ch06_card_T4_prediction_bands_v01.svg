@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="t d"><title id="t">T4 封存帶與長時段曲線</title><desc id="d">四張有限來源預測帶壓在長時段溫度曲線下；曲線越過預測的衰減區仍未變弱，四枚封蠟裂開但原帶保留。</desc>
+<rect width="1200" height="750" fill="#e9ddbd"/><rect x="38" y="38" width="1124" height="674" rx="18" fill="none" stroke="#5f4632" stroke-width="5"/>
+<text x="80" y="110" font-family="serif" font-size="48" fill="#3b2a20">T4｜曲線越過封存的有限來源終點帶</text>
+<g font-family="sans-serif" font-size="23" fill="#3b2a20"><text x="110" y="210">碎屑</text><text x="110" y="285">炮身</text><text x="110" y="360">空氣</text><text x="110" y="435">水</text></g>
+<g fill="#c6a56f" opacity=".7"><rect x="210" y="170" width="280" height="55"/><rect x="210" y="245" width="500" height="55"/><rect x="210" y="320" width="280" height="55"/><rect x="210" y="395" width="500" height="55"/></g>
+<g fill="#8d332b" stroke="#5e211d" stroke-width="5"><circle cx="490" cy="198" r="28"/><circle cx="710" cy="273" r="28"/><circle cx="490" cy="348" r="28"/><circle cx="710" cy="423" r="28"/></g>
+<g stroke="#f0c9a7" stroke-width="6"><path d="M472 180l36 36M508 180l-36 36"/><path d="M692 255l36 36M728 255l-36 36"/><path d="M472 330l36 36M508 330l-36 36"/><path d="M692 405l36 36M728 405l-36 36"/></g>
+<path d="M210 590C330 560 410 510 520 470S760 350 1080 185" fill="none" stroke="#a44d35" stroke-width="16"/><path d="M210 590h870" stroke="#40362d" stroke-width="5"/><text x="600" y="665" text-anchor="middle" font-family="sans-serif" font-size="30" fill="#3b2a20">四張逐一判讀後才取得 T4；裂封仍可追查原預測</text></svg>
