@@ -192,7 +192,10 @@ function completeMigratedK1(lab0) {
   assert.equal(result.error, undefined);
   let lab = result.state;
   for (let step = 0; step < 3; step += 1) {
-    lab = Engine4.nudgeOrbitAim(lab, -0.6).state;
+    lab = Engine4.nudgeOrbitAim(
+      lab,
+      -Engine4._ORBIT_RULES.aimOffsets[step]
+    ).state;
     result = Engine4.commitOrbitBeat(lab);
     assert.equal(result.ok, true);
     lab = result.state;

@@ -11,6 +11,16 @@
   function $(id) { return document.getElementById(id); }
   function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); } /* 顯示至 0.1;內部保持精確值 */
   function cfgLabel(c) { return c.ball + "·" + c.surface + "·" + c.incline + "·" + c.timer; }
+  function claimObservedFifth(c) {
+    if (typeof c.observedFifth === "number" && isFinite(c.observedFifth)) return c.observedFifth;
+    var runs = state.evidence.runs.filter(function (run) { return (c.runIds || []).indexOf(run.id) >= 0; });
+    if (!runs.length) return NaN;
+    return runs.reduce(function (sum, run) {
+      if (typeof run.readings[4] === "number") return sum + run.readings[4];
+      var pi = typeof run.patternIndex === "number" ? run.patternIndex : Math.max(0, ((run.seq || 1) - 1) % 3);
+      return sum + Engine.computeReadings(run.config, pi)[4];
+    }, 0) / runs.length;
+  }
 
   /* ---------- 選單由資料生成(B-5:新增計時工具僅需改 data 層與測試期望集) ---------- */
   function fillSelect(id, keys, labelFn) {
@@ -65,7 +75,8 @@
     var tbody = $("runsBody");
     tbody.innerHTML = "";
     state.evidence.runs.forEach(function (r) {
-      var vals = viewMode === "inc" ? r.readings : Engine.cumulative(r.readings);
+      var visibleReadings = r.readings.slice(0, 4);
+      var vals = viewMode === "inc" ? visibleReadings : Engine.cumulative(visibleReadings);
       var tr = document.createElement("tr");
       var name = "選取實驗紀錄 #" + r.id + "（" + cfgLabel(r.config) + "）";
       tr.innerHTML = "<td><input type='checkbox' class='runSel' data-id='" + r.id + "' aria-label='" + name + "'></td>" +
@@ -86,7 +97,7 @@
       var name = "選取主張 #" + c.id + "(" + cfgLabel(c.config) + "," + (c.ok ? "成立" : "不成立") + ")";
       tr.innerHTML = "<td><input type='checkbox' class='claimSel' data-id='" + c.id + "' aria-label='" + name + "'></td>" +
         "<td>#" + c.id + "</td><td>" + cfgLabel(c.config) + "</td>" +
-        "<td>" + fmt(c.prediction) + "</td><td>" + (c.ok ? "成立" : "不成立") + "</td><td>" + c.day + "</td>";
+        "<td>押 " + fmt(c.prediction) + "／實測 " + fmt(claimObservedFifth(c)) + "</td><td>" + (c.ok ? "成立" : "不成立") + "</td><td>" + c.day + "</td>";
       tbody.appendChild(tr);
       tr.querySelector("input").checked = !!keep[c.id];
     });

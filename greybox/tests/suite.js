@@ -123,6 +123,24 @@
     ok(typeof res.claim.predDev === "number" && typeof res.claim.maxDev === "number", "偏差幅度存在");
   });
 
+  t("R-JUD-03|第五段先封存後揭曉：判定讀實測第五段，不用 9×第一段循環認證", function () {
+    var cfg = { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" };
+    var x = nthRunState(cfg, 1);
+    ok(x.lastRun.readings.length === 5, "新紀錄必須保存隱藏第五段");
+    var prediction = 9 * x.lastRun.readings[0];
+    var tampered = JSON.parse(JSON.stringify(x.state));
+    tampered.evidence.runs[0].readings[4] = prediction * 1.5;
+    var judged = Engine.judge(tampered, [x.lastRun.id], prediction);
+    ok(!judged.claim.predHit, "改變實測第五段後，舊公式預測仍被誤判命中");
+    ok(judged.claim.observedFifth === prediction * 1.5, "主張沒有留下真正揭曉值");
+
+    var legacy = JSON.parse(JSON.stringify(x.state));
+    legacy.evidence.runs[0].readings = legacy.evidence.runs[0].readings.slice(0, 4);
+    var legacyJudged = Engine.judge(legacy, [x.lastRun.id], x.lastRun.readings[4]);
+    ok(legacyJudged.claim.predHit && legacyJudged.claim.observedFifth === x.lastRun.readings[4],
+      "舊四段存檔不能以原配置與樣式重建第五段");
+  });
+
   t("R-JUD-05|斷言b:銅大×銅小(餘三維全同)→E3.b;混計時遭拒列「計時」", function () {
     var s = Engine.initialState(), ids = { A: [], B: [], C: [] };
     var cfgA = { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" };
@@ -256,7 +274,7 @@
     /* 浮點限制:12% 恰等值無法以十進位輸入精確落在二進位表示上;
        以相對距離 1e-9(內側)與 1e-4(外側)鎖住「≤ 含入」語義。 */
     var x = nthRunState({ ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" }, 1);
-    var target = 9 * x.lastRun.readings[0];
+    var target = x.lastRun.readings[4];
     var inEdge = Engine.judge(x.state, [x.lastRun.id], target * (1 + Engine.TOL) - target * 1e-9);
     ok(inEdge.claim.predHit, "容差內側應命中");
     var outEdge = Engine.judge(x.state, [x.lastRun.id], target * (1 + Engine.TOL) + target * 1e-4);

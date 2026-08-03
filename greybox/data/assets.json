@@ -1640,6 +1640,26 @@
    "sourceMaster": "art/source/production/ch04/props/ch04_prop_cross_scale_moon_sheet_master_v01.png"
   },
   {
+   "id": "ch04_prop_cross_scale_surface_sheet_v02",
+   "kind": "prop",
+   "label": "1665 同尺紙・地表一秒完整教學重建",
+   "path": "ch04/props/ch04_prop_cross_scale_surface_sheet_v02.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 480,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_cross_scale_surface_sheet_master_v02.png"
+  },
+  {
+   "id": "ch04_prop_cross_scale_moon_sheet_v02",
+   "kind": "prop",
+   "label": "1665 同尺紙・月球六十秒完整教學重建",
+   "path": "ch04/props/ch04_prop_cross_scale_moon_sheet_v02.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 480,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_cross_scale_moon_sheet_master_v02.png"
+  },
+  {
    "id": "ch04_prop_rope_ball_setup_v01",
    "kind": "prop",
    "label": "1665 繩球演示裝置（演示前）",
@@ -1766,6 +1786,16 @@
    "firstScreen": false,
    "w": 1200,
    "h": 750
+  },
+  {
+   "id": "card_K2_cross_scale_reconstruction_v02",
+   "kind": "card",
+   "label": "K2 地上與天上的同一把尺・桌面教學重建",
+   "path": "ch04/evidence/ch04_card_K2_cross_scale_reconstruction_v02.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 750,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K2_cross_scale_reconstruction_master_v02.png"
   },
   {
    "id": "card_K3",
@@ -2533,7 +2563,7 @@
   },
   {
    "scene": "D4-2",
-   "match": "一個均勻球殼",
+   "match": "厚薄均勻的球殼",
    "items": [
     {
      "asset": "ch04_focus_shell_theorem_page_v01",
@@ -2615,7 +2645,7 @@
   },
   {
    "scene": "A2-2",
-   "match": "把第一段當作一個單位",
+   "match": "你把這串奇數自己找出來了",
    "items": [
     {
      "asset": "card_E3",
@@ -3510,11 +3540,11 @@
   "K2": {
    "items": [
     {
-     "asset": "card_K2",
-     "alt": "地表一秒落下與月球六十秒偏折的六十比六十跨尺度圖"
+     "asset": "card_K2_cross_scale_reconstruction_v02",
+     "alt": "燭光書桌上的兩張教學重建紙：左紙記地表一秒落下約四點九公尺，右紙記月球距地約六十個地球半徑、六十秒向內偏折約四點九公尺，中間以六十乘六十等於三千六百連起兩張紙"
     }
    ],
-   "caption": "取得證據：反平方律把地表落體與月球偏折接到同一量級。"
+   "caption": "教學重建｜兩張同尺紙對齊：反平方律把地表一秒落下與月球六十秒偏折接到同一量級。"
   },
   "K3": {
    "items": [

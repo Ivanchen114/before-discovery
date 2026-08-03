@@ -11,6 +11,27 @@
   "pillars": {
    "P2": {
     "title": "第一問：帳只能有一本",
+    "requirePress": true,
+    "responsePrompt": "J1 每筆都對平。這能推出哪一步？",
+    "responses": [
+     {
+      "id": "right-scope",
+      "text": "這本帳確實每筆都平。我不是說它錯；我說的是，這還不能證明只能有這一本。",
+      "correct": true
+     },
+     {
+      "id": "wrong-ledger",
+      "text": "油灰一黏住，動量帳就已經錯了；所以才需要另一本。",
+      "correct": false,
+      "reply": "你自己的 J1 每筆都平。不能一上桌就抹掉它。"
+     },
+     {
+      "id": "only-ledger",
+      "text": "既然動量帳每筆都平，第二本帳就沒有留下來的必要。",
+      "correct": false,
+      "reply": "這張紙只驗了這本帳。它沒有替另一把尺下判決。"
+     }
+    ],
     "statements": [
      {
       "id": "p2s1",
@@ -37,6 +58,27 @@
    },
    "P1": {
     "title": "第二問：短少的那一截",
+    "requirePress": true,
+    "responsePrompt": "J3 留下了可量的坑。這能反駁院士哪一步？",
+    "responses": [
+     {
+      "id": "trace-not-receipt",
+      "text": "短少去了哪裡，我還沒對平；但它伴著量得出的壓痕，不能直接當成記錯。",
+      "correct": true
+     },
+     {
+      "id": "all-in-clay",
+      "text": "短少的那一截全都進了黏土；這本帳其實一直守恆。",
+      "correct": false,
+      "reply": "你量到的是坑深，不是完整去向。別把一把尺說成收據。"
+     },
+     {
+      "id": "pit-irrelevant",
+      "text": "坑只是黏土自己的事，跟那筆短少沒有任何可比關係。",
+      "correct": false,
+      "reply": "三種速度留下的比例正在回答你。不能因為帳還沒對平就把數據丟掉。"
+     }
+    ],
     "statements": [
      {
       "id": "p1s1",
@@ -63,6 +105,27 @@
    },
    "P3": {
     "title": "第三問：一本帳的兩種寫法",
+    "requirePress": true,
+    "responsePrompt": "同一批碰撞在兩本帳裡不同進退。這代表什麼？",
+    "responses": [
+     {
+      "id": "different-quantities",
+      "text": "同一次碰撞，一本對平、一本短少；換了砝碼，短少比例還變。兩本帳不是同一件事。",
+      "correct": true
+     },
+     {
+      "id": "same-formula",
+      "text": "兩本帳只是同一件事的兩種算法；差別只在速度有沒有自乘。",
+      "correct": false,
+      "reply": "同一件事換個寫法，應該同進同退。油灰那兩欄可沒有。"
+     },
+     {
+      "id": "pick-winner",
+      "text": "既然兩本帳會吵架，就挑總能對平的那一本留下來。",
+      "correct": false,
+      "reply": "這正是主人要你重寫的舊問題。另一張紙量到的關係不會因此消失。"
+     }
+    ],
     "statements": [
      {
       "id": "p3s1",

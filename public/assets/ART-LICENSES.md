@@ -44,3 +44,20 @@
 |---|---|---|---|---|
 | `ch04_prop_cross_scale_surface_sheet_v01` | `ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp` | `art/source/production/ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V01_20260801.md` §Prompt 1 | 無 | 可進內部／公開非商業版本 |
 | `ch04_prop_cross_scale_moon_sheet_v01` | `ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp` | 同上 §Prompt 2 | 無 | 可進內部／公開非商業版本 |
+
+## 七、OpenAI 生成資產｜2026-08-03 第四章同尺紙完整重建圖
+
+以下兩件由專案協作者 Codex 使用 OpenAI image generation 產生，未投入第三方影像、未直接模仿特定在世藝術家。兩圖是現代教學重建，不是牛頓手稿掃描。依總監裁決，本版的線條、公開數字與簡式已烤入 raster 圖；玩家仍待判斷的 `1.4 mm`、`3600` 與平方關係沒有提前寫入圖中。
+
+| 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| `ch04_prop_cross_scale_surface_sheet_v02` | `ch04/props/ch04_prop_cross_scale_surface_sheet_v02.webp` | `art/source/production/ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V02_20260803.md` §Prompt 1 | 無 | 可進內部／公開非商業版本 |
+| `ch04_prop_cross_scale_moon_sheet_v02` | `ch04/props/ch04_prop_cross_scale_moon_sheet_v02.webp` | 同上 §Prompt 2 | 無 | 可進內部／公開非商業版本 |
+
+## 八、OpenAI 生成資產｜2026-08-03 第四章 K2 取得證據桌面重建圖
+
+下列圖像由專案協作者 Codex 使用 OpenAI image generation 產生，以本專案兩張同尺紙生成母版作為參考，未投入第三方影像、未直接模仿特定在世藝術家。這是現代教學重建，不是牛頓手稿掃描或歷史桌面照片；數字、公式與圖線已烤入 raster 圖，沒有執行期疊圖。
+
+| 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| `card_K2_cross_scale_reconstruction_v02` | `ch04/evidence/ch04_card_K2_cross_scale_reconstruction_v02.webp` | `art/source/production/ch04/evidence/PROMPTS_CH04_K2_EVIDENCE_RECONSTRUCTION_V02_20260803.md` | 無 | 可進內部／公開非商業版本 |

@@ -99,6 +99,7 @@
   function calibrate(state0, kind) {
     if (!(kind in CAL_DEP)) return err(state0, "unknown-calibration");
     if (!state0.slots[CAL_DEP[kind]]) return err(state0, "dependency-missing");
+    if (openSeries(state0)) return err(state0, "series-open");
     if (state0.calib[kind]) return { state: state0, noop: true }; /* 同 revision 有效=no-op 不耗天 */
     var s = clone(state0);
     s.calib[kind] = true; s.days += 1;
@@ -181,6 +182,7 @@
     if (!o) return err(state0, "no-open-series");
     if (!(4 in o.readings) || !(9 in o.readings) || !(16 in o.readings)) return err(state0, "too-early");
     if (25 in o.readings) return err(state0, "already-run");
+    if (typeof o.prediction === "number" && isFinite(o.prediction)) return err(state0, "prediction-locked");
     if (typeof value !== "number" || !isFinite(value)) return err(state0, "bad-prediction");
     var s = clone(state0);
     openSeries(s).prediction = value;
@@ -207,7 +209,7 @@
     s.evidence.f2.lawConcept = conceptId;
     return { state: s, ok: true, seriesId: seriesId, conceptId: conceptId };
   }
-  /* R-LAB2-05 換球比較五守衛 */
+  /* R-LAB2-05 換球比較七守衛：兩組都通過原始資料門檻，且裝置未曾拆裝，才有資格互相比較。 */
   function compareBalls(state0, idA, idB) {
     var a = null, b = null;
     state0.series.forEach(function (x) { if (x.id === idA) a = x; if (x.id === idB) b = x; });
@@ -216,7 +218,9 @@
     if (!((a.ball === "copper" && b.ball === "wood") || (a.ball === "wood" && b.ball === "copper")))
       diffs.push("球種須一銅一木");
     if (a.fingerprint !== b.fingerprint) diffs.push("裝置指紋(零件/校準)不同");
+    if (a.apparatusRevision !== b.apparatusRevision) diffs.push("裝置曾拆裝(revision 不同)");
     if (a.status !== "complete" || b.status !== "complete") diffs.push("series 未完成");
+    if (!a.accepted || !b.accepted) diffs.push("至少一組資料未通過雙門檻");
     var scalar = function (x) { return [4, 9, 16].every(function (h) { return typeof x.readings[h] === "number"; }); };
     if (!scalar(a) || !scalar(b)) diffs.push("含區間讀值");
     else {

@@ -194,7 +194,7 @@
     });
     state.debate = {
       persuasion: DEBATE.persuasion, idx: 0, pillars: pillars,
-      p3NeedFlag: false, pressChoice: null,
+      p3NeedFlag: false, pressChoice: null, pendingReason: null,
       fr: { opened: false, step: 0, slots: [], trapPending: false, resolved: false },
       mistakes: [],
       status: "pending"
@@ -309,6 +309,8 @@
     var pid = curPillarId(d);
     var stmt = findStmt(pid, p.target);
     if (!stmt) return { state: state0, error: "無此證詞" };
+    if (pillarDef(pid).requirePress && d.pillars[pid].s[p.target] !== "pressed")
+      return { state: state0, error: "先把這一句問清，再決定用哪張證據" };
     if (!ownsEvidence(state, p.evidence, p.subitem)) {
       return { state: state0, error: "未持有之證據不得出示:" + p.evidence + (p.subitem ? "." + p.subitem : "") };
     }
@@ -324,17 +326,26 @@
     var isInsufficientP3 = pid === "P3" && p.evidence === "E3" && p.subitem === "a" &&
       p.target === "s2" && e3.a && !e3.b;
     if (isCorrect) {
-      say(state, "旅人(你)", pillarDef(pid).playerCorrect);
-      say(state, opponentSpeaker(), pillarDef(pid).breakReply);
-      d.pillars[pid].s[p.target] = "broken";
-      d.pillars[pid].broken = true;
-      d.idx += 1;
-      outcome = "correct";
-      state.eventLog.push({ t: "pillarBroken", pid: pid });
-      if (d.idx === 3) {
-        d.fr.opened = true;
-        say(state, "system", CH.texts.frUnlocked);
-        say(state, hostSpeaker(), CH.fr.open);
+      if (Array.isArray(pillarDef(pid).responses) && pillarDef(pid).responses.length) {
+        d.pendingReason = {
+          pid: pid, target: p.target, evidence: p.evidence,
+          subitem: p.subitem || null
+        };
+        say(state, "旅人筆記", "【證據已對上】還差一步：這張紙究竟推得出什麼？");
+        outcome = "reason";
+      } else {
+        say(state, "旅人(你)", pillarDef(pid).playerCorrect);
+        say(state, opponentSpeaker(), pillarDef(pid).breakReply);
+        d.pillars[pid].s[p.target] = "broken";
+        d.pillars[pid].broken = true;
+        d.idx += 1;
+        outcome = "correct";
+        state.eventLog.push({ t: "pillarBroken", pid: pid });
+        if (d.idx === 3) {
+          d.fr.opened = true;
+          say(state, "system", CH.texts.frUnlocked);
+          say(state, hostSpeaker(), CH.fr.open);
+        }
       }
     } else if (isInsufficientP3) {
       d.p3NeedFlag = true;
@@ -361,6 +372,41 @@
       }
     }
     return { state: state, outcome: outcome };
+  }
+
+  function debateReason(state0, optionId) {
+    var state = clone(state0);
+    var d = state.debate;
+    var g = guardDebate(state); if (g) return { state: state0, error: g };
+    var pending = d.pendingReason;
+    if (!pending || pending.pid !== curPillarId(d))
+      return { state: state0, error: "目前沒有待完成的推論" };
+    var def = pillarDef(pending.pid);
+    var option = null;
+    (def.responses || []).forEach(function (row) { if (row.id === optionId) option = row; });
+    if (!option) return { state: state0, error: "推論選項不存在" };
+    say(state, "旅人(你)", option.text);
+    if (!option.correct) {
+      say(state, coachSpeaker(), option.reply || "這張紙沒有說到那麼遠。再收窄一步。");
+      rememberMistake(d, {
+        kind: "reason", pillar: pending.pid, option: option.id,
+        evidence: pending.evidence, target: pending.target
+      });
+      debatePersuasion(state, -1, "debate.reason");
+      return { state: state, outcome: d.status === "suspended" ? "suspended" : "retry" };
+    }
+    say(state, opponentSpeaker(), def.breakReply);
+    d.pillars[pending.pid].s[pending.target] = "broken";
+    d.pillars[pending.pid].broken = true;
+    d.pendingReason = null;
+    d.idx += 1;
+    state.eventLog.push({ t: "pillarBroken", pid: pending.pid });
+    if (d.idx === 3) {
+      d.fr.opened = true;
+      say(state, "system", CH.texts.frUnlocked);
+      say(state, hostSpeaker(), CH.fr.open);
+    }
+    return { state: state, outcome: "correct" };
   }
 
   function frChainDone(state) {
@@ -702,6 +748,15 @@
         return { id: s.id, text: s.text, status: status,
                  pressed: status === "pressed", insight: status === "pressed" ? (s.insight || "") : "" };
       });
+      if (d.pendingReason) {
+        var reasonDef = pillarDef(pid);
+        v.reason = {
+          prompt: reasonDef.responsePrompt || "這張證據推得出哪一句？",
+          options: (reasonDef.responses || []).map(function (row) {
+            return { id: row.id, text: row.text };
+          })
+        };
+      }
       if (d.pressChoice) {
         var stmt = findStmt(pid, d.pressChoice.sid);
         v.pressChoice = { prompt: stmt.pressChoice.prompt, options: stmt.pressChoice.options.map(function (o) { return { id: o.id, text: o.text }; }) };
@@ -759,7 +814,19 @@
         });
         return cnt2 > base;
       }
-      return state.lab.evidence.runs.length > base;
+      var repairEnterIndex = -1, repairEnter = null;
+      (state.eventLog || []).forEach(function (event, index) {
+        if (event && event.t === "repairEnter") { repairEnterIndex = index; repairEnter = event; }
+      });
+      var judgedAfterEntry = (state.eventLog || []).slice(repairEnterIndex + 1).some(function (event) {
+        return event && event.t === "lab" && event.action === "judge" && event.at === "SC-R1/e1";
+      });
+      var claimBase = repairEnter && repairEnter.gate === "validated-claim"
+        ? repairEnter.claimBaseline : 0;
+      var newClaim = (state.lab.inference.claims || []).slice(claimBase).some(function (claim) {
+        return claim.ok && (claim.runIds || []).some(function (id) { return id > base; });
+      });
+      return state.lab.evidence.runs.length > base && judgedAfterEntry && newClaim;
     }
     if (until.debateWon) return !!(state.debate && state.debate.status === "won");
     /* 第二章(規格 v0.1.1):cat=threeH=存在未放棄的乾淨銅球 series 已測 4/9/16(劇情提問門)。
@@ -1035,6 +1102,8 @@
       r = Engine.setDossierSourceGroup(
         state.lab, args.assertionId, args.sourceIds, args.selected
       );
+    else if (action === "setDossierProposedScope" && Engine.setDossierProposedScope)
+      r = Engine.setDossierProposedScope(state.lab, args.assertionId, args.choice);
     else if (action === "setDossierScope" && Engine.setDossierScope) r = Engine.setDossierScope(state.lab, args.assertionId, args.choice);
     else if (action === "runDossierCabinComparison" && Engine.runDossierCabinComparison)
       r = Engine.runDossierCabinComparison(state.lab);
@@ -1042,6 +1111,8 @@
       r = Engine.runDossierCabinSeries(state.lab);
     else if (action === "commitDossierCabinWindPlan" && Engine.commitDossierCabinWindPlan)
       r = Engine.commitDossierCabinWindPlan(state.lab, args.choice);
+    else if (action === "commitDossierCabinInstrument" && Engine.commitDossierCabinInstrument)
+      r = Engine.commitDossierCabinInstrument(state.lab, args.choice);
     else if (action === "runDossierBlind" && Engine.runDossierBlind) r = Engine.runDossierBlind(state.lab);
     else if (action === "judgeDossierBlind" && Engine.judgeDossierBlind) r = Engine.judgeDossierBlind(state.lab, args.choice);
     else if (action === "enterDossierDebate" && Engine.enterDossierDebate) r = Engine.enterDossierDebate(state.lab);
@@ -1053,6 +1124,8 @@
       r = Engine.setDossierP3Premise(state.lab, args.step, args.choice);
     else if (action === "alignDossierPapers" && Engine.alignDossierPapers) r = Engine.alignDossierPapers(state.lab, args.choice);
     else if (action === "transformDossierPapers" && Engine.transformDossierPapers) r = Engine.transformDossierPapers(state.lab, args.choice);
+    else if (action === "transformDossierPaperBeat" && Engine.transformDossierPaperBeat)
+      r = Engine.transformDossierPaperBeat(state.lab, args.beat, args.appliedMastX);
     else if (action === "setDossierFinalBoundary" && Engine.setDossierFinalBoundary)
       r = Engine.setDossierFinalBoundary(state.lab, args.choice);
     else if (action === "answerAudit" && Engine.answerAudit) r = Engine.answerAudit(state.lab, args.questionId, args.evidenceId);
@@ -1082,6 +1155,10 @@
       r = Engine.judgeScaleRelation(state.lab, args.choice);
     else if (action === "resetPlanetReveals" && Engine.resetPlanetReveals) r = Engine.resetPlanetReveals(state.lab);
     else if (action === "predictPlanet" && Engine.predictPlanet) r = Engine.predictPlanet(state.lab, args.id);
+    else if (action === "sealPlanetPrediction" && Engine.sealPlanetPrediction)
+      r = Engine.sealPlanetPrediction(state.lab, args.id, args.bandId);
+    else if (action === "revealPlanetPredictions" && Engine.revealPlanetPredictions)
+      r = Engine.revealPlanetPredictions(state.lab);
     else if (action === "assertK2" && Engine.assertK2) r = Engine.assertK2(state.lab, args.records, args.concept);
     else if (action === "assertK3" && Engine.assertK3) r = Engine.assertK3(state.lab, args.records, args.concept);
     else if (action === "connectCometTracks" && Engine.connectCometTracks) r = Engine.connectCometTracks(state.lab, args.mode);
@@ -1113,11 +1190,15 @@
     else if (action === "archiveEvidenceSet" && Engine.archiveEvidenceSet) r = Engine.archiveEvidenceSet(state.lab);
     /* 第五章：同一批碰撞的兩本帳、4／8 追一筆與黏土深度。 */
     else if (action === "setCollisionDraft" && Engine.setDraft) r = Engine.setDraft(state.lab, args.field, args.value);
+    else if (action === "setCollisionSelection" && Engine.setSelection)
+      r = Engine.setSelection(state.lab, args.kind, args.id, args.selected);
+    else if (action === "setCollisionJudgment" && Engine.setJudgment)
+      r = Engine.setJudgment(state.lab, args.key, args.value);
     else if (action === "runCollision" && Engine.runCollision) r = Engine.runCollision(state.lab);
-    else if (action === "assertJ1" && Engine.assertJ1) r = Engine.assertJ1(state.lab, args.runIds);
-    else if (action === "assertJ2" && Engine.assertJ2) r = Engine.assertJ2(state.lab, args.runIds);
+    else if (action === "assertJ1" && Engine.assertJ1) r = Engine.assertJ1(state.lab, args.runIds, args.concept);
+    else if (action === "assertJ2" && Engine.assertJ2) r = Engine.assertJ2(state.lab, args.runIds, args.concept);
     else if (action === "runClay" && Engine.runClay) r = Engine.runClay(state.lab);
-    else if (action === "assertJ3" && Engine.assertJ3) r = Engine.assertJ3(state.lab, args.runIds);
+    else if (action === "assertJ3" && Engine.assertJ3) r = Engine.assertJ3(state.lab, args.runIds, args.concept);
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
@@ -1211,7 +1292,13 @@
         }, 0)
         : state.lab.evidence.runs.length);
     }
-    state.eventLog.push({ t: "repairEnter", from: state.cursor.scene + "/" + state.cursor.node });
+    var repairEvent = { t: "repairEnter", from: state.cursor.scene + "/" + state.cursor.node };
+    if (CHAPTER_ID === "ch1") {
+      repairEvent.gate = "validated-claim";
+      repairEvent.runBaseline = state.lab.evidence.runs.length;
+      repairEvent.claimBaseline = (state.lab.inference.claims || []).length;
+    }
+    state.eventLog.push(repairEvent);
     moveTo(state, REPAIR_SCENE);
     return { state: state, redirected: true };
   }
@@ -1241,7 +1328,7 @@
     labAction: labAction, embedReady: embedReady, embedComplete: embedComplete,
     assertStage: assertStage,
     debatePress: debatePress, debatePressChoice: debatePressChoice,
-    debatePresent: debatePresent, debateFr: debateFr,
+    debatePresent: debatePresent, debateReason: debateReason, debateFr: debateFr,
     debateExitSuspended: debateExitSuspended, debateView: debateView,
     ownsEvidence: ownsEvidence, projectCh1: projectCh1,
     redirectIfLocked: redirectIfLocked,

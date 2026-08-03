@@ -240,16 +240,24 @@
       ];
       $("btnLabIntroGo").textContent = "開始第一輪";
     } else if (CHAPTER_ID === "ch4") {
-      title.textContent = "旅人筆記・軌道與出版備忘";
-      lines = [
-        "先設計，再放手——方向目標、初速、箭長與路徑預測一次封存；規則開始跑後，不能逐拍替月亮修路。",
-        "錯路就是資料——拋物線、錯中心、向外張與向內切都會留在紙上；看軌跡再修改下一次設計。",
-        "先封存，再揭曉——月球到地心的距離與比較時間是已知資料；距離律要在月球落點翻面前寫下。",
-        "舊預測不能消失——解鎖改律時，先前封存的 Mars／Jupiter 預測仍保留並劃線。",
-        "公平比較模型——同一條定律與參數全程鎖住；月亮、行星、彗星各使用自己的觀測初始位置與速度。",
-        "出版沒有倒數——閱讀、重排與預覽不耗窗口；只有送樣或明列理由延後，才讓排程往前走。"
-      ];
-      $("btnLabIntroGo").textContent = "開始畫軌道";
+      title.textContent = "這一頁怎麼做？";
+      var orbitBox = document.querySelector("#controls.orbitLab");
+      var orbitPhase = orbitBox ? orbitBox.getAttribute("data-phase") : "";
+      if (orbitPhase === "scale") {
+        lines = [
+          "先看兩張紙：地表記 1 秒，月球記 60 秒。",
+          "先猜月球的 60 秒換成 1 秒後，會剩原來的多少，再封存答案。",
+          "接著只做兩個比較：要除多少，以及兩張一秒紙相差幾倍。"
+        ];
+        $("btnLabIntroGo").textContent = "知道了，開始換算";
+      } else {
+        lines = [
+          "先看右頁的「現在只做一件事」，不用預讀後面的步驟。",
+          "需要預測時先封存，資料才會揭開；原答案不會被刪掉。",
+          "做錯會留在紙上。看提示、調整，再試一次即可。"
+        ];
+        $("btnLabIntroGo").textContent = "知道了，回到工作台";
+      }
     } else if (CHAPTER_ID === "ch5") {
       title.textContent = "旅人筆記・兩本帳工作台";
       lines = [

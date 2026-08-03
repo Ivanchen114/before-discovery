@@ -101,6 +101,13 @@
     });
   }
 
+  /* 第五段是封存後才翻面的實測值。舊存檔只有四段時，依當時的確定性樣式重建。 */
+  function fifthReading(run) {
+    if (run.readings && typeof run.readings[4] === "number" && isFinite(run.readings[4])) return run.readings[4];
+    var patternIndex = typeof run.patternIndex === "number" ? run.patternIndex : Math.max(0, ((run.seq || 1) - 1) % 3);
+    return computeReadings(run.config, patternIndex)[4];
+  }
+
   function cumulative(readings) {
     var out = [], acc = 0;
     readings.forEach(function (v) { acc += v; out.push(acc); });
@@ -113,7 +120,7 @@
     if (!sel.ok) return { state: state0, rejected: sel };
     var state = clone(state0);
     var avg = avgDeltas(sel.runs);
-    var target = 9 * avg[0];
+    var target = sel.runs.reduce(function (sum, run) { return sum + fifthReading(run); }, 0) / sel.runs.length;
     var predDev = Math.abs(prediction - target) / target;
     var predHit = predDev <= TOL;
     var devs = ODD.map(function (k, i) { return Math.abs(avg[i + 1] / avg[0] - k) / k; });
@@ -124,6 +131,7 @@
       runIds: runIds.slice(),
       config: clone(sel.runs[0].config),
       prediction: prediction,
+      observedFifth: target,
       ok: ok,
       predHit: predHit,
       consistent: consistent,

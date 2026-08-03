@@ -18,6 +18,14 @@
     var passed = [];
     for (var i = 0; i < 500; i++) {
       var v = Narrative.view(state);
+      /* 第一章平方律已改成玩家親手讀增量、再累加總距離；既有全章黃金路徑
+         由此共用助手選正確路徑，專屬測試另驗錯項與重試。 */
+      if (v.type === "choice" && v.scene === "A2-2" && v.nodeId === "qOdd") {
+        state = Narrative.choose(state, "odd").state; continue;
+      }
+      if (v.type === "choice" && v.scene === "A2-2" && v.nodeId === "qCum") {
+        state = Narrative.choose(state, "squares").state; continue;
+      }
       if (v.type === "choice" || v.type === "end" || v.type === "embed" || v.type === "review") return { state: state, view: v, passed: passed };
       var r = Narrative.advance(state);
       if (r.error) throw new Error(r.error);
@@ -342,7 +350,7 @@
     eq(rr.view.scene, "A2-4", "續接 E4");
   });
 
-  t("SC-R1|信譽歸零→導入修復→做一次實驗→信譽1→返回原游標", function () {
+  t("SC-R1|信譽歸零→導入修復→新紀錄成立→信譽1→返回原游標", function () {
     var s = toActTwo("explore");
     var origin = JSON.parse(JSON.stringify(s.cursor));
     s.rep = 0; s.flags.repLocked = "1";               /* 注入:歸零狀態(M3 前無自然觸發點) */
@@ -354,7 +362,9 @@
     eq(rr.view.type, "embed");
     ok(!Narrative.embedReady(s), "尚未做實驗");
     var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
-    ok(Narrative.embedReady(s), "已做一次實驗");
+    ok(!Narrative.embedReady(s), "只有新 run、尚未成立主張時不得修復信譽");
+    r = lab(s, "judge", { runIds: [r.result.run.id], prediction: r.result.run.readings[4] }); s = r.state;
+    ok(Narrative.embedReady(s), "新紀錄已通過形狀與預測兩道門");
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;                        /* n3(rep+1,解鎖)→ return → 回原點 */
     eq(s.rep, 1, "信譽回復至 1");
@@ -417,6 +427,25 @@
     ok(kinds.rep && kinds.choice, "rep/choice 事件在log");
     var hasEvidence = s.eventLog.some(function (e) { return e.t === "evidence" && e.id === "S2"; });
     ok(hasEvidence, "evidence 事件在log");
+  });
+
+  t("第一章平方律代理權|玩家先讀 1、3、5、7、9，再親自累加 1、4、9、16、25", function () {
+    var s = toActTwo("explore");
+    var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    r = lab(s, "judge", { runIds:[r.result.run.id], prediction:r.result.run.readings[4] }); s = r.state;
+    s = Narrative.embedComplete(s).state;
+    var v = Narrative.view(s);
+    /* c1 在沒有失敗時會由 view 跳過。 */
+    eq(v.nodeId, "qOdd", "第五段揭曉後應先由玩家判讀增量");
+    s = pick(s, "cumulative");
+    s = Narrative.advance(s).state;
+    eq(Narrative.view(s).nodeId, "qOdd", "把累積值誤當分段值後應保留重試");
+    s = pick(s, "odd"); s = Narrative.advance(s).state;
+    eq(Narrative.view(s).nodeId, "qCum", "正確讀出奇數列後才進累加判斷");
+    s = pick(s, "odds"); s = Narrative.advance(s).state;
+    eq(Narrative.view(s).nodeId, "qCum", "沒有累加仍應保留重試");
+    s = pick(s, "squares"); var rr = run(s); s = rr.state;
+    eq(rr.view.scene, "A2-3", "玩家親手完成兩步判讀後才進換球問題");
   });
 
   /* ===== M3:第三幕辯論+尾聲 ===== */
@@ -497,6 +526,7 @@
     ok(rd.redirected, "歸零導入 SC-R1"); s = rd.state;
     var rr = run(s); s = rr.state;
     r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    r = lab(s, "judge", { runIds: [r.result.run.id], prediction: r.result.run.readings[4] }); s = r.state;
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;
     eq(s.rep, 1); eq(rr.view.scene, "A3-D");
@@ -634,6 +664,7 @@
     var rd = Narrative.redirectIfLocked(s); ok(rd.redirected); s = rd.state;
     var rr = run(s); s = rr.state;                          /* SC-R1 → e1 */
     r = lab(s, "run", { config: CFG_BIG }); s = r.state;
+    r = lab(s, "judge", { runIds: [r.result.run.id], prediction: r.result.run.readings[4] }); s = r.state;
     s = Narrative.embedComplete(s).state;
     rr = run(s); s = rr.state;                              /* rep=1,回 A3-D(仍中止) */
     eq(s.rep, 1); eq(rr.view.scene, "A3-D");

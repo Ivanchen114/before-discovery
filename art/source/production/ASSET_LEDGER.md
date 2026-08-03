@@ -47,3 +47,16 @@
 |---|---|---|---|---|---|---|---|
 | `ch04_prop_cross_scale_surface_sheet_v01` | 地表一秒紙的 1665 手稿語彙教學重建；不是牛頓真跡或留存紙掃描，數字與公式由可驗證 SVG 疊加 | `art/source/production/ch04/props/ch04_prop_cross_scale_surface_sheet_master_v01.png` | `public/assets/ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp` | OpenAI image generation／2026-08-01 | `ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V01_20260801.md` §Prompt 1 | sharp WebP q82，1200×480；runtime 以 SVG 疊字 | generated／reviewed／browser pending |
 | `ch04_prop_cross_scale_moon_sheet_v01` | 月球六十秒紙的 1665 手稿語彙教學重建；不是牛頓真跡或留存紙掃描，換算公式完成作答後才由 SVG 顯示 | `art/source/production/ch04/props/ch04_prop_cross_scale_moon_sheet_master_v01.png` | `public/assets/ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp` | OpenAI image generation／2026-08-01 | 同上 §Prompt 2 | sharp WebP q82，1200×480；runtime 以 SVG 疊字 | generated／reviewed／browser pending |
+
+## 七、2026-08-03｜第四章 1665 同尺紙完整重建圖
+
+| 資產 ID | 用途與史實邊界 | 母版 | runtime | 工具／日期 | 提示與編修紀錄 | 衍生參數 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| `ch04_prop_cross_scale_surface_sheet_v02` | 地表一秒完整教學重建；數字與簡式已烤入圖中，但不是牛頓真跡或留存紙掃描 | `art/source/production/ch04/props/ch04_prop_cross_scale_surface_sheet_master_v02.png` | `public/assets/ch04/props/ch04_prop_cross_scale_surface_sheet_v02.webp` | OpenAI image generation／2026-08-03 | `ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V02_20260803.md` §Prompt 1 | Pillow Lanczos WebP q88，1200×480；無 runtime 疊圖 | generated／reviewed／browser pending |
+| `ch04_prop_cross_scale_moon_sheet_v02` | 月球六十秒完整教學重建；主尺呈現約 60 地球半徑，放大框分開呈現切線與向內偏折；不先寫換算答案 | `art/source/production/ch04/props/ch04_prop_cross_scale_moon_sheet_master_v02.png` | `public/assets/ch04/props/ch04_prop_cross_scale_moon_sheet_v02.webp` | OpenAI image generation／2026-08-03 | 同上 §Prompt 2 | Pillow Lanczos WebP q88，1200×480；無 runtime 疊圖 | generated／reviewed／browser pending |
+
+## 八、2026-08-03｜第四章 K2 取得證據桌面重建圖
+
+| 資產 ID | 用途與史實邊界 | 母版 | runtime | 工具／日期 | 提示與編修紀錄 | 衍生參數 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| `card_K2_cross_scale_reconstruction_v02` | K2 取得後的桌面教學重建；把地表一秒紙、月球六十秒紙與 `60 × 60 = 3600` 換算痕跡並置，不宣稱為牛頓真跡或留存桌面照片 | `art/source/production/ch04/evidence/ch04_card_K2_cross_scale_reconstruction_master_v02.png` | `public/assets/ch04/evidence/ch04_card_K2_cross_scale_reconstruction_v02.webp` | OpenAI image generation／2026-08-03 | `ch04/evidence/PROMPTS_CH04_K2_EVIDENCE_RECONSTRUCTION_V02_20260803.md` | 中央裁成 8:5，Pillow Lanczos WebP q88，1200×750；無 runtime 疊圖 | generated／reviewed／browser pending |

@@ -11,6 +11,10 @@
      近圓解，避免把「中間那格」偽裝成唯一正解。 */
   var ORBIT_SPEEDS = { slow: 0.82, medium: 1, fast: 1.18 };
   var ORBIT_STRENGTHS = { short: 0.67, medium: 1, long: 1.39 };
+  var ORBIT_AIM_PATTERN_ID = "staggered-v1";
+  /* 三拍刻意從不同側、不同幅度偏離正確方向，避免玩家不看圖只背
+     「每拍固定按三次逆時針」也能過關。數值不是 6 度按鍵的整數倍。 */
+  var ORBIT_AIM_OFFSETS = [0.47, -0.41, 0.53];
   var ORBIT_TARGETS = ["same-vector", "ink-mark", "earth-center"];
   var ORBIT_PREDICTIONS = ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"];
   /* v0.8 的封存紙使用玩家可讀的五種形狀。舊 outcome enum 仍保留給 schema 1
@@ -22,6 +26,20 @@
     earth: { radiusRatio: 1, periodRatio: 1 },
     mars: { radiusRatio: 1.52, periodRatio: 1.88 },
     jupiter: { radiusRatio: 5.20, periodRatio: 11.86 }
+  };
+  /* 玩家先押一個約略週期，再讓同一條距離律算出精確預測。押錯不扣證據：
+     K3 要驗的是「先承諾、後看觀測」，不是猜數字的運氣。 */
+  var PLANET_BANDS = {
+    mars: {
+      short: { value: 1.5, label: "約 1.5 年" },
+      middle: { value: 1.9, label: "約 1.9 年" },
+      long: { value: 2.3, label: "約 2.3 年" }
+    },
+    jupiter: {
+      short: { value: 5, label: "約 5 年" },
+      middle: { value: 8, label: "約 8 年" },
+      long: { value: 12, label: "約 12 年" }
+    }
   };
   var CASES = ["moon", "planets", "comet"];
   var MODELS = ["inverseSquare", "simpleVortex"];
@@ -339,6 +357,13 @@
     return Math.atan2(ty - position.y, tx - position.x);
   }
 
+  function orbitAimOffset(seal, stepIndex) {
+    /* 沒有版本欄位的是既有 schema-2 存檔；維持舊 0.6 rad，讓進行中的
+       三拍與幽靈紙仍可重播。新封存紙才採逐拍交錯偏角。 */
+    if (!seal || seal.aimPattern !== ORBIT_AIM_PATTERN_ID) return 0.6;
+    return ORBIT_AIM_OFFSETS[Math.max(0, Math.min(2, Number(stepIndex) || 0))];
+  }
+
   function normalizeAngle(a) {
     while (a > Math.PI) a -= Math.PI * 2;
     while (a < -Math.PI) a += Math.PI * 2;
@@ -377,7 +402,8 @@
     var sealedAt = tick(s);
     o.ruleSeal = {
       target: config.target, speed: config.speed, strength: config.strength,
-      prediction: prediction, sealedAt: sealedAt
+      prediction: prediction, sealedAt: sealedAt,
+      aimPattern: ORBIT_AIM_PATTERN_ID
     };
     o.activeRule = clone(o.ruleSeal);
     o.attempt += 1;
@@ -393,8 +419,8 @@
     o.continuedAt = null;
     o.complete = false;
     o.closedRecord = null;
-    /* 起始角刻意偏離應有方向約 34 度；玩家必須使用轉鍵重新判斷。 */
-    o.aimAngle = orbitTargetAngle(config.target, o.position) + 0.6;
+    o.aimAngle = orbitTargetAngle(config.target, o.position) +
+      orbitAimOffset(o.ruleSeal, 0);
     return { state: s, ok: true, seal: clone(o.ruleSeal) };
   }
 
@@ -447,7 +473,8 @@
     o.velocityVectors.push(clone(o.velocity));
     o.step = o.manualBeats.length;
     o.aimAngle = o.step < 3
-      ? orbitTargetAngle(o.ruleSeal.target, o.position) + 0.6
+      ? orbitTargetAngle(o.ruleSeal.target, o.position) +
+        orbitAimOffset(o.ruleSeal, o.step)
       : null;
     if (o.step === 3) {
       o.manualComplete = o.manualBeats.every(function (row) { return row.valid; });
@@ -485,7 +512,8 @@
     o.firstStepAt = null;
     o.manualComplete = false;
     o.ruleRepeatReady = false;
-    o.aimAngle = orbitTargetAngle(o.ruleSeal.target, o.position) + 0.6;
+    o.aimAngle = orbitTargetAngle(o.ruleSeal.target, o.position) +
+      orbitAimOffset(o.ruleSeal, 0);
     return { state: s, ok: true, ghosts: o.manualAttempts.length };
   }
 
@@ -496,6 +524,25 @@
     if (["slow:short", "medium:medium", "fast:long"].indexOf(key) >= 0) return "circle";
     if (key === "fast:short") return "away";
     return "ellipse";
+  }
+
+  /* 新紀錄的形狀必須由玩家三拍接出的實際路徑判讀，不能再用設定查表。
+     canonical 表只保留給沒有 classificationSource 的舊存檔做相容驗證。 */
+  function orbitShapeFromSimulation(target, sim) {
+    if (target === "same-vector") return "line";
+    if (target === "ink-mark") return "wrong-center";
+    if (sim.minRadius < 0.28) return "crash";
+    /* 粗紙帶是離散作圖，不以最後一點單獨命名；整條路都留在窄環帶
+       才叫近圓。向外越過外帶才叫逃離，其餘仍是可閉合的橢圓族。 */
+    if (sim.minRadius >= 0.82 && sim.maxRadius <= 1.08) return "circle";
+    if (sim.maxRadius > 1.18) return "away";
+    return "ellipse";
+  }
+
+  function orbitShapeForRun(seal, sim, run) {
+    return run && run.classificationSource === "simulated-path-v1"
+      ? orbitShapeFromSimulation(seal.target, sim)
+      : canonicalOrbitShape(seal.target, seal.speed, seal.strength);
   }
 
   function closeNumber(a, b, epsilon) {
@@ -510,7 +557,9 @@
       if (!seal || beats.length !== 3 || !o.manualComplete) return false;
       if (!ORBIT_SPEEDS[seal.speed] || !ORBIT_STRENGTHS[seal.strength] ||
           ORBIT_TARGETS.indexOf(seal.target) < 0 ||
-          ORBIT_SHAPES.indexOf(seal.prediction) < 0) return false;
+          ORBIT_SHAPES.indexOf(seal.prediction) < 0 ||
+          (seal.aimPattern != null && seal.aimPattern !== ORBIT_AIM_PATTERN_ID))
+        return false;
       var position = { x: 1, y: 0 };
       var velocity = { x: 0, y: round(ORBIT_SPEEDS[seal.speed] * 0.19) };
       var expectedDeflections = [];
@@ -560,11 +609,13 @@
       });
       if (!run || run.target !== seal.target || run.speed !== seal.speed ||
           run.strength !== seal.strength || run.prediction !== seal.prediction ||
+          (run.aimPattern || null) !== (seal.aimPattern || null) ||
           run.sealedAt !== seal.sealedAt || run.firstStepAt !== o.firstStepAt ||
           JSON.stringify(run.playerBeats) !== JSON.stringify(beats))
         return false;
-      var sim = simulateOrbitRule(seal.target, seal.speed, seal.strength);
-      var actualShape = canonicalOrbitShape(seal.target, seal.speed, seal.strength);
+      var sim = orbitSimulationForRun(seal, beats, run);
+      if (!sim) return false;
+      var actualShape = orbitShapeForRun(seal, sim, run);
       var expectedClosedNote = actualShape === "circle"
         ? "玩家三拍後，牛頓沿同一封存規則續畫成近圓窄帶"
         : "玩家三拍後，牛頓沿同一封存規則續畫成閉合橢圓";
@@ -577,7 +628,8 @@
           run.predictionMatched !== (seal.prediction === actualShape) ||
           run.minRadius !== sim.minRadius || run.maxRadius !== sim.maxRadius ||
           JSON.stringify(run.inkMark) !== JSON.stringify(sim.inkMark) ||
-          run.continuedBeats !== Math.max(0, sim.path.length - 3) ||
+          run.continuedBeats !== (run.continuationSource === "player-three-beats+newton-27"
+            ? sim.continuedBeats : Math.max(0, sim.path.length - 3)) ||
           JSON.stringify(run.path) !== JSON.stringify(sim.path) ||
           o.step !== 3 || o.complete !==
             (["circle", "ellipse"].indexOf(actualShape) >= 0 &&
@@ -605,6 +657,9 @@
     if (!run || !ORBIT_SPEEDS[run.speed] || !ORBIT_STRENGTHS[run.strength] ||
         ORBIT_TARGETS.indexOf(run.target) < 0 ||
         ORBIT_SHAPES.indexOf(run.prediction) < 0 ||
+        (run.continuationSource != null &&
+          run.continuationSource !== "player-three-beats+newton-27") ||
+        (run.aimPattern != null && run.aimPattern !== ORBIT_AIM_PATTERN_ID) ||
         !finite(run.sealedAt) || !finite(run.firstStepAt) ||
         !finite(run.continuedAt) ||
         !(run.sealedAt < run.firstStepAt &&
@@ -617,14 +672,23 @@
         speed: run.speed,
         strength: run.strength,
         prediction: run.prediction,
-        sealedAt: run.sealedAt
+        sealedAt: run.sealedAt,
+        aimPattern: run.aimPattern || null
       },
       beats: run.playerBeats,
       complete: true,
       resetAt: run.continuedAt
     })) return false;
-    var sim = simulateOrbitRule(run.target, run.speed, run.strength);
-    var actualShape = canonicalOrbitShape(run.target, run.speed, run.strength);
+    var seal = {
+      target: run.target, speed: run.speed, strength: run.strength,
+      prediction: run.prediction, sealedAt: run.sealedAt,
+      aimPattern: run.aimPattern || null
+    };
+    var sim = orbitSimulationForRun(seal, run.playerBeats, run);
+    if (!sim) return false;
+    if (run.classificationSource != null &&
+        run.classificationSource !== "simulated-path-v1") return false;
+    var actualShape = orbitShapeForRun(seal, sim, run);
     var expectedOutcome = actualShape === "line" ? "parabola" :
       (actualShape === "wrong-center" ? "wrong-center" :
         (actualShape === "circle" ? "near-circle" :
@@ -636,7 +700,8 @@
       run.minRadius === sim.minRadius && run.maxRadius === sim.maxRadius &&
       JSON.stringify(run.inkMark) === JSON.stringify(sim.inkMark) &&
       JSON.stringify(run.path) === JSON.stringify(sim.path) &&
-      run.continuedBeats === Math.max(0, sim.path.length - 3) &&
+      run.continuedBeats === (run.continuationSource === "player-three-beats+newton-27"
+        ? sim.continuedBeats : Math.max(0, sim.path.length - 3)) &&
       run.playerBeats[0].at === run.firstStepAt &&
       run.playerBeats[2].at < run.continuedAt;
   }
@@ -721,12 +786,61 @@
         complete: complete,
         ruleRepeatReady: complete,
         aimAngle: beats.length < 3
-          ? orbitTargetAngle(seal.target, position) + 0.6
+          ? orbitTargetAngle(seal.target, position) +
+            orbitAimOffset(seal, beats.length)
           : null
       };
     } catch (e) {
       return null;
     }
+  }
+
+  /* 玩家畫完前三拍後，牛頓必須從紙上最後一點接著畫，不能另起一張
+     canonical 軌道偷換起點。這裡沿用同一個離散規則補完最多二十七拍；
+     因而畫面上的第四拍一定承接玩家的第三拍，錯誤也會留在同一路徑。 */
+  function continueOrbitFromPlayer(seal, beats) {
+    var replay = orbitBeatReplay(seal, beats);
+    if (!replay || !replay.complete) return null;
+    var position = clone(replay.position), velocity = clone(replay.velocity);
+    var path = clone(replay.path), ink = { x: 0, y: 0.55 };
+    var minRadius = 1, maxRadius = 1, hitEarth = false, continuedBeats = 0;
+    path.forEach(function (point) {
+      var radius = Math.sqrt(point.x * point.x + point.y * point.y);
+      minRadius = Math.min(minRadius, radius);
+      maxRadius = Math.max(maxRadius, radius);
+    });
+    for (var i = 0; i < 27; i++) {
+      var angle = orbitTargetAngle(seal.target, position);
+      var magnitude = ORBIT_STRENGTHS[seal.strength] * 0.045;
+      velocity = {
+        x: round(velocity.x + Math.cos(angle) * magnitude),
+        y: round(velocity.y + Math.sin(angle) * magnitude)
+      };
+      position = {
+        x: round(position.x + velocity.x),
+        y: round(position.y + velocity.y)
+      };
+      path.push(clone(position));
+      continuedBeats += 1;
+      var radius = Math.sqrt(position.x * position.x + position.y * position.y);
+      minRadius = Math.min(minRadius, radius);
+      maxRadius = Math.max(maxRadius, radius);
+      if (radius < 0.28) { hitEarth = true; break; }
+      if (Math.abs(position.x) > 2.45 || Math.abs(position.y) > 2.45) break;
+    }
+    return {
+      path: path,
+      outcome: orbitRuleOutcome(seal.target, minRadius, maxRadius, hitEarth),
+      minRadius: round(minRadius, 3), maxRadius: round(maxRadius, 3),
+      finalPosition: clone(position), finalVelocity: clone(velocity),
+      inkMark: clone(ink), continuedBeats: continuedBeats
+    };
+  }
+
+  function orbitSimulationForRun(seal, beats, run) {
+    return run && run.continuationSource === "player-three-beats+newton-27"
+      ? continueOrbitFromPlayer(seal, beats)
+      : simulateOrbitRule(seal.target, seal.speed, seal.strength);
   }
 
   /* reset 前留下的幽靈紙也會被舞台畫出來，因此不能只驗座標是有限數。 */
@@ -772,12 +886,24 @@
 
   function planetPredictionAudit(row) {
     if (!row || !PLANETS[row.planet] || !finite(row.exponent) ||
-        row.sealed !== true || row.revealedAfterSeal !== true ||
+        row.sealed !== true || typeof row.revealedAfterSeal !== "boolean" ||
         !finite(row.sealedAt) || Math.floor(row.sealedAt) !== row.sealedAt ||
-        !finite(row.openedAt) || Math.floor(row.openedAt) !== row.openedAt ||
-        row.openedAt <= row.sealedAt || row.superseded !== false ||
+        !(row.revealedAfterSeal
+          ? finite(row.openedAt) && Math.floor(row.openedAt) === row.openedAt &&
+            row.openedAt > row.sealedAt
+          : row.openedAt == null) ||
+        row.superseded !== false ||
         (row.source != null && row.source !== "schema1-validated-k3"))
       return false;
+    if (row.playerBand != null) {
+      var bands = PLANET_BANDS[row.planet] || {};
+      var band = bands[row.playerBand];
+      if (!band || row.playerBandValue !== band.value ||
+          row.playerBandLabel !== band.label ||
+          row.playerBandMatched !==
+            (Math.abs(band.value - PLANETS[row.planet].periodRatio) <=
+              (row.planet === "mars" ? 0.25 : 1.5))) return false;
+    }
     var actual = PLANETS[row.planet].periodRatio;
     var prediction = round(Math.pow(PLANETS[row.planet].radiusRatio,
       (row.exponent + 1) / 2), 3);
@@ -834,8 +960,9 @@
     if (!orbitPartialAudit(state0))
       return err(state0, "invalid-orbit-record");
     var s = ensureOrbitRuleFields(clone(state0)), o = s.orbitLab, seal = o.ruleSeal;
-    var sim = simulateOrbitRule(seal.target, seal.speed, seal.strength);
-    var actualShape = canonicalOrbitShape(seal.target, seal.speed, seal.strength);
+    var sim = continueOrbitFromPlayer(seal, o.manualBeats);
+    if (!sim) return err(state0, "invalid-orbit-continuation");
+    var actualShape = orbitShapeFromSimulation(seal.target, sim);
     var compatibleOutcome = actualShape === "line" ? "parabola" :
       (actualShape === "wrong-center" ? "wrong-center" :
         (actualShape === "circle" ? "near-circle" :
@@ -851,7 +978,10 @@
       minRadius: sim.minRadius, maxRadius: sim.maxRadius,
       inkMark: clone(sim.inkMark), sealedAt: seal.sealedAt,
       firstStepAt: o.firstStepAt, continuedAt: continuedAt,
-      playerBeats: clone(o.manualBeats), continuedBeats: Math.max(0, sim.path.length - 3)
+      playerBeats: clone(o.manualBeats), continuedBeats: sim.continuedBeats,
+      continuationSource: "player-three-beats+newton-27",
+      classificationSource: "simulated-path-v1",
+      aimPattern: seal.aimPattern || null
     };
     o.ruleRuns.push(run);
     o.activeRule = clone(run);
@@ -1273,6 +1403,63 @@
       return s.planetLab.predictions.some(function (r) { return r.planet === p && r.pass && !r.superseded; });
     });
     return { state: s, prediction: clone(row) };
+  }
+
+  function sealPlanetPrediction(state0, id, bandId) {
+    if (!state0.evidence || !state0.evidence.k1 || !state0.evidence.k2)
+      return err(state0, "k1-k2-required");
+    if (state0.scaleLab.lawLocked == null) return err(state0, "law-lock-required");
+    if (id !== "mars" && id !== "jupiter") return err(state0, "unknown-planet");
+    var band = PLANET_BANDS[id] && PLANET_BANDS[id][bandId];
+    if (!band) return err(state0, "unknown-planet-band");
+    if (state0.planetLab.revealed[id]) return err(state0, "observation-already-revealed");
+    if ((state0.planetLab.predictions || []).some(function (row) {
+      return row.planet === id && row.superseded !== true;
+    })) return err(state0, "planet-prediction-already-sealed");
+    var s = clone(state0), exponent = s.scaleLab.lawLocked;
+    var prediction = Math.pow(PLANETS[id].radiusRatio, (exponent + 1) / 2);
+    var actual = PLANETS[id].periodRatio;
+    var residualPct = Math.abs(prediction - actual) / actual * 100;
+    var row = {
+      id: s.planetLab.predictions.length + 1, planet: id, exponent: exponent,
+      prediction: round(prediction, 3), sealed: true, sealedAt: tick(s),
+      openedAt: null, revealedAfterSeal: false,
+      actual: actual, residualPct: round(residualPct, 2), pass: residualPct <= 3,
+      playerBand: bandId, playerBandValue: band.value,
+      playerBandLabel: band.label,
+      playerBandMatched: Math.abs(band.value - actual) <= (id === "mars" ? 0.25 : 1.5),
+      superseded: false
+    };
+    s.planetLab.predictions.push(row);
+    return { state: s, ok: true, prediction: clone(row) };
+  }
+
+  function revealPlanetPredictions(state0) {
+    if (state0.planetLab.revealed.mars || state0.planetLab.revealed.jupiter)
+      return err(state0, "planet-observations-already-open");
+    var current = {};
+    (state0.planetLab.predictions || []).forEach(function (row) {
+      if (row && row.superseded !== true) current[row.planet] = row;
+    });
+    if (!(current.mars && current.jupiter))
+      return err(state0, "two-planet-predictions-required");
+    if (current.mars.revealedAfterSeal || current.jupiter.revealedAfterSeal)
+      return err(state0, "planet-observations-already-open");
+    var s = clone(state0);
+    s.planetLab.predictions.forEach(function (row) {
+      if (row.superseded === true) return;
+      row.openedAt = tick(s);
+      row.revealedAfterSeal = true;
+      s.planetLab.revealed[row.planet] = true;
+      s.planetLab.residuals[row.planet] = row.residualPct;
+    });
+    s.planetLab.crossScalePass = ["mars", "jupiter"].every(function (id) {
+      return s.planetLab.predictions.some(function (row) {
+        return row.planet === id && row.pass && row.revealedAfterSeal &&
+          !row.superseded;
+      });
+    });
+    return { state: s, ok: true, predictions: clone(s.planetLab.predictions) };
   }
 
   function resetPlanetReveals(state0) {
@@ -2169,7 +2356,10 @@
     sealScalePrediction: sealScalePrediction, convertMoonTime: convertMoonTime,
     judgeScaleRatio: judgeScaleRatio, judgeScaleRelation: judgeScaleRelation,
     resetPlanetReveals: resetPlanetReveals,
-    predictPlanet: predictPlanet, assertK2: assertK2, assertK3: assertK3,
+    predictPlanet: predictPlanet,
+    sealPlanetPrediction: sealPlanetPrediction,
+    revealPlanetPredictions: revealPlanetPredictions,
+    assertK2: assertK2, assertK3: assertK3,
     connectCometTracks: connectCometTracks,
     beginLedgerRow: beginLedgerRow, stampLedgerCell: stampLedgerCell,
     addModelLoan: addModelLoan, declineModelLoan: declineModelLoan,
@@ -2181,10 +2371,12 @@
     previewProof: previewProof, submitProof: submitProof, deferPress: deferPress,
     clipEvidence: clipEvidence, archiveEvidenceSet: archiveEvidenceSet,
     _FIXTURE: { teaching: TEACHING, modernCheck: MODERN, planets: PLANETS },
+    _PLANET_BANDS: clone(PLANET_BANDS),
     _ORBIT_RULES: {
       speeds: clone(ORBIT_SPEEDS), strengths: clone(ORBIT_STRENGTHS),
       targets: ORBIT_TARGETS.slice(), predictions: ORBIT_PREDICTIONS.slice(),
-      shapes: ORBIT_SHAPES.slice()
+      shapes: ORBIT_SHAPES.slice(), aimPattern: ORBIT_AIM_PATTERN_ID,
+      aimOffsets: ORBIT_AIM_OFFSETS.slice()
     },
     _CASES: CASES.slice(), _MODELS: MODELS.slice(),
     _ARCHIVE_IDS: ARCHIVE_IDS.slice(),
@@ -2196,6 +2388,7 @@
     _orbitRunAudit: orbitRunAudit,
     _orbitAttemptAudit: orbitAttemptAudit,
     _orbitPartialAudit: orbitPartialAudit,
+    _orbitShapeFromSimulation: orbitShapeFromSimulation,
     _tangentRecordAudit: tangentRecordAudit,
     _scaleTrialAudit: scaleTrialAudit,
     _planetPredictionAudit: planetPredictionAudit,

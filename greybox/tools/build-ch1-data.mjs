@@ -25,6 +25,12 @@ ${pad}else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB
 }
 
 export function buildCh1Data() {
+  buildMirror("patterns", "patterns", "第一章實驗樣式執行載體", {
+    indent: 2,
+    wrapperIndent: "  ",
+    header: `/* data/patterns.js — 執行載體(file:// 相容)。規範鏡像:patterns.json(R-DATA-05 測試保證一致) */
+`
+  });
   buildMirror("scenes", "scenes", "第一章場景執行載體");
   buildMirror("debate", "debate", "第一章辯論執行載體", {
     indent: 2,
@@ -37,5 +43,5 @@ export function buildCh1Data() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   buildCh1Data();
-  console.log("scenes.js、debate.js 已由 JSON 重建");
+  console.log("patterns.js、scenes.js、debate.js 已由 JSON 重建");
 }

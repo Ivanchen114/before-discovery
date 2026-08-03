@@ -49,13 +49,18 @@
   }
   function ch3CabinRowConsistent(row) {
     if (!row || ["dock", "steady"].indexOf(row.stage) < 0 ||
-        row.water !== "水面沒有固定偏向" ||
-        row.ball !== "小球落在放手點正下方" ||
+        ["drip", "toss", "combined"].indexOf(row.instrument) < 0 ||
         !Array.isArray(row.shoreGaps) || row.shoreGaps.length !== 3 ||
         row.shoreGaps.some(function (gap) {
           return typeof gap !== "number" || !isFinite(gap);
         }))
       return false;
+    var observationMatches = row.instrument === "drip"
+      ? row.water === "水滴落在碗內標記附近" && row.ball === "本輪未使用石球"
+      : (row.instrument === "toss"
+        ? row.water === "本輪未使用滴水壺" && row.ball === "石球直上拋起後落回手邊附近"
+        : row.water === "水面沒有固定偏向" && row.ball === "小球落在放手點正下方");
+    if (!observationMatches) return false;
     if (row.stage === "dock") {
       return row.classification === "岸標位置不變" &&
         row.shoreGaps.every(function (gap) { return Math.abs(gap) <= 0.05; });
@@ -132,7 +137,8 @@
     var saved = p3 && p3.transformedPoints;
     if (saved == null) return true; /* 舊存檔尚未保存逐拍衍生表，仍可沿用原紙重建。 */
     if (!dualData || !dualData.ok || !dualData.p3Eligible ||
-        !Array.isArray(saved) || saved.length !== dualData.transformedPoints.length)
+        !Array.isArray(saved) || saved.length > dualData.transformedPoints.length ||
+        (p3.transformed && saved.length !== dualData.transformedPoints.length))
       return false;
     for (var i = 0; i < saved.length; i++) {
       var actual = saved[i], expected = dualData.transformedPoints[i];
@@ -168,7 +174,8 @@
       }
     }
     p3.transformed = false;
-    delete p3.transformedPoints;
+    p3.transformMode = null;
+    p3.transformedPoints = [];
     delete p3.transformTolerance;
     delete p3.maxResidual;
     dossier.assertions.A5 = false;
@@ -614,6 +621,12 @@
         if (!replayLocked || replayRep !== 0 ||
             latestZeroRepIndex < 0 || latestRepLockIndex < latestZeroRepIndex)
           return fail("信譽修復入口前缺少歸零與鎖定");
+        if (repEvent.gate != null) {
+          if (chapterId !== "ch1" || repEvent.gate !== "validated-claim" ||
+              !isInt(repEvent.runBaseline) || repEvent.runBaseline < 0 ||
+              !isInt(repEvent.claimBaseline) || repEvent.claimBaseline < 0)
+            return fail("信譽修復驗證閘格式錯誤");
+        }
         latestRepairEnterIndex = rei;
       }
     }
@@ -623,6 +636,31 @@
       return fail("信譽歸零但未鎖定修復");
     if (replayLocked !== (flags.repLocked === "1"))
       return fail("信譽鎖定旗標與事件帳不一致");
+
+    /* 新版第一章修復不能只偽造 embedDone：新 run 必須在進場後經 judge 成為成立主張。
+       沒有 gate 的舊 repairEnter 仍依既有事件鏈相容讀取。 */
+    if (chapterId === "ch1" && latestRepairEnterIndex >= 0) {
+      var repairGate = events[latestRepairEnterIndex];
+      var repairRewarded = events.slice(latestRepairEnterIndex + 1).some(function (event) {
+        return event && event.t === "rep" && event.at === "SC-R1/n3" && event.d === 1;
+      });
+      if (repairGate.gate === "validated-claim" && repairRewarded) {
+        var ch1Runs = state.lab && state.lab.evidence && state.lab.evidence.runs || [];
+        var ch1Claims = state.lab && state.lab.inference && state.lab.inference.claims || [];
+        if (repairGate.runBaseline > ch1Runs.length || repairGate.claimBaseline > ch1Claims.length)
+          return fail("信譽修復基線超出目前紀錄");
+        var repairJudged = events.slice(latestRepairEnterIndex + 1).some(function (event) {
+          return event && event.t === "lab" && event.action === "judge" && event.at === "SC-R1/e1";
+        });
+        var repairClaimed = ch1Claims.slice(repairGate.claimBaseline).some(function (claim) {
+          return claim && claim.ok && Array.isArray(claim.runIds) && claim.runIds.some(function (id) {
+            return id > repairGate.runBaseline;
+          });
+        });
+        if (!repairJudged || !repairClaimed)
+          return fail("第一章信譽修復缺少新紀錄的成立主張");
+      }
+    }
 
     var repairScene = {
       ch1: "SC-R1", ch2: "SC-R1", ch3: "SC3-R1",
@@ -816,13 +854,16 @@
 
     var runs = lab.evidence && lab.evidence.runs;
     if (!Array.isArray(runs) || runs.length > 300) return fail("實驗紀錄格式錯誤");
-    var DIM_KEYS = { ball: "ball", surface: "surface", incline: "incline", timer: "timer" };
+    /* run.config 的 incline 對應 patterns.base，不是不存在的 patterns.incline。 */
+    var DIM_KEYS = { ball: "ball", surface: "surface", incline: "base", timer: "timer" };
     for (var i = 0; i < runs.length; i++) {
       var r = runs[i];
       if (!r || !isInt(r.id) || !isInt(r.day) || !r.config) return fail("第 " + (i + 1) + " 筆實驗紀錄格式錯誤");
       for (var dk in DIM_KEYS) {
         var val = r.config[dk];
-        if (typeof val !== "string" || !patterns || !patterns[dk] || !(val in patterns[dk]))
+        var patternKey = DIM_KEYS[dk];
+        if (typeof val !== "string" || !patterns || !patterns[patternKey] ||
+            !(val in patterns[patternKey]))
           return fail("第 " + (i + 1) + " 筆實驗的器材配置無法辨識");
       }
       if (!Array.isArray(r.readings) || r.readings.length > 8) return fail("第 " + (i + 1) + " 筆實驗的讀值格式錯誤");
@@ -837,7 +878,10 @@
       if (typeof cl.prediction !== "number" || !isFinite(cl.prediction)) return fail("第 " + (c + 1) + " 筆主張的預測值錯誤");
       for (var dk2 in DIM_KEYS) {
         var v2 = cl.config[dk2];
-        if (typeof v2 !== "string" || !(v2 in patterns[dk2])) return fail("第 " + (c + 1) + " 筆主張的器材配置無法辨識");
+        var claimPatternKey = DIM_KEYS[dk2];
+        if (typeof v2 !== "string" || !patterns[claimPatternKey] ||
+            !(v2 in patterns[claimPatternKey]))
+          return fail("第 " + (c + 1) + " 筆主張的器材配置無法辨識");
       }
     }
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
@@ -975,10 +1019,17 @@
       }
     }
 
+    var legacyCompletedLab2 = !!(debate2 && debate2.status === "won" &&
+      typeof isNewArrangement !== "undefined" && !isNewArrangement && legacyWon2);
     var lab = state.lab, parts = engine2 && engine2._PARTS || {}, slots = engine2 && engine2._SLOTS || [];
+    var fixture2 = engine2 && engine2._FIXTURE;
     if (!lab || typeof lab !== "object") return fail("實驗紀錄缺失");
     if (!isInt(lab.days) || lab.days < 0 || lab.days > 9999) return fail("天數紀錄錯誤");
     if (!lab.slots || !lab.calib || !Array.isArray(lab.series)) return fail("工坊紀錄格式錯誤");
+    if (!isInt(lab.revision) || lab.revision < 0 || !isInt(lab.seriesSeq) || lab.seriesSeq < 0 ||
+        !Array.isArray(lab.assemblyLog) || !fixture2 || !engine2 ||
+        typeof engine2._judgeRaw !== "function" || typeof engine2.compareBalls !== "function")
+      return fail("工坊版本或驗算器格式錯誤");
     if (lab.series.length > 300) return fail("工坊測量紀錄過多");
     for (var si = 0; si < slots.length; si++) {
       var slot = slots[si], pid = lab.slots[slot];
@@ -993,21 +1044,100 @@
     if (lab.evidence.f2.lawConcept != null && lab.evidence.f2.lawConcept !== "sqrtScale")
       return fail("彈射實驗的斷言內容無法辨識");
     var profiles = { clean: 1, directionScatter: 1, speedDrift: 1, coarseRead: 1 };
+    var seriesById2 = {}, completedBySetup2 = {}, maxSeriesId2 = 0;
+    function sameFixture2(actual, expected) {
+      return JSON.stringify(actual) === JSON.stringify(expected);
+    }
+    function sameNumber2(actual, expected) {
+      return typeof actual === "number" && isFinite(actual) && Math.abs(actual - expected) < 1e-12;
+    }
     for (var i = 0; i < lab.series.length; i++) {
       var sr = lab.series[i];
       if (!sr || !isInt(sr.id) || ["open", "complete", "abandoned"].indexOf(sr.status) < 0)
         return fail("第 " + (i + 1) + " 組彈射測量格式錯誤");
+      if (seriesById2[sr.id] || sr.id <= maxSeriesId2) return fail("彈射測量編號重複或倒退");
+      seriesById2[sr.id] = sr; maxSeriesId2 = sr.id;
       if (sr.ball !== "copper" && sr.ball !== "wood") return fail("彈射測量的球種無法辨識");
       if (!profiles[sr.profile] || !isInt(sr.cycle) || sr.cycle < 0 || sr.cycle > 2) return fail("彈射測量的裝置狀態格式錯誤");
+      if (!isInt(sr.apparatusRevision) || sr.apparatusRevision < 0 || sr.apparatusRevision > lab.revision ||
+          typeof sr.fingerprint !== "string" || !sr.fingerprint)
+        return fail("彈射測量的裝置版本無法辨識");
+      if (!isInt(sr.dayStarted) || sr.dayStarted < 0 || sr.dayStarted > lab.days)
+        return fail("彈射測量的起始日無法辨識");
+      var cycleKey2 = sr.fingerprint + "|" + sr.ball;
+      var expectedCycle2 = (completedBySetup2[cycleKey2] || 0) % 3;
+      if (sr.cycle !== expectedCycle2) return fail("彈射測量輪次與既有紀錄不一致");
       var readings = sr.readings || {}, hs = [4, 9, 16, 25];
-      for (var hi = 0; hi < hs.length; hi++) if (hs[hi] in readings) {
+      var readingKeys2 = Object.keys(readings);
+      for (var rk2 = 0; rk2 < readingKeys2.length; rk2++)
+        if (["4", "9", "16", "25"].indexOf(readingKeys2[rk2]) < 0)
+          return fail("彈射測量含未知高度");
+      var gapSeen2 = false, readingCount2 = 0;
+      for (var hi = 0; hi < hs.length; hi++) {
+        if (!(hs[hi] in readings)) { gapSeen2 = true; continue; }
+        if (gapSeen2) return fail("彈射測量沒有依序留下讀值");
+        readingCount2 += 1;
         var rd = readings[hs[hi]];
         if (typeof rd === "number") { if (!isFinite(rd)) return fail("彈射測量含無法辨識的讀值"); }
         else if (!Array.isArray(rd) || rd.length !== 2 || !isFinite(rd[0]) || !isFinite(rd[1]) || rd[0] > rd[1])
           return fail("彈射測量的讀值範圍格式錯誤");
+        if (!sameFixture2(rd, fixture2[sr.profile][sr.cycle][hi]))
+          return fail("彈射測量讀值與封閉資料源不一致");
       }
       if (sr.prediction !== null && (typeof sr.prediction !== "number" || !isFinite(sr.prediction)))
         return fail("彈射測量的預測值格式錯誤");
+      if (sr.prediction !== null && readingCount2 < 3) return fail("彈射預測早於前三筆讀值");
+      if (sr.status === "complete") {
+        if (readingCount2 !== 4 || sr.prediction === null || !isInt(sr.dayEnded) ||
+            sr.dayEnded < sr.dayStarted || sr.dayEnded > lab.days)
+          return fail("完成的彈射測量缺少封存資料");
+        var judged2 = engine2._judgeRaw(readings, sr.prediction);
+        if (judged2.error) {
+          if (sr.accepted !== false || sr.rejectReason !== judged2.error ||
+              sr.kHat !== null || sr.shapeError !== null || sr.predictionError !== null)
+            return fail("彈射測量的退件結果與原始資料不一致");
+        } else if (sr.accepted !== judged2.accepted || !sameNumber2(sr.kHat, judged2.kHat) ||
+            !sameNumber2(sr.shapeError, judged2.shapeError) ||
+            !sameNumber2(sr.predictionError, judged2.predictionError)) {
+          return fail("彈射測量的受理結果與原始資料不一致");
+        }
+        completedBySetup2[cycleKey2] = (completedBySetup2[cycleKey2] || 0) + 1;
+      } else if (readingCount2 > 3 || sr.dayEnded !== null || sr.accepted !== false ||
+          sr.kHat !== null || sr.shapeError !== null || sr.predictionError !== null) {
+        return fail("未完成的彈射測量殘留結案結果");
+      }
+    }
+    if (lab.seriesSeq !== maxSeriesId2) return fail("彈射測量流水號與紀錄不一致");
+    var law2 = lab.evidence.f2.law, ball2 = lab.evidence.f2.ball;
+    if (law2) {
+      var lawSource2 = seriesById2[lab.evidence.f2.lawSource];
+      if (!lawSource2 || lawSource2.status !== "complete" || !lawSource2.accepted ||
+          lawSource2.ball !== "copper" || lab.evidence.f2.lawConcept !== "sqrtScale")
+        return fail("平方根斷言沒有可重算的銅球來源");
+    } else if (lab.evidence.f2.lawSource !== null || lab.evidence.f2.lawConcept !== null) {
+      return fail("尚未成立的平方根斷言殘留來源");
+    }
+    if (ball2) {
+      var validBallPair2 = false;
+      for (var ba2 = 0; ba2 < lab.series.length && !validBallPair2; ba2++)
+        for (var bb2 = ba2 + 1; bb2 < lab.series.length && !validBallPair2; bb2++)
+          validBallPair2 = engine2.compareBalls(lab, lab.series[ba2].id, lab.series[bb2].id).ok === true;
+      if (!validBallPair2) return fail("換球斷言沒有可重算的兩組來源");
+    }
+    var hasF2Lab2 = law2 && ball2;
+    var hasF2Story2 = evidence2.F2 === true;
+    var labActions2 = (state.eventLog || []).filter(function (event) { return event && event.t === "lab"; });
+    if (!legacyCompletedLab2) {
+      if (law2 && !labActions2.some(function (event) { return event.action === "assertLaw"; }))
+        return fail("平方根斷言缺少玩家判讀事件");
+      if (ball2 && !labActions2.some(function (event) { return event.action === "compareBalls"; }))
+        return fail("換球斷言缺少玩家比較事件");
+      if (hasF2Lab2 !== hasF2Story2) return fail("F2 故事證據與實驗斷言不一致");
+      var f2Events2 = (state.eventLog || []).filter(function (event) {
+        return event && event.t === "evidence" && event.id === "F2" && event.at === "lab2";
+      });
+      if ((hasF2Story2 && f2Events2.length !== 1) || (!hasF2Story2 && f2Events2.length !== 0))
+        return fail("F2 缺少唯一的取得事件");
     }
     if (!Array.isArray(state.transcript) || state.transcript.length > 3000) return fail("對話紀錄格式錯誤");
     for (var t = 0; t < state.transcript.length; t++) {
@@ -1219,6 +1349,14 @@
       }
       if (cf.dossier != null) {
         var dossier = cf.dossier;
+        /* GB-ADR-035：舊存檔沒有 A4 範圍承諾欄。已對齊／已完成者視為
+           當時已作過承諾；尚未對齊者必須在新流程親自回答。 */
+        if (dossier && dossier.debate && dossier.debate.p3 &&
+            dossier.debate.p3.scope == null) {
+          dossier.debate.p3.scope = !!(dossier.debate.p3.aligned ||
+            dossier.debate.p3.transformed ||
+            (dossier.assertions && (dossier.assertions.A4 || dossier.assertions.A5)));
+        }
         if (!dossier || ["lab", "debate"].indexOf(dossier.page) < 0 || !dossier.draft ||
             (dossier.draft.location != null && ["deck", "cabin"].indexOf(dossier.draft.location) < 0) ||
             (dossier.draft.vesselId != null && ["small", "captain", "large"].indexOf(dossier.draft.vesselId) < 0) ||
@@ -1242,6 +1380,19 @@
             !dossier.assertions || !dossier.candidates ||
             (dossier.claimSelections != null && (!dossier.claimSelections ||
               typeof dossier.claimSelections !== "object")) ||
+            (dossier.proposedScopes != null && (!dossier.proposedScopes ||
+              typeof dossier.proposedScopes !== "object")) ||
+            (dossier.designCommitments != null && (!dossier.designCommitments ||
+              typeof dossier.designCommitments !== "object" ||
+              (dossier.designCommitments.cabinWind != null &&
+                dossier.designCommitments.cabinWind !== "close-cabin") ||
+              (dossier.designCommitments.cabinInstrument != null &&
+                ["drip", "toss", "combined"].indexOf(
+                  dossier.designCommitments.cabinInstrument
+                ) < 0) ||
+              !Array.isArray(dossier.designCommitments.cabinWindAttempts || []) ||
+              !Array.isArray(dossier.designCommitments.cabinInstrumentAttempts || []) ||
+              (dossier.designCommitments.cabinInstrumentAttempts || []).length > 30)) ||
             (dossier.assertionSources != null && (!dossier.assertionSources ||
               typeof dossier.assertionSources !== "object")) ||
             (dossier.sourceAttempts != null && (!Array.isArray(dossier.sourceAttempts) ||
@@ -1261,6 +1412,9 @@
               return typeof dossier.debate.pillars[pillarId] !== "boolean";
             }) ||
             (dossier.debate.p1.source != null && dossier.debate.p1.source !== "A1") ||
+            ["concept", "steady", "cabin", "wind"].some(function (field) {
+              return typeof dossier.debate.p1[field] !== "boolean";
+            }) ||
             (dossier.debate.p2.source != null && dossier.debate.p2.source !== "A3") ||
             (dossier.debate.p3.source != null && dossier.debate.p3.source !== "dual-papers") ||
             (dossier.debate.p2.scope != null && typeof dossier.debate.p2.scope !== "boolean") ||
@@ -1268,6 +1422,9 @@
               ["not-required", "required", "complete"].indexOf(dossier.debate.p2.scopeDiagnosis) < 0) ||
             (dossier.debate.p3.sourceRecordId != null &&
               (!isInt(dossier.debate.p3.sourceRecordId) || dossier.debate.p3.sourceRecordId < 1)) ||
+            typeof dossier.debate.p3.scope !== "boolean" ||
+            (dossier.debate.p3.transformMode != null &&
+              dossier.debate.p3.transformMode !== "subtract-each-beat") ||
             (dossier.debate.p3.transformedPoints != null &&
               (!Array.isArray(dossier.debate.p3.transformedPoints) ||
                 dossier.debate.p3.transformedPoints.length > 20)) ||
@@ -1422,6 +1579,8 @@
         var p3 = dossier.debate.p3;
         var p3HasProgress = p3.sourceRecordId != null || p3.source === "dual-papers" ||
           p3.question || p3.concept ||
+          p3.transformMode === "subtract-each-beat" ||
+          (Array.isArray(p3.transformedPoints) && p3.transformedPoints.length > 0) ||
           p3.aligned || p3.transformed || dossier.assertions.A4 || dossier.assertions.A5 ||
           dossier.debate.pillars.p3;
         /*
@@ -1442,16 +1601,26 @@
           }
           var transformDataOk = ch3TransformedPointsConsistent(p3, sourceEntry.dualData);
           if (!p3.transformed) {
-            delete p3.transformedPoints;
             delete p3.transformTolerance;
             delete p3.maxResidual;
+            if (!transformDataOk) ch3ResetP3Derived(lab, cf, dossier, true);
+            else if (Array.isArray(p3.transformedPoints) && p3.transformedPoints.length &&
+                p3.transformMode == null)
+              p3.transformMode = "subtract-each-beat";
           } else if (!transformDataOk) {
             ch3ResetP3Derived(lab, cf, dossier, true);
+          } else if (p3.transformMode == null) {
+            p3.transformMode = "subtract-each-beat";
           }
         }
         for (var cabinRow of dossier.blind.records || []) {
+          if (cabinRow && cabinRow.instrument == null &&
+              cabinRow.water === "水面沒有固定偏向" &&
+              cabinRow.ball === "小球落在放手點正下方")
+            cabinRow.instrument = "combined";
           if (!cabinRow || !/^C[1-9][0-9]*$/.test(cabinRow.id || "") ||
               ["dock", "steady"].indexOf(cabinRow.stage) < 0 ||
+              ["drip", "toss", "combined"].indexOf(cabinRow.instrument) < 0 ||
               typeof cabinRow.stageLabel !== "string" || cabinRow.stageLabel.length > 40 ||
               typeof cabinRow.observer !== "string" || cabinRow.observer.length > 160 ||
               typeof cabinRow.classification !== "string" || cabinRow.classification.length > 80 ||
@@ -1717,6 +1886,7 @@
           ["slow", "medium", "fast"].indexOf(seal.speed) < 0 ||
           ["short", "medium", "long"].indexOf(seal.strength) < 0 ||
           ["line", "away", "circle", "ellipse", "crash", "wrong-center"].indexOf(seal.prediction) < 0 ||
+          (seal.aimPattern != null && seal.aimPattern !== "staggered-v1") ||
           !isInt(seal.sealedAt) || seal.sealedAt < 1 || seal.sealedAt > lab.sequence)
         return fail("改向規則封存格式錯誤");
       for (var mbi = 0; mbi < lab.orbitLab.manualBeats.length; mbi++) {
@@ -1916,10 +2086,12 @@
           planetRows[pred.planet] ||
           !isFinite(pred.exponent) || !isFinite(pred.prediction) ||
           !isFinite(pred.actual) || !isFinite(pred.residualPct) ||
-          pred.sealed !== true || pred.revealedAfterSeal !== true ||
-          !isInt(pred.sealedAt) || !isInt(pred.openedAt) ||
-          pred.sealedAt < 1 || pred.sealedAt >= pred.openedAt ||
-          pred.openedAt > lab.sequence ||
+          pred.sealed !== true || typeof pred.revealedAfterSeal !== "boolean" ||
+          !isInt(pred.sealedAt) || pred.sealedAt < 1 ||
+          (pred.revealedAfterSeal
+            ? !isInt(pred.openedAt) || pred.sealedAt >= pred.openedAt ||
+              pred.openedAt > lab.sequence
+            : pred.openedAt != null) ||
           typeof pred.pass !== "boolean" || pred.superseded !== false ||
           (engine4 && !engine4._planetPredictionAudit(pred)) ||
           (pred.source === "schema1-validated-k3" && !migratedV1))
@@ -1934,15 +2106,18 @@
     ["mars", "jupiter"].forEach(function (id) {
       if (typeof lab.planetLab.revealed[id] !== "boolean")
         planetRows.__invalid = true;
-      if (lab.planetLab.revealed[id] !== !!planetRows[id] ||
+      if (lab.planetLab.revealed[id] !==
+            !!(planetRows[id] && planetRows[id].revealedAfterSeal) ||
           lab.planetLab.residuals[id] !==
-            (planetRows[id] ? planetRows[id].residualPct : null))
+            (planetRows[id] && planetRows[id].revealedAfterSeal
+              ? planetRows[id].residualPct : null))
         planetRows.__invalid = true;
     });
     if (planetRows.__invalid ||
         lab.planetLab.crossScalePass !==
           ["mars", "jupiter"].every(function (id) {
-            return !!(planetRows[id] && planetRows[id].pass);
+            return !!(planetRows[id] && planetRows[id].pass &&
+              planetRows[id].revealedAfterSeal);
           }))
       return fail("行星揭露畫面與 canonical 預測紀錄不一致");
     if (!Array.isArray(lab.modelLab.runs) || lab.modelLab.runs.length > 100)
@@ -3353,10 +3528,11 @@
             return row.sealedAt <= lab.orbitLab.continuedAt;
           })))
       return fail("行星封存預測早於玩家作圖與牛頓續畫");
-    var lastPlanetOpen = lab.planetLab.predictions.length
-      ? Math.max.apply(Math, lab.planetLab.predictions.map(function (row) {
-          return row.openedAt;
-        })) : null;
+    var openedPlanetTimes = lab.planetLab.predictions.map(function (row) {
+      return row.openedAt;
+    }).filter(isInt);
+    var lastPlanetOpen = openedPlanetTimes.length
+      ? Math.max.apply(Math, openedPlanetTimes) : null;
     if (press.priorityRecord) {
       var priorDiscoveryTimes = [lab.orbitLab.continuedAt, lastPlanetOpen].filter(isInt);
       if (priorDiscoveryTimes.length < 2 ||
@@ -3475,9 +3651,19 @@
     var reputation = sanitizeReputationLifecycle(state, scenes, "ch5");
     if (!reputation.ok) return reputation;
     var lab = state.lab;
+    /* GB-ADR-036：舊存檔沒有選紙／判讀欄位；只在整個欄位缺席時依既有證據補相容值。
+       新格式若刻意把單一判讀清空，仍須 fail closed。 */
+    if (lab && !lab.selections) lab.selections = { collision: [], clay: [] };
+    if (lab && !lab.judgments) lab.judgments = {
+      j1: lab.evidence && lab.evidence.j1 ? "both-close" : null,
+      j2: lab.evidence && lab.evidence.j2 ? "steel-close-putty-short" : null,
+      j3: lab.evidence && lab.evidence.j3 ? "speed-squared" : null,
+      followup: lab.evidence && lab.evidence.followup ? "legacy-unsealed" : null
+    };
     if (!lab || !isInt(lab.days) || lab.days < 0 || lab.days > 9999 ||
         !lab.draft || !Array.isArray(lab.collisionRuns) || !Array.isArray(lab.clayRuns) ||
-        !lab.assertions || !lab.evidence)
+        !lab.assertions || !lab.evidence || !lab.selections || !lab.judgments ||
+        !Array.isArray(lab.selections.collision) || !Array.isArray(lab.selections.clay))
       return fail("第五章工作台紀錄格式錯誤");
     if (lab.collisionRuns.length > 300 || lab.clayRuns.length > 300)
       return fail("第五章實驗紀錄過多");
@@ -3522,6 +3708,11 @@
           lab.assertions.j2.sources.some(function (id) { return !collisionIds[id]; }) ||
           lab.assertions.j3.sources.some(function (id) { return !clayIds[id]; }))
         return fail("第五章斷言引用了不存在的紀錄");
+      if (lab.selections.collision.some(function (id) { return !collisionIds[id]; }) ||
+          lab.selections.clay.some(function (id) { return !clayIds[id]; }) ||
+          new Set(lab.selections.collision).size !== lab.selections.collision.length ||
+          new Set(lab.selections.clay).size !== lab.selections.clay.length)
+        return fail("第五章勾選引用了不存在或重複的原紙");
     } catch (e) {
       return fail("第五章斷言紀錄格式錯誤");
     }
@@ -3529,6 +3720,29 @@
         lab.evidence.j2 !== lab.assertions.j2.done ||
         lab.evidence.j3 !== lab.assertions.j3.done)
       return fail("第五章證據狀態與斷言不一致");
+    var judgmentAllowed = {
+      j1: [null, "both-close", "steel-only", "putty-breaks"],
+      j2: [null, "steel-close-putty-short", "both-close", "both-short"],
+      j3: [null, "speed-squared", "speed-linear", "height-independent"],
+      followup: [null, "always-half", "changes-with-mass", "same-amount", "legacy-unsealed"]
+    };
+    for (var judgmentKey in judgmentAllowed) {
+      if (judgmentAllowed[judgmentKey].indexOf(lab.judgments[judgmentKey]) < 0)
+        return fail("第五章判讀狀態無法辨識");
+    }
+    if ((lab.evidence.j1 && lab.judgments.j1 !== "both-close") ||
+        (lab.evidence.j2 && lab.judgments.j2 !== "steel-close-putty-short") ||
+        (lab.evidence.j3 && lab.judgments.j3 !== "speed-squared"))
+      return fail("第五章證據與玩家判讀不一致");
+    if (lab.evidence.j3) {
+      var chosenClay = lab.clayRuns.filter(function (row) {
+        return lab.assertions.j3.sources.indexOf(row.id) >= 0;
+      });
+      var ratios = chosenClay.map(function (row) { return row.depth / (row.speed * row.speed); });
+      var mean = ratios.reduce(function (sum, value) { return sum + value; }, 0) / ratios.length;
+      if (!(mean > 0) || ratios.some(function (value) { return Math.abs(value - mean) / mean > 0.08; }))
+        return fail("第五章 J3 原紙不支持速度平方關係");
+    }
     if (lab.evidence.followup &&
         !lab.collisionRuns.some(function (row) {
           return row.masses === "4/8" && row.head === "putty" &&

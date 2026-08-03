@@ -68,8 +68,14 @@ if (assets.speakerSide.Newton !== "right" || assets.speakerSide.Halley !== "left
 if (assets.chapterThumbnail.ch04 !== "chapter_thumbnail_ch04")
   fail("第四章章節縮圖未接上");
 
-for (const code of ["K1", "K2", "K3", "K4", "K5"]) {
-  const id = "card_" + code;
+const expectedEvidenceAssets = {
+  K1: "card_K1",
+  K2: "card_K2_cross_scale_reconstruction_v02",
+  K3: "card_K3",
+  K4: "card_K4",
+  K5: "card_K5"
+};
+for (const [code, id] of Object.entries(expectedEvidenceAssets)) {
   const entry = entries.get(id);
   const visual = assets.evidenceVisual?.[code];
   if (!entry?.path || entry.w !== 1200 || entry.h !== 750)
@@ -80,6 +86,18 @@ for (const code of ["K1", "K2", "K3", "K4", "K5"]) {
     fail("第四章旅人筆記視覺未接上:" + code);
   const file = path.join(here, "../../public/assets", entry.path);
   if (!existsSync(file)) fail("第四章證據圖檔案不存在:" + entry.path);
+  if (code === "K2") {
+    if (!entry.path.endsWith(".webp") || !entry.sourceMaster ||
+        !existsSync(path.join(here, "../../", entry.sourceMaster)))
+      fail("K2 未使用有母版的完整 raster 教學重建圖");
+    if (!visual.caption.includes("教學重建") ||
+        !visual.items[0].alt.includes("六十個地球半徑") ||
+        !visual.items[0].alt.includes("三千六百"))
+      fail("K2 教學重建、比例或換算邊界未對玩家說清楚");
+    if (statSync(file).size > 512 * 1024)
+      fail("K2 證據圖超過單檔 512 KB 預算");
+    continue;
+  }
   const svg = readFileSync(file, "utf-8");
   if (!svg.includes('role="img"') || !svg.includes("<title") || !svg.includes("<desc"))
     fail("第四章證據圖缺可及性文字:" + id);
@@ -94,17 +112,17 @@ if (!existsSync(path.join(here, "../../public/assets", tangentSheet.path)))
 if (!existsSync(path.join(here, "../../", tangentSheet.sourceMaster)))
   fail("無作用切線預測紙母版不存在");
 const crossScaleSheets = {
-  ch04_prop_cross_scale_surface_sheet_v01:
-    "ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp",
-  ch04_prop_cross_scale_moon_sheet_v01:
-    "ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp"
+  ch04_prop_cross_scale_surface_sheet_v02:
+    "ch04/props/ch04_prop_cross_scale_surface_sheet_v02.webp",
+  ch04_prop_cross_scale_moon_sheet_v02:
+    "ch04/props/ch04_prop_cross_scale_moon_sheet_v02.webp"
 };
 for (const [id, assetPath] of Object.entries(crossScaleSheets)) {
   const entry = entries.get(id);
   if (entry?.path !== assetPath || entry.w !== 1200 || entry.h !== 480)
-    fail("同尺紙重建底圖宣告錯誤:" + id);
+    fail("同尺紙完整重建圖宣告錯誤:" + id);
   if (!existsSync(path.join(here, "../../public/assets", assetPath)))
-    fail("同尺紙 runtime 底圖不存在:" + assetPath);
+    fail("同尺紙 runtime 完整重建圖不存在:" + assetPath);
   if (!entry.sourceMaster || !existsSync(path.join(here, "../../", entry.sourceMaster)))
     fail("同尺紙來源母版不存在:" + id);
 }
@@ -171,7 +189,7 @@ const generatedFocus = {
     scene: "D4-1", match: "三份觀測封面", guard: "仍由引擎表格承載"
   },
   ch04_focus_shell_theorem_page_v01: {
-    scene: "D4-2", match: "一個均勻球殼", guard: "由引擎 SVG 疊加"
+    scene: "D4-2", match: "厚薄均勻的球殼", guard: "由引擎 SVG 疊加"
   }
 };
 for (const [id, expected] of Object.entries(generatedFocus)) {
@@ -232,12 +250,19 @@ for (const fragment of [
   if (!chapterUi.includes(fragment) && !focusRenderer.includes(fragment))
     fail("第四章 v0.8 動態證據視覺缺漏:" + fragment);
 for (const fragment of [
+  "ch04_prop_cross_scale_surface_sheet_v02",
+  "ch04_prop_cross_scale_moon_sheet_v02",
+  "orbit4ScaleSheets",
+  "想看公式，再展開",
+  "依 s ∝ t² 換成 1 秒約 1.36 mm"
+]) if (!chapterUi.includes(fragment)) fail("同尺紙完整圖或完成後選讀公式缺漏:" + fragment);
+for (const obsolete of [
   "ch04_prop_cross_scale_surface_sheet_v01",
   "ch04_prop_cross_scale_moon_sheet_v01",
   "4.9 m ÷ 60² ≈ 1.4 mm",
   "4.9 m ÷ 1.4 mm ≈ 3600",
   "60² = 3600｜距離平方縮弱"
-]) if (!chapterUi.includes(fragment)) fail("同尺紙底圖或漸進公式缺漏:" + fragment);
+]) if (chapterUi.includes(obsolete)) fail("同尺紙仍殘留舊 SVG 疊圖或提前公式:" + obsolete);
 for (const obsolete of ["箭頭方向 ", "箭頭長度 ", 'dist.type="range"', 'exponent.type="range"'])
   if (chapterUi.includes(obsolete)) fail("D1-2／D2-2 仍殘留已退役滑桿:" + obsolete);
 
@@ -353,7 +378,7 @@ const artGovernanceFiles = {
 for (const [label, file] of Object.entries(artGovernanceFiles))
   if (!existsSync(file)) fail("第四章補圖缺治理紀錄:" + label);
 const scalePromptFile = path.join(here,
-  "../../art/source/production/ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V01_20260801.md");
+  "../../art/source/production/ch04/props/PROMPTS_CH04_CROSS_SCALE_SHEETS_V02_20260803.md");
 if (!existsSync(scalePromptFile)) fail("同尺紙缺生成提示與重建邊界紀錄");
 const scaleGovernance = [
   readFileSync(scalePromptFile, "utf-8"),
@@ -377,4 +402,4 @@ if (!rootLicense.includes("public/assets/ch01–ch05") ||
     !rootLicense.includes("public/assets/ART-LICENSES.md"))
   fail("根內容授權仍未涵蓋後續章美術或未連到逐件授權帳");
 
-console.log("  ✓ 第四章正式美術與音樂交接|12 場背景、3 張去邊肖像、12 張台詞特寫、5 張證據圖、7 張新增 focus、2 組 SVG 物理疊圖、11 首 BGM");
+console.log("  ✓ 第四章正式美術與音樂交接|12 場背景、3 張去邊肖像、12 張台詞特寫、5 張證據圖、7 張新增 focus、2 張同尺完整重建圖、11 首 BGM");
