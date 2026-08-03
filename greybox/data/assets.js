@@ -3419,6 +3419,17 @@
   "DE-1": "ch4Principia",
   "DE-2": "ch4Principia",
   "SC4-R1": "ch4Press",
+  "ch5:E0-1": "ch5Cirey",
+  "ch5:E0-2": "ch5Dupre",
+  "ch5:E1-1": "ch5Dupre",
+  "ch5:E1-2": "ch5Collision",
+  "ch5:E2-1": "ch5Collision",
+  "ch5:E2-2": "ch5Collision",
+  "ch5:E2-3": "ch5Clay",
+  "ch5:E3-1": "ch5Debate",
+  "ch5:E3-2": "ch5Debate",
+  "ch5:EE-1": "ch5Emilie",
+  "ch5:EE-2": "ch5Emilie",
   "ch5:SC5-R1": "silence",
   "INT-C1": "ch3Harbor",
   "INT-C2": "ch3Public"
@@ -3668,6 +3679,52 @@
    "repeatGapMs": 5000,
    "clips": [
     "ch04/Ch4_Principia_1687.mp3"
+   ]
+  },
+  "ch5Cirey": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch05/Ch5_Cirey_Open_Book.mp3"
+   ]
+  },
+  "ch5Dupre": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch05/Ch5_Dupre_Ledger.mp3"
+   ]
+  },
+  "ch5Collision": {
+   "mode": "milestone",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch05/Ch5_Collision_Workbench_A.mp3",
+    "ch05/Ch5_Collision_Workbench_B.mp3",
+    "ch05/Ch5_Collision_Workbench_C.mp3"
+   ]
+  },
+  "ch5Clay": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch05/Ch5_Clay_Remembers.mp3"
+   ]
+  },
+  "ch5Debate": {
+   "mode": "milestone",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch05/Ch5_Ledger_Debate_A.mp3",
+    "ch05/Ch5_Ledger_Debate_B.mp3",
+    "ch05/Ch5_Ledger_Debate_C.mp3"
+   ]
+  },
+  "ch5Emilie": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch05/Ch5_Emilie_Night_Proof.mp3"
    ]
   },
   "silence": {

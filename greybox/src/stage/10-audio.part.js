@@ -217,7 +217,7 @@
     var mood = sceneCue(ev.detail.sceneId);
     if (mood && mood !== BGM.current()) BGM.play(mood);
   });
-  document.addEventListener("bd:view", function (ev) { /* 四章實驗／演示 A/B/C:依認知里程碑,不按時間輪播 */
+  document.addEventListener("bd:view", function (ev) { /* 跨章實驗／演示 A/B/C:依認知里程碑,不按時間輪播 */
     var d = ev.detail || {};
     if (BGM.current() === "workshop") {
       if (d.scene === "A2-2" && (d.nodeId === "c1" || d.nodeId === "n3")) BGM.variant(1);
@@ -258,11 +258,28 @@
       if (d.scene === "D4-2" && ["n17","n18","n19","n20","n21","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
       else if (d.scene === "D4-2") BGM.variant(1);
       else BGM.variant(0);
+      return;
+    }
+    if (BGM.current() === "ch5Collision") {
+      /* A=封存問題與首輪碰撞；B=帶方向 mv 帳成立；C=同批原紙換算 mv²。 */
+      if (d.scene === "E2-2") BGM.variant(2);
+      else if (d.scene === "E2-1") BGM.variant(1);
+      else BGM.variant(0);
+      return;
+    }
+    if (BGM.current() === "ch5Debate" && d.scene === "E3-2") {
+      BGM.variant(2);
     }
   });
-  document.addEventListener("bd:debate", function (ev) { /* 雙章辯論 A/B/C:開庭→支柱裂開→最後反撲 */
-    if (BGM.current() !== "hall" && BGM.current() !== "ch2Debate") return;
+  document.addEventListener("bd:debate", function (ev) { /* 辯論 A/B/C:開庭→支柱裂開→最後反撲 */
+    if (BGM.current() !== "hall" && BGM.current() !== "ch2Debate" && BGM.current() !== "ch5Debate") return;
     var d = ev.detail || {}, n = (d.broken || []).length;
+    if (BGM.current() === "ch5Debate") {
+      if (d.phase === "won" || n >= 2) BGM.variant(2);
+      else if (n >= 1) BGM.variant(1);
+      else BGM.variant(0);
+      return;
+    }
     if (d.phase === "fr" || d.phase === "trap" || d.phase === "arrange" || d.phase === "won") BGM.variant(2);
     else if (n >= (BGM.current() === "ch2Debate" ? 1 : 2)) BGM.variant(1);
     else BGM.variant(0);

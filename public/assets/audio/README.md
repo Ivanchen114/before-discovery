@@ -5,7 +5,7 @@
 ## 目錄規則
 
 - `common/`：跨章系列主題，只放確定會被兩章以上共用的音樂。
-- `ch01/`、`ch02/`、`ch03/`、`ch04/`：章節專屬曲目與該章生成提示詞，不把所有檔案平鋪在根目錄。
+- `ch01/`、`ch02/`、`ch03/`、`ch04/`、`ch05/`：章節專屬曲目與該章生成提示詞，不把所有檔案平鋪在根目錄。
 - `README.md`：全系列授權與 runtime 索引；各章不另造一份互相漂移的授權表。
 - 音訊預算以「每章約 10 MB、單檔不超過 3 MB」管理；跨章主題另計。新增章節不應迫使舊章音樂改名或改 cue。
 
@@ -63,6 +63,16 @@
 | `ch04/Ch4_Press_Window_B.mp3` | ch4Press B | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
 | `ch04/Ch4_Press_Window_C.mp3` | ch4Press C | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
 | `ch04/Ch4_Principia_1687.mp3` | ch4Principia | 同上 | 同上 | 同上 | 同上 | 2026-07-24 |
+| `ch05/Ch5_Cirey_Open_Book.mp3` | ch5Cirey | AI 生成（第五章提示詞包） | Google Gemini（Lyria）生成 | 同上 | 陳育詮（生成）/Codex（整合） | 2026-08-04 |
+| `ch05/Ch5_Dupre_Ledger.mp3` | ch5Dupre | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Collision_Workbench_A.mp3` | ch5Collision A | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Collision_Workbench_B.mp3` | ch5Collision B | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Collision_Workbench_C.mp3` | ch5Collision C | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Clay_Remembers.mp3` | ch5Clay | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Ledger_Debate_A.mp3` | ch5Debate A | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Ledger_Debate_B.mp3` | ch5Debate B | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Ledger_Debate_C.mp3` | ch5Debate C | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch05/Ch5_Emilie_Night_Proof.mp3` | ch5Emilie | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
 
 `ch01/Beneath_the_Chisel.mp3` 與 `ch01/Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `ch01/Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
 
@@ -114,6 +124,16 @@
 - 檔案、路徑、容量與 runtime 契約已由自動測試把關；相對音量、中文對白遮蔽與 A／B／C 聽感仍由真人試玩驗收。
 
 完整檔名、逐首提示詞、A／B／C 比對與 runtime 預定對應：`ch04/PROMPTS_BGM_CH4_GEMINI_20260723.md`。
+
+## 第五章 runtime（Codex 整合，2026-08-04）
+
+- 十首 MP3 已到齊並接入 runtime：雙聲道、44.1 kHz、192 kbps，長度約 26.80–30.77 秒，總量約 6.8 MB。
+- 西雷開場、杜佩舊帳、黏土判讀與杜夏特萊尾聲各用獨立 cue；SC5-R1 修復場維持沉默。
+- 碰撞工作台三段：A=封存問題與首輪碰撞；B=帶方向 `mv` 帳成立；C=同批原紙改算 `mv²`。依 E1-2／E2-1／E2-2 的認知里程碑切換，不按秒數輪播。
+- 辯論三段：A=兩本帳上桌；B=首支柱擊破；C=第二支柱後至邊界結案。每段曲末留白 5 秒後才重播同段。
+- 技術規格、逐檔 SHA-256、實際秒數與 runtime 對應均收在第五章提示詞包；音色、相對音量與對白遮蔽仍由總監真人實聽驗收。
+
+完整提示詞與生成完成紀錄：`ch05/PROMPTS_BGM_CH5_GEMINI_20260804.md`。
 
 ## 生成紀錄(Sol 已審 2026-07-20:**候選、未凍結**)
 

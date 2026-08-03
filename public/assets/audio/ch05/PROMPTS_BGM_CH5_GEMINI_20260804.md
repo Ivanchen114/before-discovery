@@ -104,19 +104,19 @@ Create a 30-second historically grounded French chamber epilogue for a narrative
 
 ## Runtime 對應建議
 
-| 場景／狀態 | 建議音檔 |
-|---|---|
-| E0-1｜西雷城堡開場、杜夏特萊登場 | `Ch5_Cirey_Open_Book.mp3` |
-| E0-2～E1-1｜杜佩舊帳與問題成立 | `Ch5_Dupre_Ledger.mp3` |
-| E1-2｜碰撞台：設計、預測、第一輪資料 | `Ch5_Collision_Workbench_A.mp3` |
-| E2-1｜第一本帳完成 | `Ch5_Collision_Workbench_B.mp3` |
-| E2-2｜同一批原紙改用第二本帳 | `Ch5_Collision_Workbench_C.mp3` |
-| E2-3｜黏土與速度比較 | `Ch5_Clay_Remembers.mp3` |
-| E3-1｜辯論開場、兩本帳並列 | `Ch5_Ledger_Debate_A.mp3` |
-| E3-1｜證據對位、短少無法抹去 | `Ch5_Ledger_Debate_B.mp3` |
-| E3-2｜替兩本帳各自劃界 | `Ch5_Ledger_Debate_C.mp3` |
-| EE-1～EE-2｜印刷鋪、證明與章末 | `Ch5_Emilie_Night_Proof.mp3` |
-| SC5-R1｜修復／重建場 | 維持沉默，不配置 BGM |
+| 場景／狀態 | Runtime cue | 建議音檔 |
+|---|---|---|
+| E0-1｜西雷城堡開場、杜夏特萊登場 | `ch5Cirey` | `Ch5_Cirey_Open_Book.mp3` |
+| E0-2～E1-1｜杜佩舊帳與問題成立 | `ch5Dupre` | `Ch5_Dupre_Ledger.mp3` |
+| E1-2｜碰撞台：設計、預測、第一輪資料 | `ch5Collision` A | `Ch5_Collision_Workbench_A.mp3` |
+| E2-1｜第一本帳完成 | `ch5Collision` B | `Ch5_Collision_Workbench_B.mp3` |
+| E2-2｜同一批原紙改用第二本帳 | `ch5Collision` C | `Ch5_Collision_Workbench_C.mp3` |
+| E2-3｜黏土與速度比較 | `ch5Clay` | `Ch5_Clay_Remembers.mp3` |
+| E3-1｜辯論開場、兩本帳並列 | `ch5Debate` A | `Ch5_Ledger_Debate_A.mp3` |
+| E3-1｜首支柱擊破、短少無法抹去 | `ch5Debate` B | `Ch5_Ledger_Debate_B.mp3` |
+| E3-1～E3-2｜第二支柱後、替兩本帳各自劃界 | `ch5Debate` C | `Ch5_Ledger_Debate_C.mp3` |
+| EE-1～EE-2｜印刷鋪、證明與章末 | `ch5Emilie` | `Ch5_Emilie_Night_Proof.mp3` |
+| SC5-R1｜修復／重建場 | `silence` | 維持沉默，不配置 BGM |
 
 ## A／B 驗收
 
@@ -145,3 +145,24 @@ Create a 30-second historically grounded French chamber epilogue for a narrative
 5. 音檔到齊後再補：SHA-256、實際秒數、檔案大小、授權／生成紀錄與 runtime 對應。
 6. 完成接線後需分開驗收：桌面瀏覽器、iPhone 加入主畫面模式、Android Chrome、靜音切換、場景切換與 5 秒停頓。
 7. 第六章另案製作；待章節節奏、工作台轉折與尾聲位置凍結後，再依本格式建立獨立音樂包。
+
+## 生成完成紀錄
+
+生成者：陳育詮
+生成工具：Google Gemini（Lyria）
+整合日期：2026-08-04
+
+| 檔名 | 時長 | 大小（bytes） | SHA-256 |
+|---|---:|---:|---|
+| `Ch5_Cirey_Open_Book.mp3` | 30.772 秒 | 744609 | `b7f49ba71e9dc56fb4e0989ab404a009b953362712ecdd902d17d75975be0bdf` |
+| `Ch5_Clay_Remembers.mp3` | 27.899 秒 | 675646 | `15cfb5198004ea4ff3b480add70fda8f5b6f602e2de7b3ca56b74e43adc8fd4d` |
+| `Ch5_Collision_Workbench_A.mp3` | 26.802 秒 | 649315 | `836d22c0efa79feef9b08119ca460285173d2e77237b8c265a29d2a884401c90` |
+| `Ch5_Collision_Workbench_B.mp3` | 27.899 秒 | 675646 | `2922ce31f69ee9b92903a84eb2ae6b88e671823c133320f13edcf42b129a29ab` |
+| `Ch5_Collision_Workbench_C.mp3` | 30.772 秒 | 744609 | `0022f578cc4043836c03696c7272ee38bc89ea81a6b71a5819f02f6481fb6f11` |
+| `Ch5_Dupre_Ledger.mp3` | 30.772 秒 | 744609 | `57416f1d318fa117c74ddac851288581cf1563f263690f2b30988ef1eba958e0` |
+| `Ch5_Emilie_Night_Proof.mp3` | 27.899 秒 | 675646 | `83a1ce73f209892ac1d92b817be2e0abd1f0668b0ae49d31bd88be864dfc20c9` |
+| `Ch5_Ledger_Debate_A.mp3` | 30.772 秒 | 744609 | `ba8e937f2506fbd55f2d8077a3e4fd969241b0ca8c4de822ff919a9211ebbfed` |
+| `Ch5_Ledger_Debate_B.mp3` | 28.656 秒 | 693827 | `1495428842ee573f12c79955c2cd1074bd4871cdf8696e05c9bd65203c113691` |
+| `Ch5_Ledger_Debate_C.mp3` | 30.772 秒 | 744609 | `bfa29385f0fc70c9305086c988b5814a039933385203029b9acebbe21f304e3a` |
+
+技術驗證：十首皆為雙聲道 MP3、44.1 kHz、192 kbps；總量約 6.8 MB。音色、對白遮蔽與 A／B／C 情緒差異仍須總監真人實聽。

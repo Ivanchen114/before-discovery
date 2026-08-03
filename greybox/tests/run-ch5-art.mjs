@@ -153,10 +153,82 @@ for (const guard of ["合理重建", "J1、J2、J4 v01 退役", "不宣稱精確
   "ch05_focus_unequal_putty_question"])
   if (!handoff.includes(guard)) fail("美術交接缺邊界:" + guard);
 
+const promptPath = path.join(repoRoot, "public/assets/audio/ch05/PROMPTS_BGM_CH5_GEMINI_20260804.md");
+if (!existsSync(promptPath)) fail("缺第五章音樂提示詞與生成紀錄");
+const prompts = readFileSync(promptPath, "utf-8");
+const expectedSceneBgm = {
+  "ch5:E0-1": "ch5Cirey",
+  "ch5:E0-2": "ch5Dupre",
+  "ch5:E1-1": "ch5Dupre",
+  "ch5:E1-2": "ch5Collision",
+  "ch5:E2-1": "ch5Collision",
+  "ch5:E2-2": "ch5Collision",
+  "ch5:E2-3": "ch5Clay",
+  "ch5:E3-1": "ch5Debate",
+  "ch5:E3-2": "ch5Debate",
+  "ch5:EE-1": "ch5Emilie",
+  "ch5:EE-2": "ch5Emilie",
+  "ch5:SC5-R1": "silence"
+};
+for (const [scene, cue] of Object.entries(expectedSceneBgm))
+  if (assets.sceneBgm?.[scene] !== cue) fail("第五章場景音樂映射錯誤:" + scene);
+
+const expectedBgmFiles = {
+  ch5Cirey: ["ch05/Ch5_Cirey_Open_Book.mp3"],
+  ch5Dupre: ["ch05/Ch5_Dupre_Ledger.mp3"],
+  ch5Collision: [
+    "ch05/Ch5_Collision_Workbench_A.mp3",
+    "ch05/Ch5_Collision_Workbench_B.mp3",
+    "ch05/Ch5_Collision_Workbench_C.mp3"
+  ],
+  ch5Clay: ["ch05/Ch5_Clay_Remembers.mp3"],
+  ch5Debate: [
+    "ch05/Ch5_Ledger_Debate_A.mp3",
+    "ch05/Ch5_Ledger_Debate_B.mp3",
+    "ch05/Ch5_Ledger_Debate_C.mp3"
+  ],
+  ch5Emilie: ["ch05/Ch5_Emilie_Night_Proof.mp3"]
+};
+let chapter5MusicBytes = 0;
+for (const [cue, clips] of Object.entries(expectedBgmFiles)) {
+  if (!prompts.includes("`" + cue + "`")) fail("音樂提示詞缺 runtime cue:" + cue);
+  const spec = assets.bgmFiles?.[cue];
+  const expectedMode = clips.length === 3 ? "milestone" : "once";
+  if (spec?.mode !== expectedMode) fail("第五章音樂播放模式錯誤:" + cue);
+  if (spec?.repeatGapMs !== 5000) fail("第五章音樂重播間隔錯誤:" + cue);
+  if (JSON.stringify(spec?.clips) !== JSON.stringify(clips)) fail("第五章音樂清單錯誤:" + cue);
+  for (const clip of clips) {
+    if (!prompts.includes(path.basename(clip))) fail("音樂提示詞缺檔名:" + clip);
+    const file = path.join(repoRoot, "public/assets/audio", clip);
+    if (!existsSync(file)) fail("runtime 音樂接到不存在檔案:" + cue + " → " + clip);
+    const bytes = statSync(file).size;
+    if (bytes < 100 * 1024) fail("第五章音樂檔案異常過小:" + clip);
+    if (bytes > 3 * 1024 * 1024) fail("第五章音樂超過單檔 3 MB 預算:" + clip);
+    const header = readFileSync(file).subarray(0, 3);
+    const isMp3 = header.toString("ascii") === "ID3" || (header[0] === 0xff && (header[1] & 0xe0) === 0xe0);
+    if (!isMp3) fail("第五章音樂不是可辨識的 MP3:" + clip);
+    chapter5MusicBytes += bytes;
+  }
+}
+if (chapter5MusicBytes > 10 * 1024 * 1024) fail("第五章音樂超過全章 10 MB 預算");
+
+const audioLedger = readFileSync(path.join(repoRoot, "public/assets/audio/README.md"), "utf-8");
+for (const clips of Object.values(expectedBgmFiles))
+  for (const clip of clips)
+    if (!audioLedger.includes("`" + clip + "`")) fail("音樂授權索引缺檔案:" + clip);
+
+const stageUi = readFileSync(path.join(repoRoot, "greybox/src/stage-ui.js"), "utf-8");
+for (const fragment of [
+  'BGM.current() === "ch5Collision"',
+  'd.scene === "E2-2"',
+  'BGM.current() === "ch5Debate"',
+  'd.phase === "won" || n >= 2'
+]) if (!stageUi.includes(fragment)) fail("第五章三段式音樂缺里程碑切換:" + fragment);
+
 let totalBytes = 0;
 for (const entry of assets.entries)
   if ((entry.path || "").startsWith("ch05/") && existsSync(path.join(publicRoot, entry.path)))
     totalBytes += statSync(path.join(publicRoot, entry.path)).size;
 if (totalBytes > 8 * 1024 * 1024) fail("第五章 runtime 圖片超過全章 8 MB 預算");
 
-console.log("  ✓ 第五章正式美術交接");
+console.log("  ✓ 第五章正式美術與音樂交接|10 首 BGM、碰撞台與辯論各三段里程碑");
