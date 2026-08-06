@@ -26,12 +26,14 @@ if (duplicate.length) fail(`GB-ADR ID 撞號或缺唯一標題：${duplicate.joi
 else pass("GB-ADR 標題無撞號");
 
 const missing = [];
-for (let n = 1; n <= 42; n += 1) {
+const latestAdrNumber = Math.max(0, ...headings.map((row) => row.n));
+for (let n = 1; n <= latestAdrNumber; n += 1) {
   const id = `GB-ADR-${String(n).padStart(3, "0")}`;
   if (!counts.has(id)) missing.push(id);
 }
-if (missing.length) fail(`GB-ADR-001～042 不連續：缺 ${missing.join("、")}`);
-else pass("GB-ADR-001～042 流水號完整");
+const latestAdrId = `GB-ADR-${String(latestAdrNumber).padStart(3, "0")}`;
+if (missing.length) fail(`GB-ADR-001～${latestAdrId.slice(-3)} 不連續：缺 ${missing.join("、")}`);
+else pass(`GB-ADR-001～${latestAdrId.slice(-3)} 流水號完整`);
 
 const retiredAliasPath = "01_治理/發現之前_GB-ADR-030_信譽作為研究誠實與授權階梯_20260729.md";
 const walkMarkdown = (dir, prefix = "") => {

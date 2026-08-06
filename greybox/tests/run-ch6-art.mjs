@@ -146,6 +146,27 @@ requireAsset(entries, "chapter_thumbnail_ch06", {
 if (assets.chapterThumbnail?.ch06 !== "chapter_thumbnail_ch06")
   fail("第六章章節縮圖未接上");
 
+for (const [assetId, scene, match] of [
+  ["ch06_focus_four_hands_strip_alignment_v01", "H1-1", "旅人把兩條紙帶的起點對齊"],
+  ["ch06_focus_heat_strips_reading_v01", "H1-1", "這組紙最多支持到哪裡？"],
+  ["ch06_focus_public_blank_admission_v01", "H3-1", "炮紙沒有因此變假"]
+]) {
+  requireAsset(entries, assetId, { kind:"cg", w:1672, h:941 });
+  const rule = assets.lineFocusVisual?.find((entry) =>
+    entry.scene === scene && entry.match === match &&
+    entry.items?.some((item) => item.asset === assetId));
+  if (!rule?.caption || !rule.items?.[0]?.alt)
+    fail("第六章共同發現焦點圖未接上台詞:" + assetId);
+}
+const readingAsset = entries.get("ch06_focus_heat_strips_reading_v01");
+const readingView = assets.viewFocusVisual?.find((entry) =>
+  entry.scene === "H1-1" && entry.match === "這組紙最多支持到哪裡？" &&
+  entry.nodeIds?.length === 1 && entry.nodeIds[0] === "c1");
+if (readingAsset?.shotRole !== "reading" ||
+    JSON.stringify(readingAsset.embeddedText) !== JSON.stringify(["碎屑", "薄片"]) ||
+    !readingView)
+  fail("第六章紙帶閱讀鏡頭未鎖定允許文字或 c1 停留映射");
+
 const ui = readFileSync(path.join(repoRoot, "greybox/src/chapter-ui.js"), "utf-8");
 for (const fragment of ["ASSETS.heat6Visual", "heat6MountVisual", "ch06_lab_water_box_boiling",
   "圖面不替任何來源押答案", "封條只裂，不消失"])
@@ -171,7 +192,7 @@ for (const entry of assets.entries) {
     runtimePaths.add(runtime);
   }
 }
-if (runtimePaths.size !== 32) fail("第六章 runtime 檔案數應為 32，實際 " + runtimePaths.size);
+if (runtimePaths.size !== 35) fail("第六章 runtime 檔案數應為 35，實際 " + runtimePaths.size);
 if (totalBytes > 8 * 1024 * 1024) fail("第六章 runtime 圖片超過全章 8 MB 預算");
 
-console.log("  ✓ 第六章正式美術交接（32 圖，含章末未來顯影，" + (totalBytes / 1024 / 1024).toFixed(2) + " MB）");
+console.log("  ✓ 第六章正式美術交接（35 圖，含共同核紙、紙帶閱讀、公開未決與章末未來顯影，" + (totalBytes / 1024 / 1024).toFixed(2) + " MB）");

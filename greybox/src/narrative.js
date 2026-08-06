@@ -36,7 +36,7 @@
     ch1: [],
     ch2: [],
     ch3: [],
-    ch4: ["sealTangentPrediction", "archiveEvidenceSet"],
+    ch4: ["sealTangentPrediction", "convertMoonTime", "judgeScaleRatio", "judgeScaleRelation", "archiveEvidenceSet"],
     ch5: [],
     ch6: ["judgeChipComparison", "judgeFrictionConditions", "judgeDryStrip",
       "sealAirPrediction", "judgeAirComparison", "writeScopeDebt", "finalizeJointPage"]
@@ -1197,6 +1197,8 @@
     else if (action === "advanceTransition" && Engine.advanceTransition) r = Engine.advanceTransition(state.lab, args.cardId);
     else if (action === "sealTangentPrediction" && Engine.sealTangentPrediction)
       r = Engine.sealTangentPrediction(state.lab, args.choice);
+    else if (action === "runOrbitPaperTrial" && Engine.runOrbitPaperTrial)
+      r = Engine.runOrbitPaperTrial(state.lab, args.speed, args.strength);
     else if (action === "sealOrbitRule" && Engine.sealOrbitRule)
       r = Engine.sealOrbitRule(state.lab, args.config, args.prediction);
     else if (action === "nudgeOrbitAim" && Engine.nudgeOrbitAim)
@@ -1221,9 +1223,15 @@
       r = Engine.sealPlanetPrediction(state.lab, args.id, args.bandId);
     else if (action === "revealPlanetPredictions" && Engine.revealPlanetPredictions)
       r = Engine.revealPlanetPredictions(state.lab);
+    else if (action === "judgePlanetComparison" && Engine.judgePlanetComparison)
+      r = Engine.judgePlanetComparison(state.lab, args.choice);
     else if (action === "assertK2" && Engine.assertK2) r = Engine.assertK2(state.lab, args.records, args.concept);
     else if (action === "assertK3" && Engine.assertK3) r = Engine.assertK3(state.lab, args.records, args.concept);
     else if (action === "connectCometTracks" && Engine.connectCometTracks) r = Engine.connectCometTracks(state.lab, args.mode);
+    else if (action === "setModelProtocol" && Engine.setModelProtocol)
+      r = Engine.setModelProtocol(state.lab, args.protocol);
+    else if (action === "sealModelPrediction" && Engine.sealModelPrediction)
+      r = Engine.sealModelPrediction(state.lab, args.model, args.prediction);
     else if (action === "beginLedgerRow" && Engine.beginLedgerRow)
       r = Engine.beginLedgerRow(state.lab, args.caseId);
     else if (action === "stampLedgerCell" && Engine.stampLedgerCell)
@@ -1325,7 +1333,7 @@
     };
     if (CHAPTER_ID === "ch4") {
       labEvent.sequence = state.lab.sequence;
-      if (["assertK1", "assertK2", "assertK3", "assertK4"]
+      if (["runOrbitPaperTrial", "assertK1", "assertK2", "assertK3", "assertK4"]
           .indexOf(action) >= 0)
         labEvent.args = clone(args || {});
     }

@@ -81,6 +81,36 @@
     data.lint.whitelist.forEach(function (w) { wl[w.scene + "/" + w.node] = w; });
     var sceneIdx = {};
     data.scenes.forEach(function (s) { sceneIdx[s.id] = s; });
+    /* CH1-CR-011：結論概念不能只靠一個禁字；同義變體與揭曉順序一起管理，
+       並掃描玩家、NPC、旁白、hint 與選項。 */
+    (data.lint.concepts || []).forEach(function (concept) {
+      if (!concept || concept.kind !== "allow-only-after-player" ||
+          !Array.isArray(concept.variants) || !concept.variants.length ||
+          !Array.isArray(concept.allowed) || !concept.allowed.length)
+        throw new Error("結論概念規則格式錯誤:" + (concept && concept.id));
+      var allowed = {};
+      concept.allowed.forEach(function (entry) {
+        var sc = sceneIdx[entry.scene];
+        if (!sc) throw new Error("結論概念白名單場景缺:" + entry.scene);
+        var nodeIndex = sc.nodes.findIndex(function (node) { return node.id === entry.node; });
+        var playerIndex = sc.nodes.findIndex(function (node) { return node.id === entry.afterPlayerNode; });
+        if (nodeIndex < 0 || playerIndex < 0 || nodeIndex <= playerIndex)
+          throw new Error("結論概念揭曉順序錯誤:" + entry.scene + "/" + entry.node);
+        allowed[entry.scene + "/" + entry.node] = 1;
+      });
+      data.scenes.forEach(function (scene) {
+        scene.nodes.forEach(function (node) {
+          var values = [node.text, node.hint].concat((node.options || []).map(function (o) { return o.text; }));
+          values.forEach(function (text) {
+            if (typeof text !== "string") return;
+            concept.variants.forEach(function (variant) {
+              if (text.indexOf(variant) >= 0 && !allowed[scene.id + "/" + node.id])
+                throw new Error(scene.id + "/" + node.id + " 提前洩漏概念「" + concept.id + "」變體「" + variant + "」");
+            });
+          });
+        });
+      });
+    });
     data.scenes.forEach(function (s) {
       s.nodes.forEach(function (n) {
         if (n.type !== "line" && n.type !== "system") return; /* choice 選項=玩家認知,豁免 */
@@ -148,6 +178,10 @@
     ok(mutated(function (c) { c.lint.whitelist[0].refutedBy = { scene: "A1-1", node: "n2" }; }), "refutedBy 指向非互動節點必敗");
     ok(mutated(function (c) { delete c.lint.whitelist[1].afterPlayerNode; }), "post-reveal 缺 afterPlayerNode 必敗");
     ok(mutated(function (c) { c.lint.whitelist[1].afterPlayerNode = "n5"; }), "afterPlayerNode 在後方必敗");
+    ok(mutated(function (c) {
+      c.scenes.filter(function (s) { return s.id === "A2-2"; })[0]
+        .nodes.filter(function (n) { return n.id === "n3b"; })[0].text += " 時間刻度自己乘自己。";
+    }), "平方概念同義變體在 qCum 後指定節點以前出現必敗");
   });
 
   t("主線通關|路徑A(探索):P0→INT-1 終點;證據 S2/S1/E1/E2 齊;信譽帳正確", function () {
@@ -515,7 +549,15 @@
     eq(r.outcome, "wrong", "E3 確立後 a 出示=其餘三元組(依規格)");
     eq(s.debate.persuasion, 3);
     r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
-    eq(r.outcome, "correct"); ok(s.debate.fr.opened, "三柱皆破→FR");
+    eq(r.outcome, "reason", "P3 配證後不得由系統代答");
+    var p3Pending = s;
+    r = deb(p3Pending, "debateReason", ["same-desire"]);
+    eq(r.outcome, "retry", "P3 錯誤推論只留痕並重選");
+    ok(!r.state.debate.pillars.P3.broken && r.state.debate.pendingReason.pid === "P3",
+      "P3 錯誤推論不得破柱或清掉待判狀態");
+    r = deb(p3Pending, "debateReason", ["weight-not-supported"]); s = r.state;
+    eq(r.outcome, "correct", "P3 由玩家改選正確推論後才破柱");
+    ok(s.debate.fr.opened, "三柱皆由玩家完成推論後→FR");
     r = deb(s, "debateFr", ["b"]); s = r.state; eq(r.outcome, "retry", "引導步答錯僅重選");
     r = deb(s, "debateFr", ["a"]); s = r.state;
     r = deb(s, "debateFr", ["a"]); s = r.state;
@@ -604,7 +646,8 @@
       "cause-not-eye", "P1"); s = r.state;
     r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
       "premise-conflicts", "P2"); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    r = presentAndReason(s, { evidence: "E3", subitem: "b", target: "s2" },
+      "weight-not-supported", "P3"); s = r.state;
     ok(s.debate.fr.opened);
     r = deb(s, "debateFr", ["d2"]); s = r.state;
     eq(r.outcome, "distractor"); eq(s.debate.persuasion, 4, "干擾項−1");
@@ -629,7 +672,8 @@
       "cause-not-eye", "P1"); s = r.state;
     r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
       "premise-conflicts", "P2"); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    r = presentAndReason(s, { evidence: "E3", subitem: "b", target: "s2" },
+      "weight-not-supported", "P3"); s = r.state;
     ok(s.debate.fr.opened, "FR 已開");
     var s2 = JSON.parse(JSON.stringify(s));
     s2.lab.evidence.e3.c = false;                     /* 竄改:移除 E3.c */
@@ -671,7 +715,8 @@
     r = deb(s, "debatePressChoice", ["b"]); s = r.state;
     r = presentAndReason(s, { evidence: "E2", subitem: null, target: "p2s2" },
       "premise-conflicts", "P2"); s = r.state;
-    r = deb(s, "debatePresent", [{ evidence: "E3", subitem: "b", target: "s2" }]); s = r.state;
+    r = presentAndReason(s, { evidence: "E3", subitem: "b", target: "s2" },
+      "weight-not-supported", "P3"); s = r.state;
     r = deb(s, "debateFr", ["a"]); s = r.state;
     r = deb(s, "debateFr", ["a"]); s = r.state;
     ok(s.debate.fr.trapPending, "trap 就位(說服力1/信譽1)");

@@ -78,8 +78,15 @@
     SCENES.scenes.forEach(function (s) { if (s.id === id) sc = s; });
     return sc;
   }
+  function applySceneTreatment(sceneId) {
+    var treatment = ASSETS && ASSETS.sceneTreatment && ASSETS.sceneTreatment[sceneId];
+    var timePassage = treatment && treatment.mode === "time-passage";
+    body.classList.toggle("scene-treatment-time-passage", !!timePassage);
+    $("timePassageLabel").textContent = timePassage ? String(treatment.label || "") : "";
+    $("timePassageCaption").textContent = timePassage ? String(treatment.caption || "") : "";
+  }
   function setScene(sceneId) {
-    if (sceneId === curSceneId) return;
+    if (sceneId === curSceneId) { applySceneTreatment(sceneId); return; }
     clearFocusVisual();
     curSceneId = sceneId;
     preloadScene(sceneId);
@@ -109,6 +116,7 @@
       fb.classList.remove("off");
       $("fbTitle").textContent = publicTitle;
     }
+    applySceneTreatment(sceneId);
   }
 
   /* ---------- 對話框左側半身像 ---------- */
@@ -342,6 +350,40 @@
     diagram.appendChild(overlay);
     return diagram;
   }
+  function mountOrbitGeometryFocusVisual(item, art) {
+    var state = item.overlay || "orbit-base";
+    var diagram = document.createElement("div");
+    diagram.className = "scene-focus-orbit-geometry " + state;
+    diagram.setAttribute("role", "img");
+    diagram.setAttribute("aria-label", item.alt || "月球短圓弧、切線與實際端點差距的分步幾何圖");
+    var img = document.createElement("img");
+    img.src = assetUrl(art);
+    img.alt = "";
+    img.loading = "eager";
+    img.setAttribute("aria-hidden", "true");
+    diagram.appendChild(img);
+    var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "orbit-geometry-overlay");
+    // Keep overlay geometry in the 1200 x 800 runtime-asset coordinate space.
+    // `slice` mirrors the base image's object-fit: cover at every viewport size.
+    overlay.setAttribute("viewBox", "0 0 1200 800");
+    overlay.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    overlay.setAttribute("aria-hidden", "true");
+    if (state !== "orbit-base") {
+      overlay.innerHTML =
+        '<path class="tangent" d="M 627.2 276.6 L 712 390.3"/>' +
+        '<circle class="tangent-end" cx="712" cy="390.3" r="6"/>';
+      if (state === "orbit-gap") {
+        overlay.innerHTML +=
+          '<path class="actual" d="M 627.2 276.6 A 335.9 358.1 0 0 1 688.5 405.6"/>' +
+          '<circle class="actual-end" cx="688.5" cy="405.6" r="6"/>' +
+          '<path class="gap" d="M 712 390.3 L 688.5 405.6"/>' +
+          '<path class="gap-tick" d="M 708.2 383.9 L 715.8 396.8 M 684.7 399.2 L 692.3 412.1"/>';
+      }
+    }
+    diagram.appendChild(overlay);
+    return diagram;
+  }
   function mountShellTheoremFocusVisual(item, art) {
     var diagram = document.createElement("div");
     diagram.className = "scene-focus-shell-theorem";
@@ -391,6 +433,11 @@
       }
       var e = assetEntry(item.asset);
       if (!e) return;
+      if (["orbit-base", "orbit-tangent", "orbit-gap"].indexOf(item.overlay) >= 0) {
+        media.appendChild(mountOrbitGeometryFocusVisual(item, e));
+        shown++;
+        return;
+      }
       if (item.overlay === "cannon-trajectories") {
         media.appendChild(mountCannonFocusVisual(item, e));
         shown++;
@@ -672,6 +719,10 @@
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
+    /* K2 地心判讀同時保留左側來源紙；手機橫屏只替這一拍收窄選項，
+       不犧牲其他場景的選項寬度，也不把焦點圖縮到無法判讀。 */
+    body.classList.toggle("choice-focus-split",
+      CHAPTER_ID === "ch4" && d.scene === "D1-2" && d.nodeId === "c_center_reason");
     /* 互動選項不是台詞事件：操作前的裝置圖、判讀前的結果圖要由節點主動叫回。
        讀檔直接落在選項時也成立，不依賴玩家曾經看過前一行台詞。 */
     showFocusVisualForView(d.scene, d.nodeId);
@@ -1238,11 +1289,11 @@
       var orbitPhase = orbitBox ? orbitBox.getAttribute("data-phase") : "";
       if (orbitPhase === "scale") {
         lines = [
-          "先看兩張紙：地表記 1 秒，月球記 60 秒。",
-          "先猜月球的 60 秒換成 1 秒後，會剩原來的多少，再封存答案。",
-          "接著只做兩個比較：要除多少，以及兩張一秒紙相差幾倍。"
+          "先看兩張紙：地表已記 1 秒；月球只給距離 60R 與週期 27.3 日。",
+          "先從圖上指出切線端點與實際端點之間的短差；牛頓再依這個判斷完成幾何。",
+          "兩張一秒紙都完成後，再比較約 3600 與距離 60；最後才決定兩者怎麼連。"
         ];
-        $("btnLabIntroGo").textContent = "知道了，開始換算";
+        $("btnLabIntroGo").textContent = "知道了，開始畫幾何";
       } else {
         lines = [
           "先看右頁的「現在只做一件事」，不用預讀後面的步驟。",
@@ -1936,8 +1987,8 @@
       return;
     }
     if (BGM.current() === "ch4Orbit") {
-      /* A=封存切線來源紙；B=同尺換算；C=同尺關係完成並留下未決問號。 */
-      if (d.scene === "D1-2" && ["n9","n10","n11","n12","n13","n14","n15","n16","n17","n18","n19","n20","n21","n22","n23","n24","n25","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
+      /* A=封存切線來源紙；B=月球一秒正矢計算；C=同尺關係完成並留下未決問號。 */
+      if (d.scene === "D1-2" && ["n9","n10","n11","n11b","n11c","n11d","n12","n12b","n13","n14","n15","n16","n17","n18","n19","n20","n21","n22","n23","n24","n25","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
       else if (d.scene === "D1-2") BGM.variant(1);
       else BGM.variant(0);
       return;

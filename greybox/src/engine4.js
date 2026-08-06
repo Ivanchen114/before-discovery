@@ -3,7 +3,13 @@
 (function (root) {
   "use strict";
 
-  var TEACHING = { earthRadiusRatio: 60, surfaceOneSecondFallM: 4.9, moonSixtySecondSagM: 4.9 };
+  var TEACHING = {
+    earthRadiusRatio: 60,
+    moonDistanceEarthRadii: 60,
+    earthRadiusKm: 6371,
+    moonPeriodDays: 27.3,
+    surfaceOneSecondFallM: 4.9
+  };
   var MODERN = { meanMoonDistanceKm: 384400, earthRadiusKm: 6371, ratio: 60.34, moonSagBandM: [4.7, 5.1] };
   /* D1 的「改向尺」只比較同一半徑附近的局部幾何，不預先假定 D2 才要檢驗的
      距離律。每拍以同一個 dt 更新速度與位置；方向、箭長與初速一旦封存便不再
@@ -86,6 +92,23 @@
     var p = Math.pow(10, places == null ? 3 : places);
     return Math.round(x * p) / p;
   }
+  /* GB-ADR-043：月球偏折必須由天文尺真正算出，不能再把地表 4.9 m
+     複製成「月球 60 秒答案」。半角式比 1-cos(theta) 在一秒小角度下穩定。 */
+  function moonSagM(seconds, fixture) {
+    var f = fixture || TEACHING;
+    var radiusM = f.earthRadiusKm * 1000 * f.moonDistanceEarthRadii;
+    var periodSeconds = f.moonPeriodDays * 86400;
+    var halfAngle = Math.PI * Number(seconds) / periodSeconds;
+    return radiusM * 2 * Math.pow(Math.sin(halfAngle), 2);
+  }
+  function expectedScaleRatio(fixture) {
+    var f = fixture || TEACHING;
+    return f.surfaceOneSecondFallM / moonSagM(1, f);
+  }
+  function scaleRatioMatches(value, fixture) {
+    var expected = expectedScaleRatio(fixture);
+    return Math.abs(Number(value) - expected) / expected <= 0.05;
+  }
   function unique(xs) { return Array.from(new Set(xs || [])); }
   function angleDeg(ax, ay, bx, by) {
     var am = Math.sqrt(ax * ax + ay * ay), bm = Math.sqrt(bx * bx + by * by);
@@ -148,6 +171,7 @@
         consequence: null, tangentRecord: null, closedRecord: null,
         ruleRepeatReady: false, complete: false,
         position: { x: 1, y: 0 }, velocity: { x: 0, y: 0.24 },
+        paperTrials: [], paperTrialActiveId: null,
         ruleRuns: [], activeRule: null,
         ruleSeal: null, aimAngle: null, manualBeats: [], manualAttempts: [],
         firstStepAt: null, manualComplete: false, continuedAt: null
@@ -163,9 +187,12 @@
       },
       planetLab: {
         predictions: [], revealed: { mars: false, jupiter: false },
-        residuals: { mars: null, jupiter: null }, crossScalePass: false
+        residuals: { mars: null, jupiter: null }, crossScalePass: false,
+        methodVersion: "blind-v1", comparisonAttempts: [],
+        comparisonClaim: null, comparisonSealed: false, comparisonSealedAt: null
       },
       modelLab: {
+        methodVersion: "hearing-v1",
         runs: [], gravityComplete: false, vortexComplete: false,
         selectedRecords: [], comparisonClaim: null,
         protocolAttempts: [], protocolLocked: false, protocol: null,
@@ -290,6 +317,8 @@
 
   function ensureOrbitRuleFields(s) {
     s.orbitLab = s.orbitLab || {};
+    if (!Array.isArray(s.orbitLab.paperTrials)) s.orbitLab.paperTrials = [];
+    if (!("paperTrialActiveId" in s.orbitLab)) s.orbitLab.paperTrialActiveId = null;
     if (!Array.isArray(s.orbitLab.ruleRuns)) s.orbitLab.ruleRuns = [];
     if (!("activeRule" in s.orbitLab)) s.orbitLab.activeRule = null;
     if (!("ruleSeal" in s.orbitLab)) s.orbitLab.ruleSeal = null;
@@ -300,6 +329,94 @@
     if (!("manualComplete" in s.orbitLab)) s.orbitLab.manualComplete = false;
     if (!("continuedAt" in s.orbitLab)) s.orbitLab.continuedAt = null;
     return s;
+  }
+
+  /* K1 新路徑：把程式限定為「替紙上規則快速續畫」的計算器。玩家不在
+     看見任何結果前盲猜形狀；方向已由前段共同推理固定為此刻地心，只改
+     原有快慢與每拍向內扳量。每次結果都留下，之後再由玩家挑可比較紀錄。 */
+  function orbitPaperTrialAudit(run) {
+    if (!run || run.source !== "player-paper-trial-v1" ||
+        run.target !== "earth-center" || !ORBIT_SPEEDS[run.speed] ||
+        !ORBIT_STRENGTHS[run.strength] || !finite(run.ranAt) ||
+        Math.floor(run.ranAt) !== run.ranAt ||
+        !Array.isArray(run.path) || !run.path.length) return false;
+    var sim = simulateOrbitRule("earth-center", run.speed, run.strength);
+    var actualShape = orbitShapeFromSimulation("earth-center", sim);
+    return run.actualShape === actualShape && run.outcome === sim.outcome &&
+      run.minRadius === sim.minRadius && run.maxRadius === sim.maxRadius &&
+      JSON.stringify(run.path) === JSON.stringify(sim.path) &&
+      JSON.stringify(run.finalPosition) === JSON.stringify(sim.finalPosition) &&
+      JSON.stringify(run.finalVelocity) === JSON.stringify(sim.finalVelocity);
+  }
+
+  function orbitPaperSelectionAudit(lab, records, beforeAt) {
+    var trials = lab && lab.orbitLab && lab.orbitLab.paperTrials || [];
+    var ids = unique((records || []).filter(function (id) {
+      return typeof id === "string" && /^trial:\d+$/.test(id);
+    })).map(function (id) { return Number(id.slice(6)); });
+    if (ids.length !== 3) return false;
+    var picked = ids.map(function (id) {
+      return trials.find(function (run) { return run.id === id; });
+    });
+    if (picked.some(function (run) {
+      return !run || (beforeAt != null && !(run.ranAt < beforeAt)) ||
+        !orbitPaperTrialAudit(run);
+    })) return false;
+    var circles = picked.filter(function (run) { return run.actualShape === "circle"; });
+    var offBand = picked.filter(function (run) { return run.actualShape !== "circle"; });
+    if (circles.length !== 2 || offBand.length !== 1 ||
+        circles[0].speed === circles[1].speed ||
+        circles[0].strength === circles[1].strength) return false;
+    /* 第三筆必須只改其中一項，才真的是能支持「兩者要相配」的對照，
+       不是另外拿一張完全不同設定的漂亮圖湊數。 */
+    return circles.some(function (circle) {
+      var sameSpeed = circle.speed === offBand[0].speed;
+      var sameStrength = circle.strength === offBand[0].strength;
+      return sameSpeed !== sameStrength;
+    });
+  }
+
+  function runOrbitPaperTrial(state0, speed, strength) {
+    var downstreamPredictions = state0.planetLab &&
+      state0.planetLab.predictions || [];
+    if (downstreamPredictions.length || (state0.evidence &&
+        (state0.evidence.k3 || state0.evidence.k4 || state0.evidence.k5)))
+      return err(state0, "downstream-records-locked");
+    if (!state0.sourceLab || !state0.sourceLab.tangentPrediction ||
+        !state0.sourceLab.tangentPrediction.sealed)
+      return err(state0, "k0-source-required");
+    if (!state0.evidence || !state0.evidence.k2) return err(state0, "k2-required");
+    if (!ORBIT_SPEEDS[speed]) return err(state0, "bad-orbit-speed");
+    if (!ORBIT_STRENGTHS[strength]) return err(state0, "bad-orbit-strength");
+    if (state0.orbitLab && state0.orbitLab.ruleSeal)
+      return err(state0, "legacy-orbit-record-active");
+    if (full(state0.orbitLab && state0.orbitLab.paperTrials, MAX_LONG_HISTORY))
+      return err(state0, "orbit-run-limit");
+    var s = ensureOrbitRuleFields(clone(state0)), o = s.orbitLab;
+    if (o.paperTrials.some(function (run) {
+      return run.speed === speed && run.strength === strength;
+    })) return err(state0, "orbit-paper-trial-duplicate");
+    revokeEvidence(s, ["k1", "k3", "k4", "k5"]);
+    var sim = simulateOrbitRule("earth-center", speed, strength);
+    var run = {
+      id: o.paperTrials.length + 1,
+      source: "player-paper-trial-v1", target: "earth-center",
+      speed: speed, strength: strength,
+      actualShape: orbitShapeFromSimulation("earth-center", sim),
+      outcome: sim.outcome, path: clone(sim.path),
+      minRadius: sim.minRadius, maxRadius: sim.maxRadius,
+      finalPosition: clone(sim.finalPosition),
+      finalVelocity: clone(sim.finalVelocity), ranAt: tick(s)
+    };
+    o.paperTrials.push(run);
+    o.paperTrialActiveId = run.id;
+    o.path = clone(run.path);
+    o.position = clone(run.finalPosition);
+    o.velocity = clone(run.finalVelocity);
+    o.activeRule = null;
+    o.complete = false;
+    o.closedRecord = null;
+    return { state: s, ok: true, run: clone(run) };
   }
 
   function orbitRuleOutcome(target, minRadius, maxRadius, hitEarth) {
@@ -937,12 +1054,22 @@
 
   function modelLoanAudit(loan) {
     if (!loan) return false;
+    var patched = loan.patchedOutcome;
+    if (!patched || patched.independentlyTested !== false) return false;
     if (loan.caseId === "planets")
       return loan.kind === "separate-jupiter-flow" &&
-        loan.text === "木星那一層另設流速";
+        loan.text === "木星那一層另設流速" &&
+        patched.fit === "matches-by-retuning" &&
+        patched.predictedYears === PLANETS.jupiter.periodRatio &&
+        patched.observedYears === PLANETS.jupiter.periodRatio &&
+        patched.residual === 0 &&
+        patched.note === "用木星觀測值另調流速後可以貼合，但這是逐案回述，不是同表預測";
     if (loan.caseId === "comet")
       return loan.kind === "comet-crosses-flow" &&
-        loan.text === "彗星可以穿過流（未量過）";
+        loan.text === "彗星可以穿過流（未量過）" &&
+        patched.fit === "story-by-new-assumption" &&
+        patched.residual === null &&
+        patched.note === "新增穿流假設後可以敘述這條路，但本批星圖沒有獨立量到穿流機制";
     return false;
   }
 
@@ -1121,13 +1248,19 @@
     var s = clone(state0), picked = unique(records).sort();
     var source = s.sourceLab && s.sourceLab.tangentPrediction;
     var seal = s.orbitLab && s.orbitLab.ruleSeal;
-    var ok = !!(source && source.sealed && source.choice === "tangent" &&
+    var legacyOk = !!(source && source.sealed && source.choice === "tangent" &&
       s.orbitLab.tangentRecord && s.orbitLab.closedRecord &&
       seal && seal.target === "earth-center" &&
       s.orbitLab.manualComplete && s.orbitLab.continuedAt &&
       s.orbitLab.firstStepAt > seal.sealedAt) &&
       JSON.stringify(picked) === JSON.stringify(["closed", "tangent"]) &&
       concept === "forward-plus-inward-turn";
+    var paperOk = !!(source && source.sealed && source.choice === "tangent" &&
+      s.orbitLab && s.orbitLab.tangentRecord &&
+      picked.indexOf("tangent") >= 0 &&
+      orbitPaperSelectionAudit(s, picked, s.sequence + 1)) &&
+      concept === "forward-plus-inward-turn";
+    var ok = legacyOk || paperOk;
     recordClaim(s, "k1", picked, concept, ok, "assertK1", tick(s));
     if (ok) s.evidence.k1 = true;
     return { state: s, ok: ok, evidence: ok ? "K1" : null, reason: ok ? null : "claim-mismatch" };
@@ -1170,31 +1303,35 @@
   function convertMoonTime(state0, choice) {
     if (state0.evidence && state0.evidence.k2)
       return err(state0, "completed-scale-record-locked");
-    if (["divide-60", "divide-3600"].indexOf(choice) < 0)
+    if (["arc-length", "sagitta-geometry", "divide-60", "divide-3600"].indexOf(choice) < 0)
       return err(state0, "bad-time-conversion");
     if (full(state0.scaleLab && state0.scaleLab.conversionAttempts,
         MAX_SHORT_HISTORY))
       return err(state0, "scale-attempt-limit");
+    if (!state0.sourceLab || !state0.sourceLab.tangentPrediction ||
+        !state0.sourceLab.tangentPrediction.sealed)
+      return err(state0, "k0-source-required");
     var sc0 = state0.scaleLab || {};
-    if (!sc0.scalePrediction || !sc0.scalePrediction.sealed)
-      return err(state0, "scale-prediction-required");
     if (sc0.conversionCorrect) return err(state0, "completed-scale-conversion-locked");
     var s = ensureScaleFields(clone(state0)), sc = s.scaleLab;
-    var ok = choice === "divide-3600", at = tick(s);
+    /* divide-* 只保留舊 schema 2 action log 相容；現行 UI 一律使用幾何選項。 */
+    var ok = choice === "sagitta-geometry" || choice === "divide-3600", at = tick(s);
     sc.conversionAttempts.push({ choice: choice, ok: ok, at: at });
-    if (sc.scalePrediction.openedAt == null) {
+    /* 2026-08-05 畫面驗收：新局以正矢／弧長判讀作第一個程序承諾，
+       不再要求玩家先猜尚未計算的量級。舊 schema2 封紙仍在首次幾何判讀時開封。 */
+    if (sc.scalePrediction && sc.scalePrediction.openedAt == null) {
       sc.scalePrediction.openedAt = at;
       sc.scalePrediction.matched = sc.scalePrediction.choice === "one-over-3600";
     }
     if (ok) {
       sc.conversionCorrect = true;
-      sc.moonOneSecondSagMm = round(TEACHING.moonSixtySecondSagM * 1000 / 3600, 1);
+      sc.moonOneSecondSagMm = round(moonSagM(1) * 1000, 2);
       sc.moonObservationRevealed = true;
     }
     return {
       state: s, ok: ok, divisor: choice === "divide-3600" ? 3600 : 60,
       moonOneSecondSagMm: ok ? sc.moonOneSecondSagMm : null,
-      consequence: ok ? null : "time-not-squared"
+      consequence: ok ? null : (choice === "arc-length" ? "arc-is-not-sag" : "time-not-squared")
     };
   }
 
@@ -1211,7 +1348,7 @@
     if (state0.scaleLab.ratioCorrect)
       return err(state0, "completed-scale-ratio-locked");
     var s = ensureScaleFields(clone(state0)), sc = s.scaleLab;
-    var ok = value === 3600;
+    var ok = scaleRatioMatches(value);
     sc.ratioAttempts.push({ choice: value, ok: ok, at: tick(s) });
     if (ok) sc.ratioCorrect = true;
     return { state: s, ok: ok, ratio: value, consequence: ok ? null : "ratio-mismatch" };
@@ -1290,7 +1427,7 @@
     var jupiter = Math.pow(PLANETS.jupiter.radiusRatio, (exponent + 1) / 2);
     return {
       exponent: round(exponent, 1), moonSagM: round(sag, 2),
-      moonErrorPct: round(Math.abs(sag - TEACHING.moonSixtySecondSagM) / TEACHING.moonSixtySecondSagM * 100, 1),
+      moonErrorPct: round(Math.abs(sag - moonSagM(60)) / moonSagM(60) * 100, 1),
       periods: { mars: round(mars, 3), jupiter: round(jupiter, 3) }
     };
   }
@@ -1376,6 +1513,17 @@
     return { state: s, unlocked: old };
   }
 
+  function ensurePlanetComparisonFields(s) {
+    s.planetLab = s.planetLab || {};
+    if (!s.planetLab.methodVersion) s.planetLab.methodVersion = "blind-v1";
+    if (!Array.isArray(s.planetLab.comparisonAttempts))
+      s.planetLab.comparisonAttempts = [];
+    if (!("comparisonClaim" in s.planetLab)) s.planetLab.comparisonClaim = null;
+    if (!("comparisonSealed" in s.planetLab)) s.planetLab.comparisonSealed = false;
+    if (!("comparisonSealedAt" in s.planetLab)) s.planetLab.comparisonSealedAt = null;
+    return s;
+  }
+
   function sealPlanetPrediction(state0, id, bandId) {
     if (!state0.evidence || !state0.evidence.k1 || !state0.evidence.k2)
       return err(state0, "k1-k2-required");
@@ -1443,7 +1591,55 @@
     s.planetLab.revealed = { mars: false, jupiter: false };
     s.planetLab.residuals = { mars: null, jupiter: null };
     s.planetLab.crossScalePass = false;
+    s.planetLab.comparisonAttempts = [];
+    s.planetLab.comparisonClaim = null;
+    s.planetLab.comparisonSealed = false;
+    s.planetLab.comparisonSealedAt = null;
     return { state: s };
+  }
+
+  function judgePlanetComparison(state0, choice) {
+    if (completedOrArchived(state0))
+      return err(state0, "completed-chapter-locked");
+    if (["theory-before-observation", "intuition-decides", "after-reveal-retune"].indexOf(choice) < 0)
+      return err(state0, "unknown-planet-comparison");
+    if (!(state0.evidence && state0.evidence.k1 && state0.evidence.k2))
+      return err(state0, "k1-k2-required");
+    var current = {};
+    (state0.planetLab && state0.planetLab.predictions || []).forEach(function (row) {
+      if (row && row.superseded !== true) current[row.planet] = row;
+    });
+    if (!(current.mars && current.jupiter && current.mars.revealedAfterSeal &&
+        current.jupiter.revealedAfterSeal && state0.planetLab.crossScalePass))
+      return err(state0, "planet-observations-required");
+    if (state0.planetLab.comparisonSealed)
+      return err(state0, "planet-comparison-already-sealed");
+    if (full(state0.planetLab.comparisonAttempts, MAX_SHORT_HISTORY))
+      return err(state0, "planet-comparison-attempt-limit");
+    var s = ensurePlanetComparisonFields(clone(state0));
+    var ok = choice === "theory-before-observation", at = tick(s);
+    s.planetLab.comparisonAttempts.push({
+      id: s.planetLab.comparisonAttempts.length + 1,
+      choice: choice, ok: ok, at: at,
+      intuitionMatches: [current.mars, current.jupiter].filter(function (row) {
+        return row.playerBandMatched === true;
+      }).length,
+      theoryMatches: [current.mars, current.jupiter].filter(function (row) {
+        return row.pass === true;
+      }).length
+    });
+    s.planetLab.comparisonClaim = choice;
+    if (ok) {
+      s.planetLab.comparisonSealed = true;
+      s.planetLab.comparisonSealedAt = at;
+      s.evidence.k3 = true;
+      recordClaim(s, "k3", ["mars-sealed", "jupiter-sealed"],
+        "withheld-data-prediction", true, "judgePlanetComparison", at);
+    }
+    return {
+      state: s, ok: ok, evidence: ok ? "K3" : null,
+      reason: ok ? null : "planet-comparison-mismatch"
+    };
   }
 
   function assertK2(state0, records, concept) {
@@ -1474,6 +1670,8 @@
     var s = clone(state0), picked = unique(records).sort();
     var ok = JSON.stringify(picked) === JSON.stringify(["jupiter-sealed", "mars-sealed"]) &&
       s.evidence.k1 && s.evidence.k2 && s.planetLab.crossScalePass &&
+      s.planetLab.comparisonSealed === true &&
+      s.planetLab.comparisonClaim === "theory-before-observation" &&
       concept === "withheld-data-prediction";
     recordClaim(s, "k3", picked, concept, ok, "assertK3", tick(s));
     if (ok) s.evidence.k3 = true;
@@ -1524,16 +1722,36 @@
   }
 
   function modelOutcome(model, caseId) {
+    var moonObserved = moonSagM(1);
+    var moonPredicted = TEACHING.surfaceOneSecondFallM /
+      Math.pow(TEACHING.moonDistanceEarthRadii, 2);
+    var moonResidual = round(Math.abs(moonPredicted - moonObserved) /
+      moonObserved * 100, 2);
+    var planetResidual = Math.max.apply(Math, ["mars", "jupiter"].map(function (id) {
+      var predicted = Math.pow(PLANETS[id].radiusRatio, 1.5);
+      return Math.abs(predicted - PLANETS[id].periodRatio) /
+        PLANETS[id].periodRatio * 100;
+    }));
+    var vortexJupiter = PLANETS.mars.periodRatio *
+      (PLANETS.jupiter.radiusRatio / PLANETS.mars.radiusRatio);
+    var vortexJupiterResidual = Math.abs(PLANETS.jupiter.periodRatio - vortexJupiter) /
+      PLANETS.jupiter.periodRatio * 100;
     var table = {
       inverseSquare: {
-        moon: { fit: "matches", residual: 0.8, note: "同一距離律通過月球量級" },
-        planets: { fit: "matches", residual: 1.6, note: "同一規則通過兩個行星週期" },
-        comet: { fit: "matches", residual: 2.2, note: "同一中心規則通過逐夜星位" }
+        moon: { fit: "matches", residual: moonResidual,
+          predictedSagMm: round(moonPredicted * 1000, 2),
+          observedSagMm: round(moonObserved * 1000, 2),
+          note: "地表一秒值依距離平方縮到月距後，與月球幾何紙相合" },
+        planets: { fit: "matches", residual: round(planetResidual, 2),
+          note: "同一距離律通過火星與木星；此處顯示兩筆中的較大殘差" },
+        comet: { fit: "matches", residual: null,
+          note: "同一中心規則容許星圖接出的高傾角逆向路徑；本列只作方向判讀，不捏造百分比" }
       },
       simpleVortex: {
         moon: { fit: "story", residual: null, note: "地球的小渦旋可定性帶月亮轉，沒有交出可核對數字" },
         planets: {
-          fit: "mismatch", residual: 46.2, predictedYears: 6.4, observedYears: 11.9,
+          fit: "mismatch", residual: round(vortexJupiterResidual, 1),
+          predictedYears: round(vortexJupiter, 1), observedYears: PLANETS.jupiter.periodRatio,
           note: "同一張流速表由火星推到木星時對不上"
         },
         comet: {
@@ -1547,6 +1765,11 @@
 
   function ensureModelProtocolFields(s) {
     s.modelLab = s.modelLab || {};
+    if (!s.modelLab.methodVersion) {
+      s.modelLab.methodVersion = (s.modelLab.runs && s.modelLab.runs.length) ||
+        (s.modelLab.rowOrder && s.modelLab.rowOrder.length)
+        ? "ledger-v1" : "hearing-v1";
+    }
     if (!Array.isArray(s.modelLab.runs)) s.modelLab.runs = [];
     if (!Array.isArray(s.modelLab.protocolAttempts)) s.modelLab.protocolAttempts = [];
     if (!s.modelLab.predictions || typeof s.modelLab.predictions !== "object")
@@ -1581,6 +1804,18 @@
     if (caseId === "comet" &&
         (!state0.cometLab || state0.cometLab.joined !== true))
       return err(state0, "comet-join-required");
+    var method = state0.modelLab && state0.modelLab.methodVersion || "ledger-v1";
+    if (method === "hearing-v1") {
+      if (!state0.modelLab.protocolLocked)
+        return err(state0, "model-protocol-required");
+      if (!(state0.modelLab.predictions &&
+          state0.modelLab.predictions.inverseSquare &&
+          state0.modelLab.predictions.simpleVortex))
+        return err(state0, "two-model-predictions-required");
+      if (!state0.modelLab.predictions.inverseSquare.beforeRuns ||
+          !state0.modelLab.predictions.simpleVortex.beforeRuns)
+        return err(state0, "model-prediction-order-invalid");
+    }
     var s = ensureModelProtocolFields(clone(state0)), ml = s.modelLab;
     if (ml.completedRows.indexOf(caseId) >= 0) return err(state0, "ledger-row-complete");
     if (!ml.rowStage[caseId]) {
@@ -1674,9 +1909,20 @@
     var s = ensureModelProtocolFields(clone(state0)), ml = s.modelLab;
     var loan = caseId === "planets"
       ? { id: ml.loans.length + 1, caseId: caseId, kind: "separate-jupiter-flow",
-          text: "木星那一層另設流速", at: tick(s) }
+          text: "木星那一層另設流速", at: tick(s),
+          patchedOutcome: {
+            fit: "matches-by-retuning", predictedYears: PLANETS.jupiter.periodRatio,
+            observedYears: PLANETS.jupiter.periodRatio, residual: 0,
+            independentlyTested: false,
+            note: "用木星觀測值另調流速後可以貼合，但這是逐案回述，不是同表預測"
+          } }
       : { id: ml.loans.length + 1, caseId: caseId, kind: "comet-crosses-flow",
-          text: "彗星可以穿過流（未量過）", at: tick(s) };
+          text: "彗星可以穿過流（未量過）", at: tick(s),
+          patchedOutcome: {
+            fit: "story-by-new-assumption", residual: null,
+            independentlyTested: false,
+            note: "新增穿流假設後可以敘述這條路，但本批星圖沒有獨立量到穿流機制"
+          } };
     ml.loans.push(loan);
     ml.loanDecisions[caseId] = "loan";
     ml.loanDecisionAt[caseId] = loan.at;
@@ -1702,13 +1948,14 @@
   function ledgerClaimText(modelLab) {
     var planetLoan = (modelLab.loans || []).some(function (x) { return x.caseId === "planets"; });
     var cometLoan = (modelLab.loans || []).some(function (x) { return x.caseId === "comet"; });
+    var boundary = "這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。";
     if (!planetLoan && !cometLoan)
-      return "三份資料、兩套寫死的規矩：拉力帳三格都有數，而且都對得上；漩渦帳一格只有說法，另外兩格對不上。";
+      return "三份資料、兩套固定規矩：拉力帳三格都對得上；漩渦帳一格只有說法，另外兩格對不上。" + boundary;
     if (planetLoan && !cometLoan)
-      return "拉力帳三格都有數。漩渦帳的行星格是改了流速表才對上的，那張借條還在帳上；彗星格對不上。";
+      return "拉力帳三格都對得上。漩渦帳的行星格改了流速表才貼合，借條仍在；彗星格對不上。" + boundary;
     if (!planetLoan && cometLoan)
-      return "拉力帳三格都有數。漩渦帳的彗星格靠一個沒人量過的假設才講得通；行星格對不上。";
-    return "拉力帳三格都有數。漩渦帳原先兩格都對不上；每次改成講得通，代價都留在借條上。";
+      return "拉力帳三格都對得上。漩渦帳的彗星格靠未量過的穿流假設才講得通；行星格對不上。" + boundary;
+    return "拉力帳三格都對得上。漩渦帳原先兩格失配；每次改成講得通，逐案新增的代價都留在借條上。" + boundary;
   }
 
   function sealModelComparison(state0, claim) {
@@ -1775,6 +2022,9 @@
     if (!(state0.evidence.k2 && state0.evidence.k3)) return err(state0, "k2-k3-required");
     if (["shared-law-observed-initials", "same-start-all", "retune-law-per-body"].indexOf(protocol) < 0)
       return err(state0, "unknown-model-protocol");
+    if ((state0.modelLab.runs || []).length ||
+        (state0.modelLab.rowOrder || []).length)
+      return err(state0, "model-runs-already-started");
     var s = ensureModelProtocolFields(clone(state0));
     var ok = protocol === "shared-law-observed-initials";
     var note = ok
@@ -1785,7 +2035,8 @@
     s.modelLab.protocolAttempts.push({
       id: s.modelLab.protocolAttempts.length + 1,
       protocol: protocol, ok: ok, note: note,
-      patchTags: protocol === "retune-law-per-body" ? 3 : 0
+      patchTags: protocol === "retune-law-per-body" ? 3 : 0,
+      at: tick(s)
     });
     if (ok) {
       s.modelLab.protocol = protocol;
@@ -1801,9 +2052,11 @@
       return err(state0, "unknown-model-prediction");
     var s = ensureModelProtocolFields(clone(state0));
     if (s.modelLab.predictions[model]) return err(state0, "model-prediction-already-sealed");
+    if (s.modelLab.runs.some(function (r) { return r.model === model; }))
+      return err(state0, "model-runs-already-started");
     s.modelLab.predictions[model] = {
       model: model, prediction: prediction, sealed: true,
-      beforeRuns: !s.modelLab.runs.some(function (r) { return r.model === model; })
+      beforeRuns: true, sealedAt: tick(s)
     };
     return { state: s, ok: true, prediction: clone(s.modelLab.predictions[model]) };
   }
@@ -2323,6 +2576,7 @@
     initialState: initialState,
     advanceTransition: advanceTransition,
     sealTangentPrediction: sealTangentPrediction,
+    runOrbitPaperTrial: runOrbitPaperTrial,
     sealOrbitRule: sealOrbitRule, nudgeOrbitAim: nudgeOrbitAim,
     commitOrbitBeat: commitOrbitBeat, resetOrbitBeats: resetOrbitBeats,
     continueOrbitRule: continueOrbitRule,
@@ -2332,8 +2586,10 @@
     resetPlanetReveals: resetPlanetReveals,
     sealPlanetPrediction: sealPlanetPrediction,
     revealPlanetPredictions: revealPlanetPredictions,
+    judgePlanetComparison: judgePlanetComparison,
     assertK2: assertK2, assertK3: assertK3,
     connectCometTracks: connectCometTracks,
+    setModelProtocol: setModelProtocol, sealModelPrediction: sealModelPrediction,
     beginLedgerRow: beginLedgerRow, stampLedgerCell: stampLedgerCell,
     addModelLoan: addModelLoan, declineModelLoan: declineModelLoan,
     sealModelComparison: sealModelComparison,
@@ -2359,12 +2615,18 @@
     _proofAudit: proofAudit,
     _orbitRecordAudit: orbitRecordAudit,
     _orbitRunAudit: orbitRunAudit,
+    _orbitPaperTrialAudit: orbitPaperTrialAudit,
+    _orbitPaperSelectionAudit: orbitPaperSelectionAudit,
     _orbitAttemptAudit: orbitAttemptAudit,
     _orbitPartialAudit: orbitPartialAudit,
     _orbitShapeFromSimulation: orbitShapeFromSimulation,
     _tangentRecordAudit: tangentRecordAudit,
     _scaleTrialAudit: scaleTrialAudit,
+    _moonSagM: moonSagM,
+    _expectedScaleRatio: expectedScaleRatio,
+    _scaleRatioMatches: scaleRatioMatches,
     _planetPredictionAudit: planetPredictionAudit,
+    _modelOutcome: modelOutcome,
     _modelRunAudit: modelRunAudit,
     _modelLoanAudit: modelLoanAudit
   };

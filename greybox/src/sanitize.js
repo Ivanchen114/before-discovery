@@ -1805,6 +1805,8 @@
     if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
     var generic = scrub(state, 0, { n: LIMITS.maxNodes });
     if (generic) return fail(generic);
+    /* 本章允許把已驗證的舊顯示精度正規化；先複製，避免後續拒絕時改到呼叫端。 */
+    state = JSON.parse(JSON.stringify(state));
     if (state.schemaVersion !== 2 || state.chapter !== "ch4") return fail("存檔版本或章節不相容");
     if (state.mode !== "explore" && state.mode !== "scholar") return fail("遊戲模式無法辨識");
     if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("信譽數值錯誤");
@@ -1836,6 +1838,87 @@
         !lab.sourceLab || !lab.orbitLab || !lab.scaleLab || !lab.planetLab ||
         !lab.modelLab || !lab.proof || !lab.evidence)
       return fail("第四章實驗紀錄格式錯誤");
+    /* 2026-08-05 以前的 schema2 沒有 K3 最終盲驗判讀。已取得 K3 的合法舊檔
+       以 legacy-v2 保留；尚未取得者補成 blind-v1，必須親自完成新判讀。 */
+    if (!lab.planetLab.methodVersion)
+      lab.planetLab.methodVersion = lab.evidence.k3 ? "legacy-v2" : "blind-v1";
+    if (!Array.isArray(lab.planetLab.comparisonAttempts))
+      lab.planetLab.comparisonAttempts = [];
+    if (!("comparisonClaim" in lab.planetLab)) lab.planetLab.comparisonClaim = null;
+    if (!("comparisonSealed" in lab.planetLab)) lab.planetLab.comparisonSealed = false;
+    if (!("comparisonSealedAt" in lab.planetLab)) lab.planetLab.comparisonSealedAt = null;
+    if (!lab.modelLab.methodVersion) {
+      lab.modelLab.methodVersion = (lab.modelLab.runs && lab.modelLab.runs.length) ||
+        (lab.modelLab.rowOrder && lab.modelLab.rowOrder.length) || lab.evidence.k4
+        ? "ledger-v1" : "hearing-v1";
+    }
+    if (!lab.modelLab.predictions || typeof lab.modelLab.predictions !== "object" ||
+        Array.isArray(lab.modelLab.predictions)) lab.modelLab.predictions = {};
+    /* 舊 schema2 對帳紙把三個拉力殘差與木星顯示值寫死。只有逐字符合舊
+       canonical 表時才升級成可重算值；任意改過的數字仍由下方 audit 拒絕。 */
+    var legacyModelRows = {
+      "inverseSquare:moon": [0.8, "同一距離律通過月球量級"],
+      "inverseSquare:planets": [1.6, "同一規則通過兩個行星週期"],
+      "inverseSquare:comet": [2.2, "同一中心規則通過逐夜星位"]
+    };
+    (lab.modelLab.runs || []).forEach(function (run) {
+      var key = run && run.model + ":" + run.caseId;
+      var legacy = legacyModelRows[key];
+      var oldVortexPlanet = run && run.model === "simpleVortex" &&
+        run.caseId === "planets" && run.residual === 46.2 &&
+        run.predictedYears === 6.4 && run.observedYears === 11.9 &&
+        run.note === "同一張流速表由火星推到木星時對不上";
+      if ((legacy && run.residual === legacy[0] && run.note === legacy[1]) ||
+          oldVortexPlanet) {
+        var canonicalOutcome = engine4 && engine4._modelOutcome
+          ? engine4._modelOutcome(run.model, run.caseId) : null;
+        if (canonicalOutcome) Object.keys(canonicalOutcome).forEach(function (field) {
+          run[field] = canonicalOutcome[field];
+        });
+      }
+    });
+    (lab.modelLab.loans || []).forEach(function (loan) {
+      if (loan && !loan.patchedOutcome && loan.kind === "separate-jupiter-flow" &&
+          loan.text === "木星那一層另設流速")
+        loan.patchedOutcome = {
+          fit: "matches-by-retuning", predictedYears: 11.86,
+          observedYears: 11.86, residual: 0, independentlyTested: false,
+          note: "用木星觀測值另調流速後可以貼合，但這是逐案回述，不是同表預測"
+        };
+      if (loan && !loan.patchedOutcome && loan.kind === "comet-crosses-flow" &&
+          loan.text === "彗星可以穿過流（未量過）")
+        loan.patchedOutcome = {
+          fit: "story-by-new-assumption", residual: null,
+          independentlyTested: false,
+          note: "新增穿流假設後可以敘述這條路，但本批星圖沒有獨立量到穿流機制"
+        };
+    });
+    var legacyLedgerClaims = [
+      "三份資料、兩套寫死的規矩：拉力帳三格都有數，而且都對得上；漩渦帳一格只有說法，另外兩格對不上。",
+      "拉力帳三格都有數。漩渦帳的行星格是改了流速表才對上的，那張借條還在帳上；彗星格對不上。",
+      "拉力帳三格都有數。漩渦帳的彗星格靠一個沒人量過的假設才講得通；行星格對不上。",
+      "拉力帳三格都有數。漩渦帳原先兩格都對不上；每次改成講得通，代價都留在借條上。"
+    ];
+    if (lab.modelLab.evidencePackage &&
+        legacyLedgerClaims.indexOf(lab.modelLab.evidencePackage.claimText) >= 0 &&
+        engine4 && engine4._ledgerClaimText)
+      lab.modelLab.evidencePackage.claimText = engine4._ledgerClaimText(lab.modelLab);
+    var canonicalMoonOneSecondSagMm = engine4 && engine4._moonSagM
+      ? Number((engine4._moonSagM(1) * 1000).toFixed(2)) : 1.36;
+    var canonicalMoonSixtySecondSagM = engine4 && engine4._moonSagM
+      ? engine4._moonSagM(60) : 4.88245576504065;
+    var canonicalMoonErrorPct = Number((Math.abs(4.9 - canonicalMoonSixtySecondSagM) /
+      canonicalMoonSixtySecondSagM * 100).toFixed(1));
+    var legacyK2Precision = lab.scaleLab.moonOneSecondSagMm === 1.4;
+    if (legacyK2Precision) {
+      /* 1.4 mm／0% 是 2026-08-03 版唯一合法舊精度組合。只修精度，不補造
+         action、證據或完成旗標；其他數值仍交給下面的 canonical audit 拒絕。 */
+      lab.scaleLab.moonOneSecondSagMm = canonicalMoonOneSecondSagMm;
+      (lab.scaleLab.trials || []).forEach(function (trial) {
+        if (trial && trial.moonSagM === 4.9 && trial.moonErrorPct === 0)
+          trial.moonErrorPct = canonicalMoonErrorPct;
+      });
+    }
     var migratedV1 = false;
     var migrationSourceEvidence = null;
     var legacySceneOrder4 = [
@@ -1981,6 +2064,63 @@
           return fail("改向規則歷史順序與操作時間不一致");
       }
     }
+    var paperTrials = lab.orbitLab.paperTrials == null
+      ? [] : lab.orbitLab.paperTrials;
+    if (!Array.isArray(paperTrials) || paperTrials.length > 100)
+      return fail("紙上試跑紀錄格式錯誤");
+    for (var pti = 0; pti < paperTrials.length; pti++) {
+      var paperTrial = paperTrials[pti];
+      if (!paperTrial || paperTrial.id !== pti + 1 ||
+          paperTrial.source !== "player-paper-trial-v1" ||
+          paperTrial.target !== "earth-center" ||
+          ["slow", "medium", "fast"].indexOf(paperTrial.speed) < 0 ||
+          ["short", "medium", "long"].indexOf(paperTrial.strength) < 0 ||
+          ["line", "away", "circle", "ellipse", "crash", "wrong-center"]
+            .indexOf(paperTrial.actualShape) < 0 ||
+          ["parabola", "wrong-center", "outer-band", "inner-band", "near-circle"]
+            .indexOf(paperTrial.outcome) < 0 ||
+          !isInt(paperTrial.ranAt) || paperTrial.ranAt < 1 ||
+          paperTrial.ranAt > lab.sequence ||
+          !Array.isArray(paperTrial.path) || paperTrial.path.length > 200 ||
+          (engine4 && !engine4._orbitPaperTrialAudit(paperTrial)))
+        return fail("紙上試跑含無法重算的設定或路徑");
+      var paperEvents = (state.eventLog || []).filter(function (event) {
+        return event && event.t === "lab" &&
+          event.action === "runOrbitPaperTrial" &&
+          event.sequence === paperTrial.ranAt && event.args &&
+          event.args.speed === paperTrial.speed &&
+          event.args.strength === paperTrial.strength;
+      });
+      if (paperEvents.length !== 1)
+        return fail("紙上試跑缺少同一次玩家操作事件");
+      if (pti && paperTrial.ranAt <= paperTrials[pti - 1].ranAt)
+        return fail("紙上試跑順序與操作時間不一致");
+    }
+    var paperActiveId = lab.orbitLab.paperTrialActiveId;
+    if (paperActiveId != null &&
+        (!isInt(paperActiveId) || !paperTrials.some(function (run) {
+          return run.id === paperActiveId;
+        }))) return fail("目前顯示的試跑紙不存在");
+    if (paperTrials.length) {
+      var activePaperTrial = paperTrials[paperTrials.length - 1];
+      if (paperActiveId !== activePaperTrial.id ||
+          JSON.stringify(lab.orbitLab.path) !==
+            JSON.stringify(activePaperTrial.path) ||
+          JSON.stringify(lab.orbitLab.position) !==
+            JSON.stringify(activePaperTrial.finalPosition) ||
+          JSON.stringify(lab.orbitLab.velocity) !==
+            JSON.stringify(activePaperTrial.finalVelocity) ||
+          lab.orbitLab.activeRule != null || lab.orbitLab.complete !== false ||
+          lab.orbitLab.closedRecord != null || lab.orbitLab.step !== 0 ||
+          lab.orbitLab.manualComplete !== false ||
+          lab.orbitLab.ruleRepeatReady !== false ||
+          lab.orbitLab.firstStepAt != null || lab.orbitLab.continuedAt != null)
+        return fail("目前紙上路徑不是最後一次玩家試跑的可重算結果");
+    }
+    if (paperTrials.length && (lab.orbitLab.ruleSeal != null ||
+        lab.orbitLab.ruleRuns.length || lab.orbitLab.manualBeats.length ||
+        lab.orbitLab.manualAttempts.length))
+      return fail("新版試跑紙與舊版三拍紙不能混在同一份進度");
     if (!Array.isArray(lab.orbitLab.manualBeats) || lab.orbitLab.manualBeats.length > 3 ||
         !Array.isArray(lab.orbitLab.manualAttempts) || lab.orbitLab.manualAttempts.length > 100 ||
         typeof lab.orbitLab.manualComplete !== "boolean")
@@ -2126,7 +2266,7 @@
       },
       {
         rows: lab.scaleLab.conversionAttempts,
-        choices: ["divide-60", "divide-3600"],
+        choices: ["arc-length", "sagitta-geometry", "divide-60", "divide-3600"],
         time: "at",
         label: "時間換算"
       },
@@ -2156,8 +2296,9 @@
           return fail(scaleSpec.label + "嘗試紀錄格式錯誤");
         if (scaleSpec.time === "at") {
           var expectedScaleOk =
-            (sas === 1 && scaleChoice === "divide-3600") ||
-            (sas === 2 && scaleChoice === 3600) ||
+            (sas === 1 && ["sagitta-geometry", "divide-3600"].indexOf(scaleChoice) >= 0) ||
+            (sas === 2 && (engine4 && engine4._scaleRatioMatches
+              ? engine4._scaleRatioMatches(scaleChoice) : scaleChoice === 3600)) ||
             (sas === 3 && scaleChoice === "multiply");
           if (typeof scaleAttempt.ok !== "boolean" ||
               scaleAttempt.ok !== expectedScaleOk)
@@ -2183,9 +2324,9 @@
               lab.scaleLab.scalePrediction.sealedAt)))
         return fail("同尺紙量級預測不是唯一的目前封存紙");
       var scaleSuccessSpecs = [
-        [lab.scaleLab.conversionAttempts, "divide-3600", lab.scaleLab.conversionCorrect],
-        [lab.scaleLab.ratioAttempts, 3600, lab.scaleLab.ratioCorrect],
-        [lab.scaleLab.relationAttempts, "multiply", lab.scaleLab.relationCorrect]
+        [lab.scaleLab.conversionAttempts, ["sagitta-geometry", "divide-3600"], lab.scaleLab.conversionCorrect],
+        [lab.scaleLab.ratioAttempts, [3600], lab.scaleLab.ratioCorrect],
+        [lab.scaleLab.relationAttempts, ["multiply"], lab.scaleLab.relationCorrect]
       ];
       for (var ssi = 0; ssi < scaleSuccessSpecs.length; ssi++) {
         var successfulScaleRows = scaleSuccessSpecs[ssi][0].filter(function (row) {
@@ -2196,7 +2337,7 @@
               successfulScaleRows[0] !==
                 scaleSuccessSpecs[ssi][0][scaleSuccessSpecs[ssi][0].length - 1]) ||
             (successfulScaleRows.length &&
-              successfulScaleRows[0].choice !== scaleSuccessSpecs[ssi][1]))
+              scaleSuccessSpecs[ssi][1].indexOf(successfulScaleRows[0].choice) < 0))
           return fail("同尺紙成功狀態與玩家最後一次判讀不一致");
       }
     }
@@ -2215,7 +2356,7 @@
       }
     }
     if (lab.scaleLab.conversionCorrect === true &&
-        lab.scaleLab.moonOneSecondSagMm !== 1.4)
+        lab.scaleLab.moonOneSecondSagMm !== canonicalMoonOneSecondSagMm)
       return fail("月球一秒刻痕不是可重算的教學數值");
     if (lab.scaleLab.trials.length !== (lab.scaleLab.relationCorrect ? 1 : 0))
       return fail("同尺紙試算張數與最後倍率關係不一致");
@@ -2263,6 +2404,60 @@
               planetRows[id].revealedAfterSeal);
           }))
       return fail("行星揭露畫面與 canonical 預測紀錄不一致");
+    if (["blind-v1", "legacy-v2"].indexOf(lab.planetLab.methodVersion) < 0 ||
+        !Array.isArray(lab.planetLab.comparisonAttempts) ||
+        lab.planetLab.comparisonAttempts.length > 30 ||
+        typeof lab.planetLab.comparisonSealed !== "boolean" ||
+        (lab.planetLab.comparisonClaim != null &&
+          ["theory-before-observation", "intuition-decides", "after-reveal-retune"]
+            .indexOf(lab.planetLab.comparisonClaim) < 0) ||
+        (lab.planetLab.comparisonSealedAt != null &&
+          (!isInt(lab.planetLab.comparisonSealedAt) ||
+            lab.planetLab.comparisonSealedAt < 1 ||
+            lab.planetLab.comparisonSealedAt > lab.sequence)))
+      return fail("行星盲驗判讀格式錯誤");
+    var successfulPlanetComparisons = [];
+    var openedPlanetTimes = [planetRows.mars, planetRows.jupiter].filter(Boolean)
+      .map(function (row) { return row.openedAt; }).filter(isInt);
+    for (var pci = 0; pci < lab.planetLab.comparisonAttempts.length; pci++) {
+      var planetComparison = lab.planetLab.comparisonAttempts[pci];
+      var expectedPlanetChoice = planetComparison &&
+        planetComparison.choice === "theory-before-observation";
+      var expectedIntuitionMatches = [planetRows.mars, planetRows.jupiter]
+        .filter(function (row) { return row && row.playerBandMatched === true; }).length;
+      var expectedTheoryMatches = [planetRows.mars, planetRows.jupiter]
+        .filter(function (row) { return row && row.pass === true; }).length;
+      if (!planetComparison || planetComparison.id !== pci + 1 ||
+          ["theory-before-observation", "intuition-decides", "after-reveal-retune"]
+            .indexOf(planetComparison.choice) < 0 ||
+          planetComparison.ok !== expectedPlanetChoice ||
+          planetComparison.intuitionMatches !== expectedIntuitionMatches ||
+          planetComparison.theoryMatches !== expectedTheoryMatches ||
+          !isInt(planetComparison.at) || planetComparison.at > lab.sequence ||
+          openedPlanetTimes.length !== 2 ||
+          planetComparison.at <= Math.max.apply(Math, openedPlanetTimes) ||
+          (pci && planetComparison.at <=
+            lab.planetLab.comparisonAttempts[pci - 1].at))
+        return fail("行星盲驗判讀不是由揭曉後四張卡重建");
+      if (planetComparison.ok) successfulPlanetComparisons.push(planetComparison);
+    }
+    if (lab.planetLab.methodVersion === "legacy-v2") {
+      if (!lab.evidence.k3 || lab.planetLab.comparisonAttempts.length ||
+          lab.planetLab.comparisonClaim != null || lab.planetLab.comparisonSealed ||
+          lab.planetLab.comparisonSealedAt != null)
+        return fail("舊版行星預測被混入新版盲驗紀錄");
+    } else if (lab.planetLab.comparisonClaim !==
+          (lab.planetLab.comparisonAttempts.length
+            ? lab.planetLab.comparisonAttempts[lab.planetLab.comparisonAttempts.length - 1].choice
+            : null) ||
+        successfulPlanetComparisons.length !==
+          (lab.planetLab.comparisonSealed ? 1 : 0) ||
+        (successfulPlanetComparisons.length &&
+          successfulPlanetComparisons[0] !==
+            lab.planetLab.comparisonAttempts[lab.planetLab.comparisonAttempts.length - 1]) ||
+        lab.planetLab.comparisonSealedAt !==
+          (successfulPlanetComparisons.length ? successfulPlanetComparisons[0].at : null))
+      return fail("行星盲驗封條與玩家判讀歷史不一致");
     if (!Array.isArray(lab.modelLab.runs) || lab.modelLab.runs.length > 100)
       return fail("模型比較紀錄格式錯誤");
     for (var mr = 0; mr < lab.modelLab.runs.length; mr++) {
@@ -2277,7 +2472,8 @@
           (engine4 && !engine4._modelRunAudit(run)))
         return fail("模型比較含無法辨識的資料");
     }
-    if (!Array.isArray(lab.modelLab.rowOrder) || lab.modelLab.rowOrder.length > 3 ||
+    if (["hearing-v1", "ledger-v1"].indexOf(lab.modelLab.methodVersion) < 0 ||
+        !Array.isArray(lab.modelLab.rowOrder) || lab.modelLab.rowOrder.length > 3 ||
         !Array.isArray(lab.modelLab.completedRows) || lab.modelLab.completedRows.length > 3 ||
         !lab.modelLab.rowStage || typeof lab.modelLab.rowStage !== "object" ||
         !Array.isArray(lab.modelLab.stampAttempts) || lab.modelLab.stampAttempts.length > 100 ||
@@ -2289,6 +2485,10 @@
         !Array.isArray(lab.modelLab.selectedRecords) ||
         lab.modelLab.selectedRecords.length !== 0 ||
         typeof lab.modelLab.comparisonSealed !== "boolean" ||
+        typeof lab.modelLab.protocolLocked !== "boolean" ||
+        (lab.modelLab.protocol != null &&
+          ["shared-law-observed-initials", "same-start-all", "retune-law-per-body"]
+            .indexOf(lab.modelLab.protocol) < 0) ||
         (lab.modelLab.comparisonSealedAt != null &&
           (!isInt(lab.modelLab.comparisonSealedAt) ||
             lab.modelLab.comparisonSealedAt < 1 ||
@@ -2434,20 +2634,73 @@
           lab.modelLab.rowStage[completedRowOrder[rci]].completedAt)
         return fail("對帳桌完成時間重複或倒置");
     }
-    if (lab.modelLab.protocolAttempts != null) {
-      if (!Array.isArray(lab.modelLab.protocolAttempts) || lab.modelLab.protocolAttempts.length > 30)
-        return fail("模型比較標準紀錄格式錯誤");
-      for (var mpa = 0; mpa < lab.modelLab.protocolAttempts.length; mpa++) {
-        var protocolAttempt = lab.modelLab.protocolAttempts[mpa];
-        if (!protocolAttempt ||
-            ["shared-law-observed-initials", "same-start-all", "retune-law-per-body"].indexOf(protocolAttempt.protocol) < 0 ||
-            typeof protocolAttempt.ok !== "boolean")
-          return fail("模型比較標準含無法辨識的資料");
-      }
+    var protocolAttempts = lab.modelLab.protocolAttempts || [];
+    if (!Array.isArray(protocolAttempts) || protocolAttempts.length > 30)
+      return fail("模型比較標準紀錄格式錯誤");
+    var successfulProtocols = [];
+    for (var mpa = 0; mpa < protocolAttempts.length; mpa++) {
+      var protocolAttempt = protocolAttempts[mpa];
+      var protocolOk = protocolAttempt &&
+        protocolAttempt.protocol === "shared-law-observed-initials";
+      var protocolNote = protocolOk
+        ? "同一條力學定律保持不變；月亮、行星、彗星各使用觀測到的初始位置與速度"
+        : (protocolAttempt && protocolAttempt.protocol === "same-start-all"
+          ? "把三種天體硬塞進同一個起點與速度，抹掉了本來要解釋的觀測資料"
+          : "每遇到一種天體就重調定律，結果只能回述資料，不能算同一條規則的反驗");
+      if (!protocolAttempt || protocolAttempt.id !== mpa + 1 ||
+          ["shared-law-observed-initials", "same-start-all", "retune-law-per-body"]
+            .indexOf(protocolAttempt.protocol) < 0 ||
+          protocolAttempt.ok !== protocolOk ||
+          protocolAttempt.note !== protocolNote ||
+          protocolAttempt.patchTags !==
+            (protocolAttempt.protocol === "retune-law-per-body" ? 3 : 0) ||
+          !isInt(protocolAttempt.at) || protocolAttempt.at < 1 ||
+          protocolAttempt.at > lab.sequence ||
+          (mpa && protocolAttempt.at <= protocolAttempts[mpa - 1].at))
+        return fail("模型比較標準含無法辨識的資料");
+      if (protocolOk) successfulProtocols.push(protocolAttempt);
     }
-    if (lab.modelLab.protocolLocked &&
-        lab.modelLab.protocol !== "shared-law-observed-initials")
+    if (lab.modelLab.protocolLocked !== (successfulProtocols.length === 1) ||
+        lab.modelLab.protocol !==
+          (successfulProtocols.length ? "shared-law-observed-initials" : null) ||
+        (successfulProtocols.length &&
+          successfulProtocols[0] !== protocolAttempts[protocolAttempts.length - 1]))
       return fail("模型比較完成狀態與公平標準不一致");
+    var modelPredictionKeys = Object.keys(lab.modelLab.predictions);
+    if (modelPredictionKeys.some(function (model) {
+      return ["inverseSquare", "simpleVortex"].indexOf(model) < 0;
+    })) return fail("模型預測紙含未知欄位");
+    var predictionTimes = [];
+    modelPredictionKeys.forEach(function (model) {
+      var prediction = lab.modelLab.predictions[model];
+      if (!prediction || prediction.model !== model || prediction.sealed !== true ||
+          prediction.beforeRuns !== true ||
+          ["one-law-three-skies", "moon-only", "patches-beyond-moon"]
+            .indexOf(prediction.prediction) < 0 ||
+          !isInt(prediction.sealedAt) || prediction.sealedAt < 1 ||
+          prediction.sealedAt > lab.sequence)
+        predictionTimes.__invalid = true;
+      else predictionTimes.push(prediction.sealedAt);
+    });
+    if (predictionTimes.__invalid ||
+        predictionTimes.slice().sort(function (a, b) { return a - b; })
+          .some(function (at, index, rows) { return index && at <= rows[index - 1]; }))
+      return fail("模型預測紙格式錯誤");
+    var firstLedgerAt = uniqueOrder.length
+      ? Math.min.apply(Math, uniqueOrder.map(function (id) {
+          return lab.modelLab.rowStage[id].openedAt;
+        })) : null;
+    if (lab.modelLab.methodVersion === "ledger-v1") {
+      if (protocolAttempts.length || modelPredictionKeys.length ||
+          lab.modelLab.protocolLocked || lab.modelLab.protocol != null)
+        return fail("舊版對帳紀錄被混入新版聽證步驟");
+    } else if ((uniqueOrder.length || lab.modelLab.runs.length || lab.evidence.k4) &&
+        (!lab.modelLab.protocolLocked || modelPredictionKeys.length !== 2 ||
+          predictionTimes.length !== 2 ||
+          successfulProtocols[0].at >= Math.min.apply(Math, predictionTimes) ||
+          (firstLedgerAt != null &&
+            Math.max.apply(Math, predictionTimes) >= firstLedgerAt)))
+      return fail("對帳不是在公平標準與兩張預測紙封存後開始");
     var successfulComparisons = [];
     for (var mci = 0; mci < lab.modelLab.comparisonAttempts.length; mci++) {
       var comparisonAttempt = lab.modelLab.comparisonAttempts[mci];
@@ -2730,6 +2983,26 @@
       if (JSON.stringify(expectedPressActions) !==
           JSON.stringify(loggedPressActions))
         return fail("校樣窗口種類與敘事層玩家操作紀錄不一致");
+      var expectedResearchActions = lab.planetLab.comparisonAttempts.map(function (row) {
+        return { action: "judgePlanetComparison", sequence: row.at };
+      }).concat((lab.modelLab.protocolAttempts || []).map(function (row) {
+        return { action: "setModelProtocol", sequence: row.at };
+      })).concat(Object.keys(lab.modelLab.predictions || {}).map(function (model) {
+        return {
+          action: "sealModelPrediction",
+          sequence: lab.modelLab.predictions[model].sealedAt
+        };
+      })).sort(function (a, b) { return a.sequence - b.sequence; });
+      var loggedResearchActions = state.eventLog.filter(function (event, index) {
+        return index > migrationEventIndex && event && event.t === "lab" &&
+          ["judgePlanetComparison", "setModelProtocol", "sealModelPrediction"]
+            .indexOf(event.action) >= 0;
+      }).map(function (event) {
+        return { action: event.action, sequence: event.sequence };
+      }).sort(function (a, b) { return a.sequence - b.sequence; });
+      if (JSON.stringify(expectedResearchActions) !==
+          JSON.stringify(loggedResearchActions))
+        return fail("盲驗／聽證紀錄與敘事層玩家操作不一致");
     }
     var completeProofRows = press.proofs.filter(function (record) {
       return record.kind === "complete" && record.complete === true &&
@@ -2978,11 +3251,20 @@
         return attempt && attempt.choice === "tangent" && attempt.ok === true &&
           attempt.at === tangent.sealedAt;
       });
-      if (!(tangent.sealed && sealedTangentAttempt && currentSeal &&
+      var paperK1 = tangent.sealed && sealedTangentAttempt &&
+        paperTrials.length >= 3 && engine4 &&
+        (lab.claims && lab.claims.k1 || []).some(function (claim) {
+          return claim && claim.ok === true && claim.action === "assertK1" &&
+            claim.concept === "forward-plus-inward-turn" &&
+            claim.sources.indexOf("tangent") >= 0 &&
+            engine4._orbitPaperSelectionAudit(lab, claim.sources, claim.at);
+        });
+      var legacyK1 = tangent.sealed && sealedTangentAttempt && currentSeal &&
           currentSeal.target === "earth-center" &&
           lab.orbitLab.manualComplete && lab.orbitLab.continuedAt &&
           lab.orbitLab.closedRecord && currentOrbitRun &&
-          (!engine4 || engine4._orbitRecordAudit(lab))))
+          (!engine4 || engine4._orbitRecordAudit(lab));
+      if (!(legacyK1 || paperK1))
         return fail("K1 與玩家親手作圖紀錄不一致");
     }
     if (lab.evidence.k2) {
@@ -2998,13 +3280,15 @@
           lab.scaleLab.moonObservationRevealed === true && k2Trial))
         return fail("K2 與同尺紙判讀紀錄不一致");
       if (!migratedK2) {
+        var hasLegacyScalePrediction = lab.scaleLab.scalePrediction != null;
         var predictionAt = lab.scaleLab.scalePrediction &&
           lab.scaleLab.scalePrediction.sealedAt;
         var predictionOpenedAt = lab.scaleLab.scalePrediction &&
           lab.scaleLab.scalePrediction.openedAt;
         var conversionAt = null, ratioAt = null, relationAt = null;
         lab.scaleLab.conversionAttempts.forEach(function (attempt) {
-          if (attempt && attempt.choice === "divide-3600" && attempt.ok === true &&
+          if (attempt && ["sagitta-geometry", "divide-3600"].indexOf(attempt.choice) >= 0 &&
+              attempt.ok === true &&
               isInt(attempt.at) && (conversionAt == null || attempt.at < conversionAt))
             conversionAt = attempt.at;
         });
@@ -3018,14 +3302,16 @@
               isInt(attempt.at) && (relationAt == null || attempt.at < relationAt))
             relationAt = attempt.at;
         });
-        if (!isInt(predictionAt) || !isInt(predictionOpenedAt) ||
-            !isInt(conversionAt) || !isInt(ratioAt) ||
+        if (!isInt(conversionAt) || !isInt(ratioAt) ||
             !isInt(relationAt) ||
-            predictionOpenedAt !== lab.scaleLab.conversionAttempts[0].at ||
-            lab.scaleLab.scalePrediction.matched !==
-              (lab.scaleLab.scalePrediction.choice === "one-over-3600") ||
-            lab.scaleLab.moonOneSecondSagMm !== 1.4 ||
-            !(predictionAt < conversionAt && conversionAt < ratioAt && ratioAt < relationAt))
+            lab.scaleLab.moonOneSecondSagMm !== canonicalMoonOneSecondSagMm ||
+            !(conversionAt < ratioAt && ratioAt < relationAt) ||
+            (hasLegacyScalePrediction &&
+              (!isInt(predictionAt) || !isInt(predictionOpenedAt) ||
+               predictionOpenedAt !== lab.scaleLab.conversionAttempts[0].at ||
+               lab.scaleLab.scalePrediction.matched !==
+                 (lab.scaleLab.scalePrediction.choice === "one-over-3600") ||
+               !(predictionAt < conversionAt))))
           return fail("K2 缺少玩家依序完成的同尺紙判讀");
       }
     }
@@ -3046,13 +3332,20 @@
             prediction.sealedAt < prediction.openedAt &&
             lab.planetLab.residuals[id] === prediction.residualPct &&
             (!engine4 || engine4._planetPredictionAudit(prediction));
-        });
+          });
       };
+      var comparisonOwned = migratedK3 ||
+        lab.planetLab.methodVersion === "legacy-v2" ||
+        (lab.planetLab.methodVersion === "blind-v1" &&
+          lab.planetLab.comparisonSealed === true &&
+          lab.planetLab.comparisonClaim === "theory-before-observation" &&
+          isInt(lab.planetLab.comparisonSealedAt));
       if (!((lab.evidence.k1 || migratedK3) && lab.evidence.k2 &&
           lab.planetLab.crossScalePass === true &&
           lab.planetLab.revealed.mars === true &&
           lab.planetLab.revealed.jupiter === true &&
-          validPlanetPrediction("mars") && validPlanetPrediction("jupiter")))
+          validPlanetPrediction("mars") && validPlanetPrediction("jupiter") &&
+          comparisonOwned))
         return fail("K3 與封存後開啟的兩個行星預測不一致");
     }
     if (lab.evidence.k4) {
@@ -3100,8 +3393,17 @@
         JSON.stringify(evidencePackage.loans) === JSON.stringify(lab.modelLab.loans) &&
         typeof evidencePackage.claimText === "string" &&
         (!engine4 || evidencePackage.claimText === engine4._ledgerClaimText(lab.modelLab));
+      var hearingReady = lab.modelLab.methodVersion === "ledger-v1" ||
+        (lab.modelLab.protocolLocked === true &&
+          lab.modelLab.protocol === "shared-law-observed-initials" &&
+          ["inverseSquare", "simpleVortex"].every(function (model) {
+            var prediction = lab.modelLab.predictions[model];
+            return prediction && prediction.sealed === true &&
+              prediction.beforeRuns === true && isInt(prediction.sealedAt);
+          }));
       if (!(lab.evidence.k1 && lab.evidence.k2 && lab.evidence.k3 &&
           press.openingChoice && press.priorityRecord &&
+          hearingReady &&
           completeLedger && lab.cometLab && lab.cometLab.joined === true &&
           lab.modelLab.gravityComplete === true &&
           lab.modelLab.vortexComplete === true &&
@@ -3128,7 +3430,7 @@
         var allowedClaimActions = {
           k1: ["assertK1"],
           k2: ["judgeScaleRelation", "assertK2", "migrationCarryK2"],
-          k3: ["assertK3", "migrationCarryK3"],
+          k3: ["judgePlanetComparison", "assertK3", "migrationCarryK3"],
           k4: ["sealModelComparison", "assertK4"],
           k5: ["submitProof"]
         };
@@ -3186,7 +3488,9 @@
           var sortedClaimSources = claimRow.sources.slice().sort();
           var expectedClaimSources = null, expectedClaimConcept = null;
           if (claimKey === "k1") {
-            expectedClaimSources = ["closed", "tangent"];
+            expectedClaimSources = sortedClaimSources.some(function (source) {
+              return /^trial:\d+$/.test(source);
+            }) ? sortedClaimSources.slice() : ["closed", "tangent"];
             expectedClaimConcept = "forward-plus-inward-turn";
           } else if (claimKey === "k2") {
             expectedClaimSources = ["earth-fall", "moon-sag", "scale-60-60"];
@@ -3215,32 +3519,49 @@
               claimRow.action === "migrationCarryK3") {
             expectedClaimOk = wordsMatch;
           } else if (claimRow.action === "assertK1") {
-            var latestSealAt = Math.max.apply(Math, [-1]
-              .concat((lab.orbitLab.ruleRuns || []).map(function (run) {
-                return run.sealedAt < claimRow.at ? run.sealedAt : -1;
-              }))
-              .concat((lab.orbitLab.manualAttempts || []).map(function (attempt) {
-                return attempt.seal.sealedAt < claimRow.at
-                  ? attempt.seal.sealedAt : -1;
-              }))
-              .concat(lab.orbitLab.ruleSeal &&
-                lab.orbitLab.ruleSeal.sealedAt < claimRow.at
-                  ? [lab.orbitLab.ruleSeal.sealedAt] : []));
-            expectedClaimOk = wordsMatch &&
-              (lab.orbitLab.ruleRuns || []).some(function (run) {
-                return run.sealedAt === latestSealAt &&
-                  run.continuedAt < claimRow.at &&
-                  run.target === "earth-center" &&
-                  ["circle", "ellipse"].indexOf(run.actualShape) >= 0;
-              });
+            var paperClaim = sortedClaimSources.some(function (source) {
+              return /^trial:\d+$/.test(source);
+            });
+            if (paperClaim) {
+              expectedClaimOk = wordsMatch && sortedClaimSources.indexOf("tangent") >= 0 &&
+                engine4 && engine4._orbitPaperSelectionAudit(
+                  lab, sortedClaimSources, claimRow.at);
+            } else {
+              var latestSealAt = Math.max.apply(Math, [-1]
+                .concat((lab.orbitLab.ruleRuns || []).map(function (run) {
+                  return run.sealedAt < claimRow.at ? run.sealedAt : -1;
+                }))
+                .concat((lab.orbitLab.manualAttempts || []).map(function (attempt) {
+                  return attempt.seal.sealedAt < claimRow.at
+                    ? attempt.seal.sealedAt : -1;
+                }))
+                .concat(lab.orbitLab.ruleSeal &&
+                  lab.orbitLab.ruleSeal.sealedAt < claimRow.at
+                    ? [lab.orbitLab.ruleSeal.sealedAt] : []));
+              expectedClaimOk = wordsMatch &&
+                (lab.orbitLab.ruleRuns || []).some(function (run) {
+                  return run.sealedAt === latestSealAt &&
+                    run.continuedAt < claimRow.at &&
+                    run.target === "earth-center" &&
+                    ["circle", "ellipse"].indexOf(run.actualShape) >= 0;
+                });
+            }
           } else if (claimRow.action === "judgeScaleRelation" ||
               claimRow.action === "assertK2") {
             var relationReady = lab.scaleLab.relationAttempts.some(function (row) {
               return row.ok === true && row.at <= claimRow.at;
             });
             expectedClaimOk = wordsMatch && relationReady;
+          } else if (claimRow.action === "judgePlanetComparison") {
+            expectedClaimOk = wordsMatch &&
+              lab.planetLab.comparisonSealedAt === claimRow.at &&
+              lab.planetLab.comparisonClaim === "theory-before-observation";
           } else if (claimRow.action === "assertK3") {
             expectedClaimOk = wordsMatch &&
+              lab.planetLab.comparisonSealed === true &&
+              lab.planetLab.comparisonClaim === "theory-before-observation" &&
+              isInt(lab.planetLab.comparisonSealedAt) &&
+              lab.planetLab.comparisonSealedAt < claimRow.at &&
               ["mars", "jupiter"].every(function (planet) {
                 return lab.planetLab.predictions.some(function (prediction) {
                   return prediction.planet === planet &&
@@ -3276,7 +3597,14 @@
               JSON.stringify(expectedSources);
         }));
     }
-    if (lab.evidence.k1 &&
+    var hasPaperK1Claim = !!(lab.claims && Array.isArray(lab.claims.k1) &&
+      lab.claims.k1.some(function (row) {
+        return row && row.ok === true &&
+          row.concept === "forward-plus-inward-turn" &&
+          row.sources.indexOf("tangent") >= 0 && engine4 &&
+          engine4._orbitPaperSelectionAudit(lab, row.sources, row.at);
+      }));
+    if (lab.evidence.k1 && !hasPaperK1Claim &&
         !hasExactSuccessfulClaim("k1", ["closed", "tangent"],
           "forward-plus-inward-turn"))
       return fail("K1 缺少與目前作圖一致的成功斷言");
@@ -3385,9 +3713,15 @@
       });
       rememberOperation("orbit-old-continue", run.continuedAt);
     });
+    paperTrials.forEach(function (run) {
+      rememberOperation("orbit-paper-trial", run.ranAt);
+    });
     lab.planetLab.predictions.forEach(function (row) {
       rememberOperation("planet-seal", row.sealedAt);
       rememberOperation("planet-open", row.openedAt);
+    });
+    lab.planetLab.comparisonAttempts.forEach(function (row) {
+      rememberOperation("planet-compare", row.at);
     });
     windowedPressRecords.forEach(function (row) {
       rememberOperation("press-window", row.at);
@@ -3397,6 +3731,12 @@
     });
     (lab.cometLab && lab.cometLab.attempts || []).forEach(function (row) {
       rememberOperation("comet", row.at);
+    });
+    (lab.modelLab.protocolAttempts || []).forEach(function (row) {
+      rememberOperation("model-protocol", row.at);
+    });
+    Object.keys(lab.modelLab.predictions || {}).forEach(function (model) {
+      rememberOperation("model-prediction", lab.modelLab.predictions[model].sealedAt);
     });
     Object.keys(lab.modelLab.rowStage).forEach(function (id) {
       var row = lab.modelLab.rowStage[id];
@@ -3635,7 +3975,7 @@
         return fail("有效完整校樣之後混入不可能的前置操作");
     }
 
-    var firstScaleAt = lab.scaleLab.scalePrediction &&
+    var legacyScalePredictionAt = lab.scaleLab.scalePrediction &&
       lab.scaleLab.scalePrediction.sealedAt;
     var successfulConversion = lab.scaleLab.conversionAttempts.find(function (row) {
       return row.ok === true;
@@ -3646,12 +3986,15 @@
     var successfulRelation = lab.scaleLab.relationAttempts.find(function (row) {
       return row.ok === true;
     });
-    if (!migratedK2 && firstScaleAt != null &&
-        (!tangent.sealed || !(tangent.sealedAt < firstScaleAt)))
+    if (!migratedK2 && legacyScalePredictionAt != null &&
+        (!tangent.sealed || !(tangent.sealedAt < legacyScalePredictionAt)))
       return fail("同尺紙預測早於切線來源紙");
     if (!migratedK2 && successfulConversion &&
-        !(firstScaleAt < successfulConversion.at))
-      return fail("同尺紙換算早於量級封存");
+        (!tangent.sealed || !(tangent.sealedAt < successfulConversion.at)))
+      return fail("同尺紙幾何判讀早於切線來源紙");
+    if (!migratedK2 && legacyScalePredictionAt != null && successfulConversion &&
+        !(legacyScalePredictionAt < successfulConversion.at))
+      return fail("舊同尺紙幾何判讀早於量級封存");
     if (!migratedK2 && successfulRatio &&
         (!successfulConversion || !(successfulConversion.at < successfulRatio.at)))
       return fail("同尺紙倍率判讀早於時間換算");
@@ -3662,22 +4005,27 @@
         (!successfulRelation ||
           !(successfulRelation.at < lab.orbitLab.ruleSeal.sealedAt)))
       return fail("作圖規則早於同尺紙成立");
+    var successfulK1Times = (lab.claims && lab.claims.k1 || []).filter(function (row) {
+      return row && row.ok === true && row.action === "assertK1";
+    }).map(function (row) { return row.at; }).filter(isInt);
+    var k1ReadyAt = successfulK1Times.length
+      ? Math.max.apply(Math, successfulK1Times) : null;
     var nativePlanetRows = lab.planetLab.predictions.filter(function (row) {
       return row.source !== "schema1-validated-k3";
     });
     if (nativePlanetRows.length &&
-        (!lab.orbitLab.continuedAt ||
+        (!k1ReadyAt ||
           nativePlanetRows.some(function (row) {
-            return row.sealedAt <= lab.orbitLab.continuedAt;
+            return row.sealedAt <= k1ReadyAt;
           })))
-      return fail("行星封存預測早於玩家作圖與牛頓續畫");
+      return fail("行星封存預測早於 K1 可重算斷言");
     var openedPlanetTimes = lab.planetLab.predictions.map(function (row) {
       return row.openedAt;
     }).filter(isInt);
     var lastPlanetOpen = openedPlanetTimes.length
       ? Math.max.apply(Math, openedPlanetTimes) : null;
     if (press.priorityRecord) {
-      var priorDiscoveryTimes = [lab.orbitLab.continuedAt, lastPlanetOpen].filter(isInt);
+      var priorDiscoveryTimes = [k1ReadyAt, lastPlanetOpen].filter(isInt);
       if (priorDiscoveryTimes.length < 2 ||
           press.priorityRecord.at <= Math.max.apply(Math, priorDiscoveryTimes))
         return fail("出版取捨早於 K1／K3 證據成立");
@@ -3769,7 +4117,7 @@
     /* NARRATIVE-CR-034：舊存檔若正停在兩座退役工作台，不再把玩家送回錯的 UI。
        依 state truth 回到對話決策；已完成者才略過，不替未完成者補造操作。 */
     if (state.cursor.scene === "D1-1" && state.cursor.node === "e1")
-      state.cursor.node = tangent.sealed === true && tangent.choice === "tangent" ? "n4" : "c1";
+      state.cursor.node = tangent.sealed === true && tangent.choice === "tangent" ? "g1" : "c1";
     if (state.cursor.scene === "DE-1" && state.cursor.node === "e1")
       state.cursor.node = lab.archiveLab && lab.archiveLab.complete ? "g1" : "c1";
     return { ok: true, state: state };

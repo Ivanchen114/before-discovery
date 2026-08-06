@@ -84,6 +84,40 @@
     diagram.appendChild(overlay);
     return diagram;
   }
+  function mountOrbitGeometryFocusVisual(item, art) {
+    var state = item.overlay || "orbit-base";
+    var diagram = document.createElement("div");
+    diagram.className = "scene-focus-orbit-geometry " + state;
+    diagram.setAttribute("role", "img");
+    diagram.setAttribute("aria-label", item.alt || "月球短圓弧、切線與實際端點差距的分步幾何圖");
+    var img = document.createElement("img");
+    img.src = assetUrl(art);
+    img.alt = "";
+    img.loading = "eager";
+    img.setAttribute("aria-hidden", "true");
+    diagram.appendChild(img);
+    var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "orbit-geometry-overlay");
+    // Keep overlay geometry in the 1200 x 800 runtime-asset coordinate space.
+    // `slice` mirrors the base image's object-fit: cover at every viewport size.
+    overlay.setAttribute("viewBox", "0 0 1200 800");
+    overlay.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    overlay.setAttribute("aria-hidden", "true");
+    if (state !== "orbit-base") {
+      overlay.innerHTML =
+        '<path class="tangent" d="M 627.2 276.6 L 712 390.3"/>' +
+        '<circle class="tangent-end" cx="712" cy="390.3" r="6"/>';
+      if (state === "orbit-gap") {
+        overlay.innerHTML +=
+          '<path class="actual" d="M 627.2 276.6 A 335.9 358.1 0 0 1 688.5 405.6"/>' +
+          '<circle class="actual-end" cx="688.5" cy="405.6" r="6"/>' +
+          '<path class="gap" d="M 712 390.3 L 688.5 405.6"/>' +
+          '<path class="gap-tick" d="M 708.2 383.9 L 715.8 396.8 M 684.7 399.2 L 692.3 412.1"/>';
+      }
+    }
+    diagram.appendChild(overlay);
+    return diagram;
+  }
   function mountShellTheoremFocusVisual(item, art) {
     var diagram = document.createElement("div");
     diagram.className = "scene-focus-shell-theorem";
@@ -133,6 +167,11 @@
       }
       var e = assetEntry(item.asset);
       if (!e) return;
+      if (["orbit-base", "orbit-tangent", "orbit-gap"].indexOf(item.overlay) >= 0) {
+        media.appendChild(mountOrbitGeometryFocusVisual(item, e));
+        shown++;
+        return;
+      }
       if (item.overlay === "cannon-trajectories") {
         media.appendChild(mountCannonFocusVisual(item, e));
         shown++;

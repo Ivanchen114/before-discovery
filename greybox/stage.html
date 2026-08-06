@@ -15,7 +15,7 @@
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:site_name" content="發現之前 Before Discovery">
+<meta property="og:site_name" content="發現之前">
 <meta property="og:title" content="發現之前 Before Discovery｜互動物理史遊戲">
 <meta property="og:description" content="臺北市立松山高中物理教師陳育詮創作。回到物理史的關鍵現場，親手讓證據成立。">
 <meta property="og:url" content="https://before-discovery.vercel.app/">
@@ -55,10 +55,20 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "發現之前",
+  "alternateName": ["Before Discovery", "before-discovery.vercel.app"],
+  "url": "https://before-discovery.vercel.app/"
+}
+</script>
 <link rel="apple-touch-icon" href="../public/assets/icons/icon-192-v2.png">
 <title>發現之前 Before Discovery｜互動物理史遊戲</title>
 <link rel="icon" type="image/svg+xml" sizes="any" href="../public/assets/icons/favicon-v2.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="../public/assets/icons/favicon-32-v2.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../public/assets/icons/icon-192-v2.png">
 <link rel="stylesheet" href="../public/assets/global/tokens.css">
 <style>
   /* stage.html — 滿版舞台殼 v2(總監裁決 2026-07-19 第一輪視覺修正:
@@ -120,6 +130,28 @@
   #sceneChip { position: absolute; top: 46px; left: 10px; z-index: 29; font-size: 12px;
                color: rgba(230, 215, 189, 0.55); background: rgba(20,14,10,0.45); padding: 2px 8px; border-radius: 3px; }
 
+  /* 短幕時間折疊：同一故事場內掠過多年。世界退到近黑，年份與對話仍由 HTML 承載；
+     不取代需要逐拍觀看的 sceneFx 蒙太奇，也不使用自動倒數。 */
+  #timePassageVeil { position: absolute; inset: 0; z-index: 24; display: grid; place-items: center;
+    box-sizing: border-box; padding-bottom: 23%; pointer-events: none; visibility: hidden; opacity: 0;
+    background: radial-gradient(circle at 50% 38%, rgba(18,15,12,.18), rgba(4,3,3,.97) 64%, #030303 100%);
+    transition: opacity 760ms ease, visibility 0s linear 760ms; }
+  #timePassageMark { display: grid; justify-items: center; gap: .45em; color: #e9ddc6;
+    font-family: var(--font-ui); letter-spacing: .13em; text-align: center;
+    opacity: 0; transform: translateY(8px); transition: opacity 620ms ease 180ms, transform 620ms ease 180ms; }
+  #timePassageLabel { padding: .42em .9em; border-top: 1px solid rgba(220,184,122,.52);
+    border-bottom: 1px solid rgba(220,184,122,.52); font-size: clamp(18px,2.1vw,31px);
+    font-weight: 650; font-variant-numeric: tabular-nums; }
+  #timePassageCaption { color: rgba(233,221,198,.68); font-family: var(--font-dialogue);
+    font-size: clamp(14px,1.25vw,19px); letter-spacing: .16em; }
+  body.scene-treatment-time-passage #timePassageVeil { visibility: visible; opacity: 1;
+    transition: opacity 760ms ease, visibility 0s; }
+  body.scene-treatment-time-passage #timePassageMark { opacity: 1; transform: translateY(0); }
+  #hud, #sceneChip { transition: opacity var(--motion-medium) ease; }
+  body.scene-treatment-time-passage #hud, body.scene-treatment-time-passage #sceneChip { opacity: .34; }
+  body.scene-treatment-time-passage #hud:hover,
+  body.scene-treatment-time-passage #hud:focus-within { opacity: 1; }
+
   /* 台詞情境特寫：圖像是角色正在看的實物，不是另開的百科卡。置於選項後方、對話框上方。 */
   #sceneFocus { position: absolute; z-index: 18; top: 10.5%; left: 4%;
     display: flex; flex-direction: column; width: min(48%, 780px); max-height: 50%;
@@ -178,6 +210,23 @@
   .scene-focus-cannon .cannon-trajectory-overlay .orbiting { stroke: #9fd4e6; }
   .scene-focus-cannon .cannon-trajectory-overlay .impact { stroke: rgba(20,14,10,.72);
     stroke-width: 3; fill: #f1cf77; stroke-dasharray: none; }
+  #sceneFocusMedia .scene-focus-orbit-geometry { position: relative; display: block; width: 100%;
+    aspect-ratio: 3 / 2; overflow: hidden; border-radius: 3px; isolation: isolate;
+    background: #eadbb9; }
+  #sceneFocusMedia .scene-focus-orbit-geometry > img { position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; max-height: none; object-fit: cover; border-radius: 0; background: none; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay { position: absolute; inset: 0; z-index: 1;
+    display: block; width: 100%; height: 100%; pointer-events: none; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay path { fill: none; stroke-linecap: round;
+    stroke-linejoin: round; filter: drop-shadow(0 1px 0 rgba(255,244,214,.72)); }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay .tangent { stroke: #8a5b2d; stroke-width: 5; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay .actual { stroke: #315f6c; stroke-width: 6; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay .gap { stroke: #c16927; stroke-width: 5; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay .gap-tick { stroke: #c16927; stroke-width: 4; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay .tangent-end { fill: #edd9a8;
+    stroke: #714820; stroke-width: 4; }
+  .scene-focus-orbit-geometry .orbit-geometry-overlay .actual-end { fill: #8dc1cf;
+    stroke: #274e5a; stroke-width: 4; }
   #sceneFocusMedia .scene-focus-shell-theorem { position: relative; display: block; width: 100%;
     aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 3px; isolation: isolate;
     background: #c9b58d; }
@@ -334,10 +383,12 @@
     #dlgText.narr, #dlgText.sys { animation: none; }
     #dlgCue { animation: none; }
     #sceneFocus { transition: none; }
+    #timePassageVeil, #timePassageMark, #hud, #sceneChip { transition: none; }
+    #timePassageMark { transform: none; }
   }
 
   @media (max-height:520px), (orientation:portrait) and (pointer:coarse) and (max-width:520px) {
-    #sceneFocus { top: 13%; left: 2.5%; width: 42%; max-height: 43%; padding: 4px; }
+    #sceneFocus { top: 13%; left: 2.5%; width: 32%; max-height: 43%; padding: 4px; }
     #sceneFocusMedia img { max-height: 27vh; }
     #sceneFocusMedia .scene-focus-evidence { height: 26vh; max-height: 138px; aspect-ratio: auto; padding: 8px; }
     #sceneFocus.multi { width: 51%; }
@@ -1410,6 +1461,19 @@
   /* --- 手機橫屏真機修正包（844×390／932×430）---
      僅在低高度橫屏生效；桌機排版與字級不變。 */
   @media (max-height: 520px) and (min-width: 701px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+    /* 窄舞台規則會把對話推回 24px；此處收斂一級，保留閱讀呼吸與三行可見量。 */
+    #dlgText { font-size: clamp(19px, 5.5vh, 22px); }
+    /* 閱讀特寫與選項是兩個並列資訊區；低高度時保留中縫，且把選項抬離對話框。 */
+    body[data-view="choice"] #panelWrap {
+      top: 14%; bottom: auto; width: 74%; max-width: 74%;
+    }
+    /* D1-2 地心三選項須和左側焦點紙並排，不得遮住玩家正在判讀的來源。 */
+    body.choice-focus-split[data-view="choice"] #panelWrap {
+      right: 2.5%; width: 62%; max-width: 62%;
+    }
+    body[data-view="choice"] #controls button {
+      width: 100%; margin-top: 6px;
+    }
     /* 兩欄配置保留，但每格必須把選單限制在自己的欄內。 */
     body[data-view="lab"] #labConfig label {
       display: grid;
@@ -2339,6 +2403,13 @@
   .orbitClaimSource b { color:#35485c; font-size:14px; line-height:1.35; }
   .orbitClaimSource small { color:#665b49; font-size:12px; line-height:1.4; }
   .orbitClaimSource.unavailable { opacity:.55; cursor:not-allowed; }
+  .orbitPaperTrialDesigner { gap:10px; }
+  .orbitTrialChooser { display:grid; gap:8px; }
+  .orbitTrialChoice { display:flex; align-items:flex-start; gap:9px; min-height:44px; padding:9px 10px;
+    border:1px solid rgba(77,92,107,.3); background:rgba(255,255,255,.28); color:#4d4335;
+    font:700 14px/1.45 var(--font-ui); cursor:pointer; }
+  .orbitTrialChoice:focus-within { outline:3px solid rgba(72,115,149,.38); outline-offset:1px; }
+  .orbitTrialChoice input { flex:none; width:20px; height:20px; margin:1px 0 0; accent-color:#4f6980; }
   .orbitClaimChoice { display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:6px;
     align-items:center; margin-top:8px; }
   .orbitClaimChoice > label { grid-column:1/-1; color:#43566a; font-weight:800; }
@@ -2360,17 +2431,31 @@
   .orbitScaleSheet figcaption span { min-width:0; }
   .orbitScaleSheet figcaption em { color:#a9b7c2; font-style:normal; font-size:10px; }
   .orbitScalePath,.orbitScaleOverlay { margin:10px 0; padding:12px; border:1px solid rgba(92,113,133,.45);
-    border-radius:10px; display:grid; gap:7px; background:rgba(16,26,36,.72); }
-  .orbitScalePath.time { border-left:5px solid #78a9d2; background:linear-gradient(90deg,rgba(56,101,139,.25),rgba(16,26,36,.72)); }
-  .orbitScalePath.distance { border-left:5px solid #d5aa52; background:linear-gradient(90deg,rgba(148,108,35,.24),rgba(16,26,36,.72)); }
-  .orbitScalePath > small,.orbitScaleOverlay > small { letter-spacing:.08em; color:#d9c18c; }
-  .orbitScalePath > p { margin:0; color:#b8c4cc; font-size:13px; }
+    border-radius:10px; display:grid; gap:7px; background:rgba(255,250,236,.46); }
+  .orbitScalePath.time { border-left:5px solid #78a9d2; background:rgba(255,250,236,.46); }
+  .orbitScalePath.distance { border-left:5px solid #c69a44; background:rgba(255,250,236,.46); }
+  .orbitScalePath > small,.orbitScaleOverlay > small { letter-spacing:.08em; color:#715b3f; }
+  .orbitScalePath > p { margin:0; color:#665b49; font-size:13px; }
+  .orbitScaleGeometry { margin:10px 0; border:1px solid rgba(125,151,174,.38); border-radius:10px;
+    background:rgba(255,250,236,.46); overflow:hidden; }
+  .orbitScaleGeometry svg { display:block; width:100%; height:auto; min-height:170px; }
+  .orbitScaleGeometry figcaption { padding:7px 10px 9px; color:#665b49; font-size:12px; }
+  .orbitScaleGeometry .orbitScaleObserved { fill:none; stroke:#638ca6; stroke-width:3; }
+  .orbitScaleGeometry .orbitScaleTangent { stroke:#8b7657; stroke-width:2; stroke-dasharray:7 5; }
+  .orbitScaleGeometry .orbitScaleEndpoint { fill:#f7ead0; stroke:#394d5c; stroke-width:2; }
+  .orbitScaleGeometry .orbitScaleEndpoint.actual { fill:#8ec0d8; }
+  .orbitScaleGeometry .orbitScaleSag { stroke:#c17c2d; stroke-width:4; stroke-linecap:round; }
+  .orbitScaleGeometry .orbitScaleSagHead { fill:#c17c2d; }
+  .orbitScaleGeometry .orbitStringLabel { fill:#4d4335; stroke:rgba(247,240,223,.96); stroke-width:4; paint-order:stroke; }
+  .orbitScaleGeometry .orbitEarthLabel { fill:#fff8e8; stroke:#2e6280; stroke-width:3; }
   .orbitScaleStrip { padding:9px 10px; border-radius:7px; border:1px dashed rgba(210,220,227,.35);
-    background:rgba(255,255,255,.04); font-variant-numeric:tabular-nums; }
+    background:rgba(255,250,236,.62); font-variant-numeric:tabular-nums; }
   .orbitScaleStrip.time { border-left:4px solid #78a9d2; }
   .orbitScaleStrip.distance { border-left:4px solid #d5aa52; }
+  .orbitScaleStrip.earth { border-left:4px solid #9a7443; }
+  .orbitScaleStrip.moon { border-left:4px solid #6f9bb7; }
   .orbitScaleStrip.matched { box-shadow:inset 0 0 0 1px rgba(119,177,132,.4); }
-  .orbitScaleOverlay.complete { border-color:rgba(119,177,132,.65); background:rgba(38,78,52,.18); }
+  .orbitScaleOverlay.complete { border-color:rgba(91,132,92,.65); background:rgba(255,250,236,.46); }
   .orbitSourceNote { margin:0 0 8px; padding:6px 9px; border:1px solid rgba(94,79,56,.28);
     background:rgba(255,255,255,.18); }
   .orbitSourceNote summary { cursor:pointer; color:#53687a; font:800 12px var(--font-ui); }
@@ -2688,6 +2773,12 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   <div id="bgFallback"><span id="fbTitle">發現之前</span></div>
   <div id="vignette"></div>
   <div id="sceneChip"></div>
+  <div id="timePassageVeil" aria-hidden="true">
+    <div id="timePassageMark">
+      <span id="timePassageLabel"></span>
+      <small id="timePassageCaption"></small>
+    </div>
+  </div>
   <div id="fxJump" role="dialog" aria-modal="true" aria-label="時代轉場"
     aria-describedby="fxCaption" aria-keyshortcuts="Enter Space" tabindex="0" hidden>
     <img id="fxPlateA" class="fxplate" alt="">
@@ -2872,7 +2963,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     </div>
     <div id="intermissionChoices" hidden role="group" aria-label="下一步的研究決定"></div>
 
-    <div id="notebook" role="dialog" aria-modal="true" aria-label="旅人筆記" data-tab="evidence" hidden>
+    <div id="notebook" role="dialog" aria-modal="true" aria-label="旅人筆記" data-tab="evidence" data-nosnippet hidden>
       <div id="nbSheet">
         <div id="nbHead">
           <h2>旅人筆記</h2>
@@ -2908,7 +2999,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
         <p class="titleTagline">知道答案，不等於能說服一個時代。<br>親手讓證據成立。</p>
         <p class="titleCredit"><span>創作・設計</span>臺北市立松山高中物理教師 陳育詮</p>
       </header>
-      <section class="titleLaunch" aria-label="章節與遊戲選項">
+      <section class="titleLaunch" aria-label="章節與遊戲選項" data-nosnippet>
         <div class="chapterStatus">
           <div class="chapterStatusText"><span>目前可玩</span><strong>第一章・重物的渴望</strong></div>
           <div id="continueWrap" style="display:none">
@@ -2990,7 +3081,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 <script src="data/series.js?v=asset-e021a350f26d"></script>
 <script src="data/patterns.js?v=asset-d7342770b335"></script>
-<script src="data/debate.js?v=asset-078769d39761"></script>
+<script src="data/debate.js?v=asset-c21e614a8145"></script>
 <script src="data/debate2.js?v=asset-95645c9fb8f4"></script>
 <script src="data/debate5.js?v=asset-d2271e46933b"></script>
 <script src="data/histfacts.js?v=asset-7dcd468b722b"></script>
@@ -2999,23 +3090,23 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
 <script src="data/histfacts6.js?v=asset-df72fe7398b9"></script>
-<script src="data/assets.js?v=asset-cb2b964a1cf3"></script>
-<script src="src/sanitize.js?v=asset-0c150fc14374"></script>
+<script src="data/assets.js?v=asset-fa5c0d7b076e"></script>
+<script src="src/sanitize.js?v=asset-46d5c96bc384"></script>
 <script src="src/save-envelope.js?v=asset-0b9496000751"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-0777fc954c67"></script>
 <script src="src/engine2.js?v=asset-fa9fe59ca97c"></script>
 <script src="src/engine3.js?v=asset-9c360fdb8243"></script>
-<script src="src/engine4.js?v=asset-16cce02eccd2"></script>
+<script src="src/engine4.js?v=asset-e85cc1639c42"></script>
 <script src="src/engine5.js?v=asset-49d82725763e"></script>
 <script src="src/engine6.js?v=asset-288a92e0eab3"></script>
-<script src="data/scenes.js?v=asset-457e57b73daa"></script>
-<script src="data/scenes2.js?v=asset-bf7cc0a29b5b"></script>
-<script src="data/scenes3.js?v=asset-09c3202c8269"></script>
-<script src="data/scenes4.js?v=asset-b84f4b4805bf"></script>
+<script src="data/scenes.js?v=asset-ad0bd4854616"></script>
+<script src="data/scenes2.js?v=asset-4c463744c91e"></script>
+<script src="data/scenes3.js?v=asset-5b07a0a2d7f9"></script>
+<script src="data/scenes4.js?v=asset-10d25def8272"></script>
 <script src="data/scenes5.js?v=asset-eeda2c29a039"></script>
-<script src="data/scenes6.js?v=asset-71c42334b44d"></script>
-<script src="src/ch4-migration.js?v=asset-7b6d538d5425"></script>
+<script src="data/scenes6.js?v=asset-f4ea5872a651"></script>
+<script src="src/ch4-migration.js?v=asset-a84d3be8533f"></script>
 <script>
 (function () {
   "use strict";
@@ -3058,8 +3149,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-e1baad637e12"></script>
-<script src="src/chapter-ui.js?v=asset-76471a1bb04f"></script>
+<script src="src/narrative.js?v=asset-371d6f2a9fcc"></script>
+<script src="src/chapter-ui.js?v=asset-f287f1782052"></script>
 <script>
 (function () {
   "use strict";
@@ -3194,6 +3285,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-67d9cd547e85"></script>
+<script src="src/stage-ui.js?v=asset-b995a5e0afdb"></script>
 </body>
 </html>

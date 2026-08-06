@@ -35,6 +35,10 @@
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
+    /* K2 地心判讀同時保留左側來源紙；手機橫屏只替這一拍收窄選項，
+       不犧牲其他場景的選項寬度，也不把焦點圖縮到無法判讀。 */
+    body.classList.toggle("choice-focus-split",
+      CHAPTER_ID === "ch4" && d.scene === "D1-2" && d.nodeId === "c_center_reason");
     /* 互動選項不是台詞事件：操作前的裝置圖、判讀前的結果圖要由節點主動叫回。
        讀檔直接落在選項時也成立，不依賴玩家曾經看過前一行台詞。 */
     showFocusVisualForView(d.scene, d.nodeId);

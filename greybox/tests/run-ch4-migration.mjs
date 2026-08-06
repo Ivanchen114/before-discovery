@@ -510,6 +510,17 @@ checked(() => {
   );
   let lab = completeMigratedK1(JSON.parse(migrated.text).lab);
   lab = Engine4.deferPress(lab, "先把三份資料逐列對完再送印").state;
+  lab = Engine4.setModelProtocol(lab, "shared-law-observed-initials").state;
+  lab = Engine4.sealModelPrediction(
+    lab,
+    "inverseSquare",
+    "one-law-three-skies"
+  ).state;
+  lab = Engine4.sealModelPrediction(
+    lab,
+    "simpleVortex",
+    "patches-beyond-moon"
+  ).state;
   lab = Engine4.connectCometTracks(lab, "same-orbit").state;
   for (const caseId of ["moon", "planets", "comet"]) {
     lab = Engine4.beginLedgerRow(lab, caseId).state;

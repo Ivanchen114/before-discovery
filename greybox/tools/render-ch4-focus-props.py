@@ -10,8 +10,10 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DIR = ROOT / "art/source/production/ch04/props"
 OUTPUT_DIR = ROOT / "public/assets/ch04/props"
 PROPS = {
-    "ch04_prop_tangent_prediction_sheet_master_v02.png":
-        ("ch04_prop_tangent_prediction_sheet_v02.webp", (1200, 750)),
+    "ch04_prop_tangent_geometry_base_master_v01.png":
+        ("ch04_prop_tangent_geometry_base_v01.webp", (1200, 800)),
+    "ch04_prop_tangent_prediction_sheet_master_v03.png":
+        ("ch04_prop_tangent_prediction_sheet_v03.webp", (1200, 750)),
     "ch04_prop_rope_ball_setup_master_v01.png":
         ("ch04_prop_rope_ball_setup_v01.webp", (1200, 800)),
     "ch04_prop_hooke_letter_reconstruction_master_v01.png":

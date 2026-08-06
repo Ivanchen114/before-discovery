@@ -247,8 +247,8 @@
       return;
     }
     if (BGM.current() === "ch4Orbit") {
-      /* A=封存切線來源紙；B=同尺換算；C=同尺關係完成並留下未決問號。 */
-      if (d.scene === "D1-2" && ["n9","n10","n11","n12","n13","n14","n15","n16","n17","n18","n19","n20","n21","n22","n23","n24","n25","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
+      /* A=封存切線來源紙；B=月球一秒正矢計算；C=同尺關係完成並留下未決問號。 */
+      if (d.scene === "D1-2" && ["n9","n10","n11","n11b","n11c","n11d","n12","n12b","n13","n14","n15","n16","n17","n18","n19","n20","n21","n22","n23","n24","n25","g1"].indexOf(d.nodeId) >= 0) BGM.variant(2);
       else if (d.scene === "D1-2") BGM.variant(1);
       else BGM.variant(0);
       return;

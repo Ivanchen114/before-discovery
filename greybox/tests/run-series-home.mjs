@@ -86,6 +86,10 @@ assert(seriesScript.version === assetVersionFor(seriesScript.path),
 
 assert(!ui.includes("（舞台版）"), "正式玩家分頁標題仍含內部用的「舞台版」");
 assert(ui.includes('current.title + "｜互動物理史遊戲"'), "正式玩家分頁標題缺少產品定位");
+assert(ui.includes('var hasExplicitChapter = /(?:^|[?&])chapter=/.test(window.location.search || "");'),
+  "正式根網址未區分首頁與指定章節標題");
+assert(ui.includes(': "發現之前 Before Discovery｜互動物理史遊戲";'),
+  "正式根網址缺少穩定的首頁標題");
 assert(!html.includes('content: "＋"'), "章節選擇器仍使用容易和進度文字重疊的加號");
 assert(!html.includes("repeat(4,minmax(0,1fr))"), "系列首頁仍把章節列寫死為四欄");
 assert(!html.includes('data-chapter="ch01"'), "系列首頁仍在 HTML 寫死章節卡");
@@ -131,14 +135,23 @@ for (const [label, source] of [["舞台", html], ["根入口", rootIndex]]) {
   assert(source.includes('<meta name="author" content="陳育詮">'), `${label}缺作者 metadata`);
   assert(source.includes("臺北市立松山高中物理教師陳育詮創作"), `${label}分享摘要缺校職與作者姓名`);
   assert(source.includes('<meta name="robots" content="index,follow,max-image-preview:large'), `${label}缺索引指令`);
+  assert(source.includes('<meta property="og:site_name" content="發現之前">'), `${label}網站名稱未收斂為作品名`);
+  assert(source.includes('rel="icon" type="image/png" sizes="192x192"'), `${label}缺搜尋結果適用的大尺寸 favicon`);
   for (const name of ["twitter:title", "twitter:description", "twitter:image"])
     assert(source.includes(`<meta name="${name}"`), `${label}缺 ${name}`);
-  const ld = source.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
-  assert(ld, `${label}缺 JSON-LD`);
-  const parsed = JSON.parse(ld[1]);
-  assert(parsed.name === "發現之前 Before Discovery" && parsed.author?.name === "陳育詮",
+  const ldBlocks = [...source.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    .map((match) => JSON.parse(match[1]));
+  const work = ldBlocks.find((entry) => Array.isArray(entry["@type"]) && entry["@type"].includes("VideoGame"));
+  const website = ldBlocks.find((entry) => entry["@type"] === "WebSite");
+  assert(work?.name === "發現之前 Before Discovery" && work.author?.name === "陳育詮",
     `${label} JSON-LD 缺作品或作者實體`);
+  assert(website?.name === "發現之前" && website.url === "https://before-discovery.vercel.app/" &&
+    website.alternateName?.includes("Before Discovery"), `${label} JSON-LD 缺網站名稱實體`);
 }
+assert(html.includes('id="notebook"') && html.includes('data-tab="evidence" data-nosnippet hidden'),
+  "旅人筆記未排除於搜尋摘要之外");
+assert(html.includes('class="titleLaunch" aria-label="章節與遊戲選項" data-nosnippet'),
+  "章節操作介面未排除於搜尋摘要之外");
 assert(html.includes('<h1 class="t1">發現之前</h1>'), "正式首頁沒有語意 h1");
 assert(html.includes('class="titleCredit"') &&
   html.includes("臺北市立松山高中物理教師 陳育詮"),
@@ -155,4 +168,4 @@ assert(readme.includes("**創作・設計**:臺北市立松山高中物理教師
 console.log("  ✓ 系列首頁 v3|目前旅程＋資料驅動章節目錄，可擴充且第四章章名同步");
 console.log("  ✓ 正式根入口|根網址直接提供系列首頁，資源路由與 canonical 收斂");
 console.log("  ✓ 作者署名|標題頁、分享 metadata、PWA 與 README 均標示校職與姓名");
-console.log("  ✓ SEO 與 PWA|單一 canonical、JSON-LD、Twitter Card、根路徑 manifest 與有效 sitemap");
+console.log("  ✓ SEO 與 PWA|網站名稱、摘要邊界、單一 canonical、JSON-LD、favicon 與有效 sitemap");

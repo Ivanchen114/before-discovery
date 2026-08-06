@@ -608,7 +608,7 @@
       output.lab.scaleLab.conversionCorrect = true;
       output.lab.scaleLab.ratioCorrect = true;
       output.lab.scaleLab.relationCorrect = true;
-      output.lab.scaleLab.moonOneSecondSagMm = 1.4;
+      output.lab.scaleLab.moonOneSecondSagMm = 1.36;
       output.lab.scaleLab.exponent = 2;
       output.lab.scaleLab.lawLocked = 2;
       output.lab.scaleLab.moonObservationRevealed = true;
@@ -617,7 +617,7 @@
         id: 1,
         exponent: 2,
         moonSagM: 4.9,
-        moonErrorPct: 0,
+        moonErrorPct: 0.4,
         periods: { mars: 1.874, jupiter: 11.858 },
         sealed: true,
         revealedAfterSeal: true,

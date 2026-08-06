@@ -5,8 +5,15 @@
     SCENES.scenes.forEach(function (s) { if (s.id === id) sc = s; });
     return sc;
   }
+  function applySceneTreatment(sceneId) {
+    var treatment = ASSETS && ASSETS.sceneTreatment && ASSETS.sceneTreatment[sceneId];
+    var timePassage = treatment && treatment.mode === "time-passage";
+    body.classList.toggle("scene-treatment-time-passage", !!timePassage);
+    $("timePassageLabel").textContent = timePassage ? String(treatment.label || "") : "";
+    $("timePassageCaption").textContent = timePassage ? String(treatment.caption || "") : "";
+  }
   function setScene(sceneId) {
-    if (sceneId === curSceneId) return;
+    if (sceneId === curSceneId) { applySceneTreatment(sceneId); return; }
     clearFocusVisual();
     curSceneId = sceneId;
     preloadScene(sceneId);
@@ -36,4 +43,5 @@
       fb.classList.remove("off");
       $("fbTitle").textContent = publicTitle;
     }
+    applySceneTreatment(sceneId);
   }

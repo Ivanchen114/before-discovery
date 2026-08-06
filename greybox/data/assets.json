@@ -1,7 +1,7 @@
 {
  "version": 1,
  "basePath": "../public/assets/",
- "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 v03 六板(文字直生於圖;拍映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;程式僅交叉淡化+字幕+題詞+無障礙文字;v01/v02 廢案禁引)。 lineDialoguePortrait[{scene,speaker,match,asset}]→台詞級表情覆寫(最高優先;子字串比對;年代守衛測試把關)。 lineFocusVisual[{scene,match,items,caption}]→台詞提及圖像或器材時自動入鏡,同場景保留、換場清除。viewFocusVisual[{scene,nodeIds,match}]→互動節點重叫指定 lineFocusVisual；用於操作前持續看裝置、判讀時才換結果圖，讀檔直落選項亦成立。 sceneFx[場景]→章首／跨年 montage；steps[{plate,label,caption}] 依序溶接，時間、地點與交棒者由 HTML 字幕呈現，僅活戲播放，缺圖則略過而不阻斷流程。 sceneBgm[場景]→程序化環境音樂 mood(pisa/study/rain/workshop/hall/dusk;storm=序幕專用;Web Audio 合成零資產,聲音鈕總開關)。 bgmFiles[mood]→真音樂檔(mp3/ogg,放 public/assets/audio/ 填檔名即播,交叉淡入;null=回退程序化合成;storm 建議留合成=現代場景用合成器,1590 用真琴,音色本身就是穿越)。授權紀錄=public/assets/audio/README.md。 Batch03:title_background/histfacts_banner/card_E1·E3·E4·E5 專圖(card_E2 恆 null=程式 SVG);證據卡解析=card_<code> 優先,缺圖回退 template。 evidenceSummary[證據(+子項)]→手牌白話摘要(語意透明化,不標正解)。",
+ "note": "path=null 即該槽尚無 runtime 資產,UI 全面 fallback(灰盒不變)。Sol 只需:轉出 WebP 放入 public/assets/,把 path 填上;程式零改動。layers 欄位=ART-ADR-001 混合制(base+臉層,anchorX/anchorY/w 以母版座標記)。 sceneDialoguePortrait[場景][講者]→場景覆寫,speakerDialoguePortrait[講者]→對話預設,speakerPortrait[講者]→舊筆記頭像 fallback(遮罩呈現)。旅人一律不入對話肖像映射(壓暗對手呈現);dialogue_traveler_silhouette 僅供章末/筆記/A-B。 speakerSide[講者]→雙槽站位(依原圖朝向,永不鏡像);travelerSilhouette[side]→旅人剪影按側選圖(預設開啟,?travelerBust=0 撤回)。 prologuePlates[板號]→序幕 P0-0 v03 六板(文字直生於圖;拍映射 n1-n2→1/n3→2/n4-n5→3/n6→4/n7→5/n8-n9→6;程式僅交叉淡化+字幕+題詞+無障礙文字;v01/v02 廢案禁引)。 lineDialoguePortrait[{scene,speaker,match,asset}]→台詞級表情覆寫(最高優先;子字串比對;年代守衛測試把關)。 lineFocusVisual[{scene,match,items,caption}]→台詞提及圖像或器材時自動入鏡,同場景保留、換場清除。viewFocusVisual[{scene,nodeIds,match}]→互動節點重叫指定 lineFocusVisual；用於操作前持續看裝置、判讀時才換結果圖，讀檔直落選項亦成立。 sceneTreatment[場景]→短幕表現狀態；time-passage 只讓世界退到近黑並保留對話，不取代逐拍蒙太奇。 sceneFx[場景]→章首／跨年 montage；steps[{plate,label,caption}] 依序溶接，時間、地點與交棒者由 HTML 字幕呈現，僅活戲播放，缺圖則略過而不阻斷流程。 sceneBgm[場景]→程序化環境音樂 mood(pisa/study/rain/workshop/hall/dusk;storm=序幕專用;Web Audio 合成零資產,聲音鈕總開關)。 bgmFiles[mood]→真音樂檔(mp3/ogg,放 public/assets/audio/ 填檔名即播,交叉淡入;null=回退程序化合成;storm 建議留合成=現代場景用合成器,1590 用真琴,音色本身就是穿越)。授權紀錄=public/assets/audio/README.md。 Batch03:title_background/histfacts_banner/card_E1·E3·E4·E5 專圖(card_E2 恆 null=程式 SVG);證據卡解析=card_<code> 優先,缺圖回退 template。 evidenceSummary[證據(+子項)]→手牌白話摘要(語意透明化,不標正解)。",
  "sceneBg": {
   "P0-1": "bg_pisa_arcade",
   "P0-2": "bg_study_pisa_day",
@@ -1623,14 +1623,26 @@
    "sourceMaster": "art/source/production/ch04/backgrounds/ch04_bg_typecase_collision_epilogue_master_v01.png"
   },
   {
-   "id": "ch04_prop_tangent_prediction_sheet_v02",
+   "id": "ch04_prop_tangent_prediction_sheet_v03",
    "kind": "prop",
    "label": "牛頓桌上的無作用切線預測紙",
-   "path": "ch04/props/ch04_prop_tangent_prediction_sheet_v02.webp",
+   "path": "ch04/props/ch04_prop_tangent_prediction_sheet_v03.webp",
    "firstScreen": false,
    "w": 1200,
    "h": 750,
-   "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v02.png"
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v03.png"
+  },
+  {
+   "id": "ch04_prop_tangent_geometry_base_v01",
+   "kind": "prop",
+   "label": "1665 月球圓弧與切線推理底圖",
+   "path": "ch04/props/ch04_prop_tangent_geometry_base_v01.webp",
+   "firstScreen": false,
+   "w": 1200,
+   "h": 800,
+   "sourceMaster": "art/source/production/ch04/props/ch04_prop_tangent_geometry_base_master_v01.png",
+   "shotRole": "diagram-base",
+   "precisionOverlay": true
   },
   {
    "id": "ch04_prop_cross_scale_surface_sheet_v01",
@@ -1794,11 +1806,12 @@
   {
    "id": "card_K2",
    "kind": "card",
-   "label": "K2 地上與天上的同一把尺",
-   "path": "ch04/evidence/ch04_card_K2_cross_scale_v01.svg",
+   "label": "K2 地上與天上的同一把尺・共同計算證據",
+   "path": "ch04/focus/ch04_focus_shared_moon_calculation_v01.webp",
    "firstScreen": false,
-   "w": 1200,
-   "h": 750
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_shared_moon_calculation_master_v01.png"
   },
   {
    "id": "card_K2_cross_scale_reconstruction_v02",
@@ -2466,6 +2479,166 @@
    "w": 1920,
    "h": 1080,
    "sourceMaster": "art/source/production/ch06/backgrounds/ch06_bg_munich_arsenal_boring_floor_day_master_v01.png"
+  },
+  {
+   "id": "ch01_focus_shared_paper_calculation_v01",
+   "kind": "cg",
+   "label": "第一章共同讀紙與計算特寫",
+   "path": "ch01/focus/ch01_focus_shared_paper_calculation_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch01/focus/ch01_focus_shared_paper_calculation_master_v01.png",
+   "shotRole": "relationship",
+   "pairId": "shared-discovery-ch01"
+  },
+  {
+   "id": "ch01_focus_square_pattern_reading_v01",
+   "kind": "cg",
+   "label": "第一章總距離平方序列閱讀鏡頭",
+   "path": "ch01/focus/ch01_focus_square_pattern_reading_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch01/focus/ch01_focus_square_pattern_reading_master_v01.png",
+   "shotRole": "reading",
+   "pairId": "shared-discovery-ch01",
+   "embeddedText": ["1 4 9 16 25"]
+  },
+  {
+   "id": "ch02_focus_evidence_next_test_v01",
+   "kind": "cg",
+   "label": "第二章保留證據並換球續查特寫",
+   "path": "ch02/focus/ch02_focus_evidence_next_test_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch02/focus/ch02_focus_evidence_next_test_master_v01.png",
+   "shotRole": "relationship",
+   "pairId": "shared-discovery-ch02"
+  },
+  {
+   "id": "ch02_focus_ball_comparison_reading_v01",
+   "kind": "cg",
+   "label": "第二章銅球木球砂痕閱讀鏡頭",
+   "path": "ch02/focus/ch02_focus_ball_comparison_reading_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch02/focus/ch02_focus_ball_comparison_reading_master_v01.png",
+   "shotRole": "reading",
+   "pairId": "shared-discovery-ch02",
+   "embeddedText": ["銅球", "木球"]
+  },
+  {
+   "id": "ch03_focus_public_limited_claim_v01",
+   "kind": "cg",
+   "label": "第三章公開記錄有限主張特寫",
+   "path": "ch03/focus/ch03_focus_public_limited_claim_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/focus/ch03_focus_public_limited_claim_master_v01.png",
+   "shotRole": "relationship",
+   "pairId": "shared-discovery-ch03"
+  },
+  {
+   "id": "ch03_focus_limited_claim_reading_v01",
+   "kind": "cg",
+   "label": "第三章有限主張雙欄閱讀鏡頭",
+   "path": "ch03/focus/ch03_focus_limited_claim_reading_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch03/focus/ch03_focus_limited_claim_reading_master_v01.png",
+   "shotRole": "reading",
+   "pairId": "shared-discovery-ch03",
+   "embeddedText": ["排除", "未直接量"]
+  },
+  {
+   "id": "ch04_focus_shared_moon_calculation_v01",
+   "kind": "cg",
+   "label": "第四章兩張獨立算紙共同發現特寫",
+   "path": "ch04/focus/ch04_focus_shared_moon_calculation_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_shared_moon_calculation_master_v01.png",
+   "shotRole": "relationship",
+   "pairId": "shared-discovery-ch04"
+  },
+  {
+   "id": "ch04_focus_one_second_papers_reading_v01",
+   "kind": "cg",
+   "label": "第四章兩張一秒算紙閱讀鏡頭",
+   "path": "ch04/focus/ch04_focus_one_second_papers_reading_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_one_second_papers_reading_master_v01.png",
+   "shotRole": "reading",
+   "pairId": "shared-discovery-ch04",
+   "embeddedText": ["地表 1 秒：約 4.9 m", "月球 1 秒：約 1.36 mm", "待比較"]
+  },
+  {
+   "id": "ch05_focus_same_six_records_relation_v01",
+   "kind": "cg",
+   "label": "第五章同守六張紀錄關係鏡頭",
+   "path": "ch05/focus/ch05_focus_same_six_records_relation_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch05/focus/ch05_focus_same_six_records_relation_master_v01.png",
+   "shotRole": "relationship",
+   "pairId": "shared-discovery-ch05"
+  },
+  {
+   "id": "ch05_focus_two_ledgers_reading_v01",
+   "kind": "cg",
+   "label": "第五章兩本帳同紙閱讀鏡頭",
+   "path": "ch05/focus/ch05_focus_two_ledgers_reading_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch05/focus/ch05_focus_two_ledgers_reading_master_v01.png",
+   "shotRole": "reading",
+   "pairId": "shared-discovery-ch05",
+   "embeddedText": ["動量帳", "活力帳"]
+  },
+  {
+   "id": "ch06_focus_four_hands_strip_alignment_v01",
+   "kind": "cg",
+   "label": "第六章四人對齊紙帶特寫",
+   "path": "ch06/focus/ch06_focus_four_hands_strip_alignment_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch06/focus/ch06_focus_four_hands_strip_alignment_master_v01.png",
+   "shotRole": "relationship",
+   "pairId": "shared-discovery-ch06"
+  },
+  {
+   "id": "ch06_focus_heat_strips_reading_v01",
+   "kind": "cg",
+   "label": "第六章碎屑薄片紙帶閱讀鏡頭",
+   "path": "ch06/focus/ch06_focus_heat_strips_reading_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch06/focus/ch06_focus_heat_strips_reading_master_v01.png",
+   "shotRole": "reading",
+   "pairId": "shared-discovery-ch06",
+   "embeddedText": ["碎屑", "薄片"]
+  },
+  {
+   "id": "ch06_focus_public_blank_admission_v01",
+   "kind": "cg",
+   "label": "第六章公開保留未決空欄特寫",
+   "path": "ch06/focus/ch06_focus_public_blank_admission_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch06/focus/ch06_focus_public_blank_admission_master_v01.png"
   }
  ],
  "sceneDialoguePortrait": {
@@ -2869,6 +3042,172 @@
  ],
  "lineFocusVisual": [
   {
+   "scene": "A2-2",
+   "match": "兩支筆刮過紙面的聲音",
+   "items": [
+    {
+     "asset": "ch01_focus_shared_paper_calculation_v01",
+     "alt": "燭光下兩人各據一張實驗紙，伽利略核對水滴紙帶，旅人整理總距離紙，兩雙手在桌中央並列工作"
+    }
+   ],
+   "caption": "一人核原紙，一人重排總距離；關係還沒被說出口。"
+  },
+  {
+   "scene": "A2-2",
+   "match": "等一下——一、四、九、十六、二十五",
+   "items": [
+    {
+     "asset": "ch01_focus_square_pattern_reading_v01",
+     "alt": "從正上方看見完整紙面，五組逐步增長的刻痕下依序寫著一、四、九、十六、二十五；兩人的手停在紙面兩側，沒有遮住資料"
+    }
+   ],
+   "caption": "現在只讀這一列：總距離依序是一、四、九、十六、二十五；推導可稍後再展開。"
+  },
+  {
+   "scene": "B2-3",
+   "match": "先換球查重量",
+   "items": [
+    {
+     "asset": "ch02_focus_evidence_next_test_v01",
+     "alt": "旅人的手壓住既有砂痕紀錄，伽利略把同尺寸木球移到銅球旁，準備只改變材質與重量"
+    }
+   ],
+   "caption": "舊紙不被抹掉；下一輪只換一個問題來查。"
+  },
+  {
+   "scene": "B2-3",
+   "match": "銅球與木球的四列沙痕並排",
+   "items": [
+    {
+     "asset": "ch02_focus_ball_comparison_reading_v01",
+     "alt": "從正上方看見銅球與木球各自對應兩列砂痕，四列都由同一座斜槽留下，紙面未寫任何相等或結論符號"
+    }
+   ],
+   "caption": "同一座斜槽留下四列痕跡；先比較，再決定球的重量是否改變結果。"
+  },
+  {
+   "scene": "C3-1",
+   "match": "官員逐字把旅人的話寫進結果欄",
+   "items": [
+    {
+     "asset": "ch03_focus_public_limited_claim_v01",
+     "alt": "馬賽港的公開桌上，官員落筆、旅人指向有限的結果欄，船長按住兩份有封蠟的來源紙"
+    }
+   ],
+   "caption": "公開記下的不是勝利，而是這批證據真正排除了什麼。"
+  },
+  {
+   "scene": "C3-1",
+   "match": "逐字讀完才拿起筆",
+   "items": [
+    {
+     "asset": "ch03_focus_limited_claim_reading_v01",
+     "alt": "從正上方看見完整公開紀錄紙，左欄標示排除，右欄標示未直接量；兩欄都保留大量空白與封存來源"
+    }
+   ],
+   "caption": "同一張結果紙分清兩件事：已排除的反對，以及這次沒有直接量到的範圍。"
+  },
+  {
+   "scene": "D1-2",
+   "match": "兩人各重做一遍",
+   "items": [
+    {
+     "asset": "ch04_focus_shared_moon_calculation_v01",
+     "alt": "月光與燭光交會的書桌上，牛頓與旅人各在一張幾何紙工作，中央短尺連起兩張獨立算紙"
+    }
+   ],
+   "caption": "端點之間的細差先被看見；數值仍要由幾何算出。"
+  },
+  {
+   "scene": "D1-2",
+   "match": "兩種筆跡並排留在紙上",
+   "items": [
+    {
+     "asset": "ch04_focus_shared_moon_calculation_v01",
+     "alt": "牛頓與旅人的兩張獨立計算紙在桌中央相接，兩人仍各自保留自己的筆與尺"
+    }
+   ],
+   "caption": "旅人先說出平方連結；牛頓另紙重算，再把距離約六十倍與偏折約為地表的三千六百分之一接起來。"
+  },
+  {
+   "scene": "D1-2",
+   "match": "月亮這張，約一點三六毫米",
+   "items": [
+    {
+     "asset": "ch04_focus_one_second_papers_reading_v01",
+     "alt": "從正上方看見兩張完整算紙：地表一秒約四點九公尺，月球一秒約一點三六毫米；中央只寫待比較，沒有倍率或定律答案"
+    }
+   ],
+   "caption": "兩張紙現在才把一秒讀值放在同一桌面；倍率與距離關係仍由玩家接起來。"
+  },
+  {
+   "scene": "D1-2",
+   "match": "月球一秒的『向內差距』",
+   "items": [
+    {
+     "asset": "ch04_prop_tangent_geometry_base_v01",
+     "overlay": "orbit-gap",
+     "alt": "月球作圖紙同時保留無作用切線與實際短彎路，兩個一秒端點以短線相接，等待玩家辨認哪一段是向內偏折"
+    }
+   ],
+   "caption": "這一步只判讀幾何：向前走的弧長、月地半徑，還是兩個端點之間的短差？"
+  },
+  {
+   "scene": "E2-2",
+   "match": "她把手按在那六張紀錄紙上",
+   "items": [
+    {
+     "asset": "ch05_focus_same_six_records_relation_v01",
+     "alt": "西雷書房裡，杜夏特萊一手按住橫排的六張碰撞紀錄、一手指出其中一張；旅人在對面持筆核對，同桌而非受教"
+    }
+   ],
+   "caption": "兩人先守住同一批六張原紙：換帳，不換資料。"
+  },
+  {
+   "scene": "E2-2",
+   "match": "這一組……少了一截",
+   "items": [
+    {
+     "asset": "ch05_focus_two_ledgers_reading_v01",
+     "alt": "從正上方看見同六張紀錄位於兩本帳上方；動量帳目前一列對齊，活力帳同一列右端留下被圈起的空缺"
+    }
+   ],
+   "caption": "不用一次讀完整本帳：只看正在核對的這一列，右頁確實少了一截。"
+  },
+  {
+   "scene": "H1-1",
+   "match": "旅人把兩條紙帶的起點對齊",
+   "items": [
+    {
+     "asset": "ch06_focus_four_hands_strip_alignment_v01",
+     "alt": "慕尼黑兵工廠的桌上，旅人、朗福德、凱斯勒與史坦格各伸出一隻手，共同把兩條紙帶對齊同一起點"
+    }
+   ],
+   "caption": "四個人各守一處：起點、紙角、尺與末端都能被彼此核對。"
+  },
+  {
+   "scene": "H1-1",
+   "match": "這組紙最多支持到哪裡？",
+   "items": [
+    {
+     "asset": "ch06_focus_heat_strips_reading_v01",
+     "alt": "從正上方看見碎屑與薄片兩條完整紙帶從同一起點展開，兩線幾乎重合；圖中沒有替玩家寫出可排除的主張"
+    }
+   ],
+   "caption": "先讀兩條紙帶本身：同起點、近乎重合；它能排除到哪裡，仍由玩家作答。"
+  },
+  {
+   "scene": "H3-1",
+   "match": "炮紙沒有因此變假",
+   "items": [
+    {
+     "asset": "ch06_focus_public_blank_admission_v01",
+     "alt": "對帳板保留炮鑽紀錄與冰的藍紙，中央另釘一張完全空白的紙，四人的手都沒有把它遮住"
+    }
+   ],
+   "caption": "炮紙留下；冰的空欄也留下。承認未決，是共同頁的一部分。"
+  },
+  {
    "scene": "C0-3",
    "match": "舊紙已收入卷宗",
    "items": [
@@ -2881,14 +3220,39 @@
   },
   {
    "scene": "D1-1",
-   "match": "旅人沿選中的方向畫下一條直線",
+   "match": "月亮先前走過的一小段圓弧",
    "items": [
     {
-     "asset": "ch04_prop_tangent_prediction_sheet_v02",
-     "alt": "牛頓桌上的手繪預測紙：地球旁的月亮沿當下切線直走，沒有自行彎回圓軌道"
+     "asset": "ch04_prop_tangent_geometry_base_v01",
+     "overlay": "orbit-base",
+     "alt": "俯視牛頓桌上的月球作圖紙：地球、月亮、地月半徑，以及只畫到此刻月亮位置的短圓弧；月亮前方仍是空白"
     }
    ],
-   "caption": "無作用預測紙：若沒有作用改變運動，月亮下一步沿當下切線直走。這是操作前的預測，不是觀測證據。"
+   "caption": "先放入已觀察到的短圓弧；月亮下一步怎麼走，紙上還沒有答案。"
+  },
+  {
+   "scene": "D1-1",
+   "match": "旅人把尺靠上月亮此刻的方向",
+   "items": [
+    {
+     "asset": "ch04_prop_tangent_geometry_base_v01",
+     "overlay": "orbit-tangent",
+     "alt": "同一張月球作圖紙上，從圓弧末端的月亮位置沿當下方向加畫一段直切線；前方尚未畫實際彎路"
+    }
+   ],
+   "caption": "先只畫無作用時的下一步：從此刻的月亮位置沿切線直走。"
+  },
+  {
+   "scene": "D1-1",
+   "match": "牛頓在同一張紙上補出月亮實際走過",
+   "items": [
+    {
+     "asset": "ch04_prop_tangent_geometry_base_v01",
+     "overlay": "orbit-gap",
+     "alt": "同一張月球作圖紙同時保留直切線與向地球彎曲的實際短路徑；切線端點和實際端點之間以短線精確連接"
+    }
+   ],
+   "caption": "再補實際彎路：兩個端點之間朝地球縮進去的短差，才是這一步的向內偏折。"
   },
   {
    "scene": "D2-1",
@@ -2925,14 +3289,14 @@
   },
   {
    "scene": "D2-1",
-   "match": "第三十拍落下",
+   "match": "桌上排著旅人挑出的三張紙",
    "items": [
     {
      "asset": "ch04_focus_newton_orbit_montage_1679_v01",
-     "alt": "1679 年燭光下，牛頓接過羽毛筆，在玩家留下的前三拍之後繼續作圖"
+     "alt": "1679 年燭光下，旅人與牛頓一同核對多張快慢與向內扳量不同的試跑紙"
     }
    ],
-   "caption": "玩家先留下三拍；其後的細分作圖由牛頓續完。底圖只承載手、紙與燭光，軌跡仍由引擎繪製。"
+   "caption": "玩家先試跑並挑出三張可比較紀錄；牛頓與旅人再共同核對。底圖只承載手、紙與燭光，路徑與設定仍由引擎依玩家操作繪製。"
   },
   {
    "scene": "D2-1",
@@ -3074,7 +3438,7 @@
   },
   {
    "scene": "A2-2",
-   "match": "你把這串奇數自己找出來了",
+   "match": "五段都對得上",
    "items": [
     {
      "asset": "card_E3",
@@ -3397,6 +3761,38 @@
  ],
  "viewFocusVisual": [
   {
+   "scene": "D1-1",
+   "nodeIds": [
+    "c1",
+    "w1",
+    "w2",
+    "w3"
+   ],
+   "match": "月亮先前走過的一小段圓弧"
+  },
+  {
+   "scene": "D1-1",
+   "nodeIds": [
+    "c2",
+    "w4",
+    "w5",
+    "ok2",
+    "ok3",
+    "ok4",
+    "ok5"
+   ],
+   "match": "牛頓在同一張紙上補出月亮實際走過"
+  },
+  {
+   "scene": "D1-2",
+   "nodeIds": [
+    "c_geom",
+    "wg1",
+    "wg2"
+   ],
+   "match": "月球一秒的『向內差距』"
+  },
+  {
    "scene": "B2-4",
    "nodeIds": [
     "q4",
@@ -3404,8 +3800,22 @@
     "n3"
    ],
    "match": "高層最後落下"
+  },
+  {
+   "scene": "H1-1",
+   "nodeIds": [
+    "c1"
+   ],
+   "match": "這組紙最多支持到哪裡？"
   }
  ],
+ "sceneTreatment": {
+  "D-INT-1": {
+   "mode": "time-passage",
+   "label": "1665 → 1679",
+   "caption": "十四年，折進一頁"
+  }
+ },
  "sceneFx": {
   "P0-1": {
    "fx": "montage",
@@ -3971,7 +4381,7 @@
   "G4": "同一事件的船上與岸上紙帶；先以同號鼓點對齊，再逐拍扣掉桅杆位置，這一趟的岸紙才能換成船紙。",
   "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。",
   "K1": "沒有向內偏折時月亮沿切線離開；每一拍向地心改向，才形成閉合軌道。",
-  "K2": "距離與時間同放大六十倍時，反平方律把地表一秒落下與月球六十秒偏折接到同一量級。",
+  "K2": "月距與週期算出月球一秒正矢約 1.36 mm；與地表一秒約 4.9 m 相差約 3600 倍，旅人再把它接到月距約 60R。",
   "K3": "Mars 與 Jupiter 的週期都在觀測揭露前封存，舊預測即使改律也不會被刪除。",
   "K4": "反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet；比較只涵蓋這兩個明列版本。",
   "K5": "證據鏈、來源署名與作用機制邊界同時通過校樣；可計算規則成立，機制仍未決。",
@@ -4193,11 +4603,11 @@
   "K2": {
    "items": [
     {
-     "asset": "card_K2_cross_scale_reconstruction_v02",
-     "alt": "燭光書桌上的兩張教學重建紙：左紙記地表一秒落下約四點九公尺，右紙記月球距地約六十個地球半徑、六十秒向內偏折約四點九公尺，中間以六十乘六十等於三千六百連起兩張紙"
+     "asset": "ch04_focus_shared_moon_calculation_v01",
+     "alt": "月光與燭光交會的書桌上，牛頓與旅人各自完成一張幾何紙，中央短尺連起兩張獨立算紙；圖面沒有可讀公式或答案"
     }
    ],
-   "caption": "教學重建｜兩張同尺紙對齊：反平方律把地表一秒落下與月球六十秒偏折接到同一量級。"
+   "caption": "取得證據：地表一秒與月球一秒已放上同一把尺；旅人接出約 60 與約 3600，牛頓另紙重算。"
   },
   "K3": {
    "items": [

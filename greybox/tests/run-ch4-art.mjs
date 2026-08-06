@@ -69,48 +69,51 @@ if (assets.chapterThumbnail.ch04 !== "chapter_thumbnail_ch04")
   fail("第四章章節縮圖未接上");
 
 const expectedEvidenceAssets = {
-  K1: "card_K1",
-  K2: "card_K2_cross_scale_reconstruction_v02",
-  K3: "card_K3",
-  K4: "card_K4",
-  K5: "card_K5"
+  K1: { id:"card_K1", w:1200, h:750 },
+  K2: { id:"ch04_focus_shared_moon_calculation_v01", w:1672, h:941 },
+  K3: { id:"card_K3", w:1200, h:750 },
+  K4: { id:"card_K4", w:1200, h:750 },
+  K5: { id:"card_K5", w:1200, h:750 }
 };
-for (const [code, id] of Object.entries(expectedEvidenceAssets)) {
-  const entry = entries.get(id);
+for (const [code, expected] of Object.entries(expectedEvidenceAssets)) {
+  const entry = entries.get(expected.id);
   const visual = assets.evidenceVisual?.[code];
-  if (!entry?.path || entry.w !== 1200 || entry.h !== 750)
-    fail("第四章證據圖宣告錯誤:" + id);
+  if (!entry?.path || entry.w !== expected.w || entry.h !== expected.h)
+    fail("第四章證據圖宣告錯誤:" + expected.id);
   if (!assets.evidenceSummary?.[code])
     fail("第四章證據摘要缺漏:" + code);
-  if (visual?.items?.[0]?.asset !== id || !visual.caption)
+  if (visual?.items?.[0]?.asset !== expected.id || !visual.caption)
     fail("第四章旅人筆記視覺未接上:" + code);
   const file = path.join(here, "../../public/assets", entry.path);
   if (!existsSync(file)) fail("第四章證據圖檔案不存在:" + entry.path);
   if (code === "K2") {
+    const notebookAlias = entries.get("card_K2");
+    if (notebookAlias?.path !== entry.path || notebookAlias?.sourceMaster !== entry.sourceMaster)
+      fail("K2 旅人筆記仍會優先載入舊版答案圖");
     if (!entry.path.endsWith(".webp") || !entry.sourceMaster ||
         !existsSync(path.join(here, "../../", entry.sourceMaster)))
-      fail("K2 未使用有母版的完整 raster 教學重建圖");
-    if (!visual.caption.includes("教學重建") ||
-        !visual.items[0].alt.includes("六十個地球半徑") ||
-        !visual.items[0].alt.includes("三千六百"))
-      fail("K2 教學重建、比例或換算邊界未對玩家說清楚");
+      fail("K2 未使用有母版的共同計算 raster");
+    if (!visual.caption.includes("地表一秒") ||
+        !visual.caption.includes("月球一秒") ||
+        !visual.items[0].alt.includes("沒有可讀公式或答案"))
+      fail("K2 解鎖圖仍可能把公式或答案烤進 raster");
     if (statSync(file).size > 512 * 1024)
       fail("K2 證據圖超過單檔 512 KB 預算");
     continue;
   }
   const svg = readFileSync(file, "utf-8");
   if (!svg.includes('role="img"') || !svg.includes("<title") || !svg.includes("<desc"))
-    fail("第四章證據圖缺可及性文字:" + id);
+    fail("第四章證據圖缺可及性文字:" + expected.id);
 }
 
-const tangentSheet = entries.get("ch04_prop_tangent_prediction_sheet_v02");
-if (tangentSheet?.path !== "ch04/props/ch04_prop_tangent_prediction_sheet_v02.webp" ||
-    tangentSheet.w !== 1200 || tangentSheet.h !== 750)
-  fail("無作用切線預測紙宣告錯誤");
+const tangentSheet = entries.get("ch04_prop_tangent_geometry_base_v01");
+if (tangentSheet?.path !== "ch04/props/ch04_prop_tangent_geometry_base_v01.webp" ||
+    tangentSheet.w !== 1200 || tangentSheet.h !== 800 || !tangentSheet.precisionOverlay)
+  fail("月球切線分步底圖宣告錯誤");
 if (!existsSync(path.join(here, "../../public/assets", tangentSheet.path)))
-  fail("無作用切線預測紙 runtime 檔案不存在");
+  fail("月球切線分步底圖 runtime 檔案不存在");
 if (!existsSync(path.join(here, "../../", tangentSheet.sourceMaster)))
-  fail("無作用切線預測紙母版不存在");
+  fail("月球切線分步底圖母版不存在");
 const crossScaleSheets = {
   ch04_prop_cross_scale_surface_sheet_v02:
     "ch04/props/ch04_prop_cross_scale_surface_sheet_v02.webp",
@@ -126,11 +129,19 @@ for (const [id, assetPath] of Object.entries(crossScaleSheets)) {
   if (!entry.sourceMaster || !existsSync(path.join(here, "../../", entry.sourceMaster)))
     fail("同尺紙來源母版不存在:" + id);
 }
-const tangentFocus = (assets.lineFocusVisual || []).find((rule) =>
-  rule.scene === "D1-1" && rule.match.includes("畫下一條直線"));
-if (tangentFocus?.items?.[0]?.asset !== "ch04_prop_tangent_prediction_sheet_v02" ||
-    !tangentFocus.caption.includes("不是觀測證據"))
-  fail("D1-1 選對後未接上切線預測紙或證據邊界");
+const tangentFocusStates = [
+  ["月亮先前走過的一小段圓弧", "orbit-base", "月亮前方仍是空白"],
+  ["旅人把尺靠上月亮此刻的方向", "orbit-tangent", "尚未畫實際彎路"],
+  ["牛頓在同一張紙上補出月亮實際走過", "orbit-gap", "短線精確連接"]
+];
+for (const [match, overlay, altGuard] of tangentFocusStates) {
+  const focus = (assets.lineFocusVisual || []).find((rule) =>
+    rule.scene === "D1-1" && rule.match.includes(match));
+  if (focus?.items?.[0]?.asset !== "ch04_prop_tangent_geometry_base_v01" ||
+      focus.items[0].overlay !== overlay || !focus.items[0].alt.includes(altGuard) ||
+      !focus.caption)
+    fail("D1-1 圓弧／切線／端點短差沒有依序分圖:" + overlay);
+}
 
 const focusProps = {
   ch04_prop_rope_ball_setup_v01: {
@@ -174,7 +185,7 @@ const generatedFocus = {
     scene: "D1-2", match: "兩張紙放進抽屜", guard: "尚未被證明"
   },
   ch04_focus_newton_orbit_montage_1679_v01: {
-    scene: "D2-1", match: "第三十拍落下", guard: "軌跡仍由引擎繪製"
+    scene: "D2-1", match: "桌上排著旅人挑出的三張紙", guard: "路徑與設定仍由引擎依玩家操作繪製"
   },
   ch04_focus_mountain_cannon_v01: {
     scene: "D2-1", match: "最高的山頂上", guard: "引擎 SVG 疊加"
@@ -214,6 +225,18 @@ if (!/body\[data-view="orbit"\] #panelWrap\s*\{\s*display:\s*block/.test(stageHt
 if (!stageHtml.includes('body[data-view="orbit"] #dialogue'))
   fail("第四章工作台未關閉殘留對話框");
 const focusRenderer = readFileSync(path.join(here, "../src/stage/03-focus-visual.part.js"), "utf-8");
+const orbitRules = (assets.lineFocusVisual || []).filter((rule) =>
+  rule.items?.some((item) => ["orbit-base", "orbit-tangent", "orbit-gap"].includes(item.overlay)));
+if (orbitRules.length < 4 ||
+    !focusRenderer.includes("function mountOrbitGeometryFocusVisual") ||
+    !focusRenderer.includes('overlay.setAttribute("class", "orbit-geometry-overlay")') ||
+    !focusRenderer.includes('overlay.setAttribute("viewBox", "0 0 1200 800")') ||
+    !focusRenderer.includes('overlay.setAttribute("preserveAspectRatio", "xMidYMid slice")') ||
+    !focusRenderer.includes('d="M 627.2 276.6 L 712 390.3"') ||
+    !focusRenderer.includes('d="M 627.2 276.6 A 335.9 358.1 0 0 1 688.5 405.6"') ||
+    !focusRenderer.includes('d="M 712 390.3 L 688.5 405.6"') ||
+    !stageHtml.includes(".orbit-geometry-overlay"))
+  fail("月球切線、實際彎路與端點短差沒有在底圖座標系中由 runtime 精確疊圖");
 const cannonRule = (assets.lineFocusVisual || []).find((rule) =>
   rule.items?.some((item) => item.asset === "ch04_focus_mountain_cannon_v01"));
 if (cannonRule?.items?.[0]?.overlay !== "cannon-trajectories" ||
@@ -250,19 +273,21 @@ for (const fragment of [
   if (!chapterUi.includes(fragment) && !focusRenderer.includes(fragment))
     fail("第四章 v0.8 動態證據視覺缺漏:" + fragment);
 for (const fragment of [
-  "ch04_prop_cross_scale_surface_sheet_v02",
-  "ch04_prop_cross_scale_moon_sheet_v02",
-  "orbit4ScaleSheets",
-  "想看公式，再展開",
-  "依 s ∝ t² 換成 1 秒約 1.36 mm"
-]) if (!chapterUi.includes(fragment)) fail("同尺紙完整圖或完成後選讀公式缺漏:" + fragment);
-for (const obsolete of [
   "ch04_prop_cross_scale_surface_sheet_v01",
   "ch04_prop_cross_scale_moon_sheet_v01",
+  "orbit4ScaleSheets",
+  "orbit4ScaleGeometry",
+  "有興趣再看幾何算式",
+  "向內差距 s＝2r sin²(θ／2)",
+  "這不是輸入答案，而是事後顯影"
+]) if (!chapterUi.includes(fragment)) fail("同尺紙底圖、真實幾何或事後顯影缺漏:" + fragment);
+for (const obsolete of [
+  "ch04_prop_cross_scale_surface_sheet_v02",
+  "ch04_prop_cross_scale_moon_sheet_v02",
   "4.9 m ÷ 60² ≈ 1.4 mm",
   "4.9 m ÷ 1.4 mm ≈ 3600",
   "60² = 3600｜距離平方縮弱"
-]) if (chapterUi.includes(obsolete)) fail("同尺紙仍殘留舊 SVG 疊圖或提前公式:" + obsolete);
+]) if (chapterUi.includes(obsolete)) fail("同尺紙仍引用烤死答案圖、舊精度或提前公式:" + obsolete);
 for (const obsolete of ["箭頭方向 ", "箭頭長度 ", 'dist.type="range"', 'exponent.type="range"'])
   if (chapterUi.includes(obsolete)) fail("D1-2／D2-2 仍殘留已退役滑桿:" + obsolete);
 

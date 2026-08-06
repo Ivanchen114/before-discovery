@@ -61,3 +61,32 @@
 | 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
 |---|---|---|---|---|
 | `card_K2_cross_scale_reconstruction_v02` | `ch04/evidence/ch04_card_K2_cross_scale_reconstruction_v02.webp` | `art/source/production/ch04/evidence/PROMPTS_CH04_K2_EVIDENCE_RECONSTRUCTION_V02_20260803.md` | 無 | 可進內部／公開非商業版本 |
+
+## 九、OpenAI 生成資產｜2026-08-05 共同發現感跨章焦點圖
+
+以下六件由專案協作者 Codex 使用 OpenAI 內建 imagegen 產生，以本專案既有章節圖作視覺參考；未投入第三方影像、未直接模仿特定在世藝術家。生成影像不含可讀文字、公式或精確資料，相關內容由本專案 runtime 圖層呈現。
+
+| 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| `ch01_focus_shared_paper_calculation_v01` | `ch01/focus/ch01_focus_shared_paper_calculation_v01.webp` | `art/source/production/PROMPTS_COMMON_DISCOVERY_FOCUS_V01_20260805.md` §1 | 無 | 可進內部／公開非商業版本 |
+| `ch02_focus_evidence_next_test_v01` | `ch02/focus/ch02_focus_evidence_next_test_v01.webp` | 同上 §2 | 無 | 可進內部／公開非商業版本 |
+| `ch03_focus_public_limited_claim_v01` | `ch03/focus/ch03_focus_public_limited_claim_v01.webp` | 同上 §3 | 無 | 可進內部／公開非商業版本 |
+| `ch04_focus_shared_moon_calculation_v01` | `ch04/focus/ch04_focus_shared_moon_calculation_v01.webp` | 同上 §4 | 無 | 可進內部／公開非商業版本 |
+| `ch06_focus_four_hands_strip_alignment_v01` | `ch06/focus/ch06_focus_four_hands_strip_alignment_v01.webp` | 同上 §5 | 無 | 可進內部／公開非商業版本 |
+| `ch06_focus_public_blank_admission_v01` | `ch06/focus/ch06_focus_public_blank_admission_v01.webp` | 同上 §6 | 無 | 可進內部／公開非商業版本 |
+
+註：旅人筆記相容別名 `card_K2` 與 `ch04_focus_shared_moon_calculation_v01` 共用同一 runtime、母版與授權紀錄。
+
+## 十、OpenAI 生成資產｜2026-08-05 共同探究雙鏡頭
+
+以下七件由專案協作者 Codex 使用 OpenAI 內建 imagegen 產生，以本專案既有章節圖作視覺參考；未投入第三方影像、未直接模仿特定在世藝術家。這些圖是戲劇化或教學重建，不冒充歷史手稿與照片。少量已揭曉文字依 GB-ADR-044 受控烤入 raster，逐字內容與揭曉時點記在提示紀錄。
+
+| 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| `ch01_focus_square_pattern_reading_v01` | `ch01/focus/ch01_focus_square_pattern_reading_v01.webp` | `art/source/production/PROMPTS_DUAL_SHOT_READING_V01_20260805.md` §1 | 無 | 可進內部／公開非商業版本 |
+| `ch02_focus_ball_comparison_reading_v01` | `ch02/focus/ch02_focus_ball_comparison_reading_v01.webp` | 同上 §2 | 無 | 可進內部／公開非商業版本 |
+| `ch03_focus_limited_claim_reading_v01` | `ch03/focus/ch03_focus_limited_claim_reading_v01.webp` | 同上 §3 | 無 | 可進內部／公開非商業版本 |
+| `ch04_focus_one_second_papers_reading_v01` | `ch04/focus/ch04_focus_one_second_papers_reading_v01.webp` | 同上 §4 | 無 | 可進內部／公開非商業版本 |
+| `ch05_focus_same_six_records_relation_v01` | `ch05/focus/ch05_focus_same_six_records_relation_v01.webp` | 同上 §5 | 無 | 可進內部／公開非商業版本 |
+| `ch05_focus_two_ledgers_reading_v01` | `ch05/focus/ch05_focus_two_ledgers_reading_v01.webp` | 同上 §6 | 無 | 可進內部／公開非商業版本 |
+| `ch06_focus_heat_strips_reading_v01` | `ch06/focus/ch06_focus_heat_strips_reading_v01.webp` | 同上 §7 | 無 | 可進內部／公開非商業版本 |
