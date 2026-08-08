@@ -1138,16 +1138,58 @@
       {
        "id": "center_round",
        "text": "地球是圓的啊，既然有地心，距離就該從那裡算",
+       "effects": [
+        {
+         "flag": [
+          "ch4CenterRoundTried",
+          "1"
+         ]
+        },
+        {
+         "flag": [
+          "ch4CenterReasonStarted",
+          "1"
+         ]
+        }
+       ],
        "next": "wc_round"
       },
       {
        "id": "center_symmetry",
        "text": "地球四面大致對稱，旁邊的拉扯應該會互相抵掉",
+       "effects": [
+        {
+         "flag": [
+          "ch4CenterSymmetryTried",
+          "1"
+         ]
+        },
+        {
+         "flag": [
+          "ch4CenterReasonStarted",
+          "1"
+         ]
+        }
+       ],
        "next": "wc_symmetry"
       },
       {
        "id": "center_fall",
        "text": "蘋果和月亮都往地球靠，拉它們的地方應該就在地心",
+       "effects": [
+        {
+         "flag": [
+          "ch4CenterFallTried",
+          "1"
+         ]
+        },
+        {
+         "flag": [
+          "ch4CenterReasonStarted",
+          "1"
+         ]
+        }
+       ],
        "next": "wc_fall"
       }
      ]
@@ -1157,21 +1199,106 @@
      "type": "line",
      "speaker": "牛頓",
      "text": "（把圓圈描深）這只告訴我們中心在哪裡。它還沒把每一塊土的拉扯加起來。",
-     "next": "n20"
+     "next": "c_center_reason_more"
     },
     {
      "id": "wc_symmetry",
      "type": "line",
      "speaker": "牛頓",
      "text": "（畫出左右兩支箭）這能說明合起來的方向朝中心。可是拉得多大，還沒有算出來。",
-     "next": "n20"
+     "next": "c_center_reason_more"
     },
     {
      "id": "wc_fall",
      "type": "line",
      "speaker": "牛頓",
      "text": "（圈起『往地心』三字）你拿結果當成理由了。我問的正是：為什麼結果能像從地心拉來？",
-     "next": "n20"
+     "next": "c_center_reason_more"
+    },
+    {
+     "id": "c_center_reason_more",
+     "type": "choice",
+     "speaker": "system",
+     "text": "還要把哪個理由也拿來試？",
+     "options": [
+      {
+       "id": "center_round",
+       "text": "地球是圓的啊，既然有地心，距離就該從那裡算",
+       "require": {
+        "flagAbsent": "ch4CenterRoundTried"
+       },
+       "effects": [
+        {
+         "flag": [
+          "ch4CenterRoundTried",
+          "1"
+         ]
+        },
+        {
+         "flag": [
+          "ch4CenterReasonStarted",
+          "1"
+         ]
+        }
+       ],
+       "next": "wc_round"
+      },
+      {
+       "id": "center_symmetry",
+       "text": "地球四面大致對稱，旁邊的拉扯應該會互相抵掉",
+       "require": {
+        "flagAbsent": "ch4CenterSymmetryTried"
+       },
+       "effects": [
+        {
+         "flag": [
+          "ch4CenterSymmetryTried",
+          "1"
+         ]
+        },
+        {
+         "flag": [
+          "ch4CenterReasonStarted",
+          "1"
+         ]
+        }
+       ],
+       "next": "wc_symmetry"
+      },
+      {
+       "id": "center_fall",
+       "text": "蘋果和月亮都往地球靠，拉它們的地方應該就在地心",
+       "require": {
+        "flagAbsent": "ch4CenterFallTried"
+       },
+       "effects": [
+        {
+         "flag": [
+          "ch4CenterFallTried",
+          "1"
+         ]
+        },
+        {
+         "flag": [
+          "ch4CenterReasonStarted",
+          "1"
+         ]
+        }
+       ],
+       "next": "wc_fall"
+      },
+      {
+       "id": "center_leave_question",
+       "text": "我想先把這個問號留下來",
+       "require": {
+        "flag": [
+         "ch4CenterReasonStarted",
+         "1"
+        ]
+       },
+       "next": "n20"
+      }
+     ]
     },
     {
      "id": "n20",

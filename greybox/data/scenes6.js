@@ -38,6 +38,16 @@
    }
   ]
  },
+ "narrativeExemptions": [
+  {
+   "rule": "R-TXT-5",
+   "scene": "H2-3",
+   "nodes": [
+    "t4"
+   ],
+   "reason": "T4 的玩家判讀在 continuous-run 與 finite-verdict 工作台內逐來源完成；scene 節點只做具名證據回收，不能把引擎內四次判讀誤報成缺少玩家主張。"
+  }
+ ],
  "decisionRegistry": [
   {
    "id": "H0-1.c1",
@@ -618,7 +628,7 @@
     {
      "type": "line",
      "speaker": "旅人・心聲",
-     "osPurpose": "cross_chapter_debt",
+     "osPurpose": "cross_chapter_memory",
      "text": "油灰上的坑證明有東西發生了。可那兩顆球短少的，到底去了哪裡？上一頁沒有收據。",
      "next": "n3",
      "id": "n2"
@@ -1832,7 +1842,7 @@
     {
      "type": "line",
      "speaker": "凱斯勒院士",
-     "text": "「任何改變」不是預測。皮圈多一點摩擦、鐵桿偏一點，都算改變。你得先說哪個方向、和哪張紙比。",
+     "text": "你說「任何改變」——這不算預測。皮圈多一點摩擦、鐵桿偏一點，都算改變。你得先說哪個方向、和哪張紙比。",
      "next": "c1",
      "id": "w1"
     },
@@ -2452,7 +2462,7 @@
     {
      "type": "line",
      "speaker": "凱斯勒院士",
-     "text": "「熱是運動」只是欄名。請指給我看：哪一行預測了熱進去、溫度卻停住？",
+     "text": "你寫的「熱是運動」只是欄名。請指給我看：哪一行預測了熱進去、溫度卻停住？",
      "next": "c1",
      "id": "w1"
     },
@@ -2466,7 +2476,7 @@
     {
      "type": "line",
      "speaker": "旅人・心聲",
-     "osPurpose": "cost_of_knowing",
+     "osPurpose": "emotional_risk",
      "text": "原來輪到我們自己留下空白，真的這麼沉。",
      "next": "a1b",
      "id": "a1"
@@ -2575,7 +2585,7 @@
     {
      "type": "line",
      "speaker": "旅人・心聲",
-     "osPurpose": "self_correction",
+     "osPurpose": "emotional_risk",
      "text": "我剛才差點把一整代人的量法也一起抹掉。",
      "next": "a4",
      "id": "k4a"
@@ -3198,27 +3208,40 @@
     {
      "type": "line",
      "speaker": "旅人・心聲",
-     "osPurpose": "cross_chapter_debt",
+     "osPurpose": "cross_chapter_memory",
      "text": "上一頁問短少的那一截去了哪裡。這一頁還欠一把尺，量出兩本帳的固定換法。",
      "next": "x_final",
      "id": "x_pre"
     },
     {
-     "type": "system",
-     "speaker": "stage",
-     "text": "旅人在最後一格寫下：「兌換率：未量得。下一次，要量一份機械作用究竟能換來多少升溫。」他在「範圍未決」與這筆新債旁簽下名字，最後一欄到此才封口。",
-     "effects": [
+     "type": "choice",
+     "speaker": "system",
+     "text": "最後一格還空著。要不要把未量得的債寫下，並由你簽名封口？",
+     "options": [
       {
-       "labAction": {
-        "action": "finalizeJointPage",
-        "args": {
-         "rateDebt": "conversion-rate-unmeasured"
+       "id": "sign-unmeasured-rate",
+       "text": "寫下：「兌換率：未量得。下一次，要量一份機械作用究竟能換來多少升溫。」在兩筆未決旁簽名。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "finalizeJointPage",
+          "args": {
+           "rateDebt": "conversion-rate-unmeasured"
+          }
+         }
         }
-       }
+       ],
+       "next": "x_signed"
       }
      ],
-     "next": "end",
      "id": "x_final"
+    },
+    {
+     "type": "system",
+     "speaker": "stage",
+     "text": "旅人把兩筆未決並排留下，簽下自己的名字。最後一欄到此才封口。",
+     "next": "end",
+     "id": "x_signed"
     },
     {
      "type": "end",

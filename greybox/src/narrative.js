@@ -1268,6 +1268,8 @@
     else if (action === "assertJ1" && Engine.assertJ1) r = Engine.assertJ1(state.lab, args.runIds, args.concept);
     else if (action === "assertJ2" && Engine.assertJ2) r = Engine.assertJ2(state.lab, args.runIds, args.concept);
     else if (action === "runClay" && Engine.runClay) r = Engine.runClay(state.lab);
+    else if (action === "sealClayPrediction" && Engine.sealClayPrediction)
+      r = Engine.sealClayPrediction(state.lab, args.band);
     else if (action === "assertJ3" && Engine.assertJ3) r = Engine.assertJ3(state.lab, args.runIds, args.concept);
     /* 第六章：只開放明列的來源追債 action；Engine 上其他方法不可由資料任意呼叫。 */
     else if (CHAPTER_ID === "ch6" && [

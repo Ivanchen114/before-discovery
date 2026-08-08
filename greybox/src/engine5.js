@@ -6,6 +6,11 @@
   var SPEEDS = { low: 2, mid: 4, high: 6 };
   var HEIGHTS = { h1: { h: 1, v: 2 }, h4: { h: 4, v: 4 }, h9: { h: 9, v: 6 } };
   var ERRORS = [0, 0.1, -0.1];
+  var CLAY_PREDICTION_BANDS = {
+    "band-low": { min: 2.8, max: 3.6 },
+    "band-middle": { min: 4.0, max: 4.8 },
+    "band-high": { min: 5.2, max: 6.0 }
+  };
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   function err(state0, code, extra) {
@@ -44,6 +49,8 @@
       },
       collisionRuns: [],
       clayRuns: [],
+      clayProtocol: "predict-third-v1",
+      clayPrediction: null,
       runSeq: 0,
       claySeq: 0,
       assertions: {
@@ -67,6 +74,9 @@
     if (!allowed[field] || allowed[field].indexOf(value) < 0) return err(state0, "unknown-setting");
     if (field === "masses" && value === "4/8" && !state0.evidence.j2)
       return err(state0, "masses-locked");
+    if (field === "ballMass" && state0.clayProtocol === "predict-third-v1" &&
+        state0.clayRuns && state0.clayRuns.length)
+      return err(state0, "clay-ball-locked");
     var s = clone(state0);
     s.draft[field] = value;
     return { state: s, ok: true };
@@ -194,7 +204,18 @@
   }
   function runClay(state0) {
     if (!state0.evidence.followup) return err(state0, "followup-required");
-    var def = HEIGHTS[state0.draft.clayHeight];
+    var protocol = state0.clayProtocol || "legacy-free-v0";
+    var heightKey = state0.draft.clayHeight;
+    if (protocol === "predict-third-v1") {
+      var expected = ["h1", "h4", "h9"][state0.clayRuns.length];
+      if (!expected) return err(state0, "clay-series-complete");
+      heightKey = expected;
+      if (state0.clayRuns.length && state0.clayRuns[0].ballMass !== state0.draft.ballMass)
+        return err(state0, "clay-ball-locked");
+      if (state0.clayRuns.length === 2 && !state0.clayPrediction)
+        return err(state0, "clay-prediction-required");
+    }
+    var def = HEIGHTS[heightKey];
     if (!def) return err(state0, "unknown-height");
     var s = clone(state0);
     var massFactor = s.draft.ballMass === "heavy" ? 2 : 1;
@@ -214,7 +235,49 @@
     };
     s.claySeq += 1;
     s.clayRuns.push(row);
+    if (protocol === "predict-third-v1") {
+      s.draft.clayHeight = ["h4", "h9", "h9"][s.clayRuns.length - 1];
+      if (s.clayRuns.length === 3) {
+        s.clayPrediction.revealed = true;
+        s.clayPrediction.actualDepth = row.depth;
+        s.clayPrediction.recordId = row.id;
+        s.clayPrediction.matched = row.depth >= s.clayPrediction.min &&
+          row.depth <= s.clayPrediction.max;
+      }
+    }
     return { state: s, ok: true, record: clone(row) };
+  }
+  function clayPredictionRange(ballMass, band) {
+    var base = CLAY_PREDICTION_BANDS[band];
+    if (!base) return null;
+    var factor = ballMass === "heavy" ? 2 : 1;
+    return { min: base.min * factor, max: base.max * factor };
+  }
+  function sealClayPrediction(state0, band) {
+    if (!state0.evidence.followup) return err(state0, "followup-required");
+    if ((state0.clayProtocol || "legacy-free-v0") !== "predict-third-v1")
+      return err(state0, "clay-prediction-not-applicable");
+    if (state0.clayPrediction) return err(state0, "clay-prediction-sealed");
+    if (!CLAY_PREDICTION_BANDS[band]) return err(state0, "unknown-clay-prediction");
+    if (state0.clayRuns.length !== 2 || state0.clayRuns[0].height !== 1 ||
+        state0.clayRuns[1].height !== 4)
+      return err(state0, "clay-two-records-required");
+    if (state0.clayRuns[0].ballMass !== state0.clayRuns[1].ballMass)
+      return err(state0, "mixed-ball-masses");
+    var range = clayPredictionRange(state0.clayRuns[0].ballMass, band);
+    var s = clone(state0);
+    s.clayPrediction = {
+      band: band,
+      min: range.min,
+      max: range.max,
+      ballMass: state0.clayRuns[0].ballMass,
+      sealedAfter: state0.clayRuns.map(function (row) { return row.id; }),
+      revealed: false,
+      actualDepth: null,
+      recordId: null,
+      matched: null
+    };
+    return { state: s, ok: true, prediction: clone(s.clayPrediction) };
   }
   function proportionalSpread(rows, power) {
     var ratios = rows.map(function (row) {
@@ -260,11 +323,13 @@
     assertJ1: assertJ1,
     assertJ2: assertJ2,
     runClay: runClay,
+    sealClayPrediction: sealClayPrediction,
     assertJ3: assertJ3,
     _FIXTURE: {
       speeds: clone(SPEEDS),
       heights: clone(HEIGHTS),
       errors: ERRORS.slice(),
+      clayPredictionBands: clone(CLAY_PREDICTION_BANDS),
       collisionAtSix: {
         equalSteel: totals(4, 4, 6, 0, 0, 6),
         equalPutty: totals(4, 4, 6, 0, 3, 3),

@@ -18,13 +18,14 @@ from typing import Any, Callable
 
 SCHEMA_VERSION = 2
 REPO_ROOT = Path(__file__).resolve().parents[4]
-CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5"}
+CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5", "ch6"}
 CANONICAL_SCENES_TARGETS = {
     "ch1": Path("greybox/data/scenes.json"),
     "ch2": Path("greybox/data/scenes2.json"),
     "ch3": Path("greybox/data/scenes3.json"),
     "ch4": Path("greybox/data/scenes4.json"),
     "ch5": Path("greybox/data/scenes5.json"),
+    "ch6": Path("greybox/data/scenes6.json"),
 }
 BEATS = (
     "question",
@@ -151,6 +152,18 @@ def _string(value: Any) -> bool:
 
 def _positive_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def _decision_runtime_node(
+    decision: dict[str, Any],
+    index: ContractIndex,
+) -> tuple[str, str] | None:
+    """Resolve a decision's exact node without forcing every choice to be a spine beat."""
+    if index.runtime is not None and _string(decision.get("runtimeAnchor")):
+        return index.runtime.resolve_anchor(decision["runtimeAnchor"])
+    return index.beat_nodes.get(decision.get("segment"), {}).get(
+        decision.get("anchor")
+    )
 
 
 def load_contract(path: Path) -> dict[str, Any]:
@@ -377,7 +390,7 @@ def validate_contract(
     if data.get("schema_version") != SCHEMA_VERSION:
         add("MEC-01", "$.schema_version", f"must equal {SCHEMA_VERSION}")
     if data.get("chapter") not in CHAPTERS:
-        add("MEC-01", "$.chapter", "must be one of ch1, ch2, ch3, ch4, ch5")
+        add("MEC-01", "$.chapter", "must be one of ch1, ch2, ch3, ch4, ch5, ch6")
 
     resolved_root = (repo_root or REPO_ROOT).resolve()
     runtime = _load_runtime_binding(data, resolved_root, add)
@@ -878,7 +891,7 @@ def _validate_decisions(
         if declared is None:
             add("DEC-01", f"{loc}.id", "is not declared in decisionRegistry")
         else:
-            for field in ("kind", "segment", "anchor"):
+            for field in ("kind", "segment", "anchor", "runtimeAnchor"):
                 if decision.get(field) != declared.get(field):
                     add(
                         "DEC-01",
@@ -899,7 +912,46 @@ def _validate_decisions(
                 f"{loc}.anchor",
                 "must reference a reachable player-authored beat",
             )
-        runtime_node = index.beat_nodes.get(segment_id, {}).get(anchor)
+        runtime_node = _decision_runtime_node(decision, index)
+        if index.runtime is not None and _string(decision.get("runtimeAnchor")):
+            if runtime_node is None:
+                add(
+                    "BIND-02",
+                    f"{loc}.runtimeAnchor",
+                    "does not name a node in the canonical scenes target",
+                )
+            elif runtime_node not in index.runtime.reachable:
+                add(
+                    "BIND-02",
+                    f"{loc}.runtimeAnchor",
+                    "exists but is unreachable from target startScene",
+                )
+            else:
+                if index.runtime.nodes[runtime_node].get("type") != "choice":
+                    add(
+                        "BIND-04",
+                        f"{loc}.runtimeAnchor",
+                        "must bind the exact runtime choice node",
+                    )
+                beat_nodes = index.beat_nodes.get(segment_id, {})
+                question_node = beat_nodes.get("question")
+                outcome_nodes = [
+                    beat_nodes.get("success"),
+                    beat_nodes.get("failure"),
+                ]
+                if question_node is not None and all(outcome_nodes):
+                    in_scope = runtime_node in index.runtime.descendants(question_node)
+                    in_scope = in_scope and any(
+                        runtime_node in index.runtime.ancestors(outcome)
+                        for outcome in outcome_nodes
+                        if outcome is not None
+                    )
+                    if not in_scope:
+                        add(
+                            "DEC-01",
+                            f"{loc}.runtimeAnchor",
+                            "must lie on a question-to-outcome path in its segment",
+                        )
         if (
             index.runtime is not None
             and runtime_node is not None
@@ -907,7 +959,11 @@ def _validate_decisions(
         ):
             add(
                 "BIND-04",
-                f"{loc}.anchor",
+                (
+                    f"{loc}.runtimeAnchor"
+                    if _string(decision.get("runtimeAnchor"))
+                    else f"{loc}.anchor"
+                ),
                 "bound runtime decision node is not player-authored",
             )
 
@@ -977,9 +1033,7 @@ def _validate_registry_choice_coverage(
         return
     covered: set[tuple[str, str]] = set()
     for entry in index.registry.values():
-        runtime_node = index.beat_nodes.get(entry.get("segment"), {}).get(
-            entry.get("anchor")
-        )
+        runtime_node = _decision_runtime_node(entry, index)
         if runtime_node is not None:
             covered.add(runtime_node)
     for segment_id, beat_nodes in index.beat_nodes.items():
@@ -1154,10 +1208,7 @@ def _validate_refs(
                 "must be one of contradicts, confounded, out_of_scope, insufficient",
             )
         source_node = index.evidence_nodes.get((ref["sourceId"], ref["field"]))
-        decision_node = index.beat_nodes.get(
-            decision.get("segment"),
-            {},
-        ).get(decision.get("anchor"))
+        decision_node = _decision_runtime_node(decision, index)
         if (
             index.runtime is not None
             and source_node is not None

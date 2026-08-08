@@ -277,7 +277,7 @@
     ok(!Narrative.embedReady(s), "ready=false");
   });
 
-  t("M2|黃金路徑(探索):E3.a→換球 E3.b→E4 兩實驗→A2-5 終點;天數與證據同步", function () {
+  t("M2|黃金路徑(探索):E3.a→換球 E3.b→E4 兩實驗→A2-5 終點;內部歷程與證據同步", function () {
     var s = toActTwo("explore");
     var r = lab(s, "run", { config: CFG_BIG }); s = r.state;
     var run1 = r.result.run;

@@ -90,6 +90,13 @@ def make_valid_contract() -> dict:
                 "kind": "narrative",
                 "anchor": "interpretation",
             },
+            {
+                "id": "public-bounded-claim",
+                "segment": "p1",
+                "kind": "evidence_judgment",
+                "anchor": "interpretation",
+                "runtimeAnchor": "C3-1/x1",
+            },
         ],
         "decisions": [
             {
@@ -140,6 +147,51 @@ def make_valid_contract() -> dict:
                 "preselected": False,
                 "options": [{"id": "cabin"}, {"id": "segment"}, {"id": "stone"}],
             },
+            {
+                "id": "public-bounded-claim",
+                "segment": "p1",
+                "kind": "evidence_judgment",
+                "anchor": "interpretation",
+                "runtimeAnchor": "C3-1/x1",
+                "preselected": False,
+                "options": [
+                    {
+                        "id": "bounded",
+                        "isCorrect": True,
+                        "supportedBy": [
+                            {
+                                "sourceId": "S5",
+                                "field": "promptText",
+                                "condition": "bounded-public-claim",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "earth-moves",
+                        "isCorrect": False,
+                        "refutedBy": [
+                            {
+                                "sourceId": "S5",
+                                "field": "promptText",
+                                "relation": "out_of_scope",
+                                "condition": "earth-not-directly-measured",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "nothing-learned",
+                        "isCorrect": False,
+                        "refutedBy": [
+                            {
+                                "sourceId": "S5",
+                                "field": "promptText",
+                                "relation": "contradicts",
+                                "condition": "repeatable-near-mast-fall",
+                            }
+                        ],
+                    },
+                ],
+            },
         ],
         "evidenceSources": [
             {
@@ -169,6 +221,17 @@ def issue_codes(contract: dict, repo_root: Path | None = None) -> set[str]:
 class MechanicsGuardStructureTests(unittest.TestCase):
     def test_positive_contract_passes(self) -> None:
         self.assertEqual(validate_contract(make_valid_contract()), [])
+
+    def test_runtime_anchor_must_bind_an_in_scope_choice(self) -> None:
+        missing = make_valid_contract()
+        missing["decisionRegistry"][-1]["runtimeAnchor"] = "C3-1/missing"
+        missing["decisions"][-1]["runtimeAnchor"] = "C3-1/missing"
+        self.assertIn("BIND-02", issue_codes(missing))
+
+        outside = make_valid_contract()
+        outside["decisionRegistry"][-1]["runtimeAnchor"] = "CE-1/n1"
+        outside["decisions"][-1]["runtimeAnchor"] = "CE-1/n1"
+        self.assertIn("DEC-01", issue_codes(outside))
 
     def test_spine_requires_all_reachable_ordered_beats(self) -> None:
         missing = make_valid_contract()

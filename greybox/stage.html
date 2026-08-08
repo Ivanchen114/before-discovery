@@ -147,6 +147,9 @@
   body.scene-treatment-time-passage #timePassageVeil { visibility: visible; opacity: 1;
     transition: opacity 760ms ease, visibility 0s; }
   body.scene-treatment-time-passage #timePassageMark { opacity: 1; transform: translateY(0); }
+  /* 最後一拍仍是玩家操作：choice 面板必須和對話框一樣浮在近黑層上方。
+     遮罩本身不吃點擊，但若選項留在 z-index 20，文字與按鈕會暗到近乎不可見。 */
+  body.scene-treatment-time-passage[data-view="choice"] #panelWrap { z-index: 26; }
   #hud, #sceneChip { transition: opacity var(--motion-medium) ease; }
   body.scene-treatment-time-passage #hud, body.scene-treatment-time-passage #sceneChip { opacity: .34; }
   body.scene-treatment-time-passage #hud:hover,
@@ -544,9 +547,6 @@
     margin: 0; border: none; background: none; font-family: var(--font-dialogue);
     font-size: 0.95em; padding: 6px 10px; }
   #panelWrap .grpToggle:hover { background: rgba(122, 75, 42, 0.14); }
-  @media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) { /* 手機橫屏:天數收進 row detail(title),四段與選取優先 */
-    #lab table th:nth-child(8), #lab table td:nth-child(8) { display: none; }
-  }
   .tblhint { margin: 2px 0 6px; }
   #btnLabHelp { min-height: 30px !important; min-width: 30px; padding: 2px 10px !important;
     border-radius: 50% !important; margin-left: 8px; font-family: var(--font-dialogue); }
@@ -1422,7 +1422,7 @@
     #dialogue[data-active="right"].has-r #dlgText { margin-right: 120px; }
     #dialogue[data-active="left"].has-l #nameplate { left: 130px; }
     #dialogue[data-active="right"] #nameplate, #dialogue[data-active="none"] #nameplate { left: 16px; }
-    #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽/天數/論證對位 */
+    #hud #modeVal, #hud #e3Val { display: none; } /* HUD 收斂:留信譽與論證對位 */
     #sceneChip { display: none; }
     body[data-view="choice"] #panelWrap { bottom: 34%; }
     /* 辯論 v2 的對話框已會退場；舊版預留的 42% 會把證據手牌整段裁掉。 */
@@ -1466,6 +1466,14 @@
     /* 閱讀特寫與選項是兩個並列資訊區；低高度時保留中縫，且把選項抬離對話框。 */
     body[data-view="choice"] #panelWrap {
       top: 14%; bottom: auto; width: 74%; max-width: 74%;
+    }
+    /* 十四年短幕的最後一拍改成左右分欄：年份留在左側，翻頁操作留在右側。
+       否則一般手機 choice 的 74% 寬面板會正好蓋住中央年份錨點。 */
+    body.scene-treatment-time-passage[data-view="choice"] #panelWrap {
+      right: 2.5%; width: 60%; max-width: 60%;
+    }
+    body.scene-treatment-time-passage[data-view="choice"] #timePassageMark {
+      transform: translate(-31vw, 12px);
     }
     /* D1-2 地心三選項須和左側焦點紙並排，不得遮住玩家正在判讀的來源。 */
     body.choice-focus-split[data-view="choice"] #panelWrap {
@@ -2795,7 +2803,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     <div id="srLine" class="srOnly" role="log" aria-live="polite"></div>
     <div id="hud">
       <span class="chip" tabindex="0" title="信譽 0–5：猜錯與實驗失敗不扣；把未驗證答案說成事實、隱瞞資料或越過證據邊界才扣。主動補正並守住證據範圍可以恢復。">信譽 <b id="repVal">3</b>/5</span>
-      <span class="chip" tabindex="0" title="天數=實驗成本:脈搏 1 天/次(手抖)、水鐘 2 天(穩)、音格 3 天(學者,最準)。精度用時間買;純對話不花天。">第 <b id="dayVal">0</b> 天</span>
       <span class="chip" tabindex="0" id="e3Val"></span>
       <span class="chip" tabindex="0" id="perVal" title="論證對位：看證據有沒有咬住主張；配錯會退回，歸零先複盤。"></span>
       <span class="chip" id="saveWarn" hidden style="border-color:var(--color-warning);color:#f0c27a">⚠ 目前無法儲存——請先匯出書信碼</span>
@@ -2846,7 +2853,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
           </div>
           <section id="secRuns" hidden>
             <p class="hint tblhint">「段」=水鐘滴下等量水的<b>等時距</b>;數字=該段滾過的刻度格數。墨水書寫,<b>紀錄不可刪</b>——勾選你要引用的紀錄。</p>
-            <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th><th>第幾天</th></tr></thead>
+            <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>第1段</th><th>第2段</th><th>第3段</th><th>第4段</th></tr></thead>
               <tbody id="labRunsBody"></tbody></table>
             <p id="judgeRow"><label><span id="judgeAsk">若你看出了規律——押第五段會滾幾格:</span><input type="number" id="labPred" step="0.1" style="width:90px"></label>
             <button id="labJudge">認證規律</button></p>
@@ -2854,7 +2861,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
           </section>
           <section id="secClaims" hidden>
             <h3>主張(勾選兩筆 → 斷言)</h3>
-            <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>封存／揭曉</th><th>結果</th><th>第幾天</th></tr></thead>
+            <table><thead><tr><th>選</th><th>#</th><th>配置</th><th>封存／揭曉</th><th>結果</th></tr></thead>
               <tbody id="labClaimsBody"></tbody></table>
             <button id="labAssertB">斷言:與球重無關</button>
             <button id="labAssertC" style="display:none">斷言:隨傾角形式不變</button>
@@ -2921,7 +2928,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
           <li><b>怎麼做</b>——選配置 → 執行實驗 → 勾 1–3 筆<b>同配置</b>紀錄 → 押「第五段」會滾幾格 → 認證。押中了,規律才算你的。</li>
           <li><b>計時器有脾氣</b>——脈搏便宜但會抖;水鐘較穩,過快時可能固定偏向一側;音格最花時間也最精確。</li>
           <li><b>認證門檻</b>——前四段形狀與第五段預測兩項偏差都必須 ≤12%;失敗紀錄仍會留下,讓你診斷是哪裡出了問題。</li>
-          <li><b>備忘</b>——每次實驗都花天數;筆記簿以墨水書寫,寫下的紀錄<b>不可刪</b>。</li>
+          <li><b>備忘</b>——筆記簿以墨水書寫，成功與失敗的紀錄都<b>不可刪</b>。</li>
         </ol>
         <button id="btnLabIntroGo" type="button">開始動手</button>
       </div>
@@ -3090,22 +3097,22 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
 <script src="data/histfacts6.js?v=asset-df72fe7398b9"></script>
-<script src="data/assets.js?v=asset-fa5c0d7b076e"></script>
-<script src="src/sanitize.js?v=asset-46d5c96bc384"></script>
+<script src="data/assets.js?v=asset-37e89f3b39c6"></script>
+<script src="src/sanitize.js?v=asset-9701925fe2c1"></script>
 <script src="src/save-envelope.js?v=asset-0b9496000751"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-0777fc954c67"></script>
 <script src="src/engine2.js?v=asset-fa9fe59ca97c"></script>
 <script src="src/engine3.js?v=asset-9c360fdb8243"></script>
 <script src="src/engine4.js?v=asset-e85cc1639c42"></script>
-<script src="src/engine5.js?v=asset-49d82725763e"></script>
+<script src="src/engine5.js?v=asset-a01cff18eade"></script>
 <script src="src/engine6.js?v=asset-288a92e0eab3"></script>
-<script src="data/scenes.js?v=asset-ad0bd4854616"></script>
-<script src="data/scenes2.js?v=asset-4c463744c91e"></script>
-<script src="data/scenes3.js?v=asset-5b07a0a2d7f9"></script>
-<script src="data/scenes4.js?v=asset-10d25def8272"></script>
-<script src="data/scenes5.js?v=asset-eeda2c29a039"></script>
-<script src="data/scenes6.js?v=asset-f4ea5872a651"></script>
+<script src="data/scenes.js?v=asset-be125fd1a75d"></script>
+<script src="data/scenes2.js?v=asset-17bf94c10b91"></script>
+<script src="data/scenes3.js?v=asset-eaa030fb65c8"></script>
+<script src="data/scenes4.js?v=asset-e89107dc2fab"></script>
+<script src="data/scenes5.js?v=asset-999e701626dc"></script>
+<script src="data/scenes6.js?v=asset-e0bf743e4d81"></script>
 <script src="src/ch4-migration.js?v=asset-a84d3be8533f"></script>
 <script>
 (function () {
@@ -3149,8 +3156,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-371d6f2a9fcc"></script>
-<script src="src/chapter-ui.js?v=asset-f287f1782052"></script>
+<script src="src/narrative.js?v=asset-b34f11ebb764"></script>
+<script src="src/chapter-ui.js?v=asset-daaf6d8340d6"></script>
 <script>
 (function () {
   "use strict";
@@ -3285,6 +3292,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-b995a5e0afdb"></script>
+<script src="src/stage-ui.js?v=asset-a0467958d93f"></script>
 </body>
 </html>

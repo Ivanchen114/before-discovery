@@ -20,6 +20,21 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py check-narrative 
   --chapter ch5
 ```
 
+六章編劇審查先加 `--story-audit` 拉出場景標題、全部 choice/embed、選項匯流形狀、
+embed 前後節點與最長五段連續 line：
+
+```bash
+python3 tools/skill/before-discovery-dev/scripts/skill_guard.py check-narrative \
+  --scenes greybox/data/scenes6.json \
+  --chapter ch6 \
+  --runtime-source greybox/src/chapter-ui.js \
+  --story-audit
+```
+
+輸出的 `STORY TRACKS` 嚴格分開 `scene_choices`、`embeds` 與明示
+`narrativeChoice: "chN"` 的引擎決策；未標註的工作台按鈕會顯示為 `not-counted`，
+必須另讀對應 engine/UI，不得由零推論成沒有互動。
+
 正式閘門需要 warning 轉成非零退出碼時，明示：
 
 ```bash
@@ -79,6 +94,15 @@ runtime 的其他活躍 OS 也必須標用途；合法值與語義見正式敘�
 工具會列出每場 `spoken／inner／actions` 與首個 `choice/embed` 的位置。沒有旅人台詞
 不再自動失敗：有意義沉默與 NPC 主導場必須由人工 scene contract 說明，不能靠補 OS
 消除 warning。
+
+`--story-audit` 的 choice 分型只描述拓撲：單選儀式、直接匯流、短程回應後匯流、
+有直接 state 的匯流或分支。它不把「稍後匯流」自動判成假選擇，也不把有旗標自動
+判成有意義；人工仍要確認實際發言、NPC 回應與後文是否讀回。`LINE_RUN` 只量同一
+場景 node 陣列中相鄰的 `line`，不是可達路徑、閱讀秒數或工作台內互動量。
+
+embed 接縫只列陣列前一節點與明示 `next` 節點。人工要再確認進台前是否有當下
+動機與任務、出台後是否針對玩家實際操作回應，以及引擎內是否已經演完辯論或高潮；
+不能因 scenes 沒有 `debate` embed 就推論 runtime 沒有辯論。
 
 史實查證、合理重建告示與「不會老」採哪一種戲劇處理仍是人工項。工具每次都印出 MANUAL 提醒，不把無法可靠判斷的工作偽裝成 pass。
 
@@ -148,3 +172,5 @@ contract 是人類完成語義判斷後留下的結構錨點。最小格式：
 - 增加第二句對仗，NAR-03 必須出現。
 - 刪除或調亂 contract 的 response／pause／pressure 節點，對應 NAR-63–66 必須出現。
 - 搭配 `--fail-on-warnings` 時，上述變異必須以 exit 2 結束。
+- 以 `--chapter ch6 --story-audit` 跑最小 fixture，必須分列 scene choice、embed 與
+  已標註 runtime choice；刪除其中任一軌，對應 coverage 必須改變。

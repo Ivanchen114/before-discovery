@@ -726,6 +726,20 @@
     /* 互動選項不是台詞事件：操作前的裝置圖、判讀前的結果圖要由節點主動叫回。
        讀檔直接落在選項時也成立，不依賴玩家曾經看過前一行台詞。 */
     showFocusVisualForView(d.scene, d.nodeId);
+    /* 紙上推演也可以需要「先看物件、再作判斷」，不必為了三份來源紙
+       硬升成完整工作台。配置 triggerNode 的踏查會在該選項前攔一次；
+       讀檔直落同一節點仍會補看，完成後才把焦點交回玩家的判斷。 */
+    var storySurvey = apparatusBriefing(d.scene);
+    if (storySurvey && storySurvey.triggerNode === d.nodeId &&
+        !apparatusSurveySeen[apparatusBriefingKey(d.scene)] && !apparatusSurveyActive) {
+      setTimeout(function () {
+        if (apparatusSurveyActive || apparatusSurveySeen[apparatusBriefingKey(d.scene)]) return;
+        showApparatusSurvey(d.scene, function () {
+          var firstChoice = $("controls").querySelector("button");
+          if (firstChoice) firstChoice.focus({ preventScroll: true });
+        });
+      }, 0);
+    }
     if (view === "end") { /* 終幕預告卡(GB-ADR-013):戲劇卡+角落系統行,只在真結局亮 */
       var nc = $("nextCard");
       if (nc.hidden) {
@@ -1177,6 +1191,7 @@
   function updateApparatusSurvey() {
     var cfg = apparatusSurveyActive;
     if (!cfg) return;
+    var noun = cfg.itemNoun || "器材";
     var found = cfg.found || {};
     var n = cfg.items.filter(function (item) { return !!found[item.id]; }).length;
     $("asCount").textContent = n + " / " + cfg.items.length;
@@ -1190,7 +1205,7 @@
     });
     var go = $("btnApparatusGo");
     go.disabled = n !== cfg.items.length;
-    go.textContent = go.disabled ? "還有 " + (cfg.items.length - n) + " 件器材未檢查" : displayText(cfg.enterLabel || "器材齊了，開始實驗");
+    go.textContent = go.disabled ? "還有 " + (cfg.items.length - n) + " 件" + noun + "未檢查" : displayText(cfg.enterLabel || noun + "齊了，繼續");
   }
   function inspectApparatus(item, button) {
     var cfg = apparatusSurveyActive;
@@ -1220,28 +1235,32 @@
     var cfg = {
       key: apparatusBriefingKey(sceneId), title: source.title, subtitle: source.subtitle,
       speaker: source.speaker, enterLabel: source.enterLabel, plateAsset: source.plateAsset,
-      platePosition: source.platePosition,
+      platePosition: source.platePosition, itemNoun: source.itemNoun || "器材",
       items: source.items || [], found: {}
     };
     apparatusSurveyActive = cfg;
     apparatusSurveyDone = done || null;
-    $("asTitle").textContent = displayText(cfg.title || "器材踏查");
+    $("apparatusSurvey").setAttribute("aria-label", cfg.itemNoun + "踏查");
+    $("asTitle").textContent = displayText(cfg.title || cfg.itemNoun + "踏查");
     $("asSubtitle").textContent = displayText(cfg.subtitle || "先看懂器材，再開始實驗。");
-    $("asPrompt").textContent = "點選場景中的亮點，" + displayText(cfg.speaker || "科學家") + "會說明這件器材負責什麼。";
-    $("asItemName").textContent = "器材尚未檢查";
-    $("asFunction").textContent = "必要器材不會藏在陰影裡；請逐一點開。";
+    $("asPrompt").textContent = "點選場景中的亮點，" + displayText(cfg.speaker || "科學家") + "會說明這件" + cfg.itemNoun + "在這一輪負責什麼。";
+    $("asItemName").textContent = cfg.itemNoun + "尚未檢查";
+    $("asFunction").textContent = "必要" + cfg.itemNoun + "不會藏在陰影裡；請逐一點開。";
     $("asLine").textContent = "";
     $("asArtWrap").hidden = true;
     var plate = assetEntry(cfg.plateAsset);
+    $("asPlate").alt = displayText(cfg.itemNoun + "所在的工作場景");
     $("asPlate").style.objectPosition = cfg.platePosition || "center center";
     if (plate) $("asPlate").src = assetUrl(plate); else $("asPlate").removeAttribute("src");
     var hs = $("asHotspots");
+    hs.setAttribute("aria-label", "可檢查的" + cfg.itemNoun);
+    $("asTray").setAttribute("aria-label", "已檢查" + cfg.itemNoun);
     while (hs.firstChild) hs.removeChild(hs.firstChild);
     cfg.items.forEach(function (item, idx) {
       var b = document.createElement("button");
       b.type = "button"; b.className = "asHotspot"; b.textContent = String(idx + 1);
       b.style.left = Number(item.x) + "%"; b.style.top = Number(item.y) + "%";
-      b.setAttribute("aria-label", "檢查器材 " + displayText(item.label));
+      b.setAttribute("aria-label", "檢查" + cfg.itemNoun + " " + displayText(item.label));
       b.addEventListener("click", function () { inspectApparatus(item, b); });
       hs.appendChild(b);
     });

@@ -155,6 +155,13 @@ tests.push({
 tests.push({
   name: "R-CH6-03|x_final 前不得取得 T5、旅人署名或完章",
   fn: () => {
+    const finalNode = scenes6.scenes.find((scene) => scene.id === "HE-1")
+      ?.nodes.find((node) => node.id === "x_final");
+    const finalOption = finalNode?.options?.find((option) => option.id === "sign-unmeasured-rate");
+    if (finalNode?.type !== "choice" || finalNode.options.length !== 1 ||
+        finalOption?.next !== "x_signed" ||
+        finalOption.effects?.[0]?.labAction?.action !== "finalizeJointPage")
+      throw new Error("x_final 不再是玩家親手簽署、再顯示封口結果的單選儀式");
     let state = ch6ReadyForFinitePredictions();
     state = Engine6.sealFinitePredictions(state).state;
     state = ch6CompleteVerdicts(ch6CompleteLongRun(state));
@@ -595,11 +602,11 @@ tests.push({
 });
 
 tests.push({
-  name: "器材踏查|三章配置完備+第三章重構不強制舊清單+舊存檔相容",
+  name: "器材踏查|四章配置完備+紙件判讀可用精簡踏查+舊存檔相容",
   fn: () => {
     const assets = require("../data/assets.js");
     const ids = new Set(assets.entries.map((e) => e.id));
-    for (const key of ["ch1:A2-2", "ch2:B2-3", "ch3:C1-1"]) {
+    for (const key of ["ch1:A2-2", "ch2:B2-3", "ch3:C1-1", "ch5:E1-1"]) {
       const cfg = (assets.apparatusBriefings || {})[key];
       if (!cfg || !cfg.title || !cfg.enterLabel || !ids.has(cfg.plateAsset) || !Array.isArray(cfg.items) || cfg.items.length < 3)
         throw new Error("器材踏查配置不完整:" + key);
@@ -650,6 +657,45 @@ tests.push({
     const stageEvents = readFileSync(path.join(here, "../src/stage/05-events.part.js"), "utf-8");
     if (stageEvents.includes('CHAPTER_ID === "ch3" && targetScene === "C1-1"'))
       throw new Error("第三章仍繞過共用器材踏查流程");
+    const c5 = assets.apparatusBriefings["ch5:E1-1"];
+    if (c5.itemNoun !== "紙件" || c5.triggerNode !== "q1" || c5.items.length !== 3 ||
+        !["dupreLedger", "visVivaLedger", "clayReport"].every((id) =>
+          c5.items.some((item) => item.id === id)))
+      throw new Error("第五章沒有在公平比較前踏查三份來源紙");
+    if (!stageEvents.includes("storySurvey.triggerNode === d.nodeId"))
+      throw new Error("純對話節點沒有接上精簡紙件踏查");
+    const stageInputs = readFileSync(path.join(here, "../src/stage/07-intro-inputs.part.js"), "utf-8");
+    for (const frag of ["source.itemNoun || \"器材\"", "檢查\" + cfg.itemNoun"])
+      if (!stageInputs.includes(frag)) throw new Error("踏查仍把所有物件硬稱為器材:" + frag);
+  }
+});
+
+tests.push({
+  name: "第五章章首|先辨識時空與帳意，再看懂兩種記法並決定公平比較",
+  fn: () => {
+    const scene = (id) => scenes5.scenes.find((item) => item.id === id);
+    const node = (sceneId, nodeId) => scene(sceneId).nodes.find((item) => item.id === nodeId);
+    const arrival = node("E0-1", "x_arrival");
+    if (!arrival || !arrival.text.includes("這又是哪裡") || !arrival.text.includes("哪一年") ||
+        node("E0-1", "n2").next !== "x_time")
+      throw new Error("第五章章首仍直接跳進西雷書房，旅人沒有辨識時空");
+    const accountQuestion = node("E0-2", "x3a");
+    const accountDefinition = node("E0-2", "x3b");
+    for (const frag of ["不是在算錢", "帳"])
+      if (!accountQuestion.text.includes(frag)) throw new Error("旅人沒有追問帳的意思:" + frag);
+    for (const frag of ["碰撞", "之前", "之後", "對平"])
+      if (!accountDefinition.text.includes(frag)) throw new Error("帳／對平定義缺關鍵語意:" + frag);
+    const bridge = node("E1-1", "x1b");
+    for (const frag of ["質量乘速度", "再乘一次速度", "mv²"])
+      if (!bridge.text.includes(frag)) throw new Error("mv² 仍未由白話記法搭橋:" + frag);
+    const question = node("E1-1", "q1");
+    const correct = question.options.find((option) => option.id === "ledger");
+    if (question.text !== "要怎麼公平比較兩本帳？" || !correct ||
+        !correct.text.includes("同一批碰撞紀錄") || !correct.text.includes("碰撞前後"))
+      throw new Error("玩家沒有親手決定同批紀錄、各自比較前後的公平規矩");
+    if (!node("E1-1", "bad1").text.includes("算法不同") ||
+        !node("E1-1", "bad1").text.includes("不能直接比"))
+      throw new Error("直接比數字的錯項沒有得到人物層解釋");
   }
 });
 
@@ -909,9 +955,12 @@ tests.push({
     for (const fragment of [
       'id="timePassageVeil"', 'id="timePassageLabel"', 'id="timePassageCaption"',
       "body.scene-treatment-time-passage #timePassageVeil", "z-index: 24",
-      "#dialogue { position: absolute; z-index: 25"
+      "#dialogue { position: absolute; z-index: 25",
+      'body.scene-treatment-time-passage[data-view="choice"] #panelWrap { z-index: 26; }',
+      'body.scene-treatment-time-passage[data-view="choice"] #timePassageMark {',
+      'transform: translate(-31vw, 12px);'
     ]) if (!stageHtml.includes(fragment))
-      throw new Error("短幕時間折疊沒有把近黑世界留在對話框後方:" + fragment);
+      throw new Error("短幕時間折疊沒有把近黑世界留在對話框與選項後方:" + fragment);
     for (const fragment of [
       "function applySceneTreatment(sceneId)", 'treatment.mode === "time-passage"',
       'body.classList.toggle("scene-treatment-time-passage"',
@@ -1571,11 +1620,39 @@ tests.push({
       throw new Error("系列標題未保留明體聲部");
     if (/label\.mode \.mc small\s*\{[^}]*display\s*:\s*none/s.test(stageHtml))
       throw new Error("低高度畫面仍須保留模式說明給輔助技術");
-    for (const frag of ['$("continueMeta").textContent', 'loaded.mode === "scholar"', 'loaded.lab.days'])
-      if (!cui.includes(frag)) throw new Error("首頁進度未標明模式/天數:" + frag);
+    for (const frag of ['$("continueMeta").textContent', 'loaded.mode === "scholar"', '研究進度已保留'])
+      if (!cui.includes(frag)) throw new Error("首頁進度未標明模式/研究紀錄:" + frag);
     for (const frag of ["已自動儲存｜", "有未完成進度", "currentSave ?"])
       if (!stageHtml.includes(frag) && !cui.includes(frag))
         throw new Error("首頁存檔存在時仍像旅程起點:" + frag);
+  }
+});
+
+tests.push({
+  name: "天數退居內部研究歷程|公開舞台不再顯示行政數字",
+  fn: () => {
+    const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const scenes1 = readFileSync(path.join(here, "../data/scenes.json"), "utf-8");
+    const scenes2 = readFileSync(path.join(here, "../data/scenes2.json"), "utf-8");
+    const decisions = readFileSync(path.join(here, "../decisions.md"), "utf-8");
+    for (const shellName of ["stage.html", "chapter.html", "chapter2.html", "chapter3.html"]) {
+      const shell = readFileSync(path.join(here, "../" + shellName), "utf-8");
+      for (const frag of [
+        'id="dayVal"', "第幾天", "每次實驗都花天數", "天數=實驗成本"
+      ]) if (shell.includes(frag)) throw new Error(shellName + " 仍顯示天數資源:" + frag);
+    }
+    for (const frag of [
+      "總耗天數", '"第 " + lab2.days + " 天"', "第一次借用多花一天",
+      '"・第 " + loaded.lab.days + " 天"'
+    ]) if (cui.includes(frag)) throw new Error("共用 UI 仍把內部時間當玩家資源:" + frag);
+    if (scenes1.includes("總耗天數") || scenes2.includes("總耗天數"))
+      throw new Error("canonical 終幕仍以總耗天數評價玩家");
+    for (const engineName of ["engine.js", "engine2.js", "engine3.js", "engine4.js", "engine5.js", "engine6.js"]) {
+      const engineText = readFileSync(path.join(here, "../src/" + engineName), "utf-8");
+      if (!engineText.includes("days")) throw new Error(engineName + " 誤刪內部研究歷程相容欄位");
+    }
+    if (!decisions.includes("GB-ADR-054") || !decisions.includes("1665 → 1679"))
+      throw new Error("天數退役法源未同時保留敘事時間邊界");
   }
 });
 
@@ -2151,39 +2228,101 @@ tests.push({
 });
 
 tests.push({
-  name: "GB-ADR-051|K2 地心量距由玩家試答，三種合理理由各留不同缺口",
+  name: "GB-ADR-051/052|K2 三種地心理由可逐一追問，缺口保留且不強迫清單式全點",
   fn: () => {
     const d12 = new Map(scenes4.scenes.find((scene) => scene.id === "D1-2")
       .nodes.map((node) => [node.id, node]));
     const prompt = d12.get("c_center_reason");
+    const followup = d12.get("c_center_reason_more");
     const options = prompt?.options || [];
     if (d12.get("n19")?.next !== "c_center_reason" || prompt?.type !== "choice" ||
-        prompt?.speaker !== "system" || options.length !== 3)
-      throw new Error("地心量距未在牛頓提問後交給玩家三選試答");
+        prompt?.speaker !== "system" || options.length !== 3 ||
+        followup?.type !== "choice" || followup?.speaker !== "system")
+      throw new Error("地心量距未在牛頓提問後交給玩家三選並提供後續追問");
 
     const expected = new Map([
-      ["center_round", ["wc_round", "中心在哪裡", "拉扯加起來"]],
-      ["center_symmetry", ["wc_symmetry", "方向朝中心", "拉得多大"]],
-      ["center_fall", ["wc_fall", "結果當成理由", "從地心拉來"]]
+      ["center_round", ["wc_round", "ch4CenterRoundTried", "中心在哪裡", "拉扯加起來"]],
+      ["center_symmetry", ["wc_symmetry", "ch4CenterSymmetryTried", "方向朝中心", "拉得多大"]],
+      ["center_fall", ["wc_fall", "ch4CenterFallTried", "結果當成理由", "從地心拉來"]]
     ]);
-    for (const option of options) {
+    function assertReasonOption(option, repeated) {
       const contract = expected.get(option.id);
-      if (!contract || option.next !== contract[0] || "effects" in option)
-        throw new Error("地心量距選項不得計分、授證或共用同一回應：" + option.id);
+      const effects = option.effects || [];
+      if (!contract || option.next !== contract[0] ||
+          JSON.stringify(effects) !== JSON.stringify([
+            { flag: [contract[1], "1"] },
+            { flag: ["ch4CenterReasonStarted", "1"] }
+          ]) ||
+          repeated && JSON.stringify(option.require) !== JSON.stringify({ flagAbsent: contract[1] }))
+        throw new Error("地心量距理由只能留下導覽旗標，不得計分、授證或改章別引擎：" + option.id);
       const response = d12.get(option.next);
-      if (response?.speaker !== "牛頓" || response?.next !== "n20" ||
-          !String(response?.text || "").includes(contract[1]) ||
-          !String(response?.text || "").includes(contract[2]))
-        throw new Error("地心量距分支沒有指出自己的特定缺口：" + option.id);
+      if (response?.speaker !== "牛頓" || response?.next !== "c_center_reason_more" ||
+          !String(response?.text || "").includes(contract[2]) ||
+          !String(response?.text || "").includes(contract[3]))
+        throw new Error("地心量距分支沒有指出自己的特定缺口並回到追問：" + option.id);
     }
+    options.forEach((option) => assertReasonOption(option, false));
+    const repeatedReasons = (followup.options || []).filter((option) => expected.has(option.id));
+    repeatedReasons.forEach((option) => assertReasonOption(option, true));
+    const leave = (followup.options || []).find((option) => option.id === "center_leave_question");
+    if (repeatedReasons.length !== 3 || !leave || leave.next !== "n20" ||
+        "effects" in leave ||
+        JSON.stringify(leave.require) !== JSON.stringify({ flag: ["ch4CenterReasonStarted", "1"] }))
+      throw new Error("第一次試答後沒有提供零代價的留下問號選項");
+
     const optionLengths = options.map((option) => Array.from(option.text || "").length);
     if (Math.max(...optionLengths) / Math.min(...optionLengths) > 1.2)
-      throw new Error("地心量距三選項長度失衡");
+      throw new Error("地心量距三個理由的選項長度失衡");
+
+    const N4Center = Narrative._factory(scenes4, Engine4, {});
+    const orders = [
+      ["center_round", "center_symmetry", "center_fall"],
+      ["center_round", "center_fall", "center_symmetry"],
+      ["center_symmetry", "center_round", "center_fall"],
+      ["center_symmetry", "center_fall", "center_round"],
+      ["center_fall", "center_round", "center_symmetry"],
+      ["center_fall", "center_symmetry", "center_round"]
+    ];
+    for (const order of orders) {
+      let state = N4Center.initialState("explore");
+      const initialLab = JSON.stringify(state.lab);
+      state.cursor = { scene: "D1-2", node: "c_center_reason" };
+      for (let index = 0; index < order.length; index += 1) {
+        const reason = order[index];
+        const before = N4Center.view(state).options.map((option) => option.id);
+        if (!before.includes(reason))
+          throw new Error("同一輪無法依序追問地心理由：" + order.join("→"));
+        const picked = N4Center.choose(state, reason);
+        if (picked.error) throw new Error("地心理由選擇遭拒：" + picked.error);
+        state = N4Center.advance(picked.state).state;
+        const after = N4Center.view(state).options.map((option) => option.id);
+        if (after.includes(reason) || !after.includes("center_leave_question"))
+          throw new Error("已試理由仍可重複，或第一次後不能留下問號：" + reason);
+      }
+      const remaining = N4Center.view(state).options.map((option) => option.id);
+      if (JSON.stringify(remaining) !== JSON.stringify(["center_leave_question"]))
+        throw new Error("三項全試後不是只剩留下問號：" + remaining.join("、"));
+      if (state.rep !== 3 || Object.keys(state.evidence).length !== 0 ||
+          JSON.stringify(state.lab) !== initialLab)
+        throw new Error("地心理由追問改動了信譽、證據或章別引擎狀態");
+      const closed = N4Center.choose(state, "center_leave_question");
+      if (closed.error || closed.state.cursor.node !== "n20")
+        throw new Error("三項追問後無法回到旅人親口限縮");
+    }
+
+    let earlyState = N4Center.initialState("explore");
+    earlyState.cursor = { scene: "D1-2", node: "c_center_reason" };
+    earlyState = N4Center.choose(earlyState, "center_symmetry").state;
+    earlyState = N4Center.advance(earlyState).state;
+    const earlyLeave = N4Center.choose(earlyState, "center_leave_question");
+    if (earlyLeave.error || earlyLeave.state.cursor.node !== "n20")
+      throw new Error("玩家不能在試過一項後自行決定先留下問號");
+
     if (d12.get("n20")?.speaker !== "旅人(你)" ||
         !String(d12.get("n20")?.text || "").includes("還不能把整顆地球當成縮在那一點") ||
         d12.get("n21")?.speaker !== "牛頓" ||
         !String(d12.get("n21")?.text || "").includes("數字對上了，理由還沒有"))
-      throw new Error("三路沒有匯流到旅人親口限縮與牛頓留問號");
+      throw new Error("追問沒有匯流到旅人親口限縮與牛頓留問號");
 
     const notebook = String(d12.get("n24")?.text || "");
     if (!notebook.includes("同樣一秒") || !notebook.includes("三千六百分之一") ||
@@ -3357,7 +3496,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第二章 M2a|engine2:fixture 判定+12.0/12.5 邊界+換球守衛+黃金路徑 10 天(R-LAB2)",
+  name: "第二章 M2a|engine2:fixture 判定+12.0/12.5 邊界+換球守衛+黃金路徑保留 10 刻度(R-LAB2)",
   fn: () => {
     const E2 = require("../src/engine2.js");
     const FULL = [["release", "latchRelease"], ["edge", "polishedEdge"], ["rangeBed", "rakedSand"]];
@@ -3603,7 +3742,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第三章資料鏡像與敘事圖|10 場主線＋1 修復場、228 節點、活躍圖全可達、舊游標相容",
+  name: "第三章資料鏡像與敘事圖|10 場主線＋1 修復場、230 節點、活躍圖全可達、舊游標相容",
   fn: () => {
     const sj = JSON.parse(readFileSync(path.join(here, "../data/scenes3.json"), "utf-8"));
     const hj = JSON.parse(readFileSync(path.join(here, "../data/histfacts3.json"), "utf-8"));
@@ -3616,7 +3755,7 @@ tests.push({
         scenes3.scenes.filter((scene) => scene.id !== "SC3-R1").length !== 10)
       throw new Error("第三章應為 10 場主線＋1 個信譽修復場");
     const allNodes = scenes3.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 228) throw new Error("第三章節點數不是 228，實得:" + allNodes);
+    if (allNodes !== 230) throw new Error("第三章節點數不是 230，實得:" + allNodes);
     if (new Set(scenes3.scenes.map((s) => s.id)).size !== scenes3.scenes.length)
       throw new Error("第三章場景 id 重複");
     for (const s of scenes3.scenes) {
@@ -3949,6 +4088,17 @@ tests.push({
       ui2.indexOf("function ship3DossierPlacePreview"));
     const dossierLabUi = ui2.slice(ui2.indexOf("function renderShipDossierLab"),
       ui2.indexOf("function renderShipDossierEvidenceChoices"));
+    if (!ui2.includes("function renderShipDossierLab(work, d, lab)") ||
+        !ui2.includes("renderShipDossierLab(work, d, lab)") ||
+        !dossierLabUi.includes("lab.design && lab.design.dual && lab.design.dual.locked"))
+      throw new Error("雙視角設計畫面沒有讀取當前第三章 lab 狀態，鎖定後仍可能重畫舊選項");
+    const designDecisionUi = ui2.slice(ui2.indexOf("function renderShipDossierDesignDecision"),
+      ui2.indexOf("function renderShipDossierNotebookIndex"));
+    if (!designDecisionUi.includes("var accepted = config.accept()") ||
+        !designDecisionUi.includes("accepted.error") ||
+        !designDecisionUi.includes("accepted.result && accepted.result.ok === false") ||
+        !designDecisionUi.includes("config.afterAccept(accepted)"))
+      throw new Error("研究安排即使被引擎拒絕，介面仍可能自行顯示成功或推進");
     const candidateBeforeLedger = dossierLabUi.indexOf("renderShipDossierCandidates(notebookPage") <
       dossierLabUi.indexOf("renderShipDossierLedger(notebookPage, d, currentAssertion)");
     if (!candidateBeforeLedger || !ui2.includes('doShip("setDossierProposedScope"') ||
@@ -3984,9 +4134,26 @@ tests.push({
     if (!embarkListenerUi.includes('detail.intermission === "ch3-dual-complete"') ||
         !embarkListenerUi.includes('doShip("enterDossierDebate"'))
       throw new Error("雙視角動畫收卷後沒有等玩家按下舞台轉場才進碼頭辯論");
+    if (!dossierLabUi.includes('ship3OpenIntermission("ch3-after-dual-design"') ||
+        !dossierLabUi.includes("▸ 回到甲板，執行雙視角紀錄") ||
+        !embarkListenerUi.includes('detail.intermission === "ch3-after-dual-design"') ||
+        !embarkListenerUi.includes("ship3FocusDossierRunButton()"))
+      throw new Error("雙視角研究安排成立後，缺少對話退場與下一個可操作按鈕的明確交接");
     if (!assertionIntermissionUi.includes('detail.token !== "ch3-cabin-wind"') ||
         !assertionIntermissionUi.includes('"ch3-after-wind-choice", "▸ 進入船艙實驗"'))
       throw new Error("排除甲板風的研究決定仍留在實驗面板，或選完後沒有再入船艙的明確操作");
+    for (const spokenChoice of [
+      "不然，等一個沒風的日子再試？",
+      "那就進船艙吧，把外頭的風隔開。",
+      "要不要先在甲板立一面擋風板？"
+    ]) if (!ui2.includes(spokenChoice))
+      throw new Error("排除甲板風的選項仍是系統方案名稱，不是旅人能說出口的對話:" + spokenChoice);
+    if (!assertionIntermissionUi.includes('{ speaker: "旅人(你)", text: option.label }') ||
+        !ui2.includes('function ship3PresentCabinWindDialogue(fromReload)') ||
+        !dossierLabUi.includes("ship3PresentCabinWindDialogue(true)") ||
+        dossierLabUi.includes('id: "cabin-wind"') ||
+        dossierLabUi.includes('action: "commitDossierCabinWindPlan"'))
+      throw new Error("甲板風三選仍可能在工作台出現，或玩家選項沒有先由旅人親口說出");
     if ((ui2.match(/ship3ScrollToReplayAnimation\(\)/g) || []).length < 2 ||
         !seriesReplayUi.includes("function ship3ScrollToReplayAnimation"))
       throw new Error("工作台／旅人筆記的重播沒有重新定位到既有動畫");
@@ -4154,7 +4321,7 @@ tests.push({
       "重播既有紀錄｜不新增實驗",
       'document.addEventListener("bd:notebook-snapshot"',
       "ship3SayAssertionBeat",
-      "船長追問：外頭的風",
+      "那就進船艙吧，把外頭的風隔開",
       "同一趟落石、同號鼓點",
       "重播屬工作台共用層"
     ]) if (!ui.includes(contract))
@@ -4497,10 +4664,12 @@ tests.push({
     repairLab5 = Engine5.setDraft(repairLab5, "masses", "4/8").state;
     repairLab5 = Engine5.setDraft(repairLab5, "head", "putty").state;
     repairLab5 = Engine5.runCollision(repairLab5).state;
-    for (const height of ["h1", "h4", "h9"]) {
+    for (const height of ["h1", "h4"]) {
       repairLab5 = Engine5.setDraft(repairLab5, "clayHeight", height).state;
       repairLab5 = Engine5.runClay(repairLab5).state;
     }
+    repairLab5 = Engine5.sealClayPrediction(repairLab5, "band-middle").state;
+    repairLab5 = Engine5.runClay(repairLab5).state;
     repairLab5 = Engine5.assertJ3(
       repairLab5, repairLab5.clayRuns.map((row) => row.id), "speed-squared"
     ).state;
@@ -5385,7 +5554,7 @@ tests.push({
     const N3 = Narrative._factory(scenes3, Engine3, {});
     const San = require("../src/sanitize.js");
     let s = N3.initialState("explore"), guard = 0;
-    const pick = { "C0-1": "own-drawing", "C0-3": "bounded", "C3-2": "cabin" };
+    const pick = { "C0-1": "own-drawing", "C0-3": "bounded", "C3-1": "bounded", "C3-2": "cabin" };
     const SPOKEN_RT = /^([\u4e00-\u9fff·・A-Za-z]{1,8})：(?:（([^）]*)）)?\s*「([\s\S]*?)」\s*$/;
     const RT_WL = new Set(["維達爾船長","槳手","商人","艾蒂安","馬蒂厄","伽桑狄","官員"]);
     const act = (name, args) => {
@@ -7107,7 +7276,7 @@ tests.push({
         JSON.stringify(scenes4.scenes.map((scene) => scene.id)) !== JSON.stringify(expectedScenes))
       throw new Error("第四章 v0.8 應保留定案 12 場主線並追加 SC4-R1");
     const allNodes = scenes4.scenes.reduce((sum, scene) => sum + scene.nodes.length, 0);
-    if (allNodes !== 334) throw new Error("第四章節點數不是 334，實得:" + allNodes);
+    if (allNodes !== 335) throw new Error("第四章節點數不是 335，實得:" + allNodes);
 
     const allowedPurposes = new Set([
       "time_dislocation", "future_knowledge", "cross_chapter_memory",
@@ -7177,7 +7346,7 @@ tests.push({
       .filter((node) => node.legacyOnly !== true)
       .map((node) => scene.id + "/" + node.id));
     const unreachableActive = activeNodes.filter((key) => !visited.has(key));
-    if (activeNodes.length !== 315 || unreachableActive.length)
+    if (activeNodes.length !== 316 || unreachableActive.length)
       throw new Error("第四章活躍節點數或可達性錯誤:" +
         activeNodes.length + " / " + unreachableActive.join("、"));
     const reachedLegacy = legacyNodes.filter((key) => visited.has(key));
@@ -7221,6 +7390,12 @@ tests.push({
     if (intermissionNext.error || intermissionNext.state.cursor.scene !== "D-INT-1" ||
         intermissionNext.state.cursor.node !== "n4")
       throw new Error("D-INT-1/n3 在同版存檔往返後無法續讀到 n4");
+    const intermissionChoiceState = N4Legacy.initialState("explore");
+    intermissionChoiceState.cursor = { scene:"D-INT-1", node:"c1" };
+    const intermissionTurn = N4Legacy.choose(intermissionChoiceState, "turn");
+    const intermissionTurnView = intermissionTurn.error ? null : N4Legacy.view(intermissionTurn.state);
+    if (intermissionTurn.error || !intermissionTurnView || intermissionTurnView.scene !== "D2-1")
+      throw new Error("D-INT-1/c1 的親手翻頁選項無法進入 1679 場景");
 
     /* 負向控制：讓現行主線重新走進退役心聲，契約必須轉紅。 */
     const heartEdgeNegative = JSON.parse(JSON.stringify(scenes4));
@@ -9122,7 +9297,7 @@ tests.push({
 });
 
 tests.push({
-  name: "第五章三輪工作台|輪二零實驗、同批重算、2b 可達、三速黏土才成證據",
+  name: "第五章三輪工作台|輪二零實驗、同批重算、2b 可達、J3 前兩筆預測第三筆",
   fn: () => {
     let s = Engine5.initialState();
     const act = (fn, ...args) => {
@@ -9159,13 +9334,36 @@ tests.push({
     if (!s.evidence.followup || follow.visViva.deficit !== 96 ||
         follow.followupPrediction !== "always-half" || follow.predictionMatched !== false)
       throw new Error("2b 追一筆不可達或未殺掉固定一半");
-    for (const height of ["h1", "h4", "h9"]) {
-      act("setDraft", "clayHeight", height);
-      act("runClay");
-    }
+    let heavyClay = Engine5.setDraft(s, "ballMass", "heavy").state;
+    heavyClay = Engine5.runClay(heavyClay).state;
+    heavyClay = Engine5.runClay(heavyClay).state;
+    heavyClay = Engine5.sealClayPrediction(heavyClay, "band-middle").state;
+    if (heavyClay.clayPrediction.min !== 8 || heavyClay.clayPrediction.max !== 9.6)
+      throw new Error("重球預測範圍沒有依同一質量倍率換算");
+    heavyClay = Engine5.runClay(heavyClay).state;
+    if (heavyClay.clayRuns[2].depth !== 8.9 || heavyClay.clayPrediction.matched !== true)
+      throw new Error("重球第三球揭曉或命中判定不符");
+    if (Engine5.sealClayPrediction(s, "band-middle").error !== "clay-two-records-required")
+      throw new Error("沒有前兩筆就能封存第三球預測");
+    act("runClay");
+    if (Engine5.sealClayPrediction(s, "band-middle").error !== "clay-two-records-required")
+      throw new Error("只有第一筆就能封存第三球預測");
+    act("runClay");
+    if (Engine5.runClay(s).error !== "clay-prediction-required")
+      throw new Error("未封存坑深範圍就能揭曉第三球");
+    const sealedClay = act("sealClayPrediction", "band-low").prediction;
+    if (sealedClay.min !== 2.8 || sealedClay.max !== 3.6 || sealedClay.revealed)
+      throw new Error("第三球預測紙沒有保存數值範圍");
+    if (Engine5.sealClayPrediction(s, "band-middle").error !== "clay-prediction-sealed")
+      throw new Error("封存後仍能改寫第三球預測");
+    act("runClay");
     const clayIds = s.clayRuns.map((r) => r.id);
     if (JSON.stringify(s.clayRuns.map((r) => r.depth)) !== JSON.stringify([0.5, 2.1, 4.4]))
       throw new Error("黏土 fixture 不符:" + JSON.stringify(s.clayRuns));
+    if (!s.clayPrediction.revealed || s.clayPrediction.actualDepth !== 4.4 ||
+        s.clayPrediction.matched !== false ||
+        Engine5.runClay(s).error !== "clay-series-complete")
+      throw new Error("第三球沒有如實揭曉偏離，或三球後仍可洗資料");
     if (!Engine5.assertJ3(s, clayIds.slice(0, 2)).error)
       throw new Error("兩種速度竟可取得 J3");
     if (Engine5.assertJ3(s, clayIds).error !== "judgment-required" || s.evidence.j3)
@@ -9264,10 +9462,12 @@ tests.push({
           lab("setCollisionDraft", { field: "masses", value: "4/8" });
           lab("runCollision");
         } else if (s.lab.phase === "clay") {
-          for (const h of ["h1", "h4", "h9"]) {
+          for (const h of ["h1", "h4"]) {
             lab("setCollisionDraft", { field: "clayHeight", value: h });
             lab("runClay");
           }
+          lab("sealClayPrediction", { band: "band-middle" });
+          lab("runClay");
           lab("assertJ3", {
             runIds: s.lab.clayRuns.map((r) => r.id), concept: "speed-squared"
           });
@@ -9364,6 +9564,13 @@ tests.push({
     if (!migratedOldSave.ok || migratedOldSave.state.lab.judgments.j1 !== "both-close" ||
         migratedOldSave.state.lab.judgments.followup !== "legacy-unsealed")
       throw new Error("第五章舊存檔缺新判讀欄位時無法相容匯入");
+    const legacyClaySave = JSON.parse(JSON.stringify(finished5));
+    delete legacyClaySave.lab.clayProtocol;
+    delete legacyClaySave.lab.clayPrediction;
+    const migratedLegacyClay = San.sanitizeImport5(legacyClaySave, scenes5);
+    if (!migratedLegacyClay.ok || migratedLegacyClay.state.lab.clayProtocol !== "legacy-free-v0" ||
+        migratedLegacyClay.state.lab.clayPrediction !== null)
+      throw new Error("第五章舊黏土存檔被倒補成曾封存第三球預測");
     const rejectRepMutation5 = (label, mutate) => {
       const forgedRep = JSON.parse(JSON.stringify(finished5));
       mutate(forgedRep);
@@ -9424,6 +9631,14 @@ tests.push({
     });
     if (San.sanitizeImport5(forgedSquare, scenes5).ok)
       throw new Error("亂改黏土坑深後仍可用存檔冒充速度平方證據");
+    const forgedClayPrediction = JSON.parse(JSON.stringify(finished5));
+    forgedClayPrediction.lab.clayPrediction.min = 0;
+    if (San.sanitizeImport5(forgedClayPrediction, scenes5).ok)
+      throw new Error("竄改第三球封存範圍後仍可通過匯入");
+    const missingClayPrediction = JSON.parse(JSON.stringify(finished5));
+    missingClayPrediction.lab.clayPrediction = null;
+    if (San.sanitizeImport5(missingClayPrediction, scenes5).ok)
+      throw new Error("新流程第三球已揭曉卻沒有預測紙仍可通過匯入");
 
     const html = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
@@ -9433,7 +9648,8 @@ tests.push({
       if (!html.includes(fragment)) throw new Error("第五章入口接線缺失:" + fragment);
     for (const fragment of ["renderCollision5", "round2-no-new-experiment",
       "setCollisionSelection", "collision5Judgment", "撞後速度",
-      "同一批紀錄重算活力帳", "先押一個預測", "4／8 油灰追一筆"])
+      "同一批紀錄重算活力帳", "先押一個預測", "4／8 油灰追一筆",
+      "sealClayPrediction", "從九格落下第三球，揭曉預測"])
       if (!ui.includes(fragment)) throw new Error("第五章 UI 接線缺失:" + fragment);
     if (ui.includes("collision5Checked"))
       throw new Error("第五章勾選仍藏在不可存檔的畫面暫存變數");
@@ -10011,8 +10227,8 @@ tests.push({
     for (const fragment of [
       "每一拍都拉得更開",
       "船正在往前，和船每一拍走得比上一拍更遠，是兩件事",
-      "船長追問：外頭的風",
-      "這裡沒有桅頂，也不是同一個落石",
+      "那就進船艙吧，把外頭的風隔開",
+      "我們不重做桅頂落石",
       "不能靠撕掉一張來解決",
       "我的尺從碼頭柱量起",
       "墨水瓶放在一塊鬆木板上",
@@ -10082,9 +10298,15 @@ tests.push({
     const ch3Question = node(m3, "C3-1", "n1");
     const ch3Claim = node(m3, "C3-1", "x1");
     const ch3Written = node(m3, "C3-1", "x2");
+    const ch3Bounded = ch3Claim.options?.find((option) => option.id === "bounded");
+    const ch3Over = ch3Claim.options?.find((option) => option.id === "earth-moves");
+    const ch3Under = ch3Claim.options?.find((option) => option.id === "nothing-learned");
     if (ch3Question.speaker !== "官員" || ch3Question.next !== "x1" ||
-        ch3Claim.speaker !== "旅人(你)" || ch3Claim.next !== "x2" ||
-        !String(ch3Claim.text || "").includes("沒有直接量") ||
+        ch3Claim.type !== "choice" || ch3Claim.options?.length !== 3 ||
+        ch3Bounded?.next !== "x2" ||
+        !String(ch3Bounded?.text || "").includes("沒有直接量") ||
+        ch3Over?.next !== "x1_over" || node(m3, "C3-1", "x1_over").next !== "x1" ||
+        ch3Under?.next !== "x1_under" || node(m3, "C3-1", "x1_under").next !== "x1" ||
         ch3Written.speaker !== "stage" || !String(ch3Written.text || "").includes("逐字"))
       throw new Error("第三章公開有限主張不再由旅人提交並被逐字記錄");
 

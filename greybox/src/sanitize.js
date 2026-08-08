@@ -4145,6 +4145,12 @@
     /* GB-ADR-036：舊存檔沒有選紙／判讀欄位。相容轉換只能由原紙與
        斷言來源重建，不得拿 evidence 布林反向補出「玩家當時怎麼判讀」。 */
     if (lab && !lab.selections) lab.selections = { collision: [], clay: [] };
+    if (lab && !Object.prototype.hasOwnProperty.call(lab, "clayProtocol")) {
+      lab.clayProtocol = "legacy-free-v0";
+      lab.clayPrediction = null;
+    } else if (lab && !Object.prototype.hasOwnProperty.call(lab, "clayPrediction")) {
+      lab.clayPrediction = null;
+    }
     if (lab && !lab.judgments) {
       var legacyFollowupRow = Array.isArray(lab.collisionRuns) && lab.collisionRuns.some(function (row) {
         return row && row.masses === "4/8" && row.head === "putty" &&
@@ -4163,6 +4169,8 @@
         !lab.assertions || !lab.evidence || !lab.selections || !lab.judgments ||
         !Array.isArray(lab.selections.collision) || !Array.isArray(lab.selections.clay))
       return fail("第五章工作台紀錄格式錯誤");
+    if (["legacy-free-v0", "predict-third-v1"].indexOf(lab.clayProtocol) < 0)
+      return fail("第五章黏土流程版本無法辨識");
     if (lab.collisionRuns.length > 300 || lab.clayRuns.length > 300)
       return fail("第五章實驗紀錄過多");
     if (["steel", "putty"].indexOf(lab.draft.head) < 0 ||
@@ -4229,6 +4237,56 @@
       if (clay.speed !== expectedClay.speed || !sameNumber5(clay.idealDepth, expectedIdeal) ||
           !sameNumber5(clay.readingError, expectedError) || !sameNumber5(clay.depth, expectedDepth))
         return fail("第五章黏土原紙與引擎封閉資料不一致");
+    }
+    if (lab.clayProtocol === "legacy-free-v0") {
+      if (lab.clayPrediction !== null)
+        return fail("第五章舊式黏土流程不得補造預測");
+    } else {
+      if (lab.clayRuns.length > 3 || lab.clayRuns.some(function (row, index) {
+        return row.height !== [1, 4, 9][index];
+      })) return fail("第五章預測式黏土流程的高度順序不一致");
+      if (lab.clayRuns.length > 1 && lab.clayRuns.some(function (row) {
+        return row.ballMass !== lab.clayRuns[0].ballMass;
+      })) return fail("第五章預測式黏土流程更換了球重");
+      var prediction5 = lab.clayPrediction;
+      if (prediction5 === null) {
+        if (lab.clayRuns.length >= 3)
+          return fail("第五章第三球在預測封存前已被揭曉");
+      } else {
+        var band5 = {
+          "band-low": { min:2.8, max:3.6 },
+          "band-middle": { min:4.0, max:4.8 },
+          "band-high": { min:5.2, max:6.0 }
+        }[prediction5.band];
+        if (!band5 || lab.clayRuns.length < 2 ||
+            ["light", "heavy"].indexOf(prediction5.ballMass) < 0 ||
+            !Array.isArray(prediction5.sealedAfter) || prediction5.sealedAfter.length !== 2 ||
+            typeof prediction5.revealed !== "boolean")
+          return fail("第五章黏土預測紙格式錯誤");
+        var predictionFactor5 = prediction5.ballMass === "heavy" ? 2 : 1;
+        var expectedPredictionMin5 = band5.min * predictionFactor5;
+        var expectedPredictionMax5 = band5.max * predictionFactor5;
+        if (!sameNumber5(prediction5.min, expectedPredictionMin5) ||
+            !sameNumber5(prediction5.max, expectedPredictionMax5) ||
+            prediction5.ballMass !== lab.clayRuns[0].ballMass ||
+            prediction5.sealedAfter[0] !== lab.clayRuns[0].id ||
+            prediction5.sealedAfter[1] !== lab.clayRuns[1].id)
+          return fail("第五章黏土預測紙與前兩筆原紙不一致");
+        if (!prediction5.revealed) {
+          if (lab.clayRuns.length !== 2 || prediction5.actualDepth !== null ||
+              prediction5.recordId !== null || prediction5.matched !== null)
+            return fail("第五章未揭曉預測紙混入結果");
+        } else {
+          var thirdClay5 = lab.clayRuns[2];
+          var expectedMatched5 = !!thirdClay5 && thirdClay5.depth >= prediction5.min &&
+            thirdClay5.depth <= prediction5.max;
+          if (lab.clayRuns.length !== 3 || !thirdClay5 ||
+              !sameNumber5(prediction5.actualDepth, thirdClay5.depth) ||
+              prediction5.recordId !== thirdClay5.id ||
+              prediction5.matched !== expectedMatched5)
+            return fail("第五章黏土預測揭曉與第三筆原紙不一致");
+        }
+      }
     }
     if (lab.runSeq !== maxRecordId5 || lab.claySeq !== lab.clayRuns.length)
       return fail("第五章實驗流水號與原始紀錄不一致");

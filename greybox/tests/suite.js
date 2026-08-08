@@ -95,7 +95,7 @@
     eq(r2.run.readings, runs[0].readings, "跨 session 重現");
   });
 
-  t("R-EXP-01|天數成本:脈搏+1/水鐘+2/音格+3", function () {
+  t("R-EXP-01|內部研究歷程刻度:脈搏+1/水鐘+2/音格+3", function () {
     var s = Engine.initialState();
     s = Engine.runExperiment(s, { ball: "銅大", surface: "打磨", incline: "緩", timer: "脈搏" }).state;
     eq(s.days, 1, "脈搏");
@@ -206,7 +206,7 @@
     eq(s.belief.P3.persuasion, 5, "量表不變");
   });
 
-  t("整合流|緩+水鐘:銅大×1+銅小×1 → E3.a∧b → (E3,b,s2) 擊破 P3;天數=4", function () {
+  t("整合流|緩+水鐘:銅大×1+銅小×1 → E3.a∧b → (E3,b,s2) 擊破 P3;內部歷程刻度=4", function () {
     var s = Engine.initialState();
     var rA = Engine.runExperiment(s, { ball: "銅大", surface: "打磨", incline: "緩", timer: "水鐘" }); s = rA.state;
     var rB = Engine.runExperiment(s, { ball: "銅小", surface: "打磨", incline: "緩", timer: "水鐘" }); s = rB.state;

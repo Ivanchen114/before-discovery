@@ -1,9 +1,9 @@
 {
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
-  "registry_status": "active",
-  "skill_version": "3.4.7",
-  "updated": "2026-08-03",
+  "registry_status": "candidate",
+  "skill_version": "3.5.0-candidate",
+  "updated": "2026-08-08",
   "truth_modes": [
     "AS-IS",
     "TO-BE",
@@ -76,7 +76,8 @@
     "chapter.ch2",
     "chapter.ch3",
     "chapter.ch4",
-    "chapter.ch5"
+    "chapter.ch5",
+    "chapter.ch6"
   ],
   "routes": [
     {
@@ -499,7 +500,7 @@
             "一、用途與正本",
             "二、跨章不變量",
             "三、資源與名詞",
-            "五、GB-ADR 覆蓋台帳",
+            "五、跨章 ADR 語意落點",
             "六、驗收層級"
           ],
           "supersedes": [],
@@ -2684,6 +2685,190 @@
             "release"
           ],
           "note": "新增／重製第五章正式美術時 blocker。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch6",
+      "tasks": [
+        "chapter-6",
+        "ch6",
+        "ch06"
+      ],
+      "requires": [
+        "core"
+      ],
+      "sources": [
+        {
+          "id": "ch6.scenes",
+          "path": "greybox/data/scenes6.json",
+          "domains": [
+            "runtime",
+            "narrative"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第六章玩家現況；十一座 heat 工作台由 embed 與 engine6 共同承重。"
+        },
+        {
+          "id": "ch6.engine",
+          "path": "greybox/src/engine6.js",
+          "domains": [
+            "runtime",
+            "design",
+            "save"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第六章 heat 引擎、證據、署名與完章狀態真相。"
+        },
+        {
+          "id": "ch6.spec",
+          "path": "03_規格/發現之前_第六章功能規格書_v0.1.md",
+          "domains": [
+            "design",
+            "narrative",
+            "runtime",
+            "save"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "plan",
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、章目標與不可越界結論",
+            "三、資料與證據契約",
+            "五、十一座互動台與狀態責任",
+            "六、四條阻斷性契約",
+            "七、存檔、導航與完章",
+            "八、介面與驗收層級"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第六章 CURRENT runtime 施工基線；含 T1–T5、十一座互動台與 R-CH6 契約。"
+        },
+        {
+          "id": "ch6.novel",
+          "path": "03_劇本/發現之前_第六章H1完整劇本草稿_codex_20260802.md",
+          "domains": [
+            "narrative"
+          ],
+          "status": "candidate",
+          "authority": "reference",
+          "phase": [
+            "plan",
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第六章小說層內容基線；玩家現況仍以 scenes6.json 與 engine6.js 為準。"
+        },
+        {
+          "id": "ch6.histfacts",
+          "path": "greybox/data/histfacts6.json",
+          "domains": [
+            "history",
+            "runtime"
+          ],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": [
+            "write",
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "primary",
+            "TO-BE": "comparison",
+            "CONFORMANCE": "actual"
+          },
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第六章玩家可見史實頁；新增外部主張仍須查原典。"
+        },
+        {
+          "id": "ch6.art-appendix",
+          "path": null,
+          "domains": [
+            "art"
+          ],
+          "status": "missing",
+          "authority": "unresolved",
+          "phase": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "mode_roles": {
+            "AS-IS": "unavailable",
+            "TO-BE": "unavailable",
+            "CONFORMANCE": "unavailable"
+          },
+          "tracked_required": false,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "gap_reason": "第六章尚無依全系列美術總規格建立的章節美術製作附錄。",
+          "applies_when": [
+            "art-change"
+          ],
+          "blocking_phases": [
+            "art",
+            "implement",
+            "release"
+          ],
+          "note": "新增或重製第六章正式美術時 blocker；既有資產唯讀驗證不受阻。"
         }
       ]
     }

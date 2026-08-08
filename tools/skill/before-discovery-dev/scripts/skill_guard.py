@@ -83,6 +83,7 @@ CHAPTER_NAME_MARKERS = {
     "第三章": "ch3",
     "第四章": "ch4",
     "第五章": "ch5",
+    "第六章": "ch6",
 }
 CHAPTER_TOKEN = re.compile(r"^ch[1-9][0-9]*$")
 SUPPORT_ARTIFACT_REQUIREMENTS = {
@@ -1727,7 +1728,7 @@ def main() -> int:
     )
     narrative_parser.add_argument(
         "--chapter",
-        choices=["ch1", "ch2", "ch3", "ch4", "ch5"],
+        choices=["ch1", "ch2", "ch3", "ch4", "ch5", "ch6"],
         required=True,
         action=StoreOnceAction,
     )
@@ -1756,6 +1757,14 @@ def main() -> int:
         "--fail-on-warnings",
         action="store_true",
         help="return 2 when diagnostics report warnings; default remains advisory",
+    )
+    narrative_parser.add_argument(
+        "--story-audit",
+        action="store_true",
+        help=(
+            "print scene titles, every choice/embed, choice topology, embed seams "
+            "and the five longest array-adjacent line runs"
+        ),
     )
 
     mechanics_parser = subparsers.add_parser(
@@ -1810,6 +1819,7 @@ def main() -> int:
             ],
             require_contract=args.require_contract,
             fail_on_warnings=args.fail_on_warnings,
+            story_audit=args.story_audit,
         )
     if args.command == "check-mechanics":
         return check_mechanics(resolve_target_path(args.contract))

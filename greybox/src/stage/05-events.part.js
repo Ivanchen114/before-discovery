@@ -42,6 +42,20 @@
     /* 互動選項不是台詞事件：操作前的裝置圖、判讀前的結果圖要由節點主動叫回。
        讀檔直接落在選項時也成立，不依賴玩家曾經看過前一行台詞。 */
     showFocusVisualForView(d.scene, d.nodeId);
+    /* 紙上推演也可以需要「先看物件、再作判斷」，不必為了三份來源紙
+       硬升成完整工作台。配置 triggerNode 的踏查會在該選項前攔一次；
+       讀檔直落同一節點仍會補看，完成後才把焦點交回玩家的判斷。 */
+    var storySurvey = apparatusBriefing(d.scene);
+    if (storySurvey && storySurvey.triggerNode === d.nodeId &&
+        !apparatusSurveySeen[apparatusBriefingKey(d.scene)] && !apparatusSurveyActive) {
+      setTimeout(function () {
+        if (apparatusSurveyActive || apparatusSurveySeen[apparatusBriefingKey(d.scene)]) return;
+        showApparatusSurvey(d.scene, function () {
+          var firstChoice = $("controls").querySelector("button");
+          if (firstChoice) firstChoice.focus({ preventScroll: true });
+        });
+      }, 0);
+    }
     if (view === "end") { /* 終幕預告卡(GB-ADR-013):戲劇卡+角落系統行,只在真結局亮 */
       var nc = $("nextCard");
       if (nc.hidden) {

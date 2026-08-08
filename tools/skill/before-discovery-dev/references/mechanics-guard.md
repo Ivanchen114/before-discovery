@@ -211,9 +211,15 @@
 必須真的以 node／option effect 取得同一 evidence id，並在所有通往 decision 的
 靜態路徑上先出現。
 
+`decisionRegistry[]`／`decisions[]` 的 `anchor` 仍指向該段八拍之一；若同一拍附近有
+第二個以上 runtime choice，可另加相同的 `runtimeAnchor: "scene/node"`，精確綁定
+實際 choice。守衛會驗它存在、可達、位於本段 question→success/failure 路徑、具
+玩家 authorship，並以它而非八拍 anchor 檢查 evidence dominance。這避免為了登錄
+每個 choice 偽造第二套機制拍，也禁止用段外節點灌 registry。
+
 目前只有 `scenes-json` adapter。工作台內部 state、跨檔案資料或動態 return 若無法由
 這個 adapter 證明，會 fail closed；不得退回 `reachable: true` 自我證明。
-目前登錄範圍是 ch1–ch5；新章可在 Design Gate 人工審 contract，但在
+目前登錄範圍是 ch1–ch6；新章可在 Design Gate 人工審 contract，但在
 Implementation Gate 前必須先登錄 canonical scenes target／章別 adapter，否則
 `check-mechanics` 保持 BLOCKED。
 
@@ -232,7 +238,7 @@ Implementation Gate 前必須先登錄 canonical scenes target／章別 adapter�
 | `BIND-02` | 每個 `scene/node` anchor 真實存在且從 startScene 可達 |
 | `BIND-03` | 真實靜態圖可證明前拍 dominates 後拍，承諾 dominates reveal |
 | `BIND-04` | 玩家 authored beat 綁到 choice／embed，或 runtime 明標 `playerAuthored: true`，不靠講者名稱猜 |
-| `DEC-01` | registry 與 decision 一一對應，kind／segment／anchor 不漂移，且圈定路徑上的每個 runtime choice 都有登錄 |
+| `DEC-01` | registry 與 decision 一一對應，kind／segment／anchor／runtimeAnchor 不漂移，且圈定路徑上的每個 runtime choice 都有登錄 |
 | `DEC-02` | 決策與選項皆不得預選 |
 | `DEC-03` | `evidence_judgment` 至少一個可支持選項與一個可否證錯項 |
 | `DEC-04` | 每個錯項都有非空 `refutedBy`，且 `relation` 限定為 `contradicts`／`confounded`／`out_of_scope`／`insufficient` |
@@ -309,6 +315,7 @@ python3 tools/skill/before-discovery-dev/scripts/test_mechanics_guard.py
 - 把 evidence locator 放到互斥選項支線，或移到 decision 之後；
 - 清空 registry／decisions／sources 而不附 exemption；
 - exemption 的 basis／locator 不存在，或實際路徑仍含 choice／embed。
+- 把 `runtimeAnchor` 改成不存在、不可達或段外 choice。
 
 ## 6. 工具不能證明的事
 

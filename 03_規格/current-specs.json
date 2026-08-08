@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-06",
+  "updatedAt": "2026-08-07",
   "documents": [
     {
       "id": "shared",
@@ -100,6 +100,9 @@
     "GB-ADR-048": ["ch04", "ch04-design"],
     "GB-ADR-049": ["shared", "ch04", "ch04-design"],
     "GB-ADR-050": ["ch04", "ch04-design"],
-    "GB-ADR-051": ["ch04", "ch04-design"]
+    "GB-ADR-051": ["ch04", "ch04-design"],
+    "GB-ADR-052": ["ch04", "ch04-design"],
+    "GB-ADR-053": ["ch05"],
+    "GB-ADR-054": ["shared"]
   }
 }

@@ -239,8 +239,17 @@ for (const currentScene of scenes) {
     if (currentScene.id === "H2-3" && node.id === "t4") node.require = { evidence: "T4" };
     if (currentScene.id === "H3-1" && node.id === "e1") node.require = { evidence: "T4" };
     if (currentScene.id === "HE-1" && node.id === "x_final") {
-      node.type = "system";
-      node.effects = [{ labAction: { action: "finalizeJointPage", args: { rateDebt: "conversion-rate-unmeasured" } } }];
+      node.type = "choice";
+      node.speaker = "system";
+      node.text = "最後一格還空著。要不要把未量得的債寫下，並由你簽名封口？";
+      node.options = [{
+        id: "sign-unmeasured-rate",
+        text: "寫下：「兌換率：未量得。下一次，要量一份機械作用究竟能換來多少升溫。」在兩筆未決旁簽名。",
+        effects: [{ labAction: { action: "finalizeJointPage", args: { rateDebt: "conversion-rate-unmeasured" } } }],
+        next: "x_signed"
+      }];
+      delete node.effects;
+      delete node.next;
     }
   }
 }
@@ -265,6 +274,15 @@ epilogue.nodes.splice(c2Index, 0, {
   ],
   until: { heat: "joint-draft" },
   next: "c2"
+});
+const finalIndex = epilogue.nodes.findIndex((node) => node.id === "x_final");
+if (finalIndex < 0) throw new Error("HE-1 final signature insertion point missing");
+epilogue.nodes.splice(finalIndex + 1, 0, {
+  id: "x_signed",
+  type: "system",
+  speaker: "stage",
+  text: "旅人把兩筆未決並排留下，簽下自己的名字。最後一欄到此才封口。",
+  next: "end"
 });
 
 scenes.push({
@@ -343,6 +361,12 @@ const data = {
       { term: "兌換率：未量得", kind: "after-node", scene: "HE-1", node: "x_final" }
     ]
   },
+  narrativeExemptions: [{
+    rule: "R-TXT-5",
+    scene: "H2-3",
+    nodes: ["t4"],
+    reason: "T4 的玩家判讀在 continuous-run 與 finite-verdict 工作台內逐來源完成；scene 節點只做具名證據回收，不能把引擎內四次判讀誤報成缺少玩家主張。"
+  }],
   decisionRegistry,
   scenes
 };

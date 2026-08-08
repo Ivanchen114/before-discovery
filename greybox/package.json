@@ -9,6 +9,6 @@
     "build:ch6-data": "node tools/build-ch6-data.mjs",
     "build:series-data": "node tools/build-series-data.mjs",
     "build:stage": "node tools/build-stage.mjs",
-    "test": "node tests/run-node.mjs && node tests/run-ch4-migration.mjs && node tests/run-ch4-art.mjs && node tests/run-ch5-art.mjs && node tests/run-ch6-art.mjs && node tests/run-epilogue-art.mjs && node tests/run-series-home.mjs && node tests/run-design-governance.mjs"
+    "test": "node tests/run-node.mjs && node tests/run-cognitive-feedback.mjs && node tests/run-ch4-migration.mjs && node tests/run-ch4-art.mjs && node tests/run-ch5-art.mjs && node tests/run-ch6-art.mjs && node tests/run-epilogue-art.mjs && node tests/run-series-home.mjs && node tests/run-design-governance.mjs"
   }
 }

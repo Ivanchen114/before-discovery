@@ -1,18 +1,19 @@
-> # ✅ 這是 active 治理鏡像
+> # ⚠ 這是候選鏡像，不是 agent 生效版
 >
 > - repo skill canonical：`tools/skill/before-discovery-dev/SKILL.md`
 > - Claude overlay：`tools/skill/before-discovery-dev/OVERLAY-claude.md`
 > - registry：`tools/skill/before-discovery-dev/references/source-registry.json`
-> - skill 版本：3.4.7
-> - registry 狀態：active
+> - skill 版本：3.5.0-candidate
+> - registry 狀態：candidate
 > - 本鏡像由 `scripts/skill_guard.py sync-mirror` 機械產生。
-> - 本鏡像可作為 agent 安裝來源；各 agent 仍須明示同步並 read-back，不得把 repo 更新冒充已生效。
+> - Claude 對抗審與總監裁決前，不同步成 Claude／Codex 生效版。
 
 <!-- MIRROR:COMMON:BEGIN -->
 # 《發現之前》開發路由器
 
-**版本**：v3.4.7（2026-07-31）
-**狀態**：active；Claude 獨立對抗審 A=0、B=0，總監已授權 activation。
+**版本**：v3.5.0-candidate（2026-08-08）
+**狀態**：candidate；v3.4.7 是 HEAD 內最近一次 active 版。本版新增第六章路由與
+互動骨架審查，須完成獨立 CONFORMANCE、總監裁決與 activation 驗證後才可冒充生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
 `references/source-registry.json` 管理。
@@ -104,11 +105,11 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py route \
   --impact <art-change|serialized-state-change|archive-mutation|shared-engine-change>
 ```
 
-`--chapter` 只在章別工作使用，可接受 `ch1` 或尚未登錄的 `ch6` 等 token；token 本身不會生成章法源。新章可先用 token＋`WP-*` target 做 `plan`；進 `write` 前必須另給 repo 內既有的 `--chapter-brief-path`（案件資格、機制骨架、物理邊界）與至少一個 `--provenance-path`；進 `implement` 或 `art` 前才要求劇本凍結後建立的 `--chapter-spec-path` 與 provenance。不得為了通過 router 在劇本前偽造完整功能規格。新章進入上述三個 phase 時，三類支援檔都必須以 UTF-8 YAML front matter 自報 `bd_artifact`、`bd_chapter`、`bd_status`：brief 使用 `chapter-brief / chN / design-gate-passed`，implementation spec 使用 `implementation-spec / chN / frozen`，provenance sidecar 使用 `historical-provenance / chN / review-ready|verified`。同一實體檔不得兼任不同角色；原典 PDF／網頁資訊寫入 provenance sidecar，不直接假扮 gate 文件。router 只核對角色、章別與狀態宣告，不能獨立證明簽核真實性、史料品質或 Design Gate 實質通過。`historical-claim` 的 plan／review 可用已登錄章別定位現況；進 `write`／`implement`／`art` 時，不論新舊章都必須另給至少一個 `--provenance-path`，runtime 史實頁不得替新主張自證。`--lane` 必填。除純 `plan` 外，都要用 `--target-path` 或 `--target-label` 固定主對象；缺少時路由直接阻擋。兩者皆可重複：前者必須是 repo worktree 內既有的一般檔案，並以實體檔案身分辨識大小寫、絕對路徑與目錄 source 的子檔；未登錄檔案仍會以「第一章」至「第五章」檔名標記檢查章別衝突。後者採 `WP-*` 工作包格式，只能含英數、底線與連字號，不能拿不存在的檔名或 registry source id 假扮 label。router 不靠副檔名猜類型。明示 target 高於 registry 的預設 `primary`；未命中的既有章稿只降為比較資料，superseded 來源除非被明示為 target 否則不載入。lane floor 依「實際會不會改狀態」判斷：`review`／`diagnose`／`verify` 的唯讀實查可維持 R0；真正施工時，`serialized-state-change` 不得低於 R4、`shared-engine-change` 不得低於 R3、美術與玩家可見既有接線不得低於 R2，`release`／`archive` 必須 R4。`commit`／`push`／`deploy`／`publish` 等 release route action 即使搭配其他 mutation phase 也不得低於 R4。已知共用 runtime／存檔核心路徑會自動補 impact，但施工者仍須申報其他實際受影響面。`--impact` 可省略或重複。美術、存檔與 archive 任務會依 task／phase 自動加入相應 impact；發佈既有內容不會被誤算成美術改版。可重複 `--task`，選最窄且足夠的路由。常用 route：
+`--chapter` 只在章別工作使用，可接受 `ch1`、已登錄的 `ch6`，或尚未登錄的 `ch7` 等 token；token 本身不會生成章法源。新章可先用 token＋`WP-*` target 做 `plan`；進 `write` 前必須另給 repo 內既有的 `--chapter-brief-path`（案件資格、機制骨架、物理邊界）與至少一個 `--provenance-path`；進 `implement` 或 `art` 前才要求劇本凍結後建立的 `--chapter-spec-path` 與 provenance。不得為了通過 router 在劇本前偽造完整功能規格。新章進入上述三個 phase 時，三類支援檔都必須以 UTF-8 YAML front matter 自報 `bd_artifact`、`bd_chapter`、`bd_status`：brief 使用 `chapter-brief / chN / design-gate-passed`，implementation spec 使用 `implementation-spec / chN / frozen`，provenance sidecar 使用 `historical-provenance / chN / review-ready|verified`。同一實體檔不得兼任不同角色；原典 PDF／網頁資訊寫入 provenance sidecar，不直接假扮 gate 文件。router 只核對角色、章別與狀態宣告，不能獨立證明簽核真實性、史料品質或 Design Gate 實質通過。`historical-claim` 的 plan／review 可用已登錄章別定位現況；進 `write`／`implement`／`art` 時，不論新舊章都必須另給至少一個 `--provenance-path`，runtime 史實頁不得替新主張自證。`--lane` 必填。除純 `plan` 外，都要用 `--target-path` 或 `--target-label` 固定主對象；缺少時路由直接阻擋。兩者皆可重複：前者必須是 repo worktree 內既有的一般檔案，並以實體檔案身分辨識大小寫、絕對路徑與目錄 source 的子檔；未登錄檔案仍會以「第一章」至「第六章」檔名標記檢查章別衝突。後者採 `WP-*` 工作包格式，只能含英數、底線與連字號，不能拿不存在的檔名或 registry source id 假扮 label。router 不靠副檔名猜類型。明示 target 高於 registry 的預設 `primary`；未命中的既有章稿只降為比較資料，superseded 來源除非被明示為 target 否則不載入。lane floor 依「實際會不會改狀態」判斷：`review`／`diagnose`／`verify` 的唯讀實查可維持 R0；真正施工時，`serialized-state-change` 不得低於 R4、`shared-engine-change` 不得低於 R3、美術與玩家可見既有接線不得低於 R2，`release`／`archive` 必須 R4。`commit`／`push`／`deploy`／`publish` 等 release route action 即使搭配其他 mutation phase 也不得低於 R4。已知共用 runtime／存檔核心路徑會自動補 impact，但施工者仍須申報其他實際受影響面。`--impact` 可省略或重複。美術、存檔與 archive 任務會依 task／phase 自動加入相應 impact；發佈既有內容不會被誤算成美術改版。可重複 `--task`，選最窄且足夠的路由。常用 route：
 
 ```text
 core runtime design workbench narrative history art license browser accessibility
-reputation save archive release review testing chapter.ch1 ... chapter.ch5
+reputation save archive release review testing chapter.ch1 ... chapter.ch6
 ```
 
 未登錄新章沒有 `chapter.chN` 專屬 source；先走通用路由，並依上文用章規格與
@@ -201,6 +202,13 @@ git status --short
 修正或書面說明，不得為追求歸零硬塞無意義選項。即使 warning 歸零也不等於台詞
 已通過，人工四問仍須書面回答。
 
+六章橫向編劇審查先以通用 `narrative`＋`interaction` route 綁定全部實際 target，
+不要重複宣告 `--chapter`；再逐章各跑一次 `check-narrative --story-audit`。報告必須
+分開四個證據面：首個可達玩家行動、場景 choice、embed、引擎內已標註決策；
+未標註的工作台互動另讀 engine/UI。不得用「場景 choice 少」推論整章沒有玩法，
+也不得用「按鈕多」推論代理權成立。choice 匯流、單選儀式、最長 line 段與 embed
+前後接縫的精確邊界見 `references/narrative-guard.md` 與正式敘事法源 §3.3–3.6。
+
 信譽、研究誠實、授權支付、歸零修復或信譽事件帳的工作，使用
 `--task reputation`；章別個案再加 `--chapter chN`。不得只讀一般設計原則，
 漏掉跨章信譽法源與該章 CR。
@@ -229,7 +237,13 @@ R2–R4 施工前須有 `DESIGN GATE：PASS`；施工後依現行流程法源完
 
 定點 verification pass 只有在原問題、原 path set、接口與狀態皆未擴張時才足夠。schema、存檔、共用引擎、導航、證據層、新分支、新狀態鍵、跨章或範圍漂移，一律升級完整 CONFORMANCE。
 
-四律展開稿與 runtime 在交付前執行 `skill_guard.py check-narrative`。它把首個玩家行動、公開發言／活躍心聲／相容庫存、逐章禁詞、金句候選、章際問句與壓縮率做成可重跑診斷；四律本體使用明示節拍 contract 防止核准節點被刪除或調亂。完整命令、contract 格式與人工邊界見 `references/narrative-guard.md`，不得把 warning 歸零誤稱為戲劇品質已通過，也不得把心聲數量當成故事品質分數。
+四律展開稿與 runtime 在交付前執行 `skill_guard.py check-narrative`。它支援 ch1–ch6，
+把首個玩家行動、公開發言／活躍心聲／相容庫存、逐章禁詞、金句候選、章際問句與
+壓縮率做成可重跑診斷；`--story-audit` 另列場景標題、choice/embed、匯流形狀、
+工作台接縫與陣列相鄰的最長 line 段。四律本體使用明示節拍 contract 防止核准節點
+被刪除或調亂。完整命令、contract 格式與人工邊界見 `references/narrative-guard.md`，
+不得把 warning 歸零誤稱為戲劇品質已通過，也不得把心聲數量或 choice 數量當成
+故事品質分數。
 
 主要實驗、觀察、建模、史料判讀、對帳、出版與公開論證段，在 **Design Gate 先
 撰寫並人工審查 schema v2 contract**；此時它是 TO-BE 的結構承諾，不能冒充機械

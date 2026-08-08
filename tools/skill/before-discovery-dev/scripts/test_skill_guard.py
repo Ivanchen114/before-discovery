@@ -948,18 +948,21 @@ class RouteGuardTests(unittest.TestCase):
             fixture_root,
             "brief.md",
             artifact="chapter-brief",
+            chapter="ch7",
             status="design-gate-passed",
         )
         spec_fixture = make_support_artifact(
             fixture_root,
             "spec.md",
             artifact="implementation-spec",
+            chapter="ch7",
             status="frozen",
         )
         provenance_fixture = make_support_artifact(
             fixture_root,
             "provenance.md",
             artifact="historical-provenance",
+            chapter="ch7",
             status="review-ready",
         )
         plan = run_guard(
@@ -967,7 +970,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "plan",
             "--mode",
@@ -975,12 +978,12 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R0",
             "--target-label",
-            "WP-CH6-HISTORY-PLAN",
+            "WP-CH7-HISTORY-PLAN",
         )
         self.assertEqual(plan.returncode, 0, plan.stdout + plan.stderr)
-        self.assertIn("CHAPTER TOKEN ch6 is not registered", plan.stdout)
+        self.assertIn("CHAPTER TOKEN ch7 is not registered", plan.stdout)
         self.assertIn("plan/review context only", plan.stdout)
-        self.assertIn("GAP history.ch6-source", plan.stdout)
+        self.assertIn("GAP history.ch7-source", plan.stdout)
 
         for phase in ("write", "implement", "art"):
             missing_both = run_guard(
@@ -988,7 +991,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--task",
                 "historical-claim",
                 "--chapter",
-                "ch6",
+                "ch7",
                 "--phase",
                 phase,
                 "--mode",
@@ -996,7 +999,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--lane",
                 "R3",
                 "--target-label",
-                f"WP-CH6-{phase.upper()}",
+                f"WP-CH7-{phase.upper()}",
             )
             self.assertEqual(
                 missing_both.returncode,
@@ -1014,7 +1017,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "write",
             "--mode",
@@ -1022,7 +1025,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH6-ONLY-BRIEF",
+            "WP-CH7-ONLY-BRIEF",
             "--chapter-brief-path",
             brief_fixture,
         )
@@ -1035,7 +1038,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "implement",
             "--mode",
@@ -1043,7 +1046,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH6-ONLY-PROVENANCE",
+            "WP-CH7-ONLY-PROVENANCE",
             "--provenance-path",
             provenance_fixture,
         )
@@ -1063,7 +1066,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "write",
             "--mode",
@@ -1071,7 +1074,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH6-COMPLETE",
+            "WP-CH7-COMPLETE",
             "--chapter-brief-path",
             brief_fixture,
             "--provenance-path",
@@ -1104,7 +1107,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--task",
                 "historical-claim",
                 "--chapter",
-                "ch6",
+                "ch7",
                 "--phase",
                 phase,
                 "--mode",
@@ -1112,7 +1115,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--lane",
                 "R3",
                 "--target-label",
-                f"WP-CH6-COMPLETE-{phase.upper()}",
+                f"WP-CH7-COMPLETE-{phase.upper()}",
                 "--chapter-spec-path",
                 spec_fixture,
                 "--provenance-path",
@@ -1138,7 +1141,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "write",
             "--mode",
@@ -1146,7 +1149,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R2",
             "--target-label",
-            "WP-CH6-UNDERDECLARED",
+            "WP-CH7-UNDERDECLARED",
             "--chapter-brief-path",
             brief_fixture,
             "--provenance-path",
@@ -1162,6 +1165,35 @@ class RouteGuardTests(unittest.TestCase):
             underdeclared.stdout,
         )
 
+    def test_ch6_is_registered_and_routes_runtime_sources(self) -> None:
+        for target_path, source_id in [
+            ("greybox/data/scenes6.json", "ch6.scenes"),
+            ("greybox/src/engine6.js", "ch6.engine"),
+        ]:
+            with self.subTest(target_path=target_path):
+                result = run_guard(
+                    "route",
+                    "--task",
+                    "ch6",
+                    "--chapter",
+                    "ch6",
+                    "--phase",
+                    "review",
+                    "--mode",
+                    "AS-IS",
+                    "--lane",
+                    "R0",
+                    "--target-path",
+                    target_path,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("[chapter.ch6]", result.stdout)
+                self.assertIn(
+                    f"TARGET REGISTERED {target_path} | source={source_id}",
+                    result.stdout,
+                )
+                self.assertNotIn("CHAPTER TOKEN ch6 is not registered", result.stdout)
+
     def test_unregistered_chapter_support_artifact_metadata_fails_closed(self) -> None:
         fixture_dir = tempfile.TemporaryDirectory(
             prefix=".route-support-negative-",
@@ -1173,6 +1205,7 @@ class RouteGuardTests(unittest.TestCase):
             fixture_root,
             "provenance.md",
             artifact="historical-provenance",
+            chapter="ch7",
             status="verified",
         )
         bad_briefs = {
@@ -1180,19 +1213,21 @@ class RouteGuardTests(unittest.TestCase):
                 fixture_root,
                 "wrong-role.md",
                 artifact="implementation-spec",
+                chapter="ch7",
                 status="design-gate-passed",
             ),
             "wrong-chapter": make_support_artifact(
                 fixture_root,
                 "wrong-chapter.md",
                 artifact="chapter-brief",
-                chapter="ch7",
+                chapter="ch8",
                 status="design-gate-passed",
             ),
             "unapproved": make_support_artifact(
                 fixture_root,
                 "unapproved.md",
                 artifact="chapter-brief",
+                chapter="ch7",
                 status="draft",
             ),
         }
@@ -1203,7 +1238,7 @@ class RouteGuardTests(unittest.TestCase):
                     "--task",
                     "historical-claim",
                     "--chapter",
-                    "ch6",
+                    "ch7",
                     "--phase",
                     "write",
                     "--mode",
@@ -1211,7 +1246,7 @@ class RouteGuardTests(unittest.TestCase):
                     "--lane",
                     "R3",
                     "--target-label",
-                    f"WP-CH6-BAD-{label.upper()}",
+                    f"WP-CH7-BAD-{label.upper()}",
                     "--chapter-brief-path",
                     bad_brief,
                     "--provenance-path",
@@ -1231,6 +1266,7 @@ class RouteGuardTests(unittest.TestCase):
             fixture_root,
             "unfrozen-spec.md",
             artifact="implementation-spec",
+            chapter="ch7",
             status="draft",
         )
         unfrozen = run_guard(
@@ -1238,7 +1274,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "implement",
             "--mode",
@@ -1246,7 +1282,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH6-UNFROZEN",
+            "WP-CH7-UNFROZEN",
             "--chapter-spec-path",
             unfrozen_spec,
             "--provenance-path",
@@ -1264,7 +1300,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch6",
+            "ch7",
             "--phase",
             "write",
             "--mode",
@@ -1272,7 +1308,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH6-PACKAGE-JSON",
+            "WP-CH7-PACKAGE-JSON",
             "--chapter-brief-path",
             "greybox/package.json",
             "--provenance-path",
@@ -2119,6 +2155,88 @@ class NarrativeGuardTests(unittest.TestCase):
             )
             self.assertIn("WARN R-TXT-4", wrong_chapter.stdout)
             self.assertIn("runtime_choices=0", wrong_chapter.stdout)
+
+    def test_ch6_and_story_audit_keep_interaction_tracks_separate(self) -> None:
+        scenes = self.make_scenes()
+        scenes["chapter"] = "ch6"
+        scene = scenes["scenes"][1]
+        scene["nodes"] = [
+            {
+                "id": "n1",
+                "type": "line",
+                "speaker": "甲",
+                "text": "先看桌上的兩張紙。",
+                "next": "c1",
+            },
+            {
+                "id": "c1",
+                "type": "choice",
+                "text": "怎麼回應？",
+                "options": [
+                    {"id": "a", "text": "先說缺口。", "next": "r1"},
+                    {"id": "b", "text": "先問來源。", "next": "r2"},
+                ],
+            },
+            {
+                "id": "r1",
+                "type": "line",
+                "speaker": "乙",
+                "text": "那就先留白。",
+                "next": "e1",
+            },
+            {
+                "id": "r2",
+                "type": "line",
+                "speaker": "乙",
+                "text": "那就先翻原紙。",
+                "next": "e1",
+            },
+            {
+                "id": "e1",
+                "type": "embed",
+                "system": "heat",
+                "next": "n2",
+            },
+            {
+                "id": "n2",
+                "type": "system",
+                "speaker": "system",
+                "text": "工作台收起。",
+                "next": "end",
+            },
+            {"id": "end", "type": "end"},
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            scenes_path = root / "scenes.json"
+            runtime_path = root / "runtime.js"
+            scenes_path.write_text(
+                json.dumps(scenes, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            runtime_path.write_text(
+                'renderDecision({ id: "scope", narrativeChoice: "ch6" });',
+                encoding="utf-8",
+            )
+            result = run_guard(
+                "check-narrative",
+                "--scenes",
+                str(scenes_path),
+                "--chapter",
+                "ch6",
+                "--runtime-source",
+                str(runtime_path),
+                "--story-audit",
+            )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(
+            "STORY TRACKS scene_choices=1 embeds=1 annotated_runtime_choices=1",
+            result.stdout,
+        )
+        self.assertIn("STORY SCENE S2", result.stdout)
+        self.assertIn("shape=response-reconverge", result.stdout)
+        self.assertIn("STORY EMBED S2/e1 system=heat", result.stdout)
+        self.assertIn("unannotated_engine_controls=not-counted", result.stdout)
 
     def test_evidence_receipt_and_dialogue_quote_mutations_fail(self) -> None:
         receipt_scenes = self.make_scenes()

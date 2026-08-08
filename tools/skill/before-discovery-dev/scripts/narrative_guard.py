@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Callable
 
 
-CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5"}
+CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5", "ch6"}
 TRAVELER_PREFIX = "旅人"
 SYSTEM_SPEAKERS = {"stage", "system"}
 CHAR_DENSITY_BASELINE = 27.0
@@ -86,6 +86,10 @@ FORBIDDEN_PATTERNS: dict[str, tuple[tuple[str, re.Pattern[str]], ...]] = {
         ),
         ("能量守恆定律", re.compile(r"能量守恆定律")),
     ),
+    # 第六章的結論邊界目前由 scenes6.json/conclusionLint 與 R-CH6
+    # 契約守護。保留空集合，避免把「尚未證明熱就是運動」這種否定句
+    # 以單純關鍵字誤判成越界。
+    "ch6": (),
 }
 
 CONTRACT_SECTIONS = (
@@ -108,7 +112,7 @@ RUNTIME_ACTION = re.compile(
     re.DOTALL,
 )
 RUNTIME_NARRATIVE_CHOICE = re.compile(
-    r"narrativeChoice\s*:\s*[\"'](?P<chapter>ch[1-5])[\"']"
+    r"narrativeChoice\s*:\s*[\"'](?P<chapter>ch[1-6])[\"']"
 )
 GAP_TERMS = re.compile(r"還不能代表|不足以|因此需要|下一步要")
 PROCESS_TERMS = re.compile(r"沿用|安排|記錄|再做一(?:組|回)|一併|依序")
@@ -723,6 +727,179 @@ def _first_reachable_action(parsed: dict) -> tuple[tuple[str, str] | None, int]:
     return None, 0
 
 
+def _audit_text(value: object, limit: int = 100) -> str:
+    """Keep structural-audit output one-line and readable without rewriting it."""
+    if not isinstance(value, str) or not value.strip():
+        return "-"
+    compact = re.sub(r"\s+", " ", value).strip().replace("|", "｜")
+    return compact if len(compact) <= limit else compact[: limit - 1] + "…"
+
+
+def _bounded_reachable(scene: dict, start: str, max_depth: int = 4) -> dict[str, int]:
+    """Return same-scene node reachability for a small choice-shape diagnosis."""
+    node_map = scene["node_map"]
+    if start not in node_map:
+        return {}
+    reached = {start: 0}
+    frontier = [start]
+    while frontier:
+        node_id = frontier.pop(0)
+        depth = reached[node_id]
+        if depth >= max_depth:
+            continue
+        node = node_map[node_id]["node"]
+        for target in _node_targets(node):
+            if target not in node_map or target in reached:
+                continue
+            reached[target] = depth + 1
+            frontier.append(target)
+    return reached
+
+
+def _choice_shape(scene: dict, node: dict) -> tuple[str, str | None, bool]:
+    """Classify topology only; this deliberately does not score narrative meaning."""
+    options = [item for item in node.get("options", []) if isinstance(item, dict)]
+    direct_state = bool(node.get("effects")) or any(
+        bool(option.get("effects")) for option in options
+    )
+    if len(options) <= 1:
+        return "single-option-ritual", None, direct_state
+
+    targets = [option.get("next") for option in options]
+    valid_targets = [target for target in targets if isinstance(target, str)]
+    if len(valid_targets) != len(options):
+        return "incomplete-targets", None, direct_state
+    if len(set(valid_targets)) == 1:
+        label = "stateful-direct-converge" if direct_state else "direct-converge"
+        return label, valid_targets[0], direct_state
+
+    reach_sets = [_bounded_reachable(scene, target) for target in valid_targets]
+    common = set(reach_sets[0])
+    for reached in reach_sets[1:]:
+        common &= set(reached)
+    convergence: str | None = None
+    if common:
+        convergence = min(
+            common,
+            key=lambda item: (max(reached[item] for reached in reach_sets), item),
+        )
+
+    response_texts = {
+        _audit_text(scene["node_map"][target]["node"].get("text"))
+        for target in valid_targets
+        if target in scene["node_map"]
+    }
+    distinct_response = len(response_texts - {"-"}) > 1
+    if convergence is not None:
+        if direct_state:
+            return "stateful-reconverge", convergence, direct_state
+        if distinct_response:
+            return "response-reconverge", convergence, direct_state
+        return "shallow-reconverge", convergence, direct_state
+    return ("stateful-branch" if direct_state else "branch"), None, direct_state
+
+
+def _line_runs(parsed: dict) -> list[tuple[int, str, str, str]]:
+    """Measure consecutive active line nodes by array adjacency, not live timing."""
+    runs: list[tuple[int, str, str, str]] = []
+    for scene in parsed["scenes"]:
+        start: str | None = None
+        end: str | None = None
+        length = 0
+        for node in scene["nodes"] + [{"type": "__sentinel__"}]:
+            if node.get("legacyOnly") is not True and node.get("type") == "line":
+                node_id = str(node.get("id", "<missing-node>"))
+                start = start or node_id
+                end = node_id
+                length += 1
+                continue
+            if length and start is not None and end is not None:
+                runs.append((length, scene["id"], start, end))
+            start = None
+            end = None
+            length = 0
+    return sorted(runs, key=lambda item: (-item[0], item[1], item[2]))
+
+
+def _print_story_audit(parsed: dict, runtime_choice_count: int) -> None:
+    """Print the scene-array interaction skeleton without erasing engine-owned play."""
+    if parsed["kind"] != "scenes":
+        print("STORY AUDIT unavailable for Markdown drafts; use canonical scenes JSON")
+        return
+
+    scene_choice_count = sum(
+        node.get("legacyOnly") is not True and node.get("type") == "choice"
+        for scene in parsed["scenes"]
+        for node in scene["nodes"]
+    )
+    embed_count = sum(
+        node.get("legacyOnly") is not True and node.get("type") == "embed"
+        for scene in parsed["scenes"]
+        for node in scene["nodes"]
+    )
+    print(
+        "STORY TRACKS "
+        f"scene_choices={scene_choice_count} embeds={embed_count} "
+        f"annotated_runtime_choices={runtime_choice_count} "
+        "unannotated_engine_controls=not-counted"
+    )
+    for scene in parsed["scenes"]:
+        active_nodes = [
+            node for node in scene["nodes"] if node.get("legacyOnly") is not True
+        ]
+        print(
+            f"STORY SCENE {scene['id']} nodes={len(active_nodes)} "
+            f"title={_audit_text(scene['title'], 140)}"
+        )
+        for index, node in enumerate(scene["nodes"]):
+            if node.get("legacyOnly") is True:
+                continue
+            node_id = str(node.get("id", "<missing-node>"))
+            if node.get("type") == "choice":
+                shape, convergence, direct_state = _choice_shape(scene, node)
+                print(
+                    f"STORY CHOICE {scene['id']}/{node_id} shape={shape} "
+                    f"direct_state={'yes' if direct_state else 'no'} "
+                    f"reconverges={convergence or '-'} "
+                    f"prompt={_audit_text(node.get('text'), 160)}"
+                )
+                for option in node.get("options", []):
+                    if not isinstance(option, dict):
+                        continue
+                    print(
+                        f"STORY OPTION {scene['id']}/{node_id}/"
+                        f"{option.get('id', '<missing-option>')} "
+                        f"next={option.get('next', '-')} "
+                        f"direct_state={'yes' if option.get('effects') else 'no'} "
+                        f"text={_audit_text(option.get('text'), 200)}"
+                    )
+            elif node.get("type") == "embed":
+                before = scene["nodes"][index - 1] if index else {}
+                next_id = node.get("next")
+                after_record = (
+                    scene["node_map"].get(next_id)
+                    if isinstance(next_id, str)
+                    else None
+                )
+                after = after_record["node"] if after_record else {}
+                print(
+                    f"STORY EMBED {scene['id']}/{node_id} "
+                    f"system={node.get('system', '-')} "
+                    f"array_before={before.get('id', '-')}:{_audit_text(before.get('text'))} "
+                    f"next={next_id or '-'}:{_audit_text(after.get('text'))}"
+                )
+
+    for rank, (length, scene_id, start, end) in enumerate(_line_runs(parsed)[:5], 1):
+        print(
+            f"STORY LINE_RUN rank={rank} scene={scene_id} lines={length} "
+            f"array_span={start}->{end}"
+        )
+    print(
+        "STORY MANUAL line runs use node-array adjacency; choice topology does not "
+        "prove semantic impact; inspect engine/embed decisions and live seams separately"
+    )
+
+
 def _evidence_effect_ids(value: object) -> set[str]:
     evidence: set[str] = set()
     if isinstance(value, dict):
@@ -958,6 +1135,7 @@ def check_narrative(
     runtime_sources: list[Path],
     require_contract: bool,
     fail_on_warnings: bool,
+    story_audit: bool,
 ) -> int:
     if chapter not in CHAPTERS:
         print(f"ERROR unsupported chapter: {chapter}")
@@ -994,6 +1172,9 @@ def check_narrative(
     except NarrativeInputError as exc:
         print(f"ERROR {exc}")
         return 1
+
+    if story_audit:
+        _print_story_audit(parsed, runtime_choice_count)
 
     warnings: list[tuple[str, str]] = []
     errors: list[tuple[str, str]] = []
@@ -1355,6 +1536,25 @@ def check_narrative(
                         ):
                             player_text = candidate["text"]
                             break
+                        if candidate.get("type") == "choice":
+                            # Evidence is often granted by a later receipt node after
+                            # the correct option has already run a chapter lab action.
+                            # Count that visible player sentence without pretending
+                            # every option in the group was the submitted claim.
+                            for option in candidate.get("options", []):
+                                effects = option.get("effects", []) if isinstance(option, dict) else []
+                                if (
+                                    isinstance(option, dict)
+                                    and isinstance(option.get("text"), str)
+                                    and any(
+                                        isinstance(effect, dict) and "labAction" in effect
+                                        for effect in effects
+                                    )
+                                ):
+                                    player_text = option["text"]
+                                    break
+                            if player_text:
+                                break
                 npc_candidates = [
                     candidate
                     for candidate in runway
