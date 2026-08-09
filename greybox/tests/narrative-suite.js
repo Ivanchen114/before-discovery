@@ -70,7 +70,7 @@
   /* R-NAR-05 驗證器(章規格 v0.1.1:class 封閉列舉;未知 class 必敗;
      character-hypothesis 須 reason+refutedBy(指向可達之玩家互動節點,且不得用於 system/stage);
      post-reveal 須 afterPlayerNode 存在且位於前方)。lint=防回歸工具,不取代人工語義審稿。 */
-  var LEGAL_CLASSES = ["character-hypothesis", "post-reveal"];
+  var LEGAL_CLASSES = ["character-hypothesis", "post-reveal", "cross-scene-readback"];
   function validateLint(data) {
     var banned = data.lint.bannedWords;
     var classes = data.lint.classes || [];
@@ -153,6 +153,21 @@
         if (rnode.type !== "embed" && rnode.type !== "choice") {
           throw new Error("refutedBy 須指向玩家互動節點(embed/choice):" + rb.scene + "/" + rb.node);
         }
+      }
+      if (w["class"] === "cross-scene-readback") {
+        if (!Array.isArray(w.sources) || !w.sources.length)
+          throw new Error("cross-scene-readback 缺玩家原話來源:" + w.scene + "/" + w.node);
+        w.sources.forEach(function (source) {
+          var sourceScene = sceneIdx[source && source.scene];
+          var sourceNode = sourceScene && sourceScene.nodes.find(function (node) {
+            return node.id === source.node;
+          });
+          var sourceOption = sourceNode && (sourceNode.options || []).find(function (option) {
+            return option.id === source.option;
+          });
+          if (!sourceNode || sourceNode.type !== "choice" || !sourceOption)
+            throw new Error("cross-scene-readback 原話來源不是玩家選項:" + w.scene + "/" + w.node);
+        });
       }
     });
     return true;

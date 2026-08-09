@@ -16,6 +16,12 @@ function fail(message) {
   throw new Error(message);
 }
 
+function svgVisibleText(source) {
+  return [...source.matchAll(/<(?:title|text)\b[^>]*>([\s\S]*?)<\/(?:title|text)>/g)]
+    .map((match) => match[1].replace(/<[^>]+>/g, " "))
+    .join(" ");
+}
+
 function requireAsset(entries, id, expected) {
   const entry = entries.get(id);
   if (!entry) fail("資產未登錄:" + id);
@@ -131,11 +137,31 @@ requireAsset(entries, "ch06_epilogue_unmeasured_exchange_v01", {
 });
 
 for (const code of ["S8", "T1", "T2", "T3", "T4", "T5"]) {
-  requireAsset(entries, "card_" + code, { kind: "card", w: 1200, h: 750 });
+  const { runtime } = requireAsset(entries, "card_" + code, { kind: "card", w: 1200, h: 750 });
   const visual = assets.evidenceVisual?.[code];
   if (visual?.items?.[0]?.asset !== "card_" + code || !visual.caption || !visual.items[0].alt)
     fail("證據圖、說明或替代文字未接上:" + code);
+  const svg = readFileSync(runtime, "utf-8");
+  if (/(^|[^A-Za-z0-9_])(?:S8|T[1-5])(?=[^A-Za-z0-9_]|$)/.test(svgVisibleText(svg)))
+    fail("第六章證據圖仍向玩家顯示內部代號:" + code);
 }
+
+const t4Fallback = readFileSync(path.join(
+  publicRoot, "ch06/evidence/ch06_card_T4_prediction_bands_v01.svg"), "utf-8");
+for (const fragment of ["四份來源預測逐一對帳", "原預測帶保留",
+  "原帶與封條仍留在各自卷袋，狀態可追查", "終點位置、封條裂否",
+  "展開本局卷宗逐張查驗"])
+  if (!t4Fallback.includes(fragment)) fail("T4 誠實摘要缺必要邊界:" + fragment);
+for (const stale of ["四枚封蠟裂開", "曲線越過封存的有限來源終點帶"])
+  if (t4Fallback.includes(stale)) fail("T4 固定摘要仍捏造玩家世界線:" + stale);
+const t4VisualText = [assets.entries.find((entry) => entry.id === "card_T4")?.label,
+  assets.evidenceSummary?.T4, assets.evidenceVisual?.T4?.items?.[0]?.alt,
+  assets.evidenceVisual?.T4?.caption].join(" ");
+for (const fragment of ["四份來源預測逐一對帳", "原預測帶", "以本局卷宗為準",
+  "終點位置與封條狀態"])
+  if (!t4VisualText.includes(fragment)) fail("T4 資產文字缺中性世界線邊界:" + fragment);
+for (const stale of ["四張有限來源", "四個有限來源", "封蠟裂開", "裂封與原預測"])
+  if (t4VisualText.includes(stale)) fail("T4 資產文字仍捏造玩家世界線:" + stale);
 
 requireAsset(entries, "chapter_thumbnail_ch06", {
   kind: "cg",

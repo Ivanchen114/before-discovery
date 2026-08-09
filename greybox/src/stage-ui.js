@@ -479,10 +479,36 @@
       return;
     }
   }
-  function showEvidenceFocus(code, name) {
+  /* CH4-CR-014：舞台只解析 chapter-ui 投影出的具名 visualKey。
+     有 variants 而 key 不合法時，退回中性圖並明示無法安全還原；固定卡的 null 正常。 */
+  function resolveEvidenceVisual(code, visualKey) {
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
+    if (!rule) return null;
+    var variant = null, fallback = false;
+    if (rule.variants) {
+      variant = typeof visualKey === "string" ? rule.variants[visualKey] : null;
+      fallback = !variant;
+      if (fallback && typeof console !== "undefined" && console.warn)
+        console.warn("[CH4-CR-014] 證據圖狀態無法安全還原，已使用中性圖：" + code);
+    }
+    return {
+      code: code,
+      visualKey: variant ? visualKey : null,
+      items: (variant && variant.items) || rule.items || [],
+      caption: (variant && variant.caption) || rule.caption || "",
+      readerTitle: (variant && variant.readerTitle) || rule.readerTitle || "",
+      accessibleText: (rule.accessibleText || []).concat(
+        variant && variant.accessibleText || []),
+      fallback: fallback,
+      fallbackNotice: fallback ? (rule.fallbackNotice || "證據圖狀態無法安全還原。") : ""
+    };
+  }
+  function showEvidenceFocus(code, name, visualKey) {
+    var rule = resolveEvidenceVisual(code, visualKey);
     if (!rule) return;
-    showFocusVisual({ items: rule.items || [], caption: rule.caption || ("取得證據：" + name) });
+    var caption = rule.caption || ("取得證據：" + name);
+    if (rule.fallbackNotice) caption += "｜" + rule.fallbackNotice;
+    showFocusVisual({ items: rule.items, caption: caption });
     var fig = $("sceneFocus");
     if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
   }
@@ -490,10 +516,12 @@
     if (!list || !list.length) return;
     var items = [], captions = [];
     list.forEach(function (evidence) {
-      var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[evidence.code];
+      var rule = resolveEvidenceVisual(evidence.code, evidence.visualKey);
       if (!rule) return;
       (rule.items || []).forEach(function (item) { items.push(item); });
-      captions.push(rule.caption || ("取得證據：" + evidence.name));
+      var caption = rule.caption || ("取得證據：" + evidence.name);
+      if (rule.fallbackNotice) caption += "｜" + rule.fallbackNotice;
+      captions.push(caption);
     });
     if (!items.length) return;
     showFocusVisual({ items: items, caption: captions.join("｜") });
@@ -507,6 +535,7 @@
   /* 收隊確認:在對話框會讓位的視圖(辯論/實驗台等),最後一句演完先亮 ▼ 等玩家點掉——
      打字完成≠讀完(總監實玩)。narration 視圖對話框常駐,不需確認。 */
   var ackPending = false;
+  var currentLineYieldToken = null;
   var lastLineScene = null;
   /* 任何會讓對話框退場、把畫面交給大型互動的視圖，都必須等玩家親手收掉最後一句。
      ship 曾漏列，造成第三章台詞一播完就自動切進航船實驗。 */
@@ -587,6 +616,7 @@
     timer = setTimeout(step, TYPE_MS);
   }
   function startLine(item, instant) {
+    currentLineYieldToken = item && item.yieldToken ? String(item.yieldToken) : null;
     /* 特寫跟「玩家此刻真的看到的台詞」同步，不跟尚未播放的事件佇列搶跑。 */
     if (item.scene && item.scene !== lastLineScene) {
       clearFocusVisual();
@@ -665,9 +695,14 @@
       return true;
     }
     if (ackPending) { /* 收隊確認:點掉最後一句,對話框讓位給面板 */
+      var yieldedToken = currentLineYieldToken;
       ackPending = false;
+      currentLineYieldToken = null;
       showCue(false);
       syncFlags();
+      if (yieldedToken) document.dispatchEvent(new CustomEvent("bd:dialogue-yielded", {
+        detail: { yieldToken: yieldedToken }
+      }));
       return true;
     }
     return false;
@@ -686,7 +721,7 @@
   document.addEventListener("bd:scene", function (ev) { setScene(ev.detail.sceneId); });
   document.addEventListener("bd:evidence", function (ev) {
     var d = ev.detail || {};
-    showEvidenceFocus(d.code, d.name || "新證據");
+    showEvidenceFocus(d.code, d.name || "新證據", d.visualKey);
     /* 實驗引擎直接入卷、沒有取得台詞時，也要和有台詞的證據得到同一套視聽回饋。 */
     playEvidenceGain($("sceneFocus"));
   });
@@ -927,6 +962,7 @@
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false; ackPending = false;
+    currentLineYieldToken = null;
     if (timer) clearTimeout(timer);
     curBustId = null;
     labIntroSeen = false;
@@ -1090,7 +1126,7 @@
       lines: [
         "三問依序上桌——院士先亮他最強的帳，再追問短少，最後主張兩本其實相同。",
         "先問清，再配對——點「問到底」只會把前提說滿；支柱仍要由你選證詞、選證據親手擊破。",
-        "第一個勝利是承認對手——J1 證明院士的帳沒有錯；你要說的是它沒有記到全部問題。",
+        "第一個勝利是承認對手——帶方向的動量帳證明院士沒有算錯；你要說的是它沒有記到全部問題。",
         "配錯不刪紙——第一次失準免扣；之後論證對位下降，歸零就和杜夏特萊複盤，已破支柱照舊保留。",
         "最後不是選贏家——重讀同一批帳，再決定題目究竟該怎麼問。"
       ]
@@ -1337,7 +1373,7 @@
       lines = [
         "先封存，再揭示——四種有限來源都要先押下終點帶；未封存時，長時間實驗不會啟動。",
         "一次只查一件事——熱容量、接觸運動、空氣與水箱各有自己的對照；失敗紀錄保留，但不能冒充乾淨證據。",
-        "封條只會裂，不會消失——長時間曲線出現後，你要逐一判讀四張預測；只有判讀完成，T4 才會入卷。",
+        "封條只會裂，不會消失——長時間曲線出現後，你要逐一判讀四張預測；全部判讀完成，長時段曲線紙才會入卷。",
         "反例有邊界——資料能逼來源說退下，不能自動證明運動說，也不能抹掉潛熱等未查現象。",
         "最後一頁分責任——操作、讀數、兩種解讀與未決債務分欄；四方署名只在最後交棒一次成立。"
       ];
@@ -1577,6 +1613,43 @@
       sheet.style.backgroundPosition = "center";
     }
   }
+  var evidenceReaderReturnFocus = null;
+  function closeEvidenceReader(silent) {
+    var reader = $("evidenceReader");
+    if (!reader || reader.hidden) return;
+    reader.hidden = true;
+    $("nbSheet").removeAttribute("aria-hidden");
+    $("evidenceReaderImage").removeAttribute("src");
+    if (!silent && evidenceReaderReturnFocus && typeof evidenceReaderReturnFocus.focus === "function")
+      evidenceReaderReturnFocus.focus();
+    evidenceReaderReturnFocus = null;
+  }
+  function openEvidenceReader(item, name, resolved, trigger) {
+    var reader = $("evidenceReader");
+    var first = resolved && resolved.items && resolved.items[0];
+    var art = first && assetEntry(first.asset);
+    if (!reader || !art) return;
+    evidenceReaderReturnFocus = trigger;
+    $("evidenceReaderTitle").textContent = resolved.readerTitle || name;
+    var img = $("evidenceReaderImage");
+    img.src = assetUrl(art);
+    img.alt = first.alt || (name + "證據圖");
+    $("evidenceReaderCaption").textContent = resolved.caption || name;
+    var warning = $("evidenceReaderWarning");
+    warning.textContent = resolved.fallbackNotice || "";
+    warning.hidden = !resolved.fallback;
+    var textList = $("evidenceReaderText");
+    textList.innerHTML = "";
+    (resolved.accessibleText || []).forEach(function (line) {
+      var li = document.createElement("li");
+      li.textContent = line;
+      textList.appendChild(li);
+    });
+    $("evidenceReaderTranscript").hidden = !textList.children.length;
+    $("nbSheet").setAttribute("aria-hidden", "true");
+    reader.hidden = false;
+    $("btnEvidenceReaderClose").focus();
+  }
   /* 證據卡:穩定 code 找圖、白話 name 顯示；不得從翻譯後名稱反推 ID。 */
   function renderEvidenceCards() {
     var wrap = $("nbCards");
@@ -1592,14 +1665,21 @@
       var name = item && item.name || "未命名證據";
       if (!code) return;
       var specificBg = assetEntry("card_" + code);
-      var visual = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
-      var visualAsset = visual && visual.items && visual.items[0] && visual.items[0].asset;
-      var bgE = specificBg || assetEntry(visualAsset) || tpl; /* 專卡→既有實驗圖→共用底；穩定 code 單一解析。 */
-      var card = document.createElement("div");
+      var resolved = resolveEvidenceVisual(code, item.visualKey);
+      var visualAsset = resolved && resolved.items && resolved.items[0] && resolved.items[0].asset;
+      /* 狀態圖必須先過 resolver；禁止靜態 card_K4 蓋過封存世界線。 */
+      var bgE = assetEntry(visualAsset) || specificBg || tpl;
+      var canRead = !!(resolved && assetEntry(visualAsset));
+      var card = document.createElement(canRead ? "button" : "div");
       card.className = "evcard";
       card.dataset.evidenceCode = code;
-      card.setAttribute("role", "img");
-      card.setAttribute("aria-label", name + "證據圖");
+      if (canRead) {
+        card.type = "button";
+        card.setAttribute("aria-label", "放大閱讀「" + name + "」證據圖");
+      } else {
+        card.setAttribute("role", "img");
+        card.setAttribute("aria-label", name + "證據圖");
+      }
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
       var b = document.createElement("b"); b.textContent = name;
       card.appendChild(b);
@@ -1608,6 +1688,14 @@
         card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
         card.lastElementChild.removeAttribute("aria-hidden");
       }
+      if (canRead) card.addEventListener("click", function () {
+        openEvidenceReader(item, name, resolved, card);
+      });
+      if (canRead) card.addEventListener("keydown", function (ev) {
+        if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
+        ev.preventDefault(); /* 明示鍵盤啟動；阻止原生 keyup 再送一次 click。 */
+        openEvidenceReader(item, name, resolved, card);
+      });
       wrap.appendChild(card);
     });
   }
@@ -1661,6 +1749,7 @@
   }
   function closeNotebook(silent) {
     if ($("notebook").hidden) return;
+    closeEvidenceReader(true);
     $("notebook").hidden = true;
     $("btnDrawer").setAttribute("aria-expanded", "false");
     resumeTyping();
@@ -1671,9 +1760,23 @@
     if ($("notebook").hidden) openNotebook(); else closeNotebook();
   });
   $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
+  $("btnEvidenceReaderClose").addEventListener("click", function () { closeEvidenceReader(); });
+  $("evidenceReader").addEventListener("click", function (ev) {
+    if (ev.target === $("evidenceReader")) closeEvidenceReader();
+  });
   document.addEventListener("keydown", function (ev) {
+    var reader = $("evidenceReader");
+    if (!reader.hidden && ev.key === "Tab") {
+      var controls = reader.querySelectorAll("button:not([disabled]), details summary, [tabindex]:not([tabindex='-1'])");
+      if (!controls.length) return;
+      var first = controls[0], last = controls[controls.length - 1];
+      if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+      else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+      return;
+    }
     if (ev.key !== "Escape") return;
     if (!$("fxJump").hidden) { ev.preventDefault(); return; } /* 時代轉場必須逐幕看完，Esc 不得跳過 */
+    if (!reader.hidden) { ev.preventDefault(); closeEvidenceReader(); return; }
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("apparatusSurvey").hidden) {
@@ -1690,6 +1793,8 @@
     var fx = $("fxJump");
     if (!fx.hidden && !fx.contains(ev.target)) { fx.focus(); return; }
     var nb = $("notebook");
+    var reader = $("evidenceReader");
+    if (!reader.hidden && !reader.contains(ev.target)) { $("btnEvidenceReaderClose").focus(); return; }
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");
     if (!pc.hidden && !pc.contains(ev.target)) { pc.focus(); return; }

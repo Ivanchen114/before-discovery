@@ -447,11 +447,42 @@
   #nbCards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 10px; }
   .evcard { aspect-ratio: 8 / 5; background-size: cover; background-position: center;
             border: 1px solid var(--color-ink-secondary); border-radius: 4px;
-            padding: 8px 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; }
+            width: 100%; padding: 8px 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px;
+            color: inherit; background-color: rgba(255,250,236,.4); font: inherit; text-align: left; }
+  button.evcard { cursor: zoom-in; appearance: none; }
+  button.evcard:hover { border-color: var(--color-chapter-accent); box-shadow: 0 0 0 2px rgba(122,75,42,.15); }
+  button.evcard:focus-visible { outline: 3px solid var(--color-chapter-accent); outline-offset: 2px; }
   .evcard b { font-family: var(--font-dialogue); font-size: 1em; color: var(--color-ink-primary);
               text-shadow: 0 1px 2px rgba(247,240,223,0.9); }
   .evcard span { font-size: 0.78em; color: var(--color-ink-secondary);
                  text-shadow: 0 1px 2px rgba(247,240,223,0.9); }
+  #evidenceReader { position: absolute; inset: 0; z-index: 55; display: flex; align-items: center;
+    justify-content: center; padding: 2%; box-sizing: border-box; background: rgba(6,5,4,.9); }
+  #evidenceReader[hidden] { display: none; }
+  #evidenceReaderSheet { width: min(96%, 1320px); max-height: 96%; overflow: auto; box-sizing: border-box;
+    padding: 14px 18px 18px; color: var(--color-ink-primary); border: 2px solid var(--color-chapter-accent);
+    border-radius: 8px; background: var(--color-surface-notebook); box-shadow: 0 18px 60px rgba(0,0,0,.72); }
+  #evidenceReaderSheet > header { display: flex; align-items: center; gap: 12px; position: sticky; top: -14px;
+    z-index: 2; padding: 6px 0; background: var(--color-surface-notebook); }
+  #evidenceReaderTitle { margin: 0; font: 600 clamp(20px,2.2vw,30px)/1.25 var(--font-dialogue); }
+  #btnEvidenceReaderClose { min-width: 88px; min-height: 44px; margin-left: auto; cursor: pointer; }
+  #evidenceReaderSheet figure { margin: 6px 0 10px; text-align: center; }
+  #evidenceReaderImage { display: block; width: 100%; max-height: 68vh; object-fit: contain;
+    border: 1px solid rgba(90,70,56,.42); background: #16110d; }
+  #evidenceReaderCaption { margin-top: 7px; font: 600 clamp(15px,1.4vw,19px)/1.45 var(--font-ui); }
+  #evidenceReaderWarning { margin: 8px 0; padding: 8px 10px; color: #5d271e; border-left: 4px solid #9b4f3b;
+    background: rgba(155,79,59,.12); font-weight: 700; }
+  #evidenceReaderTranscript { margin-top: 10px; padding: 9px 12px; border: 1px solid rgba(90,70,56,.42); }
+  #evidenceReaderTranscript summary { min-height: 44px; display: flex; align-items: center; cursor: pointer;
+    font: 700 16px/1.4 var(--font-ui); }
+  #evidenceReaderText { margin: 4px 0 0; padding-left: 1.5em; font: 16px/1.65 var(--font-ui); }
+  @media (max-height: 520px) {
+    #evidenceReader { padding: 1%; }
+    #evidenceReaderSheet { width: 98%; max-height: 98%; padding: 8px 12px 12px; }
+    #evidenceReaderSheet > header { top: -8px; }
+    #evidenceReaderImage { max-height: 58vh; }
+    #evidenceReaderCaption { font-size: 13px; }
+  }
   /* --- 實驗台去現代感:舊紙帳簿風(表現層 CSS,引擎資料零改動) --- */
   #lab select, #lab input[type="number"] { background: #efe4c9; color: var(--color-ink-primary);
     border: 1px solid var(--color-ink-secondary); border-radius: 3px;
@@ -2772,6 +2803,12 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   .collision5TableWrap{max-height:210px}
   body[data-chapter="ch5"] #panelWrap{overflow:auto}
 }
+.ch1PredictionPaper{margin:10px 0;padding:10px;border:1px solid #8d7650;border-radius:6px;background:linear-gradient(135deg,#fbf4df,#efe0bd);color:#33291c}
+.ch1PredictionPaper h4{margin:0 0 8px;font-family:serif}.ch1PredictionTrace{margin-top:8px;padding-top:7px;border-top:1px dashed #a48c68}
+.ch1PredictionTrace p{margin:3px 0}.ch1PredictionTrace svg{display:block;width:100%;max-width:440px;height:auto}
+.ch1PaperAxis{stroke:#87745b;stroke-width:2}.ch1PredictionMark{stroke:#7b3f35;stroke-width:4;stroke-dasharray:8 5}.ch1ObservedMark{stroke:#294f63;stroke-width:4}
+.ch1PredictionLabel,.ch1ObservedLabel{fill:currentColor;font:12px var(--font-ui,system-ui,sans-serif)}
+@media(prefers-reduced-motion:reduce){.ch1PredictionPaper *{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body data-view="title">
@@ -2995,6 +3032,23 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
           </section>
         </div>
       </div>
+      <div id="evidenceReader" role="dialog" aria-modal="true" aria-labelledby="evidenceReaderTitle" hidden>
+        <section id="evidenceReaderSheet">
+          <header>
+            <h2 id="evidenceReaderTitle">證據圖</h2>
+            <button id="btnEvidenceReaderClose" type="button">關閉 ✕</button>
+          </header>
+          <figure>
+            <img id="evidenceReaderImage" alt="">
+            <figcaption id="evidenceReaderCaption"></figcaption>
+          </figure>
+          <p id="evidenceReaderWarning" role="status" hidden></p>
+          <details id="evidenceReaderTranscript">
+            <summary>開啟文字版</summary>
+            <ul id="evidenceReaderText"></ul>
+          </details>
+        </section>
+      </div>
     </div>
   </section>
 
@@ -3088,17 +3142,17 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 <script src="data/series.js?v=asset-e021a350f26d"></script>
 <script src="data/patterns.js?v=asset-d7342770b335"></script>
-<script src="data/debate.js?v=asset-c21e614a8145"></script>
-<script src="data/debate2.js?v=asset-95645c9fb8f4"></script>
-<script src="data/debate5.js?v=asset-d2271e46933b"></script>
+<script src="data/debate.js?v=asset-22b3f56fd1a4"></script>
+<script src="data/debate2.js?v=asset-379a4bd9894b"></script>
+<script src="data/debate5.js?v=asset-0e248ae78a02"></script>
 <script src="data/histfacts.js?v=asset-7dcd468b722b"></script>
 <script src="data/histfacts2.js?v=asset-06953e62421e"></script>
 <script src="data/histfacts3.js?v=asset-ff2ba03ac549"></script>
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
 <script src="data/histfacts6.js?v=asset-df72fe7398b9"></script>
-<script src="data/assets.js?v=asset-37e89f3b39c6"></script>
-<script src="src/sanitize.js?v=asset-9701925fe2c1"></script>
+<script src="data/assets.js?v=asset-e0f44f3fdeac"></script>
+<script src="src/sanitize.js?v=asset-f59f7a1e8b5a"></script>
 <script src="src/save-envelope.js?v=asset-0b9496000751"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-0777fc954c67"></script>
@@ -3107,12 +3161,12 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="src/engine4.js?v=asset-e85cc1639c42"></script>
 <script src="src/engine5.js?v=asset-a01cff18eade"></script>
 <script src="src/engine6.js?v=asset-288a92e0eab3"></script>
-<script src="data/scenes.js?v=asset-be125fd1a75d"></script>
-<script src="data/scenes2.js?v=asset-17bf94c10b91"></script>
-<script src="data/scenes3.js?v=asset-eaa030fb65c8"></script>
-<script src="data/scenes4.js?v=asset-e89107dc2fab"></script>
-<script src="data/scenes5.js?v=asset-999e701626dc"></script>
-<script src="data/scenes6.js?v=asset-e0bf743e4d81"></script>
+<script src="data/scenes.js?v=asset-aefb208a43e4"></script>
+<script src="data/scenes2.js?v=asset-fa9987ebaf44"></script>
+<script src="data/scenes3.js?v=asset-bbc4bf2faa64"></script>
+<script src="data/scenes4.js?v=asset-8854e7846ba9"></script>
+<script src="data/scenes5.js?v=asset-6100725aa019"></script>
+<script src="data/scenes6.js?v=asset-fa8ad38cab62"></script>
 <script src="src/ch4-migration.js?v=asset-a84d3be8533f"></script>
 <script>
 (function () {
@@ -3156,8 +3210,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", data.scenes.chapter);
 })();
 </script>
-<script src="src/narrative.js?v=asset-b34f11ebb764"></script>
-<script src="src/chapter-ui.js?v=asset-daaf6d8340d6"></script>
+<script src="src/narrative.js?v=asset-8ab84c023e59"></script>
+<script src="src/chapter-ui.js?v=asset-a32588e6339f"></script>
 <script>
 (function () {
   "use strict";
@@ -3292,6 +3346,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-a0467958d93f"></script>
+<script src="src/stage-ui.js?v=asset-fe7a9e954442"></script>
 </body>
 </html>

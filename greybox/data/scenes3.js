@@ -725,7 +725,7 @@
          ]
         }
        ],
-       "next": "a1"
+       "next": "a_commit1"
       },
       {
        "id": "all_again",
@@ -761,6 +761,34 @@
        "next": "f1"
       }
      ]
+    },
+    {
+     "id": "a_commit1",
+     "type": "line",
+     "speaker": "伽桑狄",
+     "text": "（把原句逐字抄到另一張紙）『所有船上落石』。這句比舊紙多得多。",
+     "next": "a_commit2"
+    },
+    {
+     "id": "a_commit2",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "所以這張不收？",
+     "next": "a_commit3"
+    },
+    {
+     "id": "a_commit3",
+     "type": "line",
+     "speaker": "伽桑狄",
+     "text": "收。你既然把話寫到所有船況，明天就讓船替它作答。",
+     "next": "a_commit4"
+    },
+    {
+     "id": "a_commit4",
+     "type": "line",
+     "speaker": "維達爾船長",
+     "text": "我的船不替你改句子。落在哪裡，就記在哪裡。",
+     "next": "n2"
     },
     {
      "id": "xok",
@@ -809,6 +837,31 @@
      "type": "line",
      "speaker": "旅人(你)",
      "text": "你要把這份卷宗交給我？",
+     "next": "x7_fail"
+    },
+    {
+     "id": "x7_fail",
+     "type": "line",
+     "speaker": "伽桑狄",
+     "text": "卷宗仍由你排。不是因為你說對了——是因為這句已經寫上你的名字，不能再讓別人替你擦掉。",
+     "require": {
+      "all": [
+       {
+        "flag": [
+         "oldPaperAnswerBlurted",
+         "1"
+        ]
+       },
+       {
+        "not": {
+         "flag": [
+          "oldPaperScoped",
+          "bounded"
+         ]
+        }
+       }
+      ]
+     },
      "next": "x7"
     },
     {
@@ -816,6 +869,12 @@
      "type": "line",
      "speaker": "伽桑狄",
      "text": "你剛才沒有把一趟寫成每一趟，也沒有替空白填上自己以為的船況。而且明天在船上的人裡，只有你不欠這艘船人情。",
+     "require": {
+      "flag": [
+       "oldPaperScoped",
+       "bounded"
+      ]
+     },
      "next": "g1"
     },
     {
@@ -1327,6 +1386,19 @@
      "type": "line",
      "speaker": "維達爾船長",
      "text": "要掛。留在這裡，大家才看得見哪一句說過頭了。",
+     "next": "n8_failure"
+    },
+    {
+     "id": "n8_failure",
+     "type": "line",
+     "speaker": "維達爾船長",
+     "text": "早上那句『所有船上落石』也掛著。劃掉的字，不等於沒說過。",
+     "require": {
+      "flag": [
+       "oldPaperAnswerBlurted",
+       "1"
+      ]
+     },
      "next": "n9"
     },
     {

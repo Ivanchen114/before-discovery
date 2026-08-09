@@ -992,19 +992,50 @@
       {
        "id": "a",
        "text": "把木籌壓在「飛出去的球會晚到」。",
-       "next": "q2"
+       "effects": [
+        {
+         "flag": [
+          "ch2DropPrediction",
+          "late"
+         ]
+        }
+       ],
+       "next": "c_commit"
       },
       {
        "id": "b",
        "text": "把木籌壓在「三層的兩聲都會近得分不開」。",
-       "next": "q2"
+       "effects": [
+        {
+         "flag": [
+          "ch2DropPrediction",
+          "unresolved"
+         ]
+        }
+       ],
+       "next": "c_commit"
       },
       {
        "id": "c",
        "text": "把木籌壓在「沒有紀錄，現在不能押結果」。",
-       "next": "q2"
+       "effects": [
+        {
+         "flag": [
+          "ch2DropPrediction",
+          "abstain"
+         ]
+        }
+       ],
+       "next": "c_commit"
       }
      ]
+    },
+    {
+     "id": "c_commit",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "（不看你壓的位置，只把三列空紙推正）木籌壓下去就別挪了。門閂等你——紙，等它。",
+     "next": "q2"
     },
     {
      "id": "np1",
@@ -1070,7 +1101,7 @@
       {
        "id": "a",
        "text": "確認第三列；三列只支持：「在本裝置能分辨的範圍內，水平推出沒有造成可測的落地延遲。」",
-       "next": "na1"
+       "next": "r_late"
       },
       {
        "id": "b",
@@ -1104,6 +1135,45 @@
        "next": "nb1"
       }
      ]
+    },
+    {
+     "id": "r_late",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "（把你的木籌從「晚到」那格推到三列紙旁）這一注，三列紙沒有替它作證。可它敢押。（頓）籌碼不退——下次，讓它壓在紙寫得出的地方。",
+     "require": {
+      "flag": [
+       "ch2DropPrediction",
+       "late"
+      ]
+     },
+     "next": "r_unresolved"
+    },
+    {
+     "id": "r_unresolved",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "你押中了這套機關能說的。記住你剛才怎麼寫——「分不開」，不是「同時」。這兩個詞，差一整場辯論。",
+     "require": {
+      "flag": [
+       "ch2DropPrediction",
+       "unresolved"
+      ]
+     },
+     "next": "r_abstain"
+    },
+    {
+     "id": "r_abstain",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "（看了那枚沒下注的木籌一眼）你保住了不出錯。可紙上少了一樣東西：你的預測。（把木籌還給你）下一次，壓一注。錯了的木籌，也比空白值錢。",
+     "require": {
+      "flag": [
+       "ch2DropPrediction",
+       "abstain"
+      ]
+     },
+     "next": "na1"
     },
     {
      "id": "nb1",
@@ -1377,6 +1447,19 @@
      "type": "line",
      "speaker": "辛普里奧",
      "text": "(環視,把數據紙的批註頁攤開在講台)先定一條規矩:今天,誰的話超出證據——無論是誰——都算失分。(看向旅人,眼裡有一點四年前沒有的東西,像是期待)這規矩,是老夫從你們身上學來的。",
+     "next": "b3_recall"
+    },
+    {
+     "id": "b3_recall",
+     "type": "line",
+     "speaker": "伽利略",
+     "text": "（趁入座前，把一枚舊木籌塞回你手心，聲音壓低）你那回押錯的。我留著——今天要是他問起你憑什麼信這三張紙，就給他看：我們的錯，也記帳。",
+     "require": {
+      "flag": [
+       "ch2DropPrediction",
+       "late"
+      ]
+     },
      "next": "n3_os"
     },
     {

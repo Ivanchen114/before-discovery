@@ -1,8 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="t d"><title id="t">T4 封存帶與長時段曲線</title><desc id="d">四張有限來源預測帶壓在長時段溫度曲線下；曲線越過預測的衰減區仍未變弱，四枚封蠟裂開但原帶保留。</desc>
-<rect width="1200" height="750" fill="#e9ddbd"/><rect x="38" y="38" width="1124" height="674" rx="18" fill="none" stroke="#5f4632" stroke-width="5"/>
-<text x="80" y="110" font-family="serif" font-size="48" fill="#3b2a20">T4｜曲線越過封存的有限來源終點帶</text>
-<g font-family="sans-serif" font-size="23" fill="#3b2a20"><text x="110" y="210">碎屑</text><text x="110" y="285">炮身</text><text x="110" y="360">空氣</text><text x="110" y="435">水</text></g>
-<g fill="#c6a56f" opacity=".7"><rect x="210" y="170" width="280" height="55"/><rect x="210" y="245" width="500" height="55"/><rect x="210" y="320" width="280" height="55"/><rect x="210" y="395" width="500" height="55"/></g>
-<g fill="#8d332b" stroke="#5e211d" stroke-width="5"><circle cx="490" cy="198" r="28"/><circle cx="710" cy="273" r="28"/><circle cx="490" cy="348" r="28"/><circle cx="710" cy="423" r="28"/></g>
-<g stroke="#f0c9a7" stroke-width="6"><path d="M472 180l36 36M508 180l-36 36"/><path d="M692 255l36 36M728 255l-36 36"/><path d="M472 330l36 36M508 330l-36 36"/><path d="M692 405l36 36M728 405l-36 36"/></g>
-<path d="M210 590C330 560 410 510 520 470S760 350 1080 185" fill="none" stroke="#a44d35" stroke-width="16"/><path d="M210 590h870" stroke="#40362d" stroke-width="5"/><text x="600" y="665" text-anchor="middle" font-family="sans-serif" font-size="30" fill="#3b2a20">四張逐一判讀後才取得 T4；裂封仍可追查原預測</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="t d">
+  <title id="t">四份來源預測逐一對帳</title>
+  <desc id="d">碎屑、炮身、空氣與水四份原預測帶都保留在卷宗；本摘要不預畫玩家選定的終點位置或封條裂否，須展開本局卷宗逐張查驗。</desc>
+  <rect width="1200" height="750" fill="#e9ddbd"/>
+  <rect x="38" y="38" width="1124" height="674" rx="18" fill="none" stroke="#5f4632" stroke-width="5"/>
+  <text x="80" y="110" font-family="serif" font-size="48" fill="#3b2a20">四份來源預測逐一對帳</text>
+  <text x="82" y="148" font-family="sans-serif" font-size="21" fill="#6a513d">長時段曲線走完後，原帶與封條仍留在各自卷袋，狀態可追查。</text>
+
+  <g font-family="sans-serif" fill="#3b2a20">
+    <g transform="translate(84 190)">
+      <rect width="470" height="104" rx="12" fill="#d6bd8d" stroke="#76583f" stroke-width="3"/>
+      <path d="M20 24h430v58H20z" fill="#eadfc5" stroke="#9b7d58" stroke-width="2"/>
+      <text x="42" y="61" font-size="27" font-weight="700">碎屑</text>
+      <text x="165" y="61" font-size="22">原預測帶保留</text>
+    </g>
+    <g transform="translate(84 316)">
+      <rect width="470" height="104" rx="12" fill="#d6bd8d" stroke="#76583f" stroke-width="3"/>
+      <path d="M20 24h430v58H20z" fill="#eadfc5" stroke="#9b7d58" stroke-width="2"/>
+      <text x="42" y="61" font-size="27" font-weight="700">炮身</text>
+      <text x="165" y="61" font-size="22">原預測帶保留</text>
+    </g>
+    <g transform="translate(84 442)">
+      <rect width="470" height="104" rx="12" fill="#d6bd8d" stroke="#76583f" stroke-width="3"/>
+      <path d="M20 24h430v58H20z" fill="#eadfc5" stroke="#9b7d58" stroke-width="2"/>
+      <text x="42" y="61" font-size="27" font-weight="700">空氣</text>
+      <text x="165" y="61" font-size="22">原預測帶保留</text>
+    </g>
+    <g transform="translate(84 568)">
+      <rect width="470" height="104" rx="12" fill="#d6bd8d" stroke="#76583f" stroke-width="3"/>
+      <path d="M20 24h430v58H20z" fill="#eadfc5" stroke="#9b7d58" stroke-width="2"/>
+      <text x="42" y="61" font-size="27" font-weight="700">水</text>
+      <text x="165" y="61" font-size="22">原預測帶保留</text>
+    </g>
+  </g>
+
+  <g transform="translate(620 190)">
+    <path d="M0 300h472M0 300V24" fill="none" stroke="#40362d" stroke-width="5"/>
+    <path d="M18 286C118 260 190 224 270 180S390 102 454 54" fill="none" stroke="#a44d35" stroke-width="14"/>
+    <text x="236" y="340" text-anchor="middle" font-family="serif" font-size="29" fill="#3b2a20">長時段升溫線</text>
+    <rect x="28" y="365" width="420" height="85" rx="12" fill="#d6c49e" stroke="#76583f" stroke-width="3"/>
+    <text x="238" y="400" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#3b2a20">終點位置、封條裂否</text>
+    <text x="238" y="430" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#3b2a20">展開本局卷宗逐張查驗</text>
+  </g>
+
+</svg>

@@ -2,7 +2,7 @@
   document.addEventListener("bd:scene", function (ev) { setScene(ev.detail.sceneId); });
   document.addEventListener("bd:evidence", function (ev) {
     var d = ev.detail || {};
-    showEvidenceFocus(d.code, d.name || "新證據");
+    showEvidenceFocus(d.code, d.name || "新證據", d.visualKey);
     /* 實驗引擎直接入卷、沒有取得台詞時，也要和有台詞的證據得到同一套視聽回饋。 */
     playEvidenceGain($("sceneFocus"));
   });
@@ -243,6 +243,7 @@
   });
   document.addEventListener("bd:start", function () {
     queue = []; pages = []; pageIdx = 0; typing = false; waiting = false; paused = false; ackPending = false;
+    currentLineYieldToken = null;
     if (timer) clearTimeout(timer);
     curBustId = null;
     labIntroSeen = false;

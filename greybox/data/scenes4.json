@@ -520,6 +520,13 @@
      "type": "line",
      "speaker": "牛頓",
      "text": "（用指甲截住那段弧）等等。這條圓弧是我們看見的路，不是月亮在沒有作用時非走不可的路。",
+     "next": "w1_trace"
+    },
+    {
+     "id": "w1_trace",
+     "type": "line",
+     "speaker": "stage",
+     "text": "牛頓沒有擦掉那條順著圓弧畫下去的線。他把它推到紙角，壓上一枚小硯。",
      "next": "w2"
     },
     {
@@ -535,6 +542,13 @@
      "type": "line",
      "speaker": "牛頓",
      "text": "（把蘋果放在月亮與地球之間）這樣等於先替地球加了一次拉。可我們剛剛說好，這一步什麼都不加。",
+     "next": "w3_trace"
+    },
+    {
+     "id": "w3_trace",
+     "type": "line",
+     "speaker": "stage",
+     "text": "那條直直墜向地球的線也留在紙上。牛頓只在旁邊注了一行小字：「無前進之月」。",
      "next": "c1"
     },
     {
@@ -2394,6 +2408,83 @@
      "type": "line",
      "speaker": "哈雷",
      "text": "所以要寫清楚，不是故作大方。把證明接好，再寫明他做過什麼，也只寫到那裡。",
+     "next": "d42_recall_curve"
+    },
+    {
+     "id": "d42_recall_curve",
+     "type": "line",
+     "speaker": "哈雷",
+     "text": "（從卷宗底層抽出那張切線紙，指著角落被硯壓過的弧線）你第一晚讓月亮照著弧走。（把它跟排好的版並排）現在你知道那條弧是誰畫出來的了——不是月亮自己。是這本書裡的每一頁，一起畫的。",
+     "require": {
+      "event": {
+       "t": "choice",
+       "at": "D1-1/c1",
+       "pick": "curve"
+      }
+     },
+     "next": "d42_recall_inward"
+    },
+    {
+     "id": "d42_recall_inward",
+     "type": "line",
+     "speaker": "哈雷",
+     "text": "（抽出那張注著「無前進之月」的紙）你第一晚讓月亮直直墜下來。（輕敲排好的版）這本書要說的是：你只錯了一半。它一直在墜——只是永遠墜不完。",
+     "require": {
+      "all": [
+       {
+        "not": {
+         "event": {
+          "t": "choice",
+          "at": "D1-1/c1",
+          "pick": "curve"
+         }
+        }
+       },
+       {
+        "event": {
+         "t": "choice",
+         "at": "D1-1/c1",
+         "pick": "inward"
+        }
+       }
+      ]
+     },
+     "next": "d42_recall_tangent"
+    },
+    {
+     "id": "d42_recall_tangent",
+     "type": "line",
+     "speaker": "哈雷",
+     "text": "（抽出切線紙，看了一眼）第一晚就畫對方向的人不多。（放回卷宗）可是方向對，不等於量得出來。這二十年——量的就是那一小段差。",
+     "require": {
+      "all": [
+       {
+        "not": {
+         "event": {
+          "t": "choice",
+          "at": "D1-1/c1",
+          "pick": "curve"
+         }
+        }
+       },
+       {
+        "not": {
+         "event": {
+          "t": "choice",
+          "at": "D1-1/c1",
+          "pick": "inward"
+         }
+        }
+       },
+       {
+        "event": {
+         "t": "choice",
+         "at": "D1-1/c1",
+         "pick": "tangent"
+        }
+       }
+      ]
+     },
      "next": "e1"
     },
     {
@@ -2590,6 +2681,13 @@
      "type": "line",
      "speaker": "stage",
      "text": "旅人把五張證據一張張夾回筆記。每張後面都跟著來源、退件和還沒證明的地方。切線預測另外收好，沒有硬算成第六張證據。",
+     "next": "de1_close"
+    },
+    {
+     "id": "de1_close",
+     "type": "line",
+     "speaker": "stage",
+     "text": "第一晚留下的切線紙、後來量成的短差，以及一路退下的錯稿，疊進同一只木匣。蠟油封上時，沒有一張曾真正出現的紙被抽走。",
      "next": "g1"
     },
     {

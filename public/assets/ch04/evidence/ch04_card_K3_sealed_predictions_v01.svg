@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
-  <title id="title">K3 沒看答案前的兩個週期</title>
+  <title id="title">沒看答案前的兩個週期</title>
   <desc id="desc">先鎖定反平方律，再封存火星與木星的週期預測，最後才揭露觀測並比較殘差。</desc>
   <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151d2a"/><stop offset="1" stop-color="#070a10"/></linearGradient><marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8fb4ca"/></marker></defs>
   <rect width="1200" height="750" fill="url(#bg)"/>
   <rect x="34" y="34" width="1132" height="682" rx="24" fill="none" stroke="#8ca3b3" stroke-width="2"/>
-  <text x="70" y="92" fill="#f3e8cc" font-size="38" font-weight="700" font-family="Noto Serif TC, PingFang TC, serif">K3｜沒看答案前的兩個週期</text>
+  <text x="70" y="92" fill="#f3e8cc" font-size="38" font-weight="700" font-family="Noto Serif TC, PingFang TC, serif">沒看答案前的兩個週期</text>
   <text x="70" y="130" fill="#aebdca" font-size="20" font-family="Noto Sans TC, PingFang TC, sans-serif">順序就是證據的一部分：鎖規則 → 寫預測 → 封存 → 才揭露觀測。</text>
 
   <rect x="70" y="180" width="250" height="330" rx="18" fill="#172231" stroke="#72899d"/>

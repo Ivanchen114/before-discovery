@@ -232,7 +232,13 @@
         },
         "P0-2/nA4": {
           expectedDelta: -1, legacyOptional: true,
-          requiresBefore: [{ t:"choice", at:"P0-2/q1", pick:"a" }],
+          requiresBeforeAny: [
+            [{ t:"choice", at:"P0-2/q1", pick:"a" }],
+            [
+              { t:"choice", at:"P0-2/q1", pick:"b" },
+              { t:"choice", at:"P0-2/qB", pick:"b2" }
+            ]
+          ],
           values: [
           "把沒有證據的未來答案說成大家都知道的事"
         ] },
@@ -467,6 +473,38 @@
           values: [
           "撤回權威與單一帳結論，重新保留兩本帳及未解缺口"
         ] }
+      },
+      ch6: {
+        "H0-1/c1.give-future": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"H0-1/c1", pick:"give-future" }],
+          values: [
+          "把未來知道的去向當成已由眼前碎屑證明的結論"
+        ] },
+        "H0-2/c1.trust-rumford": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"H0-2/c1", pick:"trust-rumford" }],
+          values: [
+          "用主事者權威代替來源與可見後果"
+        ] },
+        "H1-3/c1.heat-is-motion": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"H1-3/c1", pick:"heat-is-motion" }],
+          values: [
+          "要求共同原紙替超出本輪觀測範圍的本體論宣稱背書"
+        ] },
+        "H3-2/c1.common-seal": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"choice", at:"H3-2/c1", pick:"common-seal" }],
+          values: [
+          "要求共同觀測者替超出已測來源與現象範圍的普遍結論背書"
+        ] },
+        "SC6-R1/c1.withdraw": {
+          expectedDelta: 1, requiresRepairCycle: true,
+          requiresBefore: [{ t:"choice", at:"SC6-R1/c1", pick:"withdraw" }],
+          values: [
+          "公開撤回越界結論，恢復原紙、未決與署名邊界"
+        ] }
       }
     }[chapterId] || {};
     var replayRep = 3;
@@ -571,6 +609,25 @@
         var beforeCursor = reasonRule.requiresRepairCycle
           ? latestRepairEnterIndex + 1 : 0;
         var beforeRules = reasonRule.requiresBefore || [];
+        var beforeAlternatives = reasonRule.requiresBeforeAny || [];
+        if (beforeRules.length && beforeAlternatives.length)
+          return fail("信譽來源規則同時設定兩種前置鏈:" + repEvent.at);
+        if (beforeAlternatives.length) {
+          var alternativeMatched = beforeAlternatives.some(function (path) {
+            if (!Array.isArray(path) || !path.length) return false;
+            var alternativeCursor = beforeCursor;
+            return path.every(function (expectedEvent) {
+              if (!expectedEvent || typeof expectedEvent !== "object" || Array.isArray(expectedEvent) ||
+                  !Object.keys(expectedEvent).length) return false;
+              var matchedIndex = findRepTrace(expectedEvent, alternativeCursor, rei);
+              if (matchedIndex < 0) return false;
+              alternativeCursor = matchedIndex + 1;
+              return true;
+            });
+          });
+          if (!alternativeMatched)
+            return fail("信譽事件缺少任一合法玩家操作鏈:" + repEvent.at);
+        }
         for (var bri = 0; bri < beforeRules.length; bri++) {
           var beforeIndex = findRepTrace(beforeRules[bri], beforeCursor, rei);
           if (beforeIndex < 0)
@@ -780,6 +837,27 @@
         choiceAt: "E1-1/q1", pick: "authority",
         effectAt: "E1-1/q1.authority", delta: -1,
         reason: "拿前輩的名聲替代可驗資料"
+      }],
+      ch6: [{
+        flag: "ch6FutureAnswerTried", value: 1,
+        choiceAt: "H0-1/c1", pick: "give-future",
+        effectAt: "H0-1/c1.give-future", delta: -1,
+        reason: "把未來知道的去向當成已由眼前碎屑證明的結論"
+      }, {
+        flag: "ch6AuthorityTried", value: 1,
+        choiceAt: "H0-2/c1", pick: "trust-rumford",
+        effectAt: "H0-2/c1.trust-rumford", delta: -1,
+        reason: "用主事者權威代替來源與可見後果"
+      }, {
+        flag: "ch6DryOverreachTried", value: 1,
+        choiceAt: "H1-3/c1", pick: "heat-is-motion",
+        effectAt: "H1-3/c1.heat-is-motion", delta: -1,
+        reason: "要求共同原紙替超出本輪觀測範圍的本體論宣稱背書"
+      }, {
+        flag: "ch6JointOverreachTried", value: 1,
+        choiceAt: "H3-2/c1", pick: "common-seal",
+        effectAt: "H3-2/c1.common-seal", delta: -1,
+        reason: "要求共同觀測者替超出已測來源與現象範圍的普遍結論背書"
       }]
     }[chapterId] || [];
     for (var rsi = 0; rsi < reserved.length; rsi++) {

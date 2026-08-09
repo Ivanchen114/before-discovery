@@ -4,6 +4,7 @@
   /* 收隊確認:在對話框會讓位的視圖(辯論/實驗台等),最後一句演完先亮 ▼ 等玩家點掉——
      打字完成≠讀完(總監實玩)。narration 視圖對話框常駐,不需確認。 */
   var ackPending = false;
+  var currentLineYieldToken = null;
   var lastLineScene = null;
   /* 任何會讓對話框退場、把畫面交給大型互動的視圖，都必須等玩家親手收掉最後一句。
      ship 曾漏列，造成第三章台詞一播完就自動切進航船實驗。 */
@@ -84,6 +85,7 @@
     timer = setTimeout(step, TYPE_MS);
   }
   function startLine(item, instant) {
+    currentLineYieldToken = item && item.yieldToken ? String(item.yieldToken) : null;
     /* 特寫跟「玩家此刻真的看到的台詞」同步，不跟尚未播放的事件佇列搶跑。 */
     if (item.scene && item.scene !== lastLineScene) {
       clearFocusVisual();
@@ -162,9 +164,14 @@
       return true;
     }
     if (ackPending) { /* 收隊確認:點掉最後一句,對話框讓位給面板 */
+      var yieldedToken = currentLineYieldToken;
       ackPending = false;
+      currentLineYieldToken = null;
       showCue(false);
       syncFlags();
+      if (yieldedToken) document.dispatchEvent(new CustomEvent("bd:dialogue-yielded", {
+        detail: { yieldToken: yieldedToken }
+      }));
       return true;
     }
     return false;

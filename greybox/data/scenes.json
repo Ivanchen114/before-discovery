@@ -1867,13 +1867,140 @@
      "text": "今日論題:論落體之自然運動。辛普里奧教授立論;伽利萊教授與其同伴質詢。",
      "next": "n3"
     },
-    {
-     "id": "n3",
-     "type": "line",
-     "speaker": "辛普里奧",
-     "text": "(目光越過人群,落在旅人身上,微微一頓)……十四年。老夫的學生都做了教授。(把書往講台上端端一放)而你,一天都沒老。看來為了今日,連光陰都肯替你作弊。(不等回答,轉向講堂)無妨。道理不怕等,也不怕客。",
-     "next": "n4"
+   {
+    "id": "n3",
+    "type": "line",
+    "speaker": "辛普里奧",
+    "text": "(目光越過人群,落在旅人身上,微微一頓)……十四年。老夫的學生都做了教授。(把書往講台上端端一放)而你,一天都沒老。看來為了今日,連光陰都肯替你作弊。(不等回答,轉向講堂)無妨。道理不怕等,也不怕客。",
+    "next": "n3c"
+   },
+   {
+    "id": "n3c",
+    "type": "line",
+    "speaker": "辛普里奧",
+    "text": "（書脊壓住卷宗裡那頁錯開的線）十四年前不用量就知道答案的人，如今連押錯的紙都留著。（收回書，端正放好）人是會變的。（頓）老夫今日倒要看看，變了多少。",
+    "require": {
+     "all": [
+      {
+       "claim": {
+        "consistent": true,
+        "predHit": false
+       }
+      },
+      {
+       "any": [
+        {
+         "event": {
+          "t": "choice",
+          "at": "P0-2/q1",
+          "pick": "a"
+         }
+        },
+        {
+         "event": {
+          "t": "choice",
+          "at": "P0-2/qB",
+          "pick": "b2"
+         }
+        },
+        {
+         "event": {
+          "t": "rep",
+          "at": "P0-2/nA4"
+         }
+        }
+       ]
+      }
+     ]
     },
+    "next": "n3a"
+   },
+   {
+    "id": "n3a",
+    "type": "line",
+    "speaker": "辛普里奧",
+    "text": "（目光掃過你們攤在講台上的卷宗，停在其中一頁——兩條錯開的線。他用書脊把那一頁壓住）押錯的，也帶來了？（收回書脊）……貴工作室的紙，比人誠實。老夫今日倒要看看——人如何。",
+    "require": {
+     "all": [
+      {
+       "claim": {
+        "consistent": true,
+        "predHit": false
+       }
+      },
+      {
+       "not": {
+        "any": [
+         {
+          "event": {
+           "t": "choice",
+           "at": "P0-2/q1",
+           "pick": "a"
+          }
+         },
+         {
+          "event": {
+           "t": "choice",
+           "at": "P0-2/qB",
+           "pick": "b2"
+          }
+         },
+         {
+          "event": {
+           "t": "rep",
+           "at": "P0-2/nA4"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "next": "n3b"
+   },
+   {
+    "id": "n3b",
+    "type": "line",
+    "speaker": "辛普里奧",
+    "text": "（落座前，忽然開口）十四年前，迴廊裡有人說——「所有東西落得一樣快」。（環視聽眾）不用看，不用量，就知道。（目光落回旅人）今日，你帶紙來了嗎？",
+    "require": {
+     "all": [
+      {
+       "any": [
+        {
+         "event": {
+          "t": "choice",
+          "at": "P0-2/q1",
+          "pick": "a"
+         }
+        },
+        {
+         "event": {
+          "t": "choice",
+          "at": "P0-2/qB",
+          "pick": "b2"
+         }
+        },
+        {
+         "event": {
+          "t": "rep",
+          "at": "P0-2/nA4"
+         }
+        }
+       ]
+      },
+      {
+       "not": {
+        "claim": {
+         "consistent": true,
+         "predHit": false
+        }
+       }
+      }
+     ]
+    },
+    "next": "n4"
+   },
     {
      "id": "n4",
      "type": "system",
@@ -2251,7 +2378,8 @@
   ],
   "classes": [
    "character-hypothesis",
-   "post-reveal"
+   "post-reveal",
+   "cross-scene-readback"
   ],
   "whitelist": [
    {
@@ -2284,6 +2412,24 @@
     "class": "post-reveal",
     "afterPlayerNode": "e3c",
     "reason": "「1:3:5:7」為玩家完成換球(e2)與變傾角(e3c)斷言後之筆記覆述。"
+   },
+   {
+    "scene": "A3-1",
+    "node": "n3b",
+    "class": "cross-scene-readback",
+    "sources": [
+     {
+      "scene": "P0-2",
+      "node": "q1",
+      "option": "a"
+     },
+     {
+      "scene": "P0-2",
+      "node": "qB",
+      "option": "b2"
+     }
+    ],
+    "reason": "辛普里奧只在玩家十四年前親口搶答過同一句時回讀原話；這是跨場景後果，不是 NPC 提前揭曉結論。"
    }
   ]
  }

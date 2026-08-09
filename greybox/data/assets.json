@@ -1842,6 +1842,16 @@
    "h": 750
   },
   {
+   "id": "card_K1_raster_v02",
+   "kind": "card",
+   "label": "K1 一直改向的路・取得後證據成品",
+   "path": "ch04/evidence/ch04_card_K1_orbit_deflection_raster_v02.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K1_orbit_deflection_raster_candidate_v02.png"
+  },
+  {
    "id": "card_K2",
    "kind": "card",
    "label": "K2 地上與天上的同一把尺・共同計算證據",
@@ -1878,6 +1888,46 @@
    "firstScreen": false,
    "w": 1200,
    "h": 750
+  },
+  {
+   "id": "card_K4_no_loans_raster_v03",
+   "kind": "card",
+   "label": "K4 模型比較・兩格皆未加借條",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_no_loans_raster_v03.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_no_loans_raster_candidate_v03.png"
+  },
+  {
+   "id": "card_K4_planets_loan_raster_v03",
+   "kind": "card",
+   "label": "K4 模型比較・只借行星",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_planets_loan_raster_v03.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_planets_loan_raster_candidate_v03.png"
+  },
+  {
+   "id": "card_K4_comet_loan_raster_v03",
+   "kind": "card",
+   "label": "K4 模型比較・只借彗星",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_comet_loan_raster_v03.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_comet_loan_raster_candidate_v03.png"
+  },
+  {
+   "id": "card_K4_both_loans_raster_v04",
+   "kind": "card",
+   "label": "K4 模型比較・兩格皆加借條",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_both_loans_raster_v04.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_both_loans_raster_candidate_v04.png"
   },
   {
    "id": "card_K5",
@@ -1991,7 +2041,7 @@
   {
    "id": "card_T4",
    "kind": "card",
-   "label": "T4 封存終點帶與長時段曲線",
+   "label": "四份來源預測逐一對帳",
    "path": "ch06/evidence/ch06_card_T4_prediction_bands_v01.svg",
    "firstScreen": false,
    "w": 1200,
@@ -4433,7 +4483,7 @@
   "T1": "等重、同溫、等水量下，碎屑與實心薄片的回溫曲線近似重合。",
   "T2": "只轉或只壓都不持續升溫；接觸與相對運動同時存在時，紙帶才持續上升。",
   "T3": "扣緊皮圈後曲線仍與開放進氣時近似重合；空氣必要來源版本撤回，舊封條保留。",
-  "T4": "長曲線越過四張有限來源的封存終點帶，玩家逐張判讀後封蠟裂開但不消失。",
+  "T4": "四份來源的原預測帶各自保留；長時段曲線後逐張判讀，終點位置與封條狀態以本局卷宗為準。",
   "T5": "共同頁分開操作、讀數與兩種解讀，保留範圍未決與兌換率未量得；四方各簽自己負責的欄。"
  },
  "evidenceVisual": {
@@ -4632,11 +4682,16 @@
   "K1": {
    "items": [
     {
-     "asset": "card_K1",
-     "alt": "切線逃逸與逐拍向內改向形成閉合軌道的比較圖"
+     "asset": "card_K1_raster_v02",
+     "alt": "燭光木桌上三張軌跡試跑紙與一張舊切線預測紙；兩條軌跡留在窄帶內，第三張只露出越界的一段，桌角放著木球與鬆弛細繩"
     }
    ],
-   "caption": "取得證據：沒有偏折就沿切線離開；持續向內改向才形成軌道。"
+   "caption": "取得證據：沒有偏折就沿切線離開；持續向內改向才形成軌道。",
+   "readerTitle": "一直改向的路",
+   "accessibleText": [
+    "保留原來的前進，每一拍又朝當下地球偏一點。",
+    "偏多少，必須與原來的速度相配。"
+   ]
   },
   "K2": {
    "items": [
@@ -4663,7 +4718,71 @@
      "alt": "反平方與簡單共轉渦旋跨 Moon、Planets、Comet 的六格比較矩陣"
     }
    ],
-   "caption": "取得證據：同一批天空下的雙模型比較。"
+   "caption": "取得證據：同一批天空下的雙模型比較。",
+   "readerTitle": "一條規則穿過三種天空",
+   "fallbackNotice": "此存檔的借條狀態無法安全還原。",
+   "accessibleText": [
+    "反平方 Moon：對得上；殘差 0.36%。",
+    "反平方 Planets：對得上；兩筆較大殘差 0.32%。",
+    "反平方 Comet：方向對得上；此列只判方向，不出百分比。",
+    "簡單渦旋 Moon：只有說法；沒有交出可核對數字。",
+    "簡單渦旋 Planets：對不上；推得 6.4 年，實測 11.86 年——差 45.8%。",
+    "簡單渦旋 Comet：方向相反；與固定流向衝突。"
+   ],
+   "variants": {
+    "no_loans": {
+     "items": [
+      {
+       "asset": "card_K4_no_loans_raster_v03",
+       "alt": "模型比較對帳桌：反平方三格對得上；簡單渦旋一格只有說法、兩格對不上，行星與彗星都未加借條"
+      }
+     ],
+     "caption": "模型比較已封存：行星與彗星都未加借條。",
+     "accessibleText": [
+      "封存的借條狀態：行星未加借條；彗星未加借條。",
+      "三份資料、兩套固定規矩：拉力帳三格都對得上；漩渦帳一格只有說法，另外兩格對不上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
+     ]
+    },
+    "planets_loan": {
+     "items": [
+      {
+       "asset": "card_K4_planets_loan_raster_v03",
+       "alt": "模型比較對帳桌：行星渦旋格貼有木星分層流速借條，彗星格未加借條且保留失配"
+      }
+     ],
+     "caption": "模型比較已封存：行星加了借條；彗星未加借條。",
+     "accessibleText": [
+      "封存的借條狀態：行星借條——木星那一層另設流速；彗星未加借條，失配保留。",
+      "拉力帳三格都對得上。漩渦帳的行星格改了流速表才貼合，借條仍在；彗星格對不上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
+     ]
+    },
+    "comet_loan": {
+     "items": [
+      {
+       "asset": "card_K4_comet_loan_raster_v03",
+       "alt": "模型比較對帳桌：彗星渦旋格貼有未量過的穿流借條，行星格未加借條且保留失配"
+      }
+     ],
+     "caption": "模型比較已封存：行星未加借條；彗星加了借條。",
+     "accessibleText": [
+      "封存的借條狀態：行星未加借條，失配保留；彗星借條——彗星可以穿過流（未量過）。",
+      "拉力帳三格都對得上。漩渦帳的彗星格靠未量過的穿流假設才講得通；行星格對不上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
+     ]
+    },
+    "both_loans": {
+     "items": [
+      {
+       "asset": "card_K4_both_loans_raster_v04",
+       "alt": "模型比較對帳桌：行星渦旋格與彗星渦旋格各貼一張借條，兩筆逐案新增的代價都保留在帳上"
+      }
+     ],
+     "caption": "模型比較已封存：行星與彗星都加了借條。",
+     "accessibleText": [
+      "封存的借條狀態：行星借條——木星那一層另設流速；彗星借條——彗星可以穿過流（未量過）。",
+      "拉力帳三格都對得上。漩渦帳原先兩格失配；每次改成講得通，逐案新增的代價都留在借條上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
+     ]
+    }
+   }
   },
   "K5": {
    "items": [
@@ -4745,8 +4864,8 @@
    "caption": "取得證據：關住外界空氣後升溫沒有按封存預測變慢。"
   },
   "T4": {
-   "items": [{ "asset": "card_T4", "alt": "四張封存終點帶被長時段曲線越過，封蠟裂開但原帶保留" }],
-   "caption": "取得證據：四個有限來源逐張判讀完成；裂封與原預測仍可追查。"
+   "items": [{ "asset": "card_T4", "alt": "碎屑、炮身、空氣與水四份卷袋並列，原預測帶保留；右側長時段升溫線，終點位置與封條狀態需展開本局卷宗查看" }],
+   "caption": "取得證據：四份來源已逐張判讀；各自的原預測帶、終點位置與封條狀態仍可追查。"
   },
   "T5": {
    "items": [{ "asset": "card_T5", "alt": "共同驗證頁分四欄署名，並保留範圍未決與兌換率未量得" }],

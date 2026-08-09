@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="t d"><title id="t">T3 密合對照</title><desc id="d">開放進氣與扣緊皮圈的兩組裝置並排，兩條乾淨升溫曲線近似重合，舊空氣來源封條保留斜線。</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="t d"><title id="t">密合對照</title><desc id="d">開放進氣與扣緊皮圈的兩組裝置並排，兩條乾淨升溫曲線近似重合，舊空氣來源封條保留斜線。</desc>
 <rect width="1200" height="750" fill="#e9ddbd"/><rect x="38" y="38" width="1124" height="674" rx="18" fill="none" stroke="#5f4632" stroke-width="5"/>
-<text x="80" y="110" font-family="serif" font-size="48" fill="#3b2a20">T3｜關住空氣後，升溫沒有消失</text>
+<text x="80" y="110" font-family="serif" font-size="48" fill="#3b2a20">關住空氣後，升溫沒有消失</text>
 <g fill="#c9b38d" stroke="#49392c" stroke-width="8"><rect x="110" y="230" width="330" height="210" rx="30"/><rect x="500" y="230" width="330" height="210" rx="30"/></g>
 <path d="M85 285h150" stroke="#4f8497" stroke-width="14" marker-end="url(#a)"/><path d="M490 205l350 260" stroke="#8d332b" stroke-width="18" opacity=".75"/><text x="275" y="495" text-anchor="middle" font-family="sans-serif" font-size="30">開放進氣</text><text x="665" y="495" text-anchor="middle" font-family="sans-serif" font-size="30">皮圈密合</text>
 <path d="M880 475V220M880 475h230" stroke="#40362d" stroke-width="6"/><path d="M895 445C950 390 1000 315 1090 265" fill="none" stroke="#a44d35" stroke-width="12"/><path d="M895 450C950 395 1000 320 1090 270" fill="none" stroke="#305f78" stroke-width="7" stroke-dasharray="18 13"/>

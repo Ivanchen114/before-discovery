@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,12 +7,19 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const assets = require("../data/assets.js");
+const Engine4 = require("../src/engine4.js");
 const json = JSON.parse(readFileSync(path.join(here, "../data/assets.json"), "utf-8"));
 
 function fail(message) {
   console.error("  ✗ 第四章正式美術與音樂交接|" + message);
   process.exitCode = 1;
   throw new Error(message);
+}
+
+function svgVisibleText(source) {
+  return [...source.matchAll(/<(?:title|text)\b[^>]*>([\s\S]*?)<\/(?:title|text)>/g)]
+    .map((match) => match[1].replace(/<[^>]+>/g, " "))
+    .join(" ");
 }
 
 if (JSON.stringify(assets) !== JSON.stringify(json)) fail("assets.js 與 assets.json 漂移");
@@ -69,7 +77,7 @@ if (assets.chapterThumbnail.ch04 !== "chapter_thumbnail_ch04")
   fail("第四章章節縮圖未接上");
 
 const expectedEvidenceAssets = {
-  K1: { id:"card_K1", w:1200, h:750 },
+  K1: { id:"card_K1_raster_v02", w:1586, h:992 },
   K2: { id:"ch04_focus_shared_moon_calculation_v01", w:1672, h:941 },
   K3: { id:"card_K3", w:1200, h:750 },
   K4: { id:"card_K4", w:1200, h:750 },
@@ -101,10 +109,70 @@ for (const [code, expected] of Object.entries(expectedEvidenceAssets)) {
       fail("K2 證據圖超過單檔 512 KB 預算");
     continue;
   }
+  if (code === "K1") {
+    if (!entry.path.endsWith(".webp") || !entry.sourceMaster ||
+        !existsSync(path.join(here, "../../", entry.sourceMaster)))
+      fail("K1 未使用有 Art Lock 母版的完整 raster");
+    if (statSync(file).size > 768 * 1024)
+      fail("K1 證據圖超過單檔 768 KB 工作預算");
+    if (!visual.readerTitle || visual.accessibleText?.length !== 2)
+      fail("K1 放大閱讀缺圖外逐字文字版");
+    continue;
+  }
   const svg = readFileSync(file, "utf-8");
   if (!svg.includes('role="img"') || !svg.includes("<title") || !svg.includes("<desc"))
     fail("第四章證據圖缺可及性文字:" + expected.id);
+  if (/(^|[^A-Za-z0-9_])K[1-5](?=[^A-Za-z0-9_]|$)/.test(svgVisibleText(svg)))
+    fail("第四章證據圖仍向玩家顯示內部代號:" + expected.id);
 }
+
+const rasterLocks = {
+  card_K1_raster_v02: "4bb170a8c175dc9888682024ec65cd5c7040099ad3dcc9fe1aa06c6cc95b079b",
+  card_K4_no_loans_raster_v03: "5d125862cd16f97c82b47f7bf0cbecc63955769b6eebf648b93173684cc16687",
+  card_K4_planets_loan_raster_v03: "66a0c985e9cbd71dc5e18672358baa10630c212a1f9b30d8efdcdc604db43bdf",
+  card_K4_comet_loan_raster_v03: "e74d3442267f1fbce4d2305fac2d1dca07a7540cc6da5d17380faa2a4427ee62",
+  card_K4_both_loans_raster_v04: "7c9240725524d032d7e32a982a5ea36ba89e29afd5a6053349431e5fd71a49c8"
+};
+for (const [id, expectedSha] of Object.entries(rasterLocks)) {
+  const entry = entries.get(id);
+  if (!entry?.path?.endsWith(".webp") || entry.w !== 1586 || entry.h !== 992 || !entry.sourceMaster)
+    fail("Art Lock raster 宣告錯誤:" + id);
+  const runtime = path.join(here, "../../public/assets", entry.path);
+  const master = path.join(here, "../../", entry.sourceMaster);
+  if (!existsSync(runtime) || !existsSync(master)) fail("Art Lock raster 或母版不存在:" + id);
+  if (statSync(runtime).size > 768 * 1024) fail("Art Lock raster 超過 768 KB 工作預算:" + id);
+  const actualSha = createHash("sha256").update(readFileSync(master)).digest("hex");
+  if (actualSha !== expectedSha) fail("Art Lock 母版雜湊漂移:" + id);
+}
+
+const k4Visual = assets.evidenceVisual.K4;
+const k4Variants = {
+  no_loans: { asset: "card_K4_no_loans_raster_v03", loans: [] },
+  planets_loan: { asset: "card_K4_planets_loan_raster_v03", loans: [{ caseId: "planets" }] },
+  comet_loan: { asset: "card_K4_comet_loan_raster_v03", loans: [{ caseId: "comet" }] },
+  both_loans: { asset: "card_K4_both_loans_raster_v04", loans: [{ caseId: "planets" }, { caseId: "comet" }] }
+};
+if (k4Visual.items?.[0]?.asset !== "card_K4" ||
+    k4Visual.fallbackNotice !== "此存檔的借條狀態無法安全還原。")
+  fail("K4 fail-closed 中性圖或圖外標示缺失");
+for (const [key, expected] of Object.entries(k4Variants)) {
+  const variant = k4Visual.variants?.[key];
+  if (variant?.items?.[0]?.asset !== expected.asset || !variant.caption ||
+      !variant.accessibleText?.length)
+    fail("K4 有限變體未完整登錄:" + key);
+  const claim = Engine4._ledgerClaimText({ loans: expected.loans });
+  if (variant.accessibleText.at(-1) !== claim)
+    fail("K4 文字版沒有逐字取自 deterministic ledgerClaimText:" + key);
+}
+
+const k4Fallback = readFileSync(path.join(
+  here, "../../public/assets/ch04/evidence/ch04_card_K4_model_comparison_v01.svg"), "utf-8");
+for (const fragment of ["殘差 0.36%", "兩筆較大殘差 0.32%", "此列只判方向，不出百分比",
+  "只有說法", "沒有交出可核對數字", "推得 6.4 年，實測 11.86 年", "差 45.8%",
+  "方向相反", "與固定流向衝突"])
+  if (!k4Fallback.includes(fragment)) fail("K4 舊 SVG 尚未換成 runtime 真值:" + fragment);
+for (const stale of ["0.8%", "1.6%", "2.2%", "3.8%", "12.4%", "28.0%", "補丁 2"])
+  if (k4Fallback.includes(stale)) fail("K4 舊 SVG 假數據仍在 runtime:" + stale);
 
 const tangentSheet = entries.get("ch04_prop_tangent_geometry_base_v01");
 if (tangentSheet?.path !== "ch04/props/ch04_prop_tangent_geometry_base_v01.webp" ||

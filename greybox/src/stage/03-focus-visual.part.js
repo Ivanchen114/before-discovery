@@ -213,10 +213,36 @@
       return;
     }
   }
-  function showEvidenceFocus(code, name) {
+  /* CH4-CR-014：舞台只解析 chapter-ui 投影出的具名 visualKey。
+     有 variants 而 key 不合法時，退回中性圖並明示無法安全還原；固定卡的 null 正常。 */
+  function resolveEvidenceVisual(code, visualKey) {
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
+    if (!rule) return null;
+    var variant = null, fallback = false;
+    if (rule.variants) {
+      variant = typeof visualKey === "string" ? rule.variants[visualKey] : null;
+      fallback = !variant;
+      if (fallback && typeof console !== "undefined" && console.warn)
+        console.warn("[CH4-CR-014] 證據圖狀態無法安全還原，已使用中性圖：" + code);
+    }
+    return {
+      code: code,
+      visualKey: variant ? visualKey : null,
+      items: (variant && variant.items) || rule.items || [],
+      caption: (variant && variant.caption) || rule.caption || "",
+      readerTitle: (variant && variant.readerTitle) || rule.readerTitle || "",
+      accessibleText: (rule.accessibleText || []).concat(
+        variant && variant.accessibleText || []),
+      fallback: fallback,
+      fallbackNotice: fallback ? (rule.fallbackNotice || "證據圖狀態無法安全還原。") : ""
+    };
+  }
+  function showEvidenceFocus(code, name, visualKey) {
+    var rule = resolveEvidenceVisual(code, visualKey);
     if (!rule) return;
-    showFocusVisual({ items: rule.items || [], caption: rule.caption || ("取得證據：" + name) });
+    var caption = rule.caption || ("取得證據：" + name);
+    if (rule.fallbackNotice) caption += "｜" + rule.fallbackNotice;
+    showFocusVisual({ items: rule.items, caption: caption });
     var fig = $("sceneFocus");
     if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
   }
@@ -224,10 +250,12 @@
     if (!list || !list.length) return;
     var items = [], captions = [];
     list.forEach(function (evidence) {
-      var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[evidence.code];
+      var rule = resolveEvidenceVisual(evidence.code, evidence.visualKey);
       if (!rule) return;
       (rule.items || []).forEach(function (item) { items.push(item); });
-      captions.push(rule.caption || ("取得證據：" + evidence.name));
+      var caption = rule.caption || ("取得證據：" + evidence.name);
+      if (rule.fallbackNotice) caption += "｜" + rule.fallbackNotice;
+      captions.push(caption);
     });
     if (!items.length) return;
     showFocusVisual({ items: items, caption: captions.join("｜") });

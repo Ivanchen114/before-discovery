@@ -336,7 +336,7 @@
      "type": "system",
      "speaker": "system",
      "receiptKind": "source",
-     "text": "取得 S6：《運動之量》正統文獻。這本帳主張：碰撞前後，把帶方向的 mv 加總，應該對得平。",
+     "text": "收入卷宗：《運動之量》正統文獻。這本帳主張：碰撞前後，把帶方向的 mv 加總，應該對得平。",
      "effects": [
       {
        "evidence": "S6"
@@ -384,7 +384,7 @@
      "type": "system",
      "speaker": "system",
      "receiptKind": "source",
-     "text": "取得 S7：黏土報告。同一顆球從不同高度落下，留下可比較的坑深。它和兩本帳的關係尚未判定。",
+     "text": "收入卷宗：黏土報告。同一顆球從不同高度落下，留下可比較的坑深。它和兩本帳的關係尚未判定。",
      "effects": [
       {
        "evidence": "S7"
@@ -999,11 +999,27 @@
       {
        "id": "overclaim-vital-force",
        "text": "坑深跟著速度的平方走。這證明活力才是真的運動之量。",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "vis-viva-open"
+         ]
+        }
+       ],
        "next": "scale_bad_world"
       },
       {
        "id": "momentum-wrong",
        "text": "坑深跟著速度的平方走——所以動量帳是錯的。",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "momentum-false-open"
+         ]
+        }
+       ],
        "next": "scale_bad_momentum"
       },
       {
@@ -1013,6 +1029,12 @@
         {
          "flag": [
           "ch5ScaleBoundary",
+          "measurement-only"
+         ]
+        },
+        {
+         "flag": [
+          "ch5ScaleClaim",
           "measurement-only"
          ]
         }
@@ -1026,14 +1048,28 @@
      "type": "line",
      "speaker": "杜夏特萊",
      "text": "停。你今天量的只是油灰。這盤油灰可代表不了全世界。",
-     "next": "c_scale"
+     "next": "v_commit"
+    },
+    {
+     "id": "v_commit",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "（把你的原句一字不改寫進帳頁邊欄）但你說了。（合上帳）帶著它上桌吧——桌上有人，等這句話等了三十年。",
+     "next": "n1a"
     },
     {
      "id": "scale_bad_momentum",
      "type": "line",
      "speaker": "杜佩院士",
      "text": "我的帳從來沒有出錯。你去翻三十年。",
-     "next": "c_scale"
+     "next": "m_commit"
+    },
+    {
+     "id": "m_commit",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "（合上自己的帳本，第一次正眼看旅人）好啊。晚宴上翻。",
+     "next": "n1a"
     },
     {
      "id": "scale_right",
@@ -1114,6 +1150,190 @@
      "type": "line",
      "speaker": "杜夏特萊",
      "text": "讓兩本帳都留在桌上。",
+     "next": "duel_v1"
+    },
+    {
+     "id": "duel_v1",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "（不等入席就開口）聽說今天下午，一盤油灰替兩本帳分出了勝負。（把黏土盤緩緩轉向眾人）一個坑。審判三十年。諸位——這就是新學問的尺？",
+     "require": {
+      "flag": [
+       "ch5ScaleClaim",
+       "vis-viva-open"
+      ]
+     },
+     "next": "c_hold_v"
+    },
+    {
+     "id": "c_hold_v",
+     "type": "choice",
+     "text": "杜佩院士把你下午的原句推回桌心。你怎麼回？",
+     "require": {
+      "flag": [
+       "ch5ScaleClaim",
+       "vis-viva-open"
+      ]
+     },
+     "options": [
+      {
+       "id": "hold",
+       "text": "坑深就是跟著平方走。這一點，油灰已經替我作證。",
+       "next": "duel_v2_v"
+      },
+      {
+       "id": "shrink",
+       "text": "我收回下午說過頭的部分。油灰量得出短少——它審不了整本帳。",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "vis-viva-shrunk"
+         ]
+        }
+       ],
+       "next": "e_shrunk"
+      }
+     ],
+     "next": "duel_v1m"
+    },
+    {
+     "id": "duel_v2_v",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "（翻開活力帳那頁，推到桌心）同一批碰撞。你的油灰坑量過碰撞後兩邊的速度嗎？量過方向嗎？（頓）沒有。那它憑什麼，審一本記方向的帳？",
+     "next": "c_shrink_v"
+    },
+    {
+     "id": "c_shrink_v",
+     "type": "choice",
+     "text": "油灰只記下深度。你的原句仍在帳頁邊欄。",
+     "options": [
+      {
+       "id": "shrink",
+       "text": "……它憑的只有深度。我把話收回到深度為止。",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "vis-viva-shrunk"
+         ]
+        }
+       ],
+       "next": "e_shrunk"
+      },
+      {
+       "id": "silent",
+       "text": "沉默不語",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "vis-viva-silent"
+         ]
+        }
+       ],
+       "next": "e_silent"
+      }
+     ]
+    },
+    {
+     "id": "duel_v1m",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "（起身，把自己的帳本放到黏土盤旁）三十年的帳，被一盤油灰宣判死刑。（環視）今晚請諸位斷一斷：審的是帳——還是審我這個人？",
+     "require": {
+      "flag": [
+       "ch5ScaleClaim",
+       "momentum-false-open"
+      ]
+     },
+     "next": "c_hold_m"
+    },
+    {
+     "id": "c_hold_m",
+     "type": "choice",
+     "text": "杜佩院士把你下午的原句推回桌心。你怎麼回？",
+     "require": {
+      "flag": [
+       "ch5ScaleClaim",
+       "momentum-false-open"
+      ]
+     },
+     "options": [
+      {
+       "id": "hold",
+       "text": "坑深就是跟著平方走。這一點，油灰已經替我作證。",
+       "next": "duel_v2_m"
+      },
+      {
+       "id": "shrink",
+       "text": "我收回下午說過頭的部分。油灰量得出短少——它審不了整本帳。",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "momentum-false-shrunk"
+         ]
+        }
+       ],
+       "next": "e_shrunk"
+      }
+     ],
+     "next": "debate"
+    },
+    {
+     "id": "duel_v2_m",
+     "type": "line",
+     "speaker": "杜佩院士",
+     "text": "（翻開活力帳那頁，推到桌心）同一批碰撞。你的油灰坑量過碰撞後兩邊的速度嗎？量過方向嗎？（頓）沒有。那它憑什麼，審一本記方向的帳？",
+     "next": "c_shrink_m"
+    },
+    {
+     "id": "c_shrink_m",
+     "type": "choice",
+     "text": "油灰只記下深度。你的原句仍在帳頁邊欄。",
+     "options": [
+      {
+       "id": "shrink",
+       "text": "……它憑的只有深度。我把話收回到深度為止。",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "momentum-false-shrunk"
+         ]
+        }
+       ],
+       "next": "e_shrunk"
+      },
+      {
+       "id": "silent",
+       "text": "沉默不語",
+       "effects": [
+        {
+         "flag": [
+          "ch5ScaleClaim",
+          "momentum-false-silent"
+         ]
+        }
+       ],
+       "next": "e_silent"
+      }
+     ]
+    },
+    {
+     "id": "e_shrunk",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "（在你剛縮短的句子下畫了一條線）現在它站得住了。（低聲）站得住的話，才輪得到你替它辯護。",
+     "next": "debate"
+    },
+    {
+     "id": "e_silent",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "（把下午那句原話留在帳頁邊欄，沒有替你劃線）沉默不算撤回。上桌吧——它還是你的。",
      "next": "debate"
     },
     {
@@ -1162,6 +1382,52 @@
      "type": "line",
      "speaker": "stage",
      "text": "院士沒有撕掉自己的紙。兩本帳並排攤著，各自答得了自己那些問題，也各自留著還沒對平的那一截。",
+     "next": "e32_trace"
+    },
+    {
+     "id": "e32_trace",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "（把帳頁邊欄翻開給你看——下午那句原話還在）別撕。它是你今晚一路縮回來的起點。",
+     "require": {
+      "any": [
+       {
+        "flag": [
+         "ch5ScaleClaim",
+         "vis-viva-shrunk"
+        ]
+       },
+       {
+        "flag": [
+         "ch5ScaleClaim",
+         "momentum-false-shrunk"
+        ]
+       }
+      ]
+     },
+     "next": "e32_trace_silent"
+    },
+    {
+     "id": "e32_trace_silent",
+     "type": "line",
+     "speaker": "杜夏特萊",
+     "text": "（把帳頁邊欄翻開給你看——下午那句原話旁，今晚仍是一片空白）你沒有收回。那它就繼續算在你名下。",
+     "require": {
+      "any": [
+       {
+        "flag": [
+         "ch5ScaleClaim",
+         "vis-viva-silent"
+        ]
+       },
+       {
+        "flag": [
+         "ch5ScaleClaim",
+         "momentum-false-silent"
+        ]
+       }
+      ]
+     },
      "next": "x1"
     },
     {
@@ -1230,7 +1496,7 @@
      "id": "j4",
      "type": "system",
      "speaker": "system",
-     "text": "取得 J4：兩本帳的重寫。短少去了哪裡，現在還對不平。",
+     "text": "收入旅人筆記：兩本帳的重寫。短少去了哪裡，現在還對不平。",
      "effects": [
       {
        "evidence": "J4"

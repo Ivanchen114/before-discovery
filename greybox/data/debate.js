@@ -56,7 +56,7 @@
       "P1": {
         "title": "第一支柱:感官經驗",
         "reasonMode": "player",
-        "responsePrompt": "E4 把形狀和介質拆開了。這張紙能推出哪一步?",
+        "responsePrompt": "真空管落球把形狀和介質拆開了。這張紙能推出哪一步?",
         "responses": [
           {
             "id": "cause-not-eye",
@@ -113,7 +113,7 @@
       "P2": {
         "title": "第二支柱:權威",
         "reasonMode": "player",
-        "responsePrompt": "E2 讓同一個前提推出兩個相反結果。這代表什麼?",
+        "responsePrompt": "綁縛悖論讓同一個前提推出兩個相反結果。這代表什麼?",
         "responses": [
           {
             "id": "premise-conflicts",
@@ -183,7 +183,7 @@
       "P3": {
         "title": "第三支柱:目的論",
         "reasonMode": "player",
-        "responsePrompt": "E3.b 換成不同重量的球，仍得到同一組奇數律。這張紙能推出哪一步?",
+        "responsePrompt": "斜面換成不同重量的球，仍得到同一組奇數律。這張紙能推出哪一步?",
         "responses": [
           {
             "id": "weight-not-supported",

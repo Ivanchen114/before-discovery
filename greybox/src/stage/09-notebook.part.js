@@ -39,6 +39,43 @@
       sheet.style.backgroundPosition = "center";
     }
   }
+  var evidenceReaderReturnFocus = null;
+  function closeEvidenceReader(silent) {
+    var reader = $("evidenceReader");
+    if (!reader || reader.hidden) return;
+    reader.hidden = true;
+    $("nbSheet").removeAttribute("aria-hidden");
+    $("evidenceReaderImage").removeAttribute("src");
+    if (!silent && evidenceReaderReturnFocus && typeof evidenceReaderReturnFocus.focus === "function")
+      evidenceReaderReturnFocus.focus();
+    evidenceReaderReturnFocus = null;
+  }
+  function openEvidenceReader(item, name, resolved, trigger) {
+    var reader = $("evidenceReader");
+    var first = resolved && resolved.items && resolved.items[0];
+    var art = first && assetEntry(first.asset);
+    if (!reader || !art) return;
+    evidenceReaderReturnFocus = trigger;
+    $("evidenceReaderTitle").textContent = resolved.readerTitle || name;
+    var img = $("evidenceReaderImage");
+    img.src = assetUrl(art);
+    img.alt = first.alt || (name + "證據圖");
+    $("evidenceReaderCaption").textContent = resolved.caption || name;
+    var warning = $("evidenceReaderWarning");
+    warning.textContent = resolved.fallbackNotice || "";
+    warning.hidden = !resolved.fallback;
+    var textList = $("evidenceReaderText");
+    textList.innerHTML = "";
+    (resolved.accessibleText || []).forEach(function (line) {
+      var li = document.createElement("li");
+      li.textContent = line;
+      textList.appendChild(li);
+    });
+    $("evidenceReaderTranscript").hidden = !textList.children.length;
+    $("nbSheet").setAttribute("aria-hidden", "true");
+    reader.hidden = false;
+    $("btnEvidenceReaderClose").focus();
+  }
   /* 證據卡:穩定 code 找圖、白話 name 顯示；不得從翻譯後名稱反推 ID。 */
   function renderEvidenceCards() {
     var wrap = $("nbCards");
@@ -54,14 +91,21 @@
       var name = item && item.name || "未命名證據";
       if (!code) return;
       var specificBg = assetEntry("card_" + code);
-      var visual = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
-      var visualAsset = visual && visual.items && visual.items[0] && visual.items[0].asset;
-      var bgE = specificBg || assetEntry(visualAsset) || tpl; /* 專卡→既有實驗圖→共用底；穩定 code 單一解析。 */
-      var card = document.createElement("div");
+      var resolved = resolveEvidenceVisual(code, item.visualKey);
+      var visualAsset = resolved && resolved.items && resolved.items[0] && resolved.items[0].asset;
+      /* 狀態圖必須先過 resolver；禁止靜態 card_K4 蓋過封存世界線。 */
+      var bgE = assetEntry(visualAsset) || specificBg || tpl;
+      var canRead = !!(resolved && assetEntry(visualAsset));
+      var card = document.createElement(canRead ? "button" : "div");
       card.className = "evcard";
       card.dataset.evidenceCode = code;
-      card.setAttribute("role", "img");
-      card.setAttribute("aria-label", name + "證據圖");
+      if (canRead) {
+        card.type = "button";
+        card.setAttribute("aria-label", "放大閱讀「" + name + "」證據圖");
+      } else {
+        card.setAttribute("role", "img");
+        card.setAttribute("aria-label", name + "證據圖");
+      }
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
       var b = document.createElement("b"); b.textContent = name;
       card.appendChild(b);
@@ -70,6 +114,14 @@
         card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
         card.lastElementChild.removeAttribute("aria-hidden");
       }
+      if (canRead) card.addEventListener("click", function () {
+        openEvidenceReader(item, name, resolved, card);
+      });
+      if (canRead) card.addEventListener("keydown", function (ev) {
+        if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
+        ev.preventDefault(); /* 明示鍵盤啟動；阻止原生 keyup 再送一次 click。 */
+        openEvidenceReader(item, name, resolved, card);
+      });
       wrap.appendChild(card);
     });
   }
@@ -123,6 +175,7 @@
   }
   function closeNotebook(silent) {
     if ($("notebook").hidden) return;
+    closeEvidenceReader(true);
     $("notebook").hidden = true;
     $("btnDrawer").setAttribute("aria-expanded", "false");
     resumeTyping();
@@ -133,9 +186,23 @@
     if ($("notebook").hidden) openNotebook(); else closeNotebook();
   });
   $("btnDrawerClose").addEventListener("click", function () { closeNotebook(); });
+  $("btnEvidenceReaderClose").addEventListener("click", function () { closeEvidenceReader(); });
+  $("evidenceReader").addEventListener("click", function (ev) {
+    if (ev.target === $("evidenceReader")) closeEvidenceReader();
+  });
   document.addEventListener("keydown", function (ev) {
+    var reader = $("evidenceReader");
+    if (!reader.hidden && ev.key === "Tab") {
+      var controls = reader.querySelectorAll("button:not([disabled]), details summary, [tabindex]:not([tabindex='-1'])");
+      if (!controls.length) return;
+      var first = controls[0], last = controls[controls.length - 1];
+      if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+      else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+      return;
+    }
     if (ev.key !== "Escape") return;
     if (!$("fxJump").hidden) { ev.preventDefault(); return; } /* 時代轉場必須逐幕看完，Esc 不得跳過 */
+    if (!reader.hidden) { ev.preventDefault(); closeEvidenceReader(); return; }
     if (!$("notebook").hidden) { ev.preventDefault(); closeNotebook(); return; }
     if (!$("prologueCard").hidden) { ev.preventDefault(); dismissPrologue(); return; }
     if (!$("apparatusSurvey").hidden) {
@@ -152,6 +219,8 @@
     var fx = $("fxJump");
     if (!fx.hidden && !fx.contains(ev.target)) { fx.focus(); return; }
     var nb = $("notebook");
+    var reader = $("evidenceReader");
+    if (!reader.hidden && !reader.contains(ev.target)) { $("btnEvidenceReaderClose").focus(); return; }
     if (!nb.hidden && !nb.contains(ev.target)) { $("btnDrawerClose").focus(); return; }
     var pc = $("prologueCard");
     if (!pc.hidden && !pc.contains(ev.target)) { pc.focus(); return; }

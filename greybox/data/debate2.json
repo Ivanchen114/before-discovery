@@ -11,7 +11,7 @@
    "P1": {
     "title": "第一支柱:匠人經驗與圖",
     "reasonMode": "player",
-    "responsePrompt": "F4 的墨跡從離手就開始彎。這能反駁哪一步?",
+    "responsePrompt": "墨跡從離手就開始彎。這能反駁哪一步?",
     "responses": [
      {
       "id": "no-straight-stage",
@@ -60,7 +60,7 @@
    "P2": {
     "title": "第二支柱:要等向前的力用完,才會開始下墜?",
     "reasonMode": "player",
-    "responsePrompt": "F3 的一拋一放,三種高度都分不出先後。這張紙能推出哪一步?",
+    "responsePrompt": "一拋一放的三組原紙都分不出先後。這能推出哪一步?",
     "responses": [
      {
       "id": "fall-not-delayed",

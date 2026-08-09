@@ -112,13 +112,54 @@
   }
 
   /* ---------- 守衛與效果 ---------- */
-  function passRequire(state, req) {
+  function passRequire(state, req, depth) {
     if (!req) return true;
-    if (req.flag) return state.flags[req.flag[0]] === req.flag[1];
-    if (req.flagAbsent) return !(req.flagAbsent in state.flags);
-    if (req.evidence) return !!state.evidence[req.evidence];
-    if (req.flags) return req.flags.every(function (p) { return state.flags[p[0]] === p[1]; });
-    return true;
+    depth = depth || 0;
+    if (depth > 8 || !req || typeof req !== "object" || Array.isArray(req)) return false;
+    var keys = Object.keys(req);
+    if (keys.length !== 1) return false; /* 一個物件只准一種運算，未知形狀一律 fail-closed。 */
+    var op = keys[0], value = req[op];
+    function pair(p) {
+      return Array.isArray(p) && p.length === 2 &&
+        typeof p[0] === "string" && ["string", "number", "boolean"].indexOf(typeof p[1]) >= 0;
+    }
+    if (op === "flag") return pair(value) && state.flags[value[0]] === value[1];
+    if (op === "flagAbsent")
+      return typeof value === "string" && !Object.prototype.hasOwnProperty.call(state.flags, value);
+    if (op === "evidence") return typeof value === "string" && !!state.evidence[value];
+    if (op === "flags")
+      return Array.isArray(value) && value.length > 0 && value.every(function (p) {
+        return pair(p) && state.flags[p[0]] === p[1];
+      });
+    if (op === "event") {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+      var eventKeys = Object.keys(value);
+      if (!eventKeys.length || eventKeys.some(function (key) {
+        return ["t", "at", "pick"].indexOf(key) < 0 || typeof value[key] !== "string";
+      }) || typeof value.t !== "string") return false;
+      return (state.eventLog || []).some(function (event) {
+        return event && eventKeys.every(function (key) { return event[key] === value[key]; });
+      });
+    }
+    if (op === "claim") {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+      var claimKeys = Object.keys(value);
+      if (!claimKeys.length || claimKeys.some(function (key) {
+        return ["ok", "consistent", "predHit"].indexOf(key) < 0 || typeof value[key] !== "boolean";
+      })) return false;
+      var claims = state.lab && state.lab.inference && state.lab.inference.claims;
+      return Array.isArray(claims) && claims.some(function (claim) {
+        return claim && claimKeys.every(function (key) { return claim[key] === value[key]; });
+      });
+    }
+    if (op === "all" || op === "any") {
+      if (!Array.isArray(value) || !value.length) return false;
+      return op === "all"
+        ? value.every(function (child) { return passRequire(state, child, depth + 1); })
+        : value.some(function (child) { return passRequire(state, child, depth + 1); });
+    }
+    if (op === "not") return passRequire(state, value, depth + 1) === false;
+    return false;
   }
   function passMode(state, node) { return !node.mode || node.mode === "all" || node.mode === state.mode; }
   function visible(state, x) { return passMode(state, x) && passRequire(state, x.require); }
