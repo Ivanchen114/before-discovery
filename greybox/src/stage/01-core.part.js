@@ -15,7 +15,11 @@
   var SCENES = window.GB.DATA.scenes;
   var ASSETS = window.GB.DATA.assets || null;
   var TEXT = window.GB.TextFormat || null;
-  var CHAPTER_ID = /^ch[1-6]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
+  var REGISTRY = window.GB.ChapterRegistry;
+  var CHAPTER_META = REGISTRY && REGISTRY.byId
+    ? REGISTRY.byId(SCENES.chapter || document.body.getAttribute("data-chapter") || "ch1") : null;
+  if (!CHAPTER_META) throw new Error("舞台找不到已登錄章別:" + String(SCENES.chapter || "(空白)"));
+  var CHAPTER_ID = CHAPTER_META.id;
   var TYPE_MS = 40;                    /* 逐字基速 */
   var PAUSE_SHORT = 90, PAUSE_LONG = 240; /* 標點附加停頓 */
   var SHORT_P = "、，,；;：:·—", LONG_P = "。．.？！?!…";

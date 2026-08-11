@@ -208,6 +208,67 @@ for (const guard of ["合理重建", "共同頁第一版畫成五欄", "炮身�
   "不在點陣圖燒入", "虛構複合角色", "不宣稱精確復原"])
   if (!handoff.includes(guard)) fail("美術交接缺邊界:" + guard);
 
+const audioCues = {
+  ch6Arsenal: "ch06/Ch6_Arsenal_Question.mp3",
+  ch6Sources: "ch06/Ch6_Four_Sources_Ledger.mp3",
+  ch6Contact: "ch06/Ch6_Chips_And_Contact.mp3",
+  ch6Strip: "ch06/Ch6_First_Rising_Strip.mp3",
+  ch6Containment: "ch06/Ch6_Seal_Air_And_Water.mp3",
+  ch6Continuous: "ch06/Ch6_Continuous_Run.mp3",
+  ch6Audit: "ch06/Ch6_Model_Audit.mp3",
+  ch6JointPage: "ch06/Ch6_Sign_Observation.mp3"
+};
+let audioBytes = 0;
+for (const [cue, clip] of Object.entries(audioCues)) {
+  const spec = assets.bgmFiles?.[cue];
+  if (!spec || JSON.stringify(spec.clips) !== JSON.stringify([clip]) || spec.mode !== "once")
+    fail("第六章音樂 cue 宣告錯誤:" + cue);
+  if (cue === "ch6JointPage") {
+    if (Object.hasOwn(spec, "repeatGapMs")) fail("章末音樂不應設循環間隔:" + cue);
+  } else if (spec.repeatGapMs !== 5000) {
+    fail("段落音樂缺 5 秒循環間隔:" + cue);
+  }
+  const runtime = path.join(publicRoot, "audio", clip);
+  if (!existsSync(runtime)) fail("第六章音樂檔案不存在:" + cue);
+  const head = readFileSync(runtime).subarray(0, 3).toString("ascii");
+  if (head !== "ID3") fail("第六章 MP3 檔頭錯誤:" + cue);
+  const size = statSync(runtime).size;
+  if (size > 3 * 1024 * 1024) fail("第六章單首音樂超過 3 MB:" + cue);
+  audioBytes += size;
+}
+if (audioBytes > 10 * 1024 * 1024) fail("第六章音樂超過全章 10 MB 預算");
+
+const sceneAudio = {
+  "ch6:H0-1": "ch6Arsenal",
+  "ch6:H0-2": "ch6Arsenal",
+  "ch6:H0-3": "ch6Sources",
+  "ch6:H1-1": "ch6Contact",
+  "ch6:H1-2": "ch6Contact",
+  "ch6:H1-3": "ch6Strip",
+  "ch6:H2-1": "ch6Containment",
+  "ch6:H2-2": "ch6Containment",
+  "ch6:H2-3": "ch6Continuous",
+  "ch6:H3-1": "ch6Audit",
+  "ch6:H3-2": "ch6Audit",
+  "ch6:HE-1": "ch6JointPage",
+  "ch6:SC6-R1": "silence"
+};
+for (const [scene, cue] of Object.entries(sceneAudio))
+  if (assets.sceneBgm?.[scene] !== cue) fail("第六章場景音樂映射錯誤:" + scene);
+const actualCh6AudioScenes = Object.keys(assets.sceneBgm || {})
+  .filter((scene) => scene.startsWith("ch6:"))
+  .sort();
+if (JSON.stringify(actualCh6AudioScenes) !== JSON.stringify(Object.keys(sceneAudio).sort()))
+  fail("第六章場景音樂範圍漂移（SC6-R1 必須明示 silence）");
+
+const audioPromptPath = path.join(publicRoot, "audio/ch06/PROMPTS_BGM_CH6_GEMINI_20260811.md");
+if (!existsSync(audioPromptPath)) fail("缺第六章正式音樂提示詞與生成交付紀錄");
+const audioPrompt = readFileSync(audioPromptPath, "utf-8");
+for (const guard of ["生成交付紀錄（2026-08-11）", "SynthID 保留", "Audio Lock",
+  "Ch6_Seal_Air_And_Water.mp3",
+  "c83c9b33be358f97798b4edca64d3f07fef2581ddcc8dd64978e6c31b392355c"])
+  if (!audioPrompt.includes(guard)) fail("第六章音樂交接缺邊界:" + guard);
+
 let totalBytes = 0;
 const runtimePaths = new Set();
 for (const entry of assets.entries) {
@@ -221,4 +282,6 @@ for (const entry of assets.entries) {
 if (runtimePaths.size !== 35) fail("第六章 runtime 檔案數應為 35，實際 " + runtimePaths.size);
 if (totalBytes > 8 * 1024 * 1024) fail("第六章 runtime 圖片超過全章 8 MB 預算");
 
-console.log("  ✓ 第六章正式美術交接（35 圖，含共同核紙、紙帶閱讀、公開未決與章末未來顯影，" + (totalBytes / 1024 / 1024).toFixed(2) + " MB）");
+console.log("  ✓ 第六章正式美術與音樂交接（35 圖／8 首 BGM；圖片 " +
+  (totalBytes / 1024 / 1024).toFixed(2) + " MB，音訊 " +
+  (audioBytes / 1024 / 1024).toFixed(2) + " MB）");

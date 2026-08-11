@@ -27,7 +27,7 @@
       snap.appendChild(head);
       snap.appendChild(tbl);
     });
-    if (!any) snap.innerHTML = '<p class="hint" style="color:var(--color-ink-secondary)">(尚無實驗紀錄)</p>';
+    if (!any) snap.innerHTML = '<p class="hint" style="color:var(--color-ink-secondary)">(尚無研究紀錄)</p>';
   }
   function applyNotebookBg() { /* 筆記本底圖:鎖 16:9 貼齊,內容排進紙面安全區(nb-art) */
     var e = assetEntry("bg_notebook");

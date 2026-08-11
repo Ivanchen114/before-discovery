@@ -24,6 +24,7 @@ const scenes3 = require("../data/scenes3.js");
 const scenes4 = require("../data/scenes4.js");
 const scenes5 = require("../data/scenes5.js");
 const scenes6 = require("../data/scenes6.js");
+const scenes7 = require("../data/scenes7.js");
 const debate5 = require("../data/debate5.js");
 const histfacts5 = require("../data/histfacts5.js");
 const TextFormat = require("../src/text-format.js");
@@ -488,13 +489,17 @@ tests.push({
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const fragment of ["data/scenes6.js", "data/histfacts6.js", "src/engine6.js",
-      'requested === "ch06"', "before-discovery:chapter6:v1"])
+      "src/chapter-registry.js", "data/series.js"])
       if (!html.includes(fragment)) throw new Error("第六章入口接線缺失:" + fragment);
+    const registry6 = require("../src/chapter-registry.js").byRoute("ch06");
+    if (!registry6 || registry6.runtime.saveKey !== "before-discovery:chapter6:v1" ||
+        registry6.runtime.engineKey !== "Engine6" ||
+        registry6.runtime.sanitizerKey !== "sanitizeImport6") throw new Error("第六章 registry 接線漂移");
     for (const fragment of ["renderHeat6", "finite-source-prediction-bands", "source-prediction-verdict",
-      "sanitizeImport6", "封存第六章"])
+      "sanitizeByChapter", "封存第六章"])
       if (!ui.includes(fragment)) throw new Error("第六章 UI 接線缺失:" + fragment);
-    if (!stageUi.includes('d.system === "heat"') || !stageUi.includes('CHAPTER_ID === "ch6"') ||
-        !stageUi.includes('stage.html?chapter=ch06'))
+    if (!stageUi.includes('d.system === "heat"') || !stageUi.includes("ChapterRegistry.nextOf") ||
+        require("../src/chapter-registry.js").nextOf("ch5").route !== "ch06")
       throw new Error("第六章沒有接進舞台視圖或第五章章尾出口");
   }
 });
@@ -957,7 +962,8 @@ tests.push({
     }
     /* 章首與跨年蒙太奇：各章共用契約；圖像負責時空感，文字由 HTML 呈現。 */
     const sceneIds = new Set([].concat(
-      scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes, scenes5.scenes, scenes6.scenes
+      scenes.scenes, scenes2.scenes, scenes3.scenes, scenes4.scenes, scenes5.scenes, scenes6.scenes,
+      scenes7.scenes
     ).map((s) => s.id));
     const entryById = Object.fromEntries(assets.entries.map((e) => [e.id, e]));
     /* 短幕時間折疊：保留正常逐句對話，只把世界退到近黑；不得冒充或自動播放 montage。 */
@@ -1599,9 +1605,12 @@ tests.push({
     if (!de2Text.includes("碰撞之後") || !de2Text.includes("什麼應該守住"))
       throw new Error("第四章 runtime 漏接碰撞守恆未解問題");
     const sui = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const frag of ["進入第二章", "stage.html?chapter=ch02", "進入第三章", "stage.html?chapter=ch03",
-      "進入第四章", "stage.html?chapter=ch04", "船艙裡的靜止", "月亮的無盡墜落"])
-      if (!sui.includes(frag)) throw new Error("章末直接接力缺失:" + frag);
+    const registry = require("../src/chapter-registry.js");
+    for (const [from, to] of [["ch1", "ch2"], ["ch2", "ch3"], ["ch3", "ch4"], ["ch4", "ch5"], ["ch5", "ch6"], ["ch6", "ch7"]])
+      if (!registry.nextOf(from) || registry.nextOf(from).id !== to)
+        throw new Error("章末 registry 接力缺失:" + from + "→" + to);
+    for (const frag of ["ChapterRegistry.nextOf", '"stage.html?chapter=" + nextMeta.route'])
+      if (!sui.includes(frag)) throw new Error("章末直接接力沒有使用 registry:" + frag);
     for (const placeholder of ["下一頁，仍未寫定", "旅程將繼續"])
       if (sui.includes(placeholder)) throw new Error("章末仍殘留通用佔位句:" + placeholder);
   }
@@ -1817,10 +1826,11 @@ tests.push({
     if (b12.nodes.find((n) => n.id === "nsch1").mode !== "scholar") throw new Error("學者節點未標 mode");
     /* 存檔鍵隔離:chapter2 覆寫 bd_ch2_save;chapter.html 不得含覆寫(灰盒零差異) */
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
-    if (!c2.includes('BD_SAVE_KEY = "bd_ch2_save"') || !c2.includes("scenes2")) throw new Error("chapter2 殼要素缺失");
-    if (readFileSync(path.join(here, "../chapter.html"), "utf-8").includes("BD_SAVE_KEY")) throw new Error("chapter.html 混入 ch2 覆寫");
-    if (!readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8").includes('window.BD_SAVE_KEY || "bd_ch1_save"'))
-      throw new Error("存檔鍵預設回退缺失");
+    if (!c2.includes("chapter-registry.js") || !c2.includes("scenes2")) throw new Error("chapter2 殼要素缺失");
+    const registry = require("../src/chapter-registry.js");
+    if (registry.byId("ch2").runtime.saveKey !== "bd_ch2_save" ||
+        !readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8").includes("CHAPTER_META.runtime.saveKey"))
+      throw new Error("存檔鍵未由 registry 單源解析");
   }
 });
 
@@ -3125,7 +3135,7 @@ tests.push({
     if (!N1.labAction(s1, "beginSeries", { ball: "copper" }).error) throw new Error("ch1 引擎誤收 ch2 動作");
     /* 殼接線+面板 */
     const c2 = readFileSync(path.join(here, "../chapter2.html"), "utf-8");
-    if (!c2.includes("engine2.js") || !c2.includes("GB.Engine = window.GB.Engine2")) throw new Error("chapter2 引擎重指缺失");
+    if (!c2.includes("engine2.js") || !c2.includes("runtime.engineKey")) throw new Error("chapter2 引擎未由 registry 重指");
     const cui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     for (const frag of ['v.system === "catapult"', "renderCatapult", "compareBalls", "assertLaw", "abandonSeries",
       "cat2CompareFailure", "r.result.ok === false", "先選銅球紀錄", "再選木球紀錄",
@@ -3423,7 +3433,7 @@ tests.push({
         "submit.disabled = d.arrange.cards.some", 'var encoded = "arrange:"',
         "d.arrange.lastLayout", "renderResolvedAnnotation", 'document.createElement("del")',
         "原文仍可讀", 'document.querySelector(".annotationPaper select")',
-        "sanitizeImport2", "SaveEnvelope", "startGame(imported.state)"
+        "sanitizeByChapter", "SaveEnvelope", "startGame(imported.state)"
       ]) if (!source.includes(frag)) throw new Error("M3b UI/匯入接線缺失:" + frag);
     };
     validateArrangeUi(cui);
@@ -3649,9 +3659,10 @@ tests.push({
     const scenes4 = JSON.parse(readFileSync(path.join(here, "../data/scenes4.json"), "utf-8"));
     const scenes5 = JSON.parse(readFileSync(path.join(here, "../data/scenes5.json"), "utf-8"));
     const scenes6 = JSON.parse(readFileSync(path.join(here, "../data/scenes6.json"), "utf-8"));
+    const scenes7 = JSON.parse(readFileSync(path.join(here, "../data/scenes7.json"), "utf-8"));
     const ids = new Set(assets.entries.map((e) => e.id));
     const byScene = new Map([...scenes1.scenes, ...scenes2.scenes, ...scenes3.scenes, ...scenes4.scenes,
-      ...scenes5.scenes, ...scenes6.scenes]
+      ...scenes5.scenes, ...scenes6.scenes, ...scenes7.scenes]
       .map((s) => [s.id, JSON.stringify(s)]));
     const rules = assets.lineFocusVisual || [];
     for (const sid of ["P0-2", "A1-2", "A1-5", "A1-7", "A2-2", "A2-4"])
@@ -6772,8 +6783,10 @@ tests.push({
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     const stage = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
-    for (const x of ['src="data/series.js?v=asset-', 'src="src/engine3.js', 'src="data/scenes3.js', 'bd_ch3_save', 'data-view="ship"'])
+    for (const x of ['src="data/series.js?v=asset-', 'src="src/engine3.js', 'src="data/scenes3.js', 'src="src/chapter-registry.js', 'data-view="ship"'])
       if (!html.includes(x)) throw new Error("stage 缺第三章掛點:" + x);
+    if (require("../src/chapter-registry.js").byId("ch3").runtime.saveKey !== "bd_ch3_save")
+      throw new Error("第三章 registry 存檔鍵漂移");
     for (const asset of [
       "src/sanitize.js", "src/engine3.js", "data/scenes3.js",
       "src/chapter-ui.js", "src/narrative.js", "src/stage-ui.js"
@@ -9789,8 +9802,10 @@ tests.push({
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
     const stageUi = readFileSync(path.join(here, "../src/stage-ui.js"), "utf-8");
     for (const fragment of ["data/scenes5.js", "data/debate5.js", "data/histfacts5.js",
-      "src/engine5.js", 'requested === "ch05"', "before-discovery:chapter5:v1"])
+      "src/engine5.js", "src/chapter-registry.js", "data/series.js"])
       if (!html.includes(fragment)) throw new Error("第五章入口接線缺失:" + fragment);
+    if (require("../src/chapter-registry.js").byRoute("ch05").runtime.saveKey !== "before-discovery:chapter5:v1")
+      throw new Error("第五章 registry 接線漂移");
     for (const fragment of ["renderCollision5", "round2-no-new-experiment",
       "setCollisionSelection", "collision5Judgment", "撞後速度",
       "同一批紀錄重算活力帳", "先押一個預測", "4／8 油灰追一筆",
@@ -10630,6 +10645,132 @@ tests.push({
 });
 
 tests.push({
+  name: "旅人筆記|第一章快照由 state 重建，不複製當下隱藏表格",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const start = ui.indexOf('ship3El("p", "第一章斜面實驗紀錄"');
+    const end = ui.indexOf('if (CHAPTER_ID !== "ch3"', start);
+    const snapshot = ui.slice(Math.max(0, start - 900), end);
+    for (const fragment of [
+      "lab.evidence && lab.evidence.runs",
+      "lab.inference && lab.inference.claims",
+      "lab.inference && lab.inference.assertions",
+      "lab.inference && lab.inference.comparisons",
+      "前四段增量",
+      "第五段：",
+      "封存中"
+    ]) if (!snapshot.includes(fragment))
+      throw new Error("第一章旅人筆記少了 state 快照資料或提前漏出第五段:" + fragment);
+    if (snapshot.includes("labRunsBody") || snapshot.includes("labClaimsBody") ||
+        snapshot.includes("cloneNode"))
+      throw new Error("第一章旅人筆記又退回複製 DOM，辯論中會顯示空紀錄");
+  }
+});
+
+tests.push({
+  name: "旅人筆記|第四章保留研究過程，不把原紙自動升格成證據",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const start = ui.indexOf('if (CHAPTER_ID !== "ch4" || !state || !state.lab');
+    const end = ui.indexOf("function ship3DossierCurrentAssertionId", start);
+    if (start < 0 || end < 0) throw new Error("第四章書桌紀錄快照沒有接上旅人筆記");
+    const snapshot = ui.slice(start, end);
+    for (const fragment of [
+      "研究過程，不等於已取得的證據",
+      "orbit.paperTrials",
+      "scale.conversionAttempts",
+      "planets.predictions",
+      "row.revealedAfterSeal",
+      "planets.revealed[row.planet]",
+      "scale.scalePrediction",
+      "scale.scalePrediction.openedAt",
+      "models.rowOrder",
+      "models.loanDecisions",
+      "press.proofs",
+      "限定斷言："
+    ]) if (!snapshot.includes(fragment))
+      throw new Error("第四章旅人筆記少了中間紀錄或封存邊界:" + fragment);
+    if (/\.evidence\s*\[[^\]]+\]\s*=|\.evidence\.[a-z0-9_]+\s*=/.test(snapshot))
+      throw new Error("第四章旅人筆記不得在開啟快照時改寫證據狀態");
+  }
+});
+
+tests.push({
+  name: "旅人筆記|一至六章都有狀態式研究紀錄，證據取得仍由引擎負責",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const starts = [1, 2, 3, 4, 5, 6].map((chapter) => ({
+      chapter,
+      index: ui.indexOf('document.addEventListener("bd:notebook-snapshot", function (ev) {\n' +
+        `    if (CHAPTER_ID !== "ch${chapter}" || !state ||`)
+    }));
+    for (const item of starts) {
+      if (item.index < 0) throw new Error(`第${item.chapter}章缺少旅人筆記狀態投影`);
+      const next = starts.find((candidate) => candidate.chapter === item.chapter + 1);
+      const end = next?.index > item.index ? next.index : ui.indexOf("function ship3DossierCurrentAssertionId", item.index);
+      const snapshot = ui.slice(item.index, end > item.index ? end : item.index + 12000);
+      if (!snapshot.includes("ev.detail.handled = true"))
+        throw new Error(`第${item.chapter}章旅人筆記未接管通用 DOM 快照`);
+      if (/\.evidence\s*\[[^\]]+\]\s*=|\.evidence\.[a-z0-9_]+\s*=/.test(snapshot))
+        throw new Error(`第${item.chapter}章開啟旅人筆記時不得授予證據`);
+    }
+
+    const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
+    for (const fragment of ["證據／研究", "正式證據", "研究紀錄（快照）", "尚無研究紀錄"])
+      if (!stage.includes(fragment)) throw new Error("旅人筆記分層標示缺失:" + fragment);
+  }
+});
+
+tests.push({
+  name: "旅人筆記|第二章保留裝置、原始讀值、封存預測與玩家判讀",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const start = ui.indexOf('if (CHAPTER_ID !== "ch2" || !state || !state.lab');
+    const end = ui.indexOf('if (CHAPTER_ID !== "ch3" || !state ||', start);
+    const snapshot = ui.slice(start, end);
+    for (const fragment of [
+      "lab.assemblyLog", "lab.series", "前三筆原始讀值", "第五筆封存預測",
+      "25 格尚未施作，實測仍封存", "f2.lawConcept", "f2.lawSource", "換球比較已成立"
+    ]) if (!snapshot.includes(fragment))
+      throw new Error("第二章旅人筆記缺資料或封存界線:" + fragment);
+  }
+});
+
+tests.push({
+  name: "旅人筆記|第五章在 J1 與第三球揭曉前不提前顯示結果",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const start = ui.indexOf('if (CHAPTER_ID !== "ch5" || !state || !state.lab');
+    const end = ui.indexOf('if (CHAPTER_ID !== "ch6" || !state || !state.lab', start);
+    const snapshot = ui.slice(start, end);
+    for (const fragment of [
+      "lab.collisionRuns", "lab.clayRuns", "lab.evidence && lab.evidence.j1",
+      "row.visViva.before", "第三筆封存預測", "prediction.revealed",
+      "第三球尚未落下，實測仍封存", "assertions.j3.sources"
+    ]) if (!snapshot.includes(fragment))
+      throw new Error("第五章旅人筆記缺資料或揭曉界線:" + fragment);
+    if (snapshot.indexOf("row.visViva.before") < snapshot.indexOf("lab.evidence && lab.evidence.j1"))
+      throw new Error("第五章第二本帳可能在 J1 前提前顯示");
+  }
+});
+
+tests.push({
+  name: "旅人筆記|第六章保留來源、溫度線、封存預測、稽核與聯名帳",
+  fn: () => {
+    const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const start = ui.indexOf('if (CHAPTER_ID !== "ch6" || !state || !state.lab');
+    const end = ui.indexOf("function ship3DossierCurrentAssertionId", start);
+    const snapshot = ui.slice(start, end);
+    for (const fragment of [
+      "lab.sourceLedger", "lab.records", "chip-comparison", "friction-condition",
+      "dry-strip", "air-comparison", "continuous-segment", "air.judged",
+      "結果仍封存", "finite.verdicts", "lab.auditBoard", "lab.jointPage"
+    ]) if (!snapshot.includes(fragment))
+      throw new Error("第六章旅人筆記缺資料或封存界線:" + fragment);
+  }
+});
+
+tests.push({
   name: "GB-ADR-040/050|K3 保留事前預測；K1 改為先試跑、選數據、再斷言",
   fn: () => {
     const sceneMap4 = new Map(scenes4.scenes.map((scene) => [
@@ -10664,6 +10805,20 @@ tests.push({
         newK1Ui.includes('circle: "嗯') ||
         !newK1Ui.includes("paperSpeed") || !newK1Ui.includes("paperStrength"))
       throw new Error("K1 新局仍要求盲猜形狀，或沒有只留下兩個可調變因");
+    const orbitSvgStart = ui.indexOf("function orbit4Svg");
+    const orbitSvgEnd = ui.indexOf("function orbit4Table", orbitSvgStart);
+    const orbitSvg = ui.slice(orbitSvgStart, orbitSvgEnd);
+    for (const fragment of [
+      'var showPaperInward = phase === "vectors" && !legacyOrbitVisual',
+      '(legacyOrbitVisual && isFinite(o.aimAngle))',
+      'marker.setAttribute("markerWidth", "6")',
+      'marker.setAttribute("markerHeight", "6")',
+      '"text-anchor":"middle", class:"orbitStringLabel"',
+      '"每步向內扯"'
+    ]) if (!orbitSvg.includes(fragment))
+      throw new Error("K1 新試跑圖沒有獨立鎖定向內箭頭，或箭頭尺寸回潮:" + fragment);
+    if (/if \(isFinite\(o\.aimAngle\)\)/.test(orbitSvg))
+      throw new Error("K1 新試跑圖又顯示舊版存檔的錯角度箭頭");
 
     let s = Engine4.sealOrbitRule(ch4K0K2State(), {
       target:"earth-center", speed:"medium", strength:"short"

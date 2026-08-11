@@ -10,12 +10,15 @@
   var DEBATE = window.GB.DATA.debate || {};
   var TEXT = window.GB.TextFormat || null;
   var ENVELOPE = window.GB.SaveEnvelope || null;
+  var REGISTRY = window.GB.ChapterRegistry;
   var SERIES = window.GB.DATA.series || { chapters: [] };
-  var SERIES_CHAPTERS = Array.isArray(SERIES.chapters) ? SERIES.chapters : [];
-  var CHAPTER_ID = N.CHAPTER_ID || (SERIES_CHAPTERS.some(function (ch) {
-    return ch.id === SCENES.chapter;
-  }) ? SCENES.chapter : "ch1");
-  var KEY = window.BD_SAVE_KEY || "bd_ch1_save"; /* R-SAV2:chapter2.html 覆寫為 bd_ch2_save;未設=第一章原值,灰盒零差異 */
+  var SERIES_CHAPTERS = REGISTRY ? REGISTRY.chapters : [];
+  var CHAPTER_META = REGISTRY && REGISTRY.byId
+    ? REGISTRY.byId(N.CHAPTER_ID || SCENES.chapter || "ch1") : null;
+  if (!CHAPTER_META || !CHAPTER_META.runtime)
+    throw new Error("章節介面找不到 runtime metadata:" + String(SCENES.chapter || "(空白)"));
+  var CHAPTER_ID = CHAPTER_META.id;
+  var KEY = CHAPTER_META.runtime.saveKey;
   var SERIES_KEY = "bd_series_progress_v1";
   var state = null;
   var lastSceneShown = null;
@@ -231,12 +234,11 @@
   }
   function sanitizeLoaded(s) {
     if (!window.GB.Sanitize) return { ok: false, reason: "進度檢查功能未就緒" };
-    if (CHAPTER_ID === "ch2") return window.GB.Sanitize.sanitizeImport2(s, SCENES, window.GB.Engine2);
-    if (CHAPTER_ID === "ch3") return window.GB.Sanitize.sanitizeImport3(s, SCENES, window.GB.Engine3);
-    if (CHAPTER_ID === "ch4") return window.GB.Sanitize.sanitizeImport4(s, SCENES, window.GB.Engine4);
-    if (CHAPTER_ID === "ch5") return window.GB.Sanitize.sanitizeImport5(s, SCENES, window.GB.Engine5);
-    if (CHAPTER_ID === "ch6") return window.GB.Sanitize.sanitizeImport6(s, SCENES, window.GB.Engine6);
-    return window.GB.Sanitize.sanitizeImport(s, PATTERNS, SCENES);
+    return window.GB.Sanitize.sanitizeByChapter(CHAPTER_ID, s, {
+      patterns: PATTERNS,
+      scenes: SCENES,
+      engine: window.GB.Engine
+    });
   }
   function showNewWarn(text) {
     var warn = $("newWarn");
@@ -619,6 +621,31 @@
         ? ("來源卷：" + acquired6.map(function (id) { return acquired6Names[id]; }).join("・"))
         : "來源卷：尚未收入來源紙";
       $("e3Val").title = "現在只做：" + target6 + "。證據只有在玩家完成相應判讀後才入卷。";
+    } else if (CHAPTER_ID === "ch7") {
+      var grid7 = state.lab.evidence || {};
+      var gridKeys7 = ["baseline", "bimetal", "sameMetal", "noMetal", "electrometer", "pile"];
+      var acquired7 = gridKeys7.filter(function (key) { return grid7[key]; }).length;
+      /* 進入工作台到第一次操作之間，引擎仍保留上一個 phase。HUD 必須以眼前
+         可操作節點為準，否則玩家站在堆前還會被告知「等信」。 */
+      var targetPhase7 = state.cursor && state.cursor.node === "e_pile" ? "pile"
+        : state.cursor && state.cursor.node === "e_board" ? "board"
+          : state.lab.phase;
+      var target7 = {
+        qualification: "完成四種蛙腿接法",
+        "exclusive-claim": "在原紙邊寫下主張",
+        "next-config": "選一格真能分出說法的配置",
+        electrometer: "親手完成無蛙的針格",
+        "mid-verdict": "先判讀桌上五格",
+        "await-pile": "等一封還沒有答完的信",
+        pile: "依圖說排層並親手同觸兩端",
+        board: "把六張原紙歸回同一頁",
+        "final-verdict": "只寫六格撐得起的結論",
+        named: "在公開原句上補上邊界",
+        scoped: "六格已合帳"
+      }[targetPhase7] || "完成眼前這一格";
+      $("e3Val").textContent = "實驗紙：" + acquired7 + "/6" +
+        (state.lab.matrix && state.lab.matrix.boardComplete ? "｜合帳●" : "｜合帳○");
+      $("e3Val").title = "現在只做：" + target7 + "。每張紙只記實際完成的配置與觀察。";
     } else {
     var e3 = state.lab.evidence.e3;
     /* 進度揭露(原則 #2:名詞是戰利品):未動過實驗台前不顯示;白話標籤取代 E3:aObOcO 密碼 */
@@ -642,6 +669,18 @@
     } else if (CHAPTER_ID === "ch5") {
       $("perVal").textContent = state.debate ? ("論證對位｜" + state.debate.persuasion + "/5") : "";
       $("perVal").title = "看證據有沒有咬住主張；配錯會退回，歸零先複盤。帳與已破支柱都保留。";
+    } else if (CHAPTER_ID === "ch7") {
+      var active7 = state.lab.integrity && state.lab.integrity.activeWithholding;
+      var claim7 = state.lab.commitment && state.lab.commitment.exclusiveClaim;
+      var final7 = state.lab.verdicts && state.lab.verdicts.final;
+      $("perVal").textContent = active7 ? "原紙誠信：待修復"
+        : final7 ? "主張邊界：已限縮"
+          : claim7 === "A" ? "署名主張：已傳抄"
+            : claim7 === "M" ? "排他主張：原紙已反駁"
+              : claim7 === "not-yet" ? "主張：暫不排他" : "";
+      $("perVal").title = active7
+        ? "有一筆原紙被收離桌面；先放回去，再繼續判讀。"
+        : "這裡記的是你公開承擔到哪一句，不是答對幾題。";
     } else {
       $("perVal").textContent = state.debate ? ("論證對位｜" + state.debate.persuasion + "/5") : "";
       $("perVal").title = "看證據有沒有咬住主張；配錯會退回，歸零先複盤。";
@@ -3689,6 +3728,133 @@
     return groups;
   }
   document.addEventListener("bd:notebook-snapshot", function (ev) {
+    if (CHAPTER_ID !== "ch1" || !state || !ev.detail || !ev.detail.target) return;
+    var lab = state.lab || {};
+    var runs = lab.evidence && lab.evidence.runs || [];
+    var claims = lab.inference && lab.inference.claims || [];
+    var assertions = lab.inference && lab.inference.assertions || [];
+    var comparisons = lab.inference && lab.inference.comparisons || [];
+    var target = ev.detail.target;
+    target.innerHTML = "";
+    ev.detail.handled = true;
+    ship3El("p", "第一章斜面實驗紀錄", target, "shipNotebookSnapshotTitle");
+    if (!runs.length && !claims.length && !assertions.length) {
+      ship3El("p", "尚無實驗紀錄。", target, "hint");
+      return;
+    }
+    var revealedRunIds = {};
+    claims.forEach(function (claim) {
+      (claim.runIds || []).forEach(function (id) { revealedRunIds[String(id)] = true; });
+    });
+    runs.forEach(function (run) {
+      var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", "實驗紀錄 #" + run.id + "｜" + cfgLabel(run.config || {}), card);
+      var visibleReadings = (run.readings || []).slice(0, 4).map(fmt);
+      var fifth = revealedRunIds[String(run.id)] && (run.readings || []).length > 4
+        ? fmt(run.readings[4]) : "封存中";
+      ship3El("p", "前四段增量：" + visibleReadings.join("／") +
+        "｜第五段：" + fifth, card);
+    });
+    if (claims.length) {
+      ship3El("p", "第五段押記與判讀", target, "shipNotebookSnapshotTitle");
+      claims.forEach(function (claim) {
+        var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+        ship3El("b", "主張 #" + claim.id + "｜引用紀錄 " + (claim.runIds || []).join("、"), card);
+        ship3El("p", "先押 " + fmt(claim.prediction) + "｜翻面 " +
+          fmt(claim.observedFifth) + "｜" + (claim.ok ? "規律接上" : "與實測未接上"), card);
+      });
+    }
+    if (assertions.length) {
+      ship3El("p", "跨實驗斷言", target, "shipNotebookSnapshotTitle");
+      assertions.forEach(function (assertion) {
+        var label = assertion.type === "b" ? "只換球重" :
+          (assertion.type === "c" ? "只換傾角" : assertion.type);
+        var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+        ship3El("b", label + "｜主張 " + (assertion.claimIds || []).join("、"), card);
+        ship3El("p", assertion.ok ? "斷言成立" : ("未成立：" + (assertion.reason || "資料不足")), card);
+      });
+    }
+    if (comparisons.length) {
+      ship3El("p", "比較草紙", target, "shipNotebookSnapshotTitle");
+      comparisons.forEach(function (comparison, index) {
+        var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+        ship3El("b", "比較 #" + (index + 1) + "｜紀錄 " +
+          (comparison.runIds || []).join("、"), card);
+        ship3El("p", "兩輪相異變因：" + ((comparison.diff || []).join("、") || "無"), card);
+      });
+    }
+  });
+  document.addEventListener("bd:notebook-snapshot", function (ev) {
+    if (CHAPTER_ID !== "ch2" || !state || !state.lab ||
+        !ev.detail || !ev.detail.target) return;
+    var lab = state.lab;
+    var target = ev.detail.target;
+    var series = lab.series || [];
+    var log = lab.assemblyLog || [];
+    var f2 = lab.evidence && lab.evidence.f2 || {};
+    var hasWork = !!(series.length || log.length || lab.revision ||
+      lab.calib && (lab.calib.releaseZero || lab.calib.rangeScale) ||
+      f2.law || f2.ball);
+    var ballNames = { copper:"銅球", wood:"木球" };
+    var statusNames = { open:"進行中", complete:"已完成", abandoned:"已保留並中止" };
+    var conceptNames = {
+      sqrtScale:"射程隨落下高度的平方根改變",
+      linearScale:"射程隨落下高度等比例改變",
+      constantRange:"射程不受落下高度影響"
+    };
+    target.innerHTML = "";
+    ev.detail.handled = true;
+    ship3El("p", "第二章拋體研究紀錄", target, "shipNotebookSnapshotTitle");
+    ship3El("p",
+      "裝置調整、原始讀值、封存預測與玩家判讀都會留下；只有通過取得閘門的內容，才會在上方成為正式證據卡。",
+      target, "shipNote");
+    if (!hasWork) {
+      ship3El("p", "尚無研究紀錄。", target, "hint");
+      return;
+    }
+    if (log.length || lab.revision || lab.calib && (lab.calib.releaseZero || lab.calib.rangeScale)) {
+      var apparatus = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", "裝置與校準｜版本 " + (lab.revision || 0), apparatus);
+      var apparatusLines = [];
+      if (lab.calib && lab.calib.releaseZero) apparatusLines.push("放球零點已校準。");
+      if (lab.calib && lab.calib.rangeScale) apparatusLines.push("射程尺度已校準。");
+      if (log.length) apparatusLines.push("已留下 " + log.length + " 次裝配、換件或校準動作。");
+      ship3El("p", apparatusLines.join(" ") || "裝置仍在組裝。", apparatus);
+    }
+    series.forEach(function (row) {
+      var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", "第 " + row.id + " 輪｜" + (ballNames[row.ball] || row.ball) +
+        "｜" + (statusNames[row.status] || row.status), card);
+      var readingParts = [4, 9, 16].filter(function (height) {
+        return row.readings && typeof row.readings[height] === "number";
+      }).map(function (height) {
+        return height + " 格→" + fmt(row.readings[height]);
+      });
+      ship3El("p", readingParts.length
+        ? ("前三筆原始讀值：" + readingParts.join("／"))
+        : "尚未留下射程讀值。", card);
+      if (typeof row.prediction === "number") {
+        var opened = row.readings && typeof row.readings[25] === "number";
+        ship3El("p", "第五筆封存預測：" + fmt(row.prediction) + "｜" +
+          (opened
+            ? ("翻面實測 " + fmt(row.readings[25]) + "；" +
+              (row.accepted ? "資料可引用" : "資料未通過門檻"))
+            : "25 格尚未施作，實測仍封存"), card);
+      }
+      if (row.status === "abandoned")
+        ship3El("p", "這輪沒有刪除；中止狀態與既有讀值一併保留。", card, "shipNote");
+    });
+    if (f2.law || f2.ball) {
+      var judgment = ship3El("section", null, target, "shipNotebookSnapshotClaims");
+      ship3El("b", "玩家判讀", judgment);
+      var list = ship3El("ul", null, judgment);
+      if (f2.law) ship3El("li", "規律判讀：" +
+        (conceptNames[f2.lawConcept] || f2.lawConcept || "已成立") +
+        "｜引用第 " + f2.lawSource + " 輪", list);
+      if (f2.ball) ship3El("li", "換球比較已成立；銅球與木球使用同一裝置條件。", list);
+    }
+  });
+  document.addEventListener("bd:notebook-snapshot", function (ev) {
     if (CHAPTER_ID !== "ch3" || !state || !ev.detail || !ev.detail.target) return;
     var d = state.lab && state.lab.caseFile && state.lab.caseFile.dossier;
     if (!d) return;
@@ -3724,6 +3890,27 @@
         replay.setAttribute("aria-label", "重播" + group.title + "，不新增實驗");
       }
     });
+    var commitments = d.designCommitments || {};
+    if ((commitments.cabinWindAttempts || []).length ||
+        (commitments.cabinInstrumentAttempts || []).length) {
+      var design = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", "船艙對照設計", design);
+      var designList = ship3El("ul", null, design);
+      (commitments.cabinWindAttempts || []).forEach(function (attempt) {
+        ship3El("li", "隔開甲板風：" + attempt.choice + "｜" +
+          (attempt.ok ? "採用" : "留下缺口後改選"), designList);
+      });
+      (commitments.cabinInstrumentAttempts || []).forEach(function (choice) {
+        ship3El("li", "船艙觀察物：" +
+          ({ drip:"滴水", toss:"直拋石球", combined:"滴水與石球" }[choice] || choice), designList);
+      });
+    }
+    if ((d.sourceAttempts || []).length || (d.scopeAttempts || []).length) {
+      var attempts = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", "斷言嘗試與修正", attempts);
+      ship3El("p", "選紙判讀 " + (d.sourceAttempts || []).length + " 次；範圍判讀 " +
+        (d.scopeAttempts || []).length + " 次。失敗與縮限不會從卷宗刪除。", attempts);
+    }
     if (state.flags && state.flags.oldPaperAnswerBlurted === "1" &&
         d.assertions && d.assertions.A3) {
       var withdrawn = ship3El("section", null, target,
@@ -3746,6 +3933,320 @@
           (ship3DossierPacketSourceIds(d, id).join("、") || "尚未綁定"), claimList);
       });
     }
+  });
+  document.addEventListener("bd:notebook-snapshot", function (ev) {
+    if (CHAPTER_ID !== "ch4" || !state || !state.lab ||
+        !ev.detail || !ev.detail.target) return;
+    var lab = state.lab;
+    var target = ev.detail.target;
+    var claims = lab.claims || {};
+    var source = lab.sourceLab || {};
+    var orbit = lab.orbitLab || {};
+    var scale = lab.scaleLab || {};
+    var planets = lab.planetLab || {};
+    var models = lab.modelLab || {};
+    var proof = lab.proof || {};
+    var press = proof.press || {};
+    var hasWork = !!(
+      (source.attempts || []).length ||
+      (source.tangentPrediction && source.tangentPrediction.sealed) ||
+      (orbit.paperTrials || []).length || (orbit.ruleRuns || []).length ||
+      (orbit.manualAttempts || []).length || (orbit.manualBeats || []).length ||
+      (scale.predictionAttempts || []).length || (scale.conversionAttempts || []).length ||
+      (scale.ratioAttempts || []).length || (scale.relationAttempts || []).length ||
+      (planets.predictions || []).length || (planets.comparisonAttempts || []).length ||
+      (models.rowOrder || []).length || (models.stampAttempts || []).length ||
+      (models.loans || []).length || (models.comparisonAttempts || []).length ||
+      (proof.slotAttempts || []).length || (proof.attributionAttempts || []).length ||
+      (proof.boundaryAttempts || []).length || (press.proofs || []).length ||
+      ["k1", "k2", "k3", "k4", "k5"].some(function (id) {
+        return claims[id] && claims[id].length;
+      })
+    );
+    function addCard(title, lines) {
+      if (!lines.length) return;
+      var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", title, card);
+      var list = ship3El("ul", null, card);
+      lines.forEach(function (line) { ship3El("li", line, list); });
+    }
+    function claimLine(id) {
+      var rows = claims[id] || [];
+      if (!rows.length) return null;
+      var accepted = rows.some(function (row) { return row && row.ok; });
+      return "限定斷言：" + (accepted ? "已成立" : "尚未成立") +
+        "（共留下 " + rows.length + " 次判讀）";
+    }
+    target.innerHTML = "";
+    ev.detail.handled = true;
+    ship3El("p", "第四章書桌紀錄", target, "shipNotebookSnapshotTitle");
+    ship3El("p",
+      "以下是試跑、封存、判讀與校樣紀錄；它們是研究過程，不等於已取得的證據。完成限定斷言後，證據卡才會收入上方。",
+      target, "shipNote");
+    if (!hasWork) {
+      ship3El("p", "尚無書桌紀錄。", target, "hint");
+      return;
+    }
+
+    var k1Lines = [];
+    if (source.tangentPrediction && source.tangentPrediction.sealed)
+      k1Lines.push("切線預測已封存；這張來源紙本身還不是 K1。");
+    var speedNames = { slow:"較慢", medium:"一般", fast:"較快" };
+    var strengthNames = { short:"小", medium:"中", long:"大" };
+    var shapeNames = { circle:"近圓", ellipse:"橢圓", away:"逃離", crash:"撞入地球",
+      line:"直走", "wrong-center":"繞錯中心" };
+    (orbit.paperTrials || []).forEach(function (row) {
+      k1Lines.push("試跑紙 #" + row.id + "：原有速度" +
+        (speedNames[row.speed] || row.speed) + "、每步往內扳" +
+        (strengthNames[row.strength] || row.strength) + "；結果「" +
+        (shapeNames[row.actualShape] || row.actualShape || "待判讀") + "」。");
+    });
+    if ((orbit.manualBeats || []).length)
+      k1Lines.push("舊版續畫紙：已留下 " + orbit.manualBeats.length + " 拍；錯線也保留。");
+    var k1Claim = claimLine("k1"); if (k1Claim) k1Lines.push(k1Claim);
+    addCard("K1 前的作圖與選紙", k1Lines);
+
+    var k2Lines = [];
+    if (scale.scalePrediction && scale.scalePrediction.sealed)
+      k2Lines.push("量級預測已封存；首次幾何判讀前不能改寫。" +
+        (scale.scalePrediction.openedAt == null ? "結果尚未翻面。" :
+          (scale.scalePrediction.matched ? "翻面後與預測相符。" : "翻面後與預測不符。")));
+    if ((scale.conversionAttempts || []).length)
+      k2Lines.push("月球紙判讀：" + (scale.conversionCorrect ? "已分清正矢與弧長" : "仍待重判") + "。");
+    if ((scale.ratioAttempts || []).length)
+      k2Lines.push("地月量級比較：" + (scale.ratioCorrect ? "約 3600 倍已對上" : "尚未對上") + "。");
+    if ((scale.relationAttempts || []).length)
+      k2Lines.push("距離與時間的關係：" + (scale.relationCorrect ? "已判斷為倍率相乘" : "仍待重判") + "。");
+    if (scale.moonObservationRevealed && typeof scale.moonOneSecondSagMm === "number")
+      k2Lines.push("月球一秒向內偏折：約 " + scale.moonOneSecondSagMm + " 毫米。");
+    var k2Claim = claimLine("k2"); if (k2Claim) k2Lines.push(k2Claim);
+    addCard("K2 前的同尺換算", k2Lines);
+
+    var planetNames = { mars:"火星", jupiter:"木星" };
+    var k3Lines = [];
+    (planets.predictions || []).filter(function (row) {
+      return row && row.superseded !== true;
+    }).forEach(function (row) {
+      var opened = row.revealedAfterSeal === true && planets.revealed &&
+        planets.revealed[row.planet] === true;
+      k3Lines.push((planetNames[row.planet] || row.planet) + "押記：" +
+        (row.playerBandLabel || "已封存") + "；" +
+        (opened
+          ? ("觀測 " + Number(row.actual).toFixed(2) + " 年，殘差 " +
+            Number(row.residualPct).toFixed(2) + "%")
+          : "觀測仍在封口後"));
+    });
+    if ((planets.comparisonAttempts || []).length)
+      k3Lines.push("盲驗判讀：" + (planets.comparisonSealed ? "已封存" : "尚未成立") + "。");
+    var k3Claim = claimLine("k3"); if (k3Claim) k3Lines.push(k3Claim);
+    addCard("K3 前的兩張封存預測", k3Lines);
+
+    var caseNames = { moon:"月亮", planets:"行星", comet:"彗星" };
+    var stampNames = { matches:"對得上", story:"只有說法", mismatch:"對不上" };
+    var loanNames = { loan:"留下借條", "no-loan":"不借" };
+    var k4Lines = [];
+    (models.rowOrder || []).forEach(function (caseId) {
+      var row = models.rowStage && models.rowStage[caseId] || {};
+      var force = row.forceStamp ? stampNames[row.forceStamp] : "待判讀";
+      var vortex = row.vortexStamp ? stampNames[row.vortexStamp] : "待判讀";
+      var loan = models.loanDecisions && models.loanDecisions[caseId];
+      k4Lines.push((caseNames[caseId] || caseId) + "：拉力帳「" + force +
+        "」、渦旋帳「" + vortex + "」" +
+        (loan ? "；" + loanNames[loan] : "") + "。");
+    });
+    if ((models.comparisonAttempts || []).length)
+      k4Lines.push("兩本帳的比較：" + (models.comparisonSealed ? "已封存" : "尚未成立") + "。");
+    var k4Claim = claimLine("k4"); if (k4Claim) k4Lines.push(k4Claim);
+    addCard("K4 前的三列對帳", k4Lines);
+
+    var k5Lines = [];
+    if ((proof.slotAttempts || []).length)
+      k5Lines.push("證明鏈：已嘗試安放 " + proof.slotAttempts.length + " 次來源。");
+    if ((proof.attributionAttempts || []).length)
+      k5Lines.push("信用歸戶：已留下 " + proof.attributionAttempts.length + " 次署名判斷。");
+    if ((press.proofs || []).length) {
+      var completeProofs = press.proofs.filter(function (row) {
+        return row && row.complete === true && row.superseded !== true;
+      }).length;
+      k5Lines.push("校樣：已送出 " + press.proofs.length + " 份；完整版本 " + completeProofs + " 份。");
+    }
+    var k5Claim = claimLine("k5"); if (k5Claim) k5Lines.push(k5Claim);
+    addCard("K5 前的證明鏈與校樣", k5Lines);
+  });
+  document.addEventListener("bd:notebook-snapshot", function (ev) {
+    if (CHAPTER_ID !== "ch5" || !state || !state.lab ||
+        !ev.detail || !ev.detail.target) return;
+    var lab = state.lab;
+    var target = ev.detail.target;
+    var collisions = lab.collisionRuns || [];
+    var clay = lab.clayRuns || [];
+    var prediction = lab.clayPrediction;
+    var assertions = lab.assertions || {};
+    var judgments = lab.judgments || {};
+    var headNames = { steel:"鋼頭", putty:"油灰頭" };
+    var judgmentNames = {
+      "both-close":"兩種碰撞的第一本帳都接近守恆",
+      "steel-close-putty-short":"鋼頭接近守恆，油灰頭出現短少",
+      "changes-with-mass":"短少比例會隨質量配置改變",
+      "speed-squared":"坑深較接近速度平方",
+      "speed-linear":"坑深較接近速度",
+      "height-independent":"坑深與落下高度無關"
+    };
+    function addCard(title, lines) {
+      if (!lines.length) return;
+      var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", title, card);
+      var list = ship3El("ul", null, card);
+      lines.forEach(function (line) { ship3El("li", line, list); });
+    }
+    function n(value) { return Number(value).toFixed(1).replace(/\.0$/, ""); }
+    target.innerHTML = "";
+    ev.detail.handled = true;
+    ship3El("p", "第五章碰撞與黏土研究紀錄", target, "shipNotebookSnapshotTitle");
+    ship3El("p",
+      "原始碰撞數據、封存預測與玩家判讀分開保存。第二本帳在取得 J1 後才展開，不能從筆記提前看見。",
+      target, "shipNote");
+    if (!collisions.length && !clay.length && !prediction) {
+      ship3El("p", "尚無研究紀錄。", target, "hint");
+      return;
+    }
+    var collisionLines = collisions.map(function (row) {
+      var line = "原紙 #" + row.id + "｜" + (headNames[row.head] || row.head) +
+        "｜質量 " + row.mA + "/" + row.mB + "｜速度 A " + n(row.before.a) +
+        "→" + n(row.after.a) + "、B " + n(row.before.b) + "→" + n(row.after.b) +
+        "｜第一本帳 " + n(row.momentum.before) + "→" + n(row.momentum.after);
+      if (lab.evidence && lab.evidence.j1)
+        line += "｜第二本帳 " + n(row.visViva.before) + "→" + n(row.visViva.after) +
+          "（短少 " + n(row.visViva.deficit) + "）";
+      if (row.followupPrediction)
+        line += "｜追一筆押記「" + (judgmentNames[row.followupPrediction] || row.followupPrediction) +
+          "」；" + (row.predictionMatched ? "與結果相符" : "與結果不符");
+      return line;
+    });
+    addCard("碰撞原紙", collisionLines);
+    var collisionJudgments = ["j1", "j2", "followup"].filter(function (key) {
+      return judgments[key];
+    }).map(function (key) {
+      var source = assertions[key] && assertions[key].sources;
+      return key.toUpperCase() + "：" + (judgmentNames[judgments[key]] || judgments[key]) +
+        (source && source.length ? "｜引用原紙 " + source.join("、") : "");
+    });
+    addCard("碰撞判讀", collisionJudgments);
+    var clayLines = clay.map(function (row) {
+      return "原紙 #" + row.id + "｜落下高度 " + row.height + " 格｜速度 " + row.speed +
+        "｜坑深 " + n(row.depth) + " " + row.unitDepth;
+    });
+    if (prediction) {
+      clayLines.push("第三筆封存預測：" + n(prediction.min) + "～" + n(prediction.max) + " 分｜" +
+        (prediction.revealed
+          ? ("翻面實測 " + n(prediction.actualDepth) + " 分；" +
+            (prediction.matched ? "落在封存範圍內" : "落在封存範圍外"))
+          : "第三球尚未落下，實測仍封存"));
+    }
+    addCard("黏土原紙與第三筆預測", clayLines);
+    if (judgments.j3)
+      addCard("黏土判讀", ["J3：" + (judgmentNames[judgments.j3] || judgments.j3) +
+        (assertions.j3 && assertions.j3.sources && assertions.j3.sources.length
+          ? "｜引用原紙 " + assertions.j3.sources.join("、") : "")]);
+  });
+  document.addEventListener("bd:notebook-snapshot", function (ev) {
+    if (CHAPTER_ID !== "ch6" || !state || !state.lab ||
+        !ev.detail || !ev.detail.target) return;
+    var lab = state.lab;
+    var target = ev.detail.target;
+    var records = lab.records || [];
+    var ledger = lab.sourceLedger || {};
+    var finite = lab.finiteSources || {};
+    var audit = lab.auditBoard || {};
+    var joint = lab.jointPage || {};
+    var sourceNames = { chips:"碎屑", cannon:"炮身", air:"空氣", water:"水箱" };
+    var bandNames = { soon:"很快用盡", "within-shift":"一班內用盡", "no-endpoint":"不押終點" };
+    var verdictNames = { fulfilled:"已兌現", "not-fulfilled":"未兌現", insufficient:"資料不足" };
+    var conditionNames = {
+      "rotation-only":"只轉動", "pressure-only":"只加壓", "contact-motion":"接觸並轉動",
+      open:"進氣口開啟", sealed:"進氣口密合"
+    };
+    function addCard(title, lines) {
+      if (!lines.length) return;
+      var card = ship3El("section", null, target, "shipNotebookSnapshotGroup");
+      ship3El("b", title, card);
+      var list = ship3El("ul", null, card);
+      lines.forEach(function (line) { ship3El("li", line, list); });
+    }
+    function curve(row) {
+      var values = row.curve || [];
+      return values.map(function (value) { return value == null ? "缺值" : value; }).join("→");
+    }
+    target.innerHTML = "";
+    ev.detail.handled = true;
+    ship3El("p", "第六章熱研究紀錄", target, "shipNotebookSnapshotTitle");
+    ship3El("p",
+      "來源假說、封存預測、原始溫度線與判讀分層保存；尚未揭曉的結果不會因打開筆記而提前出現。",
+      target, "shipNote");
+    var hasLedger = !!ledger.sealed || Object.keys(ledger.placements || {}).some(function (key) {
+      return !!ledger.placements[key];
+    });
+    if (!hasLedger && !records.length && !finite.sealed && !audit.complete && !joint.complete) {
+      ship3El("p", "尚無研究紀錄。", target, "hint");
+      return;
+    }
+    var ledgerLines = [];
+    Object.keys(ledger.placements || {}).forEach(function (source) {
+      if (!ledger.placements[source]) return;
+      ledgerLines.push((sourceNames[source] || source) + "：熱質位置「" + ledger.placements[source] +
+        "」；若成立，應看到「" + ledger.consequences[source] + "」。");
+    });
+    if (ledger.sealed) ledgerLines.push("兩套模型預測已封存，後續不能改寫。" );
+    addCard("來源追債簿", ledgerLines);
+    var recordLines = records.map(function (row) {
+      if (row.kind === "chip-comparison")
+        return "原紙 #" + row.id + "｜碎屑／整片比較｜碎屑水溫 " + row.chipCurve.join("→") +
+          "、整片水溫 " + row.plateCurve.join("→") + "｜" + (row.clean ? "條件可比較" : "條件不齊：" + row.dirtyReasons.join("、"));
+      if (row.kind === "friction-condition")
+        return "原紙 #" + row.id + "｜" + (conditionNames[row.condition] || row.condition) +
+          "｜溫度 " + curve(row);
+      if (row.kind === "dry-strip")
+        return "原紙 #" + row.id + "｜乾鑽溫度 " + curve(row) + "｜" +
+          (row.clean ? "條件固定" : "條件中途改變");
+      if (row.kind === "air-comparison")
+        return "原紙 #" + row.id + "｜" + (conditionNames[row.condition] || row.condition) +
+          "｜溫度 " + curve(row) + "｜" + (row.clean ? "可比較" : "不可比較");
+      if (row.kind === "water-box-preparation")
+        return "原紙 #" + row.id + "｜水箱起始條件已讀取、等溫、密合並檢漏。";
+      if (row.kind === "continuous-segment")
+        return "原紙 #" + row.id + "｜連續第 " + row.segment + " 段｜" + row.minutes +
+          " 分鐘｜" + row.temperature + "°｜馬速 " + row.horsePace + "、壓力 " + row.pressure +
+          "、漏水 " + row.leak;
+      return "原紙 #" + row.id + "｜" + row.kind;
+    });
+    addCard("原始讀值", recordLines);
+    var air = lab.airBench || {};
+    var predictionLines = [];
+    if (air.sealed) predictionLines.push("密合進氣口預測：" + air.prediction + "｜" +
+      (air.judged ? ("揭曉：" + (verdictNames[air.predictionOutcome] || air.predictionOutcome)) : "尚未判讀，結果仍封存"));
+    Object.keys(finite.bands || {}).forEach(function (source) {
+      if (!finite.bands[source]) return;
+      var verdict = finite.verdicts && finite.verdicts[source];
+      predictionLines.push((sourceNames[source] || source) + "耗盡押記：" +
+        (bandNames[finite.bands[source]] || finite.bands[source]) + "｜" +
+        (verdict ? ("揭曉：" + (verdictNames[verdict] || verdict)) : "判讀尚未完成"));
+    });
+    addCard("封存預測與揭曉", predictionLines);
+    var auditLines = [];
+    Object.keys(audit.placements || {}).forEach(function (slot) {
+      auditLines.push(slot + "欄引用 " + audit.placements[slot]);
+    });
+    if (audit.latentDisposition) auditLines.push("潛在運動去向：仍未解決。");
+    if (audit.complete) auditLines.push("稽核板已完成。" );
+    addCard("證據稽核板", auditLines);
+    var jointLines = [];
+    Object.keys(joint.columns || {}).forEach(function (column) {
+      if (joint.columns[column]) jointLines.push(column + "：" + joint.columns[column]);
+    });
+    if (joint.scopeDebt) jointLines.push("範圍債：仍未解決。" );
+    if (joint.rateDebt) jointLines.push("換算債：尚未量得。" );
+    if (joint.complete) jointLines.push("聯名頁已由四方署名。" );
+    addCard("聯名帳頁", jointLines);
   });
   function ship3DossierCurrentAssertionId(d, missionId) {
     if (missionId === "steady")
@@ -6724,6 +7225,12 @@
       draw("circle", { cx:p[0], cy:p[1], r:2, class:"orbitStar" });
     });
     var o = lab.orbitLab || {}, scale = 128, cx = 310, cy = 205;
+    var legacyOrbitVisual = !!(o.ruleSeal || (o.ruleRuns || []).length ||
+      (o.manualBeats || []).length || (o.manualAttempts || []).length);
+    var activePaperTrial = (o.paperTrials || []).filter(function (run) {
+      return run.id === o.paperTrialActiveId;
+    })[0];
+    var showPaperInward = phase === "vectors" && !legacyOrbitVisual;
     if (phase === "planets") {
       var predictions = lab.planetLab && lab.planetLab.predictions || [];
       draw("text", { x:320, y:58, "text-anchor":"middle", class:"orbitMatrixHead" },
@@ -6881,8 +7388,7 @@
     } else {
       draw("circle", { cx:cx, cy:cy, r:58, class:"orbitEarth" });
       draw("circle", { cx:cx, cy:cy, r:136, class:"orbitGuide" });
-      if (phase === "vectors" && (o.ruleSeal || (o.ruleRuns || []).length ||
-          (o.manualBeats || []).length || (o.manualAttempts || []).length)) {
+      if (phase === "vectors" && legacyOrbitVisual) {
         draw("rect", { x:22,y:20,width:178,height:104,rx:10,class:"orbitStringDemo" });
         draw("circle", { cx:72,cy:70,r:8,class:"orbitStringHand" });
         draw("circle", { cx:142,cy:70,r:10,class:"orbitStringBall" });
@@ -6920,17 +7426,19 @@
         }).join(" ");
         draw("path", { d:d, class:"orbitPath " + (o.consequence ? "consequence" : "") });
       }
-      if ((o.deflectionVectors || []).length || isFinite(o.aimAngle)) {
+      var last = path[path.length - 1] || {x:1,y:0};
+      if ((o.deflectionVectors || []).length ||
+          (legacyOrbitVisual && isFinite(o.aimAngle)) || showPaperInward) {
         var defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
         var marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
         marker.setAttribute("id", "orbit-inward-arrow");
-        marker.setAttribute("markerWidth", "8");
-        marker.setAttribute("markerHeight", "8");
-        marker.setAttribute("refX", "7");
-        marker.setAttribute("refY", "4");
+        marker.setAttribute("markerWidth", "6");
+        marker.setAttribute("markerHeight", "6");
+        marker.setAttribute("refX", "5.5");
+        marker.setAttribute("refY", "3");
         marker.setAttribute("orient", "auto");
         var head = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        head.setAttribute("d", "M0,0 L8,4 L0,8 Z");
+        head.setAttribute("d", "M0,0 L6,3 L0,6 Z");
         head.setAttribute("class", "orbitDeflectionHead");
         marker.appendChild(head);
         defs.appendChild(marker);
@@ -6943,7 +7451,7 @@
             class:"orbitDeflection", "marker-end":"url(#orbit-inward-arrow)"
           });
         });
-        if (isFinite(o.aimAngle)) {
+        if (legacyOrbitVisual && isFinite(o.aimAngle)) {
           var aimX = cx + (o.position ? o.position.x : 1) * scale;
           var aimY = cy - (o.position ? o.position.y : 0) * scale;
           draw("line", {
@@ -6954,8 +7462,23 @@
           });
           draw("text", { x:aimX+8, y:aimY-13, class:"orbitStringLabel" }, "本拍待落筆");
         }
+        if (showPaperInward) {
+          var moonX = cx + last.x * scale;
+          var moonY = cy - last.y * scale;
+          var inwardX = cx - moonX, inwardY = cy - moonY;
+          var inwardLength = Math.sqrt(inwardX * inwardX + inwardY * inwardY) || 1;
+          var inwardUnitX = inwardX / inwardLength, inwardUnitY = inwardY / inwardLength;
+          draw("line", {
+            x1:moonX + inwardUnitX * 15, y1:moonY + inwardUnitY * 15,
+            x2:moonX + inwardUnitX * 62, y2:moonY + inwardUnitY * 62,
+            class:"orbitDeflection", "marker-end":"url(#orbit-inward-arrow)"
+          });
+          draw("text", {
+            x:moonX + inwardUnitX * 34, y:moonY + inwardUnitY * 34 - 11,
+            "text-anchor":"middle", class:"orbitStringLabel"
+          }, "每步向內扯");
+        }
       }
-      var last = path[path.length - 1] || {x:1,y:0};
       draw("circle", { cx:cx+last.x*scale, cy:cy-last.y*scale, r:11, class:"orbitMoon" });
       if (o.velocity) {
         var px = cx + (o.position ? o.position.x : 1) * scale;
@@ -6964,9 +7487,6 @@
       }
     }
     var cap = ship3El("figcaption", null, fig);
-    var activePaperTrial = (o.paperTrials || []).filter(function (run) {
-      return run.id === o.paperTrialActiveId;
-    })[0];
     cap.textContent = phase === "vectors" && (o.activeRule || activePaperTrial)
       ? ({
           parabola:"固定向左的作用每拍累積，路徑成為拋物線。",
@@ -8936,6 +9456,163 @@
     heat6Gate(box, v);
   }
 
+  /* ---------- 第七章：接線矩陣／電量器／伏打堆 ---------- */
+  var em1Msg = "";
+  var em1PendingConfirm = null;
+  var EM1_LABEL = {
+    baseline: "基準｜外部已知刺激",
+    bimetal: "雙金屬｜黃銅鉤—鐵片",
+    sameMetal: "同材質｜單金屬弧",
+    noMetal: "無金屬｜神經—肌肉直接接觸",
+    electrometer: "無蛙｜銅鋅接觸與電量器",
+    pile: "無動物組織｜銅鋅鹽水布疊層"
+  };
+  var EM1_FIRST_REPLY = {
+    baseline: "Galvani：牠今天肯作證。先確認證人醒著，再開庭。接下來別再用它——用它，就分不清是誰在說話。",
+    bimetal: "Galvani：跟我一七九一年那頁，一個樣。複驗一次，舊紙就年輕一次。",
+    sameMetal: "Galvani：跟上一格，差在哪一欄？",
+    noMetal: "Galvani：一七九四年。我做過。今天你重做出來了——謝謝你。這格從今天起有兩張紙。"
+  };
+  var EM1_REPEAT_REPLY = {
+    baseline: "Galvani：牠還醒著。記。",
+    bimetal: "Galvani：跟上次一樣？一樣也記。",
+    sameMetal: "Galvani：差多少，寫多少。",
+    noMetal: "Galvani：複驗不嫌多。這格的紙，越厚越好。"
+  };
+  function em1El(name, text, parent, className) {
+    var el = document.createElement(name);
+    if (text !== null && text !== undefined) el.textContent = displayText(text);
+    if (className) el.className = className;
+    parent.appendChild(el);
+    return el;
+  }
+  function em1Do(action, args, successText) {
+    var r = N.labAction(state, action, args || {});
+    if (r.error) {
+      em1Msg = "✕ " + r.error;
+      renderAll();
+      return null;
+    }
+    em1PendingConfirm = null;
+    setState(r.state);
+    var result = r.result || {};
+    em1Msg = result.userMessage || (typeof successText === "function" ? successText(result) : successText) || "這一筆已留在原紙。";
+    renderAll();
+    return result;
+  }
+  function em1IncidentUsed(lab, sourceId) {
+    return !!(lab.integrity && lab.integrity.usedSourceIds && lab.integrity.usedSourceIds.indexOf(sourceId) >= 0);
+  }
+  function em1WithholdButton(card, lab, key) {
+    var sourceId = "ch7:withdraw-trace:" + key;
+    if (!lab.matrix.traces[key] || em1IncidentUsed(lab, sourceId) ||
+        !(window.GB.Engine7 && window.GB.Engine7.visibleTrace(lab, key))) return;
+    mkBtn(card, "把這格的紙收離桌面", function () {
+      em1PendingConfirm = { kind: "trace", key: key };
+      renderAll();
+    });
+    if (em1PendingConfirm && em1PendingConfirm.kind === "trace" && em1PendingConfirm.key === key) {
+      var confirmTrace = em1El("div", null, card, "em1Confirm");
+      confirmTrace.setAttribute("role", "group");
+      confirmTrace.setAttribute("aria-label", "確認收離這格原紙");
+      em1El("p", "這格是你親手做、親手記的。桌上會留下一個空位。", confirmTrace);
+      mkBtn(confirmTrace, "收。", function () { em1Do("withdrawMatrixTrace", { trace: key }); });
+      mkBtn(confirmTrace, "留著。", function () { em1PendingConfirm = null; renderAll(); });
+    }
+  }
+  function em1Gate(box, v) {
+    var gate = em1El("div", null, box, "em1Gate " + (v.ready ? "ready" : "pending"));
+    if (!v.ready) {
+      em1El("p", "還缺一筆能讓劇情繼續的原紙。", gate);
+      return;
+    }
+    mkBtn(gate, "▶ 把這組原紙帶回對話", function () {
+      var r = N.embedComplete(state);
+      if (r.error) { em1Msg = "✕ " + r.error; renderAll(); return; }
+      setState(r.state);
+      addLine("system", "(互動段落完成)", "system");
+      em1Msg = "";
+      renderAll();
+    });
+  }
+  function renderEm1(v, box) {
+    var lab = state.lab;
+    box.className = "em1Workbench";
+    em1El("h2", "接線矩陣｜配置與觀測分開記", box);
+    em1El("p", v.text || v.hint || "每一格都留下接法與觀測；不先替它命名勝負。", box, "em1Lead");
+    if (em1Msg) em1El("div", em1Msg, box, "labmsg");
+
+    if (v.phase === "matrix") {
+      em1El("p", "順序由你決定。重做會增加原紙，但不會洗掉第一次。", box);
+      ["baseline", "bimetal", "sameMetal", "noMetal"].forEach(function (key) {
+        var card = em1El("section", null, box, "em1Card");
+        em1El("h3", EM1_LABEL[key], card);
+        var record = lab.matrix.traces[key] && lab.records.find(function (row) { return row.id === lab.matrix.traces[key]; });
+        if (record) {
+          em1El("p", "配置：" + record.configNote, card);
+          em1El("p", "觀測：" + record.observation, card);
+          var count = lab.records.filter(function (row) { return row.kind === "matrix-trace" && row.config === key; }).length;
+          em1El("small", "原紙 " + count + " 張｜具名留痕已封存", card);
+        } else em1El("p", "尚未操作；這格沒有結果。", card);
+        mkBtn(card, record ? "再做一次並另留原紙" : "親手接線並留痕", function () {
+          em1Do("runEm1Config", { config: key }, function (result) {
+            return result.firstTrace ? EM1_FIRST_REPLY[key] : EM1_REPEAT_REPLY[key];
+          });
+        });
+        em1WithholdButton(card, lab, key);
+        if (key === "noMetal" && lab.matrix.archival1794 &&
+            !em1IncidentUsed(lab, "ch7:conceal-1794") &&
+            window.GB.Engine7.visibleArchival1794(lab)) {
+          mkBtn(card, "把一七九四年的舊紙收進箱底", function () {
+            em1PendingConfirm = { kind: "archival1794" };
+            renderAll();
+          });
+          if (em1PendingConfirm && em1PendingConfirm.kind === "archival1794") {
+            var confirmArchival = em1El("div", null, card, "em1Confirm");
+            confirmArchival.setAttribute("role", "group");
+            confirmArchival.setAttribute("aria-label", "確認收起一七九四年舊紙");
+            em1El("p", "這一頁是四年前的觀測。收起來，桌上就沒有紙證明「沒有金屬也踢」發生過。", confirmArchival);
+            mkBtn(confirmArchival, "收。", function () { em1Do("concealArchival1794", {}); });
+            mkBtn(confirmArchival, "放回桌上。", function () { em1PendingConfirm = null; renderAll(); });
+          }
+        }
+      });
+    } else if (v.phase === "electrometer") {
+      em1El("p", "Volta 已退開。接觸、餵盤與讀針都由你的手完成。", box);
+      var e = lab.electrometer;
+      em1El("p", "金屬對：" + (e.pair || "尚未選") + "｜餵盤次數：" + e.feeds + "｜提盤：" + (e.lifted ? "已完成" : "未完成"), box);
+      mkBtn(box, "讓銅碰鋅", function () { em1Do("touchElectrometerMetals", { pair: "copper-zinc" }, "銅與鋅已相觸；接觸嘗試留在紙上。" ); });
+      mkBtn(box, "讓銅碰銅（對照）", function () { em1Do("touchElectrometerMetals", { pair: "copper-copper" }); });
+      mkBtn(box, "把這一次接觸餵給薄盤", function () { em1Do("feedElectrometerPlate", {}, "薄盤多記下一次接觸。" ); }, !e.touched);
+      mkBtn(box, "提起薄盤，讀細針", function () { em1Do("liftElectrometerPlate", {}, "細針動了。很小，但乾淨；針格已留痕。" ); }, e.feeds < 1 || !!lab.matrix.traces.electrometer);
+    } else if (v.phase === "pile") {
+      em1El("p", "依圖說從底部往上排：銅 → 鋅 → 浸鹽水布，至少重複兩組。", box);
+      em1El("p", "目前層序：" + (lab.pile.layers.length ? lab.pile.layers.map(function (m) {
+        return { copper: "銅", zinc: "鋅", brine: "浸鹽水布" }[m];
+      }).join(" → ") : "（空）"), box);
+      [["copper", "加一片銅"], ["zinc", "加一片鋅"], ["brine", "加一片浸鹽水布"]].forEach(function (item) {
+        mkBtn(box, item[1], function () { em1Do("setPileLayer", { material: item[0] }, "這一層已留在排列紀錄。" ); });
+      });
+      mkBtn(box, "清空並從銅重新開始", function () { em1Do("setPileLayer", { material: "copper", reset: true }, "舊排列仍在嘗試紀錄；桌面從一片銅重新排。" ); });
+      mkBtn(box, "同觸頂端與底端", function () { em1Do("testPileEnds", {}, function (result) {
+        return result.sustained ? "那股勁咬住指尖，不放。不是一下。是一直。" : result.userMessage;
+      }); }, lab.pile.layers.length < 1 || !!lab.matrix.traces.pile);
+    } else if (v.phase === "board") {
+      em1El("p", "逐張把三地原紙歸回同一頁；已測範圍只由實際在場的六格建立。", box);
+      window.GB.Engine7.MATRIX_KEYS.forEach(function (key) {
+        var placed = lab.matrix.boardOrder.indexOf(key) >= 0;
+        var card = em1El("section", null, box, "em1Card");
+        em1El("h3", EM1_LABEL[key], card);
+        em1El("p", placed ? "✓ 已放回合帳頁" : "仍在各自卷袋", card);
+        mkBtn(card, placed ? "已歸頁" : "把這張原紙放回同一頁", function () {
+          em1Do("placeMatrixTrace", { trace: key }, "原紙已歸頁；沒有改寫原觀測。" );
+        }, placed);
+      });
+      mkBtn(box, "封存六格合帳頁", function () { em1Do("sealMatrixBoard", {}, "六格第一次睡在同一張紙上。" ); }, lab.matrix.boardOrder.length !== 6 || lab.matrix.boardComplete);
+    }
+    em1Gate(box, v);
+  }
+
   /* ---------- 主渲染 ---------- */
   function renderAll() {
     renderStatus();
@@ -8989,6 +9666,10 @@
     }
     if (v.type === "embed" && v.system === "heat") {
       renderHeat6(v, box);
+      return;
+    }
+    if (v.type === "embed" && v.system === "em1") {
+      renderEm1(v, box);
       return;
     }
     if (v.type === "embed" && v.system === "debrief") {
@@ -9228,6 +9909,13 @@
   function initTitle() {
     if (TEXT) TEXT.normalizeTextNodes(document.getElementById("stage"));
     configureSeriesTitle();
+    if (window.BD_CHAPTER_ERROR) {
+      showNewWarn(window.BD_CHAPTER_ERROR + "。已停止載入；請返回旅程目錄重新選章。");
+      $("btnNew").disabled = true;
+      $("btnContinue").disabled = true;
+      $("continueWrap").style.display = "none";
+      return;
+    }
     var loaded = tryLoad();
     if (loaded && loaded.ended) { markChapterComplete(loaded); configureSeriesTitle(); }
     var projection = readProjection();

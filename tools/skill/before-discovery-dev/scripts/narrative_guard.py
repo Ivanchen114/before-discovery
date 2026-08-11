@@ -11,7 +11,24 @@ from pathlib import Path
 from typing import Callable
 
 
-CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5", "ch6"}
+REPO_ROOT = Path(__file__).resolve().parents[4]
+SERIES_PATH = REPO_ROOT / "greybox" / "data" / "series.json"
+
+
+def _registered_chapters() -> set[str]:
+    try:
+        data = json.loads(SERIES_PATH.read_text(encoding="utf-8"))
+        chapters = {
+            str(item["id"])
+            for item in data.get("chapters", [])
+            if isinstance(item, dict) and re.fullmatch(r"ch[1-9][0-9]*", str(item.get("id", "")))
+        }
+    except (OSError, ValueError, TypeError, KeyError):
+        chapters = set()
+    return chapters
+
+
+CHAPTERS = _registered_chapters()
 TRAVELER_PREFIX = "旅人"
 SYSTEM_SPEAKERS = {"stage", "system"}
 CHAR_DENSITY_BASELINE = 27.0
@@ -112,7 +129,7 @@ RUNTIME_ACTION = re.compile(
     re.DOTALL,
 )
 RUNTIME_NARRATIVE_CHOICE = re.compile(
-    r"narrativeChoice\s*:\s*[\"'](?P<chapter>ch[1-6])[\"']"
+    r"narrativeChoice\s*:\s*[\"'](?P<chapter>ch[1-9][0-9]*)[\"']"
 )
 GAP_TERMS = re.compile(r"還不能代表|不足以|因此需要|下一步要")
 PROCESS_TERMS = re.compile(r"沿用|安排|記錄|再做一(?:組|回)|一併|依序")
@@ -237,7 +254,9 @@ def parse_scenes_json(path: Path) -> dict:
     }
 
 
-SCENE_HEADING = re.compile(r"^##\s+.*?【([^】]+)】")
+SCENE_HEADING = re.compile(
+    r"^##\s+(?:.*?【(?P<bracket>[^】]+)】|(?P<pipe>[A-Z0-9]+(?:-[A-Z0-9]+)*)(?=\s*[｜|]))"
+)
 SPEAKER_LINE = re.compile(
     r"^(?P<speaker>[^：:]{1,40}?)(?:\([^：:]{0,30}\))?\s*[：:]\s*(?P<text>.+)$"
 )
@@ -253,6 +272,56 @@ def parse_draft_markdown(path: Path) -> dict:
     current: dict | None = None
     in_fence = False
     fence_char = ""
+    table_headers: list[str] | None = None
+
+    def split_table_row(raw: str) -> list[str]:
+        return [_strip_inline_markdown(cell) for cell in raw.strip().strip("|").split("|")]
+
+    def table_entry(cells: list[str], headers: list[str], line_number: int) -> tuple[dict, dict] | None:
+        if len(cells) != len(headers):
+            return None
+        values = dict(zip(headers, cells))
+        if {"id", "speaker", "text"}.issubset(values):
+            node_id = values["id"]
+            speaker = values["speaker"]
+            text = values["text"]
+        elif {"#", "板", "文字"}.issubset(values):
+            node_id = values["#"]
+            speaker = "stage"
+            text = values["文字"]
+        else:
+            return None
+        if not node_id or node_id == "—" or not text or text == "—":
+            return None
+        raw_speaker = speaker
+        lowered = raw_speaker.lower()
+        node_type = "line"
+        visible_speaker = raw_speaker
+        metric = True
+        if "choice" in lowered:
+            node_type = "choice"
+            visible_speaker = "player-option"
+            metric = False
+        elif "embed" in lowered or "工作台" in raw_speaker or "矩陣" in raw_speaker:
+            node_type = "embed"
+            visible_speaker = "system"
+        entry = {
+            "location": f"{current['id']}/{node_id}",
+            "speaker": visible_speaker,
+            "text": text,
+            "dialogue": visible_speaker not in SYSTEM_SPEAKERS,
+            "metric": metric,
+            "action": text if node_type == "embed" else None,
+            "node_type": node_type,
+        }
+        node = {
+            "id": node_id,
+            "type": node_type,
+            "speaker": visible_speaker,
+            "text": text,
+        }
+        return entry, node
+
     for line_number, raw_line in enumerate(lines, start=1):
         fence = re.match(r"^\s{0,3}(`{3,}|~{3,})", raw_line)
         if fence:
@@ -269,7 +338,7 @@ def parse_draft_markdown(path: Path) -> dict:
 
         heading = SCENE_HEADING.match(raw_line)
         if heading:
-            scene_id = heading.group(1).strip()
+            scene_id = (heading.group("bracket") or heading.group("pipe")).strip()
             current = {
                 "id": scene_id,
                 "title": _strip_inline_markdown(raw_line),
@@ -280,18 +349,41 @@ def parse_draft_markdown(path: Path) -> dict:
                 "text_beat_count": 0,
             }
             scenes.append(current)
+            table_headers = None
             continue
         if current is None:
             continue
         if raw_line.startswith("#"):
+            table_headers = None
             continue
         stripped = raw_line.strip()
+        if stripped.startswith("|"):
+            cells = split_table_row(stripped)
+            if cells and all(re.fullmatch(r":?-{3,}:?", cell.replace(" ", "")) for cell in cells):
+                continue
+            normalized_headers = [cell.lower() if cell.lower() in {"id", "speaker", "text"} else cell for cell in cells]
+            if {"id", "speaker", "text"}.issubset(normalized_headers) or {"#", "板", "文字"}.issubset(normalized_headers):
+                table_headers = normalized_headers
+                continue
+            if table_headers is not None:
+                parsed_row = table_entry(cells, table_headers, line_number)
+                if parsed_row is not None:
+                    entry, node = parsed_row
+                    current["entries"].append(entry)
+                    current["nodes"].append(node)
+                    current["node_map"][node["id"]] = {"node": node}
+                    current["node_count"] += 1
+                    if entry["metric"]:
+                        current["text_beat_count"] += 1
+                continue
+            continue
         if (
             not stripped
-            or stripped.startswith("|")
             or stripped.startswith(">")
             or stripped.startswith("<!--")
         ):
+            if not stripped:
+                table_headers = None
             continue
 
         cleaned = re.sub(r"^(?:\*\*)?〔(?:新|改)〕(?:\*\*)?\s*", "", stripped)
@@ -350,7 +442,7 @@ def parse_draft_markdown(path: Path) -> dict:
 
     if not scenes:
         raise NarrativeInputError(
-            "draft has no recognized scene heading; expected '## ...【SCENE-ID】'"
+            "draft has no recognized scene heading; expected '## ...【SCENE-ID】' or '## SCENE-ID｜title'"
         )
     duplicate_ids = {
         scene["id"]
@@ -646,6 +738,15 @@ def _first_reachable_action(parsed: dict) -> tuple[tuple[str, str] | None, int]:
     but they do not count as visible beats or player actions.
     """
 
+    if parsed["kind"] == "draft":
+        visible_lines = 0
+        for scene in parsed["scenes"]:
+            for node in scene["nodes"]:
+                if node.get("type") in {"choice", "embed"}:
+                    return (scene["id"], node.get("id", "")), visible_lines
+                if isinstance(node.get("text"), str) and node["text"].strip():
+                    visible_lines += 1
+        return None, visible_lines
     if parsed["kind"] != "scenes":
         return None, 0
 
@@ -1173,6 +1274,10 @@ def check_narrative(
         print(f"ERROR {exc}")
         return 1
 
+    if not any(scene["entries"] for scene in parsed["scenes"]):
+        print("ERROR draft/runtime parse produced zero visible dialogue entries")
+        return 1
+
     if story_audit:
         _print_story_audit(parsed, runtime_choice_count)
 
@@ -1289,7 +1394,7 @@ def check_narrative(
 
     for scene in scenes:
         for entry in scene["entries"]:
-            for label, pattern in FORBIDDEN_PATTERNS[chapter]:
+            for label, pattern in FORBIDDEN_PATTERNS.get(chapter, ()):
                 if pattern.search(entry["text"]):
                     warn(
                         "NAR-02",
@@ -1601,6 +1706,12 @@ def check_narrative(
                     and node.get("speaker") not in SYSTEM_SPEAKERS
                     and isinstance(node.get("text"), str)
                     and node["text"].lstrip().startswith("「")
+                    and not _is_exempt(
+                        exemptions,
+                        "R-TXT-6",
+                        scene["id"],
+                        [node.get("id", "")],
+                    )
                 ):
                     error(
                         "R-TXT-6",

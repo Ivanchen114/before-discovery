@@ -255,8 +255,8 @@ const generatedFocus = {
   ch04_focus_newton_orbit_montage_1679_v01: {
     scene: "D2-1", match: "桌上排著旅人挑出的三張紙", guard: "路徑與設定仍由引擎依玩家操作繪製"
   },
-  ch04_focus_mountain_cannon_v01: {
-    scene: "D2-1", match: "最高的山頂上", guard: "引擎 SVG 疊加"
+  ch04_focus_newton_cannonball_reconstruction_v01: {
+    scene: "D2-1", match: "最高的山頂上", guard: "依牛頓 1728 年刊本原典圖重建"
   },
   ch04_focus_stirred_tea_analogy_v01: {
     scene: "D4-1", match: "攪茶圖卡", guard: "不表示渦旋已被證明"
@@ -305,14 +305,15 @@ if (orbitRules.length < 4 ||
     !focusRenderer.includes('d="M 712 390.3 L 688.5 405.6"') ||
     !stageHtml.includes(".orbit-geometry-overlay"))
   fail("月球切線、實際彎路與端點短差沒有在底圖座標系中由 runtime 精確疊圖");
+const cannonEntry = entries.get("ch04_focus_newton_cannonball_reconstruction_v01");
 const cannonRule = (assets.lineFocusVisual || []).find((rule) =>
-  rule.items?.some((item) => item.asset === "ch04_focus_mountain_cannon_v01"));
-if (cannonRule?.items?.[0]?.overlay !== "cannon-trajectories" ||
-    !focusRenderer.includes("function mountCannonFocusVisual") ||
-    !focusRenderer.includes('overlay.setAttribute("class", "cannon-trajectory-overlay")') ||
-    (focusRenderer.match(/<path class=/g) || []).length < 5 ||
-    !stageHtml.includes(".cannon-trajectory-overlay"))
-  fail("山頂大砲的物理軌跡沒有由 runtime SVG 疊加");
+  rule.items?.some((item) => item.asset === cannonEntry?.id));
+if (!cannonEntry?.sourceReference?.endsWith("newton_cannonball_1728_public_domain.png") ||
+    !cannonEntry?.sourceUrl?.includes("1728-newton-a-treatise-of-the-system-of-the-world") ||
+    !cannonEntry?.license?.includes("Public Domain") ||
+    cannonRule?.items?.[0]?.overlay ||
+    !cannonRule?.caption?.includes("不是牛頓親筆手稿"))
+  fail("山頂大砲重建圖未保留 1728 原典來源、重建標示或無疊圖邊界");
 const shellRule = (assets.lineFocusVisual || []).find((rule) =>
   rule.items?.some((item) => item.asset === "ch04_focus_shell_theorem_page_v01"));
 if (shellRule?.items?.[0]?.overlay !== "shell-theorem" ||

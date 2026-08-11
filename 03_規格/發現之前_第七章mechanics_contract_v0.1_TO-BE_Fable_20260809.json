@@ -1,0 +1,682 @@
+{
+  "schema_version": 2,
+  "chapter": "ch7",
+  "_status": "TO-BE STRUCTURAL COMMITMENT — BLOCKED（scenes7.json 未存在；Implementation Gate 前不得重跑 check-mechanics 冒充 PASS）。v0.4（2026-08-10）：Sol 定點終驗 CONDITIONAL PASS 後兩處機械修正——success._planned 換核准縮句；em1-configure-circuit kind 改 operation。v0.5（2026-08-10，隨劇本 v0.3 同步；Sol 劇本二輪 RETURN A×2 的契約側修正）：①（A-1）em1-exclusive-claim 增 gate（前四格留痕後才開；implementation CR 必附負向排列測試）；②（A-2）消除兩套 TO-BE 真相——evidenceSources 全 field 補 plannedOrdinal（工具原生欄位）、新增 RECORD_1794 證源與 em1-mid-verdict 判讀（plannedOrdinal 7）、GRID_ELECTROMETER/GRID_PILE/GRID_STATE locator 回寫實際場景（EM7-3/EM7-E）、spine 錨點與 ordinal 依實際玩家時序重排、commitBeforeReveal 之 reveal 改 interpretation 並明載非對稱設計。14 FAIL 預期 blocker 維持；工具債（MEC-01 枚舉＋BLOCKED_ENGINE_ADAPTER）仍入 chapter-registry 前置。v0.6（2026-08-10，Sol 定點回執 A×1）：單 spine 無法同時表達「先四格→署名→再兩格→兩次判讀」與 MEC-03 規範序（q<c<o<t<i<r）——拆為兩段完整迴路：em1-qualification（接箱承諾 c_replicate→前四格自由複驗→1798 中間判讀；failure 拍＝研究失信線）＋em1-exclusive-arc（小冊拋問→gate 後署名→區分操作三連 e_electrometer/e_pile/e_board 全玩家親手→1800 終判→r_named 世界點名／f_repair 原紙修復）。新增 em1-accept-replication；操作節點實體化=NPC 演示不得支付任何留痕；負向驗證條款入 gate。v0.7（2026-08-10，Sol 定點回執：控制流 dominance）：①S1 阻力拍改共通 r_mid（三路變體），正確→s_mid、錯誤→f_mid_retry 擋回重選——條件式 w2 不再冒充共通 resistance；②SC7-R1 退出 S1（獨立信譽修復場，不屬判讀迴路）；③S2 統一真實順序＝c_verdict_final→r_named（三路變體）→A 路 f_repair（ordinal 7）→共通 s_scoped（ordinal 8）——修復先於收口，failure 在 success 前是失敗前進的教義順序；MEC-03 僅約束 r<s 與 r<f，s/f 相對序自由。",
+  "_upstream": [
+    "02_設計/發現之前_第七章chapter-brief_EM1_Galvani與Volta_v0.1_Fable_20260809.md (v0.3)",
+    "02_設計/發現之前_第七章provenance_sidecar_EM1_v0.1_Fable_20260809.md (v0.2)",
+    "05_審核/發現之前_第七章mechanics_contract_v0.3_Sol定點終驗_20260810.md (CONDITIONAL PASS)"
+  ],
+  "binding": {
+    "targetPath": "greybox/data/scenes7.json",
+    "targetFormat": "scenes-json",
+    "_note": "target does not exist; binding is declarative until implementation CR"
+  },
+  "segments": [
+    {
+      "id": "em1-qualification",
+      "_label": "資格迴路：九年的箱重新做給我看（1798 波隆那）",
+      "ordinal": 1,
+      "mechanicalSpine": {
+        "question": {
+          "anchor": "EM7-1/q_source",
+          "_planned": "那一踢的電，是青蛙自己的，還是我們帶來的？（世界拋出，非旅人代問）",
+          "ordinal": 1,
+          "reachable": false,
+          "authorship": "world"
+        },
+        "commitment": {
+          "anchor": "EM7-1/c_replicate",
+          "_planned": "接下 Galvani 的條件——整箱重做，不挑格（em1-accept-replication；「挑幾格就夠了」被資格層擋回：挑格就是先押了答案再找紙）",
+          "ordinal": 2,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "operation": {
+          "anchor": "EM7-2/e_matrix",
+          "_planned": "前四格自由接線複驗（基準→雙金屬→同材質對照→無金屬，順序由玩家決定；每次只改一個可辨識條件）——em1-configure-circuit 前四配置",
+          "ordinal": 3,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "trace": {
+          "anchor": "EM7-2/t_baseline",
+          "_planned": "前四格留痕：t_baseline→t_bimetal→t_same_metal→t_no_metal（完成時 RECORD_1794 由 Galvani 抽出並排——這格從今天起有兩張紙）",
+          "ordinal": 4,
+          "reachable": false,
+          "authorship": "system"
+        },
+        "interpretation": {
+          "anchor": "EM7-4/c_verdict_mid",
+          "_planned": "1798 中間判讀（em1-mid-verdict，plannedOrdinal 7）：M 倒了（1794 紙＋玩家複驗）；A 還沒有人量過「可持續」——今天殺不死，也立不起來",
+          "ordinal": 5,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "resistance": {
+          "anchor": "EM7-4/r_mid",
+          "_planned": "共通阻力拍——所有判讀路都經過：Galvani 以自己的紙與 Volta 的自限轉述檢驗玩家判讀（三路變體：①正解＝接過判讀、沉默點頭引向劃線；②「針已替金屬作證」＝連帕維亞都沒把「一下」寫成「一直」，你比他還急；③「A 穩了」＝觸發旅人自駁——A 要活得靠自己的紙，不能靠對手的針矮）",
+          "ordinal": 6,
+          "reachable": false,
+          "authorship": "npc"
+        },
+        "success": {
+          "anchor": "EM7-4/s_mid",
+          "_planned": "正確（①路或修正後）的中間限縮被記下：Galvani 劃線（M 倒）＋留白（A 未判）——「留白的這行，別替我急著填」；此拍是 S2 success 的伏筆本體",
+          "ordinal": 7,
+          "reachable": false,
+          "authorship": "npc"
+        },
+        "failure": {
+          "anchor": "EM7-4/f_mid_retry",
+          "_planned": "錯誤判讀→擋回重選（非結論放行：中間判讀屬當下可判，ADR-016 當下糾正）——「把矩陣轉回去。再看一次。桌上的紙不趕時間。」矩陣、已留痕格與接箱承諾全數保留；重選至正解後匯入 s_mid。研究失信（隱匿／刪格／拒更正）另走獨立 SC7-R1 信譽修復場，不屬本迴路",
+          "ordinal": 8,
+          "reachable": false,
+          "authorship": "npc",
+          "preserves": [
+            "trace",
+            "commitment"
+          ]
+        }
+      },
+      "commitBeforeReveal": {
+        "commitment": "commitment",
+        "reveal": "trace",
+        "_note": "v0.6：Seg 1 為複驗資格迴路——接箱承諾（c_replicate，ordinal 2）先於四格逐一揭曉（trace，ordinal 4）；排他性主張的 commit-before-reveal 承重在 Seg 2"
+      },
+      "narrativeTrack": {
+        "payments": [
+          {
+            "id": "nine-year-box",
+            "anchor": "question",
+            "purpose": "historical_stakes",
+            "_planned": "九年的紙攤半張桌——「牠們踢過的每一次。都記著。」"
+          },
+          {
+            "id": "hands-not-paper",
+            "anchor": "commitment",
+            "purpose": "character_response",
+            "_planned": "「紙會舊，手不會騙」——Galvani 把方法當人格"
+          },
+          {
+            "id": "galvani-defends-with-his-hands",
+            "anchor": "interpretation",
+            "purpose": "character_response",
+            "_planned": "劃線與留白：科學家親手宣判自己的假說倒了一半，另一半不許別人急著填"
+          }
+        ],
+        "suppliesRequiredInference": false,
+        "suppliesMissingOperation": false,
+        "suppliesControlInstruction": false
+      }
+    },
+    {
+      "id": "em1-exclusive-arc",
+      "_label": "排他性主張弧：署名、區分操作與兩年後的判讀（1798–1800）",
+      "ordinal": 2,
+      "mechanicalSpine": {
+        "question": {
+          "anchor": "EM7-2/v_p2",
+          "_planned": "帕維亞小冊把「來源」問題公開拋回波隆那：「好在牠靈敏，不好在把靈敏當成了來源」——收縮所需的電，究竟誰供的？",
+          "ordinal": 1,
+          "reachable": false,
+          "authorship": "world"
+        },
+        "commitment": {
+          "anchor": "EM7-2/c_exclusive",
+          "_planned": "承重岔口【gate：Seg 1 前四格全部留痕後才開啟，見 decisions.em1-exclusive-claim.gate】：是否為排他性主張署名——M／A／暫不排他（not-yet 須另承諾下一區分配置）。M 路被 1794 紙＋玩家自己的無金屬格當場反駁（mb1），短枝不出段；A 路唯一失敗前進",
+          "ordinal": 2,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "operation": {
+          "anchor": "EM7-3/e_electrometer",
+          "_planned": "署名後的區分操作三連，全部玩家親手：①EM7-3/e_electrometer——接電量器（銅鋅相觸餵薄盤，Volta 監考不代打）；②EM7-E/e_pile——1800 依信重建堆並驗持續；③EM7-E/e_board——六格合回同一本矩陣。錨＝首操作；三者皆為具名 embed 操作節點，NPC 演示不得支付任何一項",
+          "ordinal": 3,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "trace": {
+          "anchor": "EM7-3/t_electrometer",
+          "_planned": "區分留痕鏈：t_electrometer（EM7-3）→t_pile（EM7-E）→t_board（EM7-E 合帳：completeness＋testedScope）；各由對應 embed 操作完成後授予——操作不完成，留痕不存在",
+          "ordinal": 4,
+          "reachable": false,
+          "authorship": "system"
+        },
+        "interpretation": {
+          "anchor": "EM7-E/c_verdict_final",
+          "_planned": "最終判讀（1800，t_board 之後；em1-config-verdict，plannedOrdinal 10）：這一批格撐得住哪一句主張——全部證源（1–9）已揭曉",
+          "ordinal": 5,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "resistance": {
+          "anchor": "EM7-E/r_named",
+          "_planned": "世界點名（判讀後、收口前的共通阻力拍，三路變體）：A 署名者——傳抄過旅人回覆的人把堆的消息與「必須有生命組織在場」並排傳看，簽名兩年了還很清楚；not-yet 者——你當年選定的區分配置，被 1800 年的世界親手做完了；其餘——堆的消息沿城傳開，矩陣旁的人都在等那行留白",
+          "ordinal": 6,
+          "reachable": false,
+          "authorship": "world"
+        },
+        "success": {
+          "anchor": "EM7-E/s_scoped",
+          "_planned": "共通成功收口（f_repair 之後）：玩家親手限縮署名（填回 1798 年 Galvani 的留白行）——章末主張上限＝「M 與 A 兩個全稱都失敗；不同配置必須分開記，目前不能指定統一的來源角色。」（與 em1-config-verdict 正解逐字一致）",
+          "ordinal": 8,
+          "reachable": false,
+          "authorship": "player"
+        },
+        "failure": {
+          "anchor": "EM7-E/f_repair",
+          "_planned": "失敗前進的修復拍（A 路，先於共通 success）：在自己的原句上劃限縮線、補條件——不換乾淨紙，寫進矩陣末頁；先還自己的債，才有資格填別人的留白。排他署名從未被擋回，代價由 r_named 支付",
+          "ordinal": 7,
+          "reachable": false,
+          "authorship": "system",
+          "preserves": [
+            "trace",
+            "commitment"
+          ]
+        }
+      },
+      "commitBeforeReveal": {
+        "commitment": "commitment",
+        "reveal": "trace",
+        "_note": "v0.6 非對稱條款（ADR-016）：署名（ordinal 2）先於區分留痕鏈（ordinal 4）。M 的反證（GRID_NO_METAL plannedOrdinal 4＋RECORD_1794 plannedOrdinal 5，屬 Seg 1）於署名前已在桌上——押 M 被當場反駁是「無視自己的手」，非洩題；A 的反證（GRID_ELECTROMETER 6、GRID_PILE 8）於署名後才由玩家親手做出——A 才是本弧 commit-before-reveal 的承重對象；最終判讀（plannedOrdinal 10）晚於全部證據"
+      },
+      "narrativeTrack": {
+        "payments": [
+          {
+            "id": "volta-leaves-the-frog",
+            "anchor": "operation",
+            "purpose": "motive",
+            "_planned": "「腿太吵了」「我的針不認人，只認接觸」——Volta 出儀器、玩家出手；他監考的傲慢正是他的科學品格"
+          },
+          {
+            "id": "volta-self-limit",
+            "anchor": "trace",
+            "purpose": "character_response",
+            "_planned": "「針動一下，是一下。可持續——我今天還給不了你。給我時間。」對手自劃界線"
+          },
+          {
+            "id": "letter-without-addressee",
+            "anchor": "success",
+            "purpose": "historical_stakes",
+            "_planned": "尾聲：一封已沒有收件人的信（1800，Galvani 已逝；克制音量，不演臨終，不下判語）"
+          }
+        ],
+        "suppliesRequiredInference": false,
+        "suppliesMissingOperation": false,
+        "suppliesControlInstruction": false
+      }
+    }
+  ],
+  "decisionRegistry": [
+    {
+      "id": "em1-accept-replication",
+      "segment": "em1-qualification",
+      "kind": "experiment_commitment",
+      "anchor": "commitment"
+    },
+    {
+      "id": "em1-exclusive-claim",
+      "segment": "em1-exclusive-arc",
+      "kind": "experiment_commitment",
+      "anchor": "commitment"
+    },
+    {
+      "id": "em1-mid-verdict",
+      "segment": "em1-qualification",
+      "kind": "evidence_judgment",
+      "anchor": "interpretation"
+    },
+    {
+      "id": "em1-config-verdict",
+      "segment": "em1-exclusive-arc",
+      "kind": "evidence_judgment",
+      "anchor": "interpretation"
+    },
+    {
+      "id": "em1-configure-circuit",
+      "segment": "em1-qualification",
+      "kind": "operation",
+      "anchor": "operation"
+    },
+    {
+      "id": "em1-next-discriminating-config",
+      "segment": "em1-exclusive-arc",
+      "kind": "experiment_commitment",
+      "anchor": "commitment"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "em1-accept-replication",
+      "segment": "em1-qualification",
+      "kind": "experiment_commitment",
+      "anchor": "commitment",
+      "preselected": false,
+      "_note": "v0.6 新增（MEC-03 拆段的承諾拍——非湊數：EM7-1 原本只有 c1 一個 choice，n8→n9 之間缺玩家發聲位；接箱是旅人從「知道結局的人」變成「動手的人」的門檻）",
+      "options": [
+        {
+          "id": "take-the-box",
+          "_planned": "我來重做。從第一格開始。"
+        },
+        {
+          "id": "sample-only",
+          "_planned": "九年的紀錄都要重做？挑幾格關鍵的就夠了。（Galvani 資格層擋回：挑格，就是先押了答案再找紙——全做。回選）"
+        }
+      ]
+    },
+    {
+      "id": "em1-exclusive-claim",
+      "segment": "em1-exclusive-arc",
+      "kind": "experiment_commitment",
+      "anchor": "commitment",
+      "preselected": false,
+      "gate": {
+        "requiresTraces": [
+          "t_baseline",
+          "t_bimetal",
+          "t_same_metal",
+          "t_no_metal"
+        ],
+        "_note": "v0.5（Sol 二輪 A-1）：押注桌僅在前四格全部留痕後開啟——m_branch 的「你親手重做過牠」因此永真，不存在捏造操作的排列。implementation CR 必附負向排列測試：缺任一前四格留痕（尤其 t_no_metal）時 c_exclusive 不可達。 v0.6 負向驗證擴充（Sol 二輪回執修法 5）：拔 e_electrometer→t_electrometer 與 c_verdict_final 必不可達；拔 e_pile→t_pile／t_board／c_verdict_final 必不可達。"
+      },
+      "_note": "v0.2（Sol 窄複核 A-1）：押假說發生在證據之前，當場沒有正確答案——experiment_commitment 不標 isCorrect，真假由後續矩陣格與 em1-config-verdict 裁。M／A 為分離主張（A-2），各配自己量測對象的反證。v0.5 註：「證據之前」精確化為「A 之反證（electrometer／pile）之前」；M 之反證依 gate 於押注前已揭曉，見 commitBeforeReveal._note 非對稱條款。",
+      "options": [
+        {
+          "id": "claim-M",
+          "_planned": "M：蛙腿收縮所需的電效應只能由金屬提供"
+        },
+        {
+          "id": "claim-A",
+          "_planned": "A：任何可持續的電效應都必須有生命組織在場"
+        },
+        {
+          "id": "not-yet-exclusive",
+          "_planned": "暫不排他——但必須提出下一個能區分兩模型的配置才能前進（成功路非免費）"
+        }
+      ]
+    },
+    {
+      "id": "em1-mid-verdict",
+      "segment": "em1-qualification",
+      "kind": "evidence_judgment",
+      "anchor": "interpretation",
+      "preselected": false,
+      "plannedOrdinal": 7,
+      "_note": "v0.5 新登錄（Sol 二輪 A-2：消除兩套真相——劇本 EM7-4/c_verdict_mid 自 v0.2 起存在，contract 至此補登）：1798 年中間判讀。正解只引 plannedOrdinal＜7 的證源；GRID_PILE（8）在本判讀不可引用，此即劇本一輪 A-1 驗證條件的機械形。",
+      "options": [
+        {
+          "id": "mid-m-fell-a-open",
+          "isCorrect": true,
+          "_planned": "M 倒了——一七九四的紙加上我的複驗。A 還沒有人量過「可持續」——今天殺不死，也立不起來。",
+          "supportedBy": [
+            {
+              "sourceId": "GRID_NO_METAL",
+              "field": "observation",
+              "condition": "contraction_without_any_metal"
+            },
+            {
+              "sourceId": "RECORD_1794",
+              "field": "observation",
+              "condition": "no_metal_contraction_recorded_1794"
+            }
+          ]
+        },
+        {
+          "id": "mid-both-fell",
+          "isCorrect": false,
+          "refutedBy": [
+            {
+              "sourceId": "GRID_ELECTROMETER",
+              "field": "observation",
+              "relation": "insufficient",
+              "condition": "single_deflection_not_sustained"
+            }
+          ],
+          "_note": "「針已替金屬作證」——把一下讀成一直（w2：連帕維亞自己都沒把『一下』寫成『一直』）"
+        },
+        {
+          "id": "mid-a-established",
+          "isCorrect": false,
+          "refutedBy": [
+            {
+              "sourceId": "GRID_ELECTROMETER",
+              "field": "observation",
+              "relation": "insufficient",
+              "condition": "deflection_is_real_and_a_has_no_positive_support"
+            }
+          ],
+          "_note": "「A 穩了」——把對手證據弱當成自己被證明（w3：A 要活得靠自己的紙，不能靠對手的針矮）"
+        }
+      ]
+    },
+    {
+      "id": "em1-config-verdict",
+      "segment": "em1-exclusive-arc",
+      "kind": "evidence_judgment",
+      "anchor": "interpretation",
+      "preselected": false,
+      "plannedOrdinal": 10,
+      "_note": "v0.2：M 由同量測對象（收縮）的無金屬格反駁；A 由電效應量測（electrometer＋pile）反駁——反證不換題（A-2）。always-both 的關係是 insufficient 非 contradicts（A-3）：有限配置集湊不出「總是」。v0.5：本判讀＝EM7-E/c_verdict_final（1800，t_board 合帳後）；全部證源（plannedOrdinal 1–9）均已揭曉。",
+      "options": [
+        {
+          "id": "m-a-both-fell-record-configs-separately",
+          "isCorrect": true,
+          "_planned": "M 與 A 兩個全稱都失敗；不同配置必須分開記，目前不能指定統一的來源角色（v0.3 縮句：資料只證明全稱失敗，不證明角色分派）",
+          "supportedBy": [
+            {
+              "sourceId": "GRID_BASELINE",
+              "field": "observation",
+              "condition": "preparation_verified"
+            },
+            {
+              "sourceId": "GRID_NO_METAL",
+              "field": "observation",
+              "condition": "contraction_without_any_metal"
+            },
+            {
+              "sourceId": "GRID_ELECTROMETER",
+              "field": "observation",
+              "condition": "bimetal_charge_without_tissue"
+            },
+            {
+              "sourceId": "GRID_PILE",
+              "field": "observation",
+              "condition": "sustained_current_without_tissue"
+            }
+          ]
+        },
+        {
+          "id": "m-still-holds",
+          "isCorrect": false,
+          "refutedBy": [
+            {
+              "sourceId": "GRID_NO_METAL",
+              "field": "observation",
+              "relation": "contradicts",
+              "condition": "contraction_without_any_metal"
+            },
+            {
+              "sourceId": "RECORD_1794",
+              "field": "observation",
+              "relation": "contradicts",
+              "condition": "no_metal_contraction_recorded_1794"
+            }
+          ]
+        },
+        {
+          "id": "a-still-holds",
+          "isCorrect": false,
+          "refutedBy": [
+            {
+              "sourceId": "GRID_ELECTROMETER",
+              "field": "observation",
+              "relation": "contradicts",
+              "condition": "bimetal_charge_without_tissue"
+            },
+            {
+              "sourceId": "GRID_PILE",
+              "field": "observation",
+              "relation": "contradicts",
+              "condition": "sustained_current_without_tissue"
+            }
+          ]
+        },
+        {
+          "id": "always-both-sources",
+          "isCorrect": false,
+          "refutedBy": [
+            {
+              "sourceId": "GRID_STATE",
+              "field": "testedScope",
+              "relation": "insufficient",
+              "condition": "tested_scope_cannot_establish_always"
+            }
+          ],
+          "_note": "「總是同時存在」不被任何格矛盾——它只是沒有證據能支持：insufficient"
+        }
+      ]
+    },
+    {
+      "id": "em1-configure-circuit",
+      "segment": "em1-qualification",
+      "kind": "operation",
+      "anchor": "operation",
+      "preselected": false,
+      "_note": "v0.3（Sol 終審 A-3）：守住「玩家怎麼接線」——配置為玩家自由決策空間，非固定六步教學流程；若實作把接線做成固定順序播放，本 decision 應使 contract 轉紅。BLOCKED_ENGINE_ADAPTER：接線操作發生於 engine 工作台內，scenes binder 目前無法驗證自由配置——implementation CR 須建 engine adapter 或在 scenes 層留具名配置事件（已列 chapter-registry 前置清單）。v0.5：自由空間精確化＝前四配置（bimetal／same-metal／no-metal／baseline 複驗與重排）於 EM7-2 自由；cfg-electrometer 於 EM7-3、cfg-pile 於 EM7-E 依場景解鎖後仍由玩家親手操作——場景解鎖≠代打，六格操作者皆為玩家。 v0.6：本 decision 承載 Seg 1 前四格自由配置；cfg-electrometer／cfg-pile 由 Seg 2 具名 embed 操作節點（EM7-3/e_electrometer、EM7-E/e_pile）承載，見該段 operation。",
+      "options": [
+        {
+          "id": "cfg-bimetal-closed",
+          "_planned": "雙金屬弓＋閉合迴路"
+        },
+        {
+          "id": "cfg-same-metal",
+          "_planned": "單一金屬（材料與接點自選）"
+        },
+        {
+          "id": "cfg-no-metal",
+          "_planned": "無金屬：神經—肌肉直接接觸"
+        },
+        {
+          "id": "cfg-electrometer",
+          "_planned": "雙金屬＋condenser electrometer（無蛙）"
+        },
+        {
+          "id": "cfg-pile",
+          "_planned": "鋅銀疊層＋鹽水布（伏打堆）"
+        },
+        {
+          "id": "cfg-free-rearrange",
+          "_planned": "自由重排既有配置（順序與重複由玩家決定）"
+        }
+      ]
+    },
+    {
+      "id": "em1-next-discriminating-config",
+      "segment": "em1-exclusive-arc",
+      "kind": "experiment_commitment",
+      "anchor": "commitment",
+      "preselected": false,
+      "_note": "v0.3（Sol 終審 A-3）：謹慎路非免費條款——選 not-yet-exclusive 者必須承諾下一個能區分 M／A 的配置才能前進；承諾本身無對錯（experiment_commitment），區分力由 NPC 資格層回應。",
+      "options": [
+        {
+          "id": "next-no-metal-contraction",
+          "_planned": "測 M：拿掉所有金屬，看收縮還在不在"
+        },
+        {
+          "id": "next-tissue-free-charge",
+          "_planned": "測 A：拿掉青蛙，看電效應還量不量得到"
+        },
+        {
+          "id": "next-repeat-known",
+          "_planned": "重複一個已做過的配置（NPC 將指出它無區分力——資格層回應，不判對錯）"
+        }
+      ]
+    }
+  ],
+  "evidenceSources": [
+    {
+      "id": "GRID_BASELINE",
+      "_planned": "基準格：外部已知電刺激確認蛙腿製備仍會反應——沒有它，後續「沒收縮」無法排除樣本失效（v0.3，Sol 終審 A-1）",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 1,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_baseline",
+            "field": "observation"
+          }
+        },
+        {
+          "id": "configNote",
+          "plannedOrdinal": 1,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_baseline",
+            "field": "configNote"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GRID_BIMETAL",
+      "_planned": "雙金屬閉路格：有力收縮觀測＋完整配置註記",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 2,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_bimetal",
+            "field": "observation"
+          }
+        },
+        {
+          "id": "configNote",
+          "plannedOrdinal": 2,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_bimetal",
+            "field": "configNote"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GRID_SAME_METAL",
+      "_planned": "同材質對照格：觀測由完整配置決定，不預寫弱／無（Sol A-2 fixture 邊界）",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 3,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_same_metal",
+            "field": "observation"
+          }
+        },
+        {
+          "id": "configNote",
+          "plannedOrdinal": 3,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_same_metal",
+            "field": "configNote"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GRID_NO_METAL",
+      "_planned": "無金屬格：神經—肌肉直接接觸收縮（provenance #7，1794 已查證）——玩家親手複驗，於 EM7-2 留痕",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 4,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_no_metal",
+            "field": "observation"
+          }
+        },
+        {
+          "id": "configNote",
+          "plannedOrdinal": 4,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_no_metal",
+            "field": "configNote"
+          }
+        }
+      ]
+    },
+    {
+      "id": "RECORD_1794",
+      "_planned": "v0.5 新增：Galvani 1794 無金屬收縮的原始紀錄頁（provenance #7）——t_no_metal 完成時由 Galvani 抽出並排（劇本：「這格從今天起有兩張紙」）；m_branch 當場反駁與 mid-verdict 正解引用它",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 5,
+          "locator": {
+            "scene": "EM7-2",
+            "node": "t_no_metal",
+            "field": "archival1794"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GRID_ELECTROMETER",
+      "_planned": "condenser electrometer 格：無蛙量到雙金屬接觸電（provenance #8，1796 儀器）——v0.5：由旅人親手於 EM7-3 帕維亞接出（Volta 監考），非 NPC 演示",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 6,
+          "locator": {
+            "scene": "EM7-3",
+            "node": "t_electrometer",
+            "field": "observation"
+          }
+        },
+        {
+          "id": "configNote",
+          "plannedOrdinal": 6,
+          "locator": {
+            "scene": "EM7-3",
+            "node": "t_electrometer",
+            "field": "configNote"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GRID_PILE",
+      "_planned": "伏打堆格：無動物組織的持續電流（provenance #3，1800）——v0.5：由旅人於 EM7-E 依信親手重建並驗持續，非僅來信轉述",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 8,
+          "locator": {
+            "scene": "EM7-E",
+            "node": "t_pile",
+            "field": "observation"
+          }
+        },
+        {
+          "id": "configNote",
+          "plannedOrdinal": 8,
+          "locator": {
+            "scene": "EM7-E",
+            "node": "t_pile",
+            "field": "configNote"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GRID_STATE",
+      "_planned": "矩陣桌面：可見空格（completeness）＋已測配置清單（testedScope）——「永遠」的範圍判斷只能對照 testedScope，不能靠表格填滿（v0.3，Sol 終審 B-2）。v0.5：合帳於 EM7-E（六格第一次同頁），最終判讀之前",
+      "fields": [
+        {
+          "id": "completeness",
+          "plannedOrdinal": 9,
+          "locator": {
+            "scene": "EM7-E",
+            "node": "t_board",
+            "field": "completeness"
+          }
+        },
+        {
+          "id": "testedScope",
+          "plannedOrdinal": 9,
+          "locator": {
+            "scene": "EM7-E",
+            "node": "t_board",
+            "field": "testedScope"
+          }
+        }
+      ]
+    }
+  ]
+}

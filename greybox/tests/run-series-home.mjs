@@ -40,7 +40,8 @@ const introHistoryAnchors = {
   ch3: "1632 年《對話》",
   ch4: "1684 年哈雷",
   ch5: "杜夏特萊",
-  ch6: "Rumford"
+  ch6: "Rumford",
+  ch7: "Galvani"
 };
 seriesJson.chapters.forEach((chapter, index) => {
   assert(chapter.id === `ch${index + 1}`, `章節 id 次序錯誤:${chapter.id}`);
@@ -107,7 +108,8 @@ const chapter4 = seriesJson.chapters.find((chapter) => chapter.id === "ch4");
 assert(chapter4?.title === "月亮的無盡墜落", "第四章章名未更新於系列資料");
 assert(scenes4.title === chapter4.title, "第四章 runtime 與系列資料章名不同步");
 assert(JSON.stringify(scenes4).includes(`第四章《${chapter4.title}》`), "第四章章名揭曉未同步");
-assert(stageUi.includes(chapter4.title), "章末接力卡未同步第四章章名");
+assert(seriesJson.chapters.find((chapter) => chapter.id === "ch3")?.endCard?.nextTitle === chapter4.title,
+  "章末接力卡未同步第四章章名");
 assert(ch4Script.includes(`# 第四章完整劇本：${chapter4.title}`), "第四章劇本標題未同步");
 
 const dataRoute = (vercel.rewrites || []).find((route) => route.source === "/data/:path*");

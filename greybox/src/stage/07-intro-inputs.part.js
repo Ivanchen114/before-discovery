@@ -284,6 +284,16 @@
         "最後一頁分責任——操作、讀數、兩種解讀與未決債務分欄；四方署名只在最後交棒一次成立。"
       ];
       $("btnLabIntroGo").textContent = "開始追第一筆來源";
+    } else if (CHAPTER_ID === "ch7") {
+      title.textContent = "旅人筆記・複驗矩陣備忘";
+      lines = [
+        "先留基準紙——先確認這次蛙腿製備還會對外部刺激反應；沒有基準，後面的不收縮也不能當判斷。",
+        "四格順序由你決定——基準、雙金屬、同材質、無金屬都要親手接過，每次只記接法與實際觀察。",
+        "可以重做，不會重寫第一次——新原紙只會往後追加，早先的記錄不會消失。",
+        "別讓說法比桌上的紙跑得快——四格齊全後才能寫主張；留白也是一種負責的記錄。",
+        "後面的針格與堆格是新問題——它們必須另外動手取得，不會自動替前四格補答案。"
+      ];
+      $("btnLabIntroGo").textContent = "開始接第一格";
     } else {
       return;
     }
@@ -295,7 +305,7 @@
     if (!box || box.children.length) return;
     var ids = CHAPTER_ID === "ch2" ? ["workshop2_projectile_apparatus_master"] :
       CHAPTER_ID === "ch3" ? ["ship3_g1_mast_dock", "ship3_g2_cabin"] :
-      (CHAPTER_ID === "ch4" || CHAPTER_ID === "ch6") ? [] : ["prop_water_clock", "prop_ball_groove"];
+      (CHAPTER_ID === "ch4" || CHAPTER_ID === "ch6" || CHAPTER_ID === "ch7") ? [] : ["prop_water_clock", "prop_ball_groove"];
     ids.forEach(function (id) {
       var e = assetEntry(id);
       if (!e) return;

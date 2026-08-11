@@ -217,18 +217,194 @@
 玩家 authorship，並以它而非八拍 anchor 檢查 evidence dominance。這避免為了登錄
 每個 choice 偽造第二套機制拍，也禁止用段外節點灌 registry。
 
-目前只有 `scenes-json` adapter。工作台內部 state、跨檔案資料或動態 return 若無法由
-這個 adapter 證明，會 fail closed；不得退回 `reachable: true` 自我證明。
-目前登錄範圍是 ch1–ch6；新章可在 Design Gate 人工審 contract，但在
-Implementation Gate 前必須先登錄 canonical scenes target／章別 adapter，否則
-`check-mechanics` 保持 BLOCKED。
+`scenes-json` adapter 守靜態節點。工作台內部 state、跨檔案資料或動態 return 若無法由
+它證明，必須另接 source registry 登錄的 repo-local engine adapter；不得退回
+`reachable: true` 自我證明。第七章 `engine7_runtime_adapter.mjs` 是首個實例：guard 用
+`subprocess` 陣列參數呼叫、設 timeout，只收單一 JSON，並核對 chapter、engine path、
+SHA-256、八項必要行為與 contract 的逐字成功句。非零 exit、額外 stdout、缺欄或 hash
+漂移一律 `ENG-01`。engine 驗證通過時，TO-BE contract 可保留 `reachable:false`；可達性
+改由真實 scenes 圖與 engine adapter 共同作證，而非把欄位改成自報 true。
+
+目前登錄範圍是 ch1–ch7；新章可在 Design Gate 人工審 contract，但在 Implementation
+Gate 前必須先登錄 canonical scenes target／必要章別 adapter，否則 `check-mechanics`
+保持 BLOCKED。
+
+### 2.1 TO-BE profile：沒有 scenes 也先檢查設計包
+
+新章進劇本前，作者必須一次交齊 chapter brief、provenance sidecar 與 schema v2
+mechanics contract。contract 另加 `toBeReview`；這不是第四份設計稿，而是三件套之間
+的指標表。以下是 **TO-BE 專用關聯區塊的完整範例**；把它與前節的
+`schema_version`、`chapter`、`binding` 及八拍完整區塊合併。範例刻意同時展示
+decision 與 evidence field 兩層 `plannedOrdinal`、operation 登錄、success
+`claimRef`、baseline 與空舊句清單的 `emptyReason`：
+
+```json
+{
+  "segments": [
+    {
+      "id": "main",
+      "mechanicalSpine": {
+        "success": {
+          "anchor": "planned-success",
+          "ordinal": 7,
+          "reachable": false,
+          "authorship": "system",
+          "claimRef": "verdict#bounded"
+        }
+      }
+    }
+  ],
+  "decisionRegistry": [
+    {
+      "id": "verdict",
+      "segment": "main",
+      "kind": "evidence_judgment",
+      "anchor": "interpretation"
+    },
+    {
+      "id": "configure-apparatus",
+      "segment": "main",
+      "kind": "operation",
+      "anchor": "operation"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "verdict",
+      "segment": "main",
+      "kind": "evidence_judgment",
+      "anchor": "interpretation",
+      "plannedOrdinal": 5,
+      "preselected": false,
+      "options": [
+        {
+          "id": "bounded",
+          "isCorrect": true,
+          "supportedBy": [
+            {
+              "sourceId": "GRID",
+              "field": "observation",
+              "condition": "bounded-result"
+            }
+          ]
+        },
+        {
+          "id": "overclaim",
+          "isCorrect": false,
+          "refutedBy": [
+            {
+              "sourceId": "GRID",
+              "field": "observation",
+              "relation": "out_of_scope",
+              "condition": "claim-exceeds-tested-scope"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-apparatus",
+      "segment": "main",
+      "kind": "operation",
+      "anchor": "operation",
+      "preselected": false,
+      "options": [
+        {"id": "configure-a"},
+        {"id": "configure-b"}
+      ]
+    }
+  ],
+  "evidenceSources": [
+    {
+      "id": "GRID",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 4,
+          "locator": {
+            "scene": "planned-workbench",
+            "node": "planned-grid",
+            "field": "observation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BASELINE",
+      "fields": [
+        {
+          "id": "observation",
+          "plannedOrdinal": 2,
+          "locator": {
+            "scene": "planned-workbench",
+            "node": "planned-baseline",
+            "field": "observation"
+          }
+        }
+      ]
+    }
+  ],
+  "toBeReview": {
+    "status": "REVIEW_READY",
+    "packet": {
+      "briefPath": "02_設計/chapter-brief.md",
+      "briefVersion": "v0.3",
+      "provenancePath": "02_設計/provenance.md",
+      "provenanceVersion": "v0.2"
+    },
+    "consistencyRows": [
+      {
+        "id": "main-inquiry",
+        "segment": "main",
+        "claim": {"decisionId": "verdict", "optionId": "bounded"},
+        "measurement": [{"sourceId": "GRID", "field": "observation"}],
+        "evidence": [{"sourceId": "GRID", "field": "observation"}],
+        "refutation": [{"decisionId": "verdict", "optionId": "overclaim"}],
+        "playerOperation": {"decisionId": "configure-apparatus"},
+        "success": {
+          "segment": "main",
+          "canonicalClaim": {"decisionId": "verdict", "optionId": "bounded"}
+        }
+      }
+    ],
+    "controlBaselines": [
+      {
+        "segment": "main",
+        "status": "REQUIRED",
+        "source": {"sourceId": "BASELINE", "field": "observation"}
+      }
+    ],
+    "staleTextScan": {
+      "status": "PASS",
+      "scope": ["brief", "provenance", "contract"],
+      "phrases": [],
+      "emptyReason": "first complete packet; no superseded phrase exists yet"
+    }
+  }
+}
+```
+
+這是關聯區塊範例，不是允許省略八拍、binding 或 narrativeTrack。若已有被汰汰的舊句，
+把它們逐字列入 `phrases`，並移除 `emptyReason`；只有 `phrases` 為空時才使用
+`emptyReason`。`plannedOrdinal: 4` 必須早於判讀的 `plannedOrdinal: 5`；兩個數字
+分屬 evidence field 與 `evidence_judgment` decision，不可只填其一。
+
+六欄只保存既有 ID 參照，不抄第二份台詞。`mechanicalSpine.success.claimRef` 必須等於
+同列的 `decisionId#optionId`，讓成功句上限只有一份正本。每個
+`evidence_judgment` 與它引用的 evidence field 另填 `plannedOrdinal`；TO-BE guard
+據此檢查證據必須早於判讀。每個 segment 都要明示 baseline 是 `REQUIRED` 或
+`NOT_APPLICABLE`；後者必須寫理由。`playerOperation` 必須指向同 segment、
+`kind: operation` 的 decision，避免把玩家接線偷換成固定教學播放。
+
+尚無 runtime 時，八拍的 `reachable` 必須保持 `false`。TO-BE PASS 只代表三件套齊、
+內部參照與宣告順序自洽；它不會把未存在的 scenes 或 engine adapter 洗成可達。
 
 ## 3. 守衛實際保證
 
 | 代碼 | 可機械檢查的契約 |
 |---|---|
 | `MEC-01` | schema、章別、段落基本形狀 |
-| `MEC-02` | 八個必要節拍都有獨立 anchor、正整數 ordinal、`reachable: true` |
+| `MEC-02` | 八個必要節拍都有獨立 anchor、正整數 ordinal；一般 runtime 明載 `reachable: true`，已登錄 engine adapter 的章由實際 adapter 證據取代自報 |
 | `MEC-03` | 問題→承諾→操作→留痕→判讀→阻力；成功與失敗都在阻力之後 |
 | `MEC-04` | 承諾、操作、判讀由玩家 authored |
 | `MEC-05` | 失敗分支明示保留 `trace`，不以重置抹掉玩家的犯錯痕跡 |
@@ -245,6 +421,13 @@ Implementation Gate 前必須先登錄 canonical scenes target／章別 adapter�
 | `DEC-05` | source／field 與 locator 真實存在；綁定 node／option 也確實 grant 同一 evidence id |
 | `DEC-06` | 來源 node 可達且 dominates decision；晚出現或只在互斥支線上都失敗 |
 | `DEC-07` | 零 decision 必須有可驗的 `NOT_APPLICABLE`，不能冒充完整 PASS |
+| `TB-01` | 三件套路徑、版本、`REVIEW_READY` 與未施工 `reachable:false` 完整 |
+| `TB-02` | 「主張—量測—證據—反證—玩家操作—成功句」六欄覆蓋每個 segment，且所有 ID 真實存在 |
+| `TB-03` | planned evidence 早於 evidence judgment；沒有 scenes 也能抓 late evidence |
+| `TB-04` | 每段 baseline 明示 REQUIRED 或具理由的 NOT_APPLICABLE |
+| `TB-05` | 六欄的玩家操作指向同段 `kind: operation` decision |
+| `TB-06` | success 以 `claimRef` 重用 canonical claim，不複製另一句答案 |
+| `TB-07` | brief、provenance、contract 三檔的指定舊句均已清零 |
 
 `decisionRegistry` 是經 Design Gate 核准的決策清單。工具會阻止施工者只把
 `decisions[].kind` 從 `evidence_judgment` 改成 `narrative` 來逃避
@@ -284,6 +467,19 @@ python3 tools/skill/before-discovery-dev/scripts/mechanics_guard.py \
   --contract path/to/chapter-mechanics-contract.json
 ```
 
+新章尚無 scenes 時：
+
+```bash
+python3 tools/skill/before-discovery-dev/scripts/mechanics_guard.py \
+  --contract path/to/chapter-mechanics-contract.json \
+  --to-be \
+  --brief path/to/chapter-brief.md \
+  --provenance path/to/provenance-sidecar.md
+```
+
+`TO_BE_CONTRACT: PASS` 與 `MECHANICS_CONTRACT: PASS` 是不同狀態。前者不能用於
+Implementation Gate；runtime 存在後仍須以一般模式重跑 binder 與 dominance。
+
 退出碼：
 
 - `0`：結構契約通過。
@@ -316,6 +512,13 @@ python3 tools/skill/before-discovery-dev/scripts/test_mechanics_guard.py
 - 清空 registry／decisions／sources 而不附 exemption；
 - exemption 的 basis／locator 不存在，或實際路徑仍含 choice／embed。
 - 把 `runtimeAnchor` 改成不存在、不可達或段外 choice。
+- TO-BE 三件套漏一件、版本空白或任一 beat 假填 `reachable:true`；
+- 六欄漏列一欄、引用不存在的 option／field，或沒有覆蓋全部 segment；
+- evidence field 的 `plannedOrdinal` 晚於／等於 evidence judgment；
+- baseline 未表態、operation decision 未登錄或 kind 被改成 commitment；
+- success `claimRef` 漂到另一個選項；
+- 指定淘汰舊句仍殘留在 brief、provenance 或 contract。
+- 移除／改路徑 engine adapter、讓 adapter 多印 stdout、改 engine 後偽造舊 hash，或讓逐字成功句漂移。
 
 ## 6. 工具不能證明的事
 
@@ -331,4 +534,11 @@ python3 tools/skill/before-discovery-dev/scripts/test_mechanics_guard.py
 
 靜態圖把條件分支全部納入；因此 dominance 不成立就 fail closed，可能產生需要章別
 adapter 才能解除的保守紅燈，但不會用 contract 的 `reachable: true` 把它洗綠。
+`marker` 只把 engine 已授予的具名 trace 綁回 scenes locator；runtime 自動跳過，不增加
+玩家點擊，也不得用一般 `effects.evidence` 偽造工作台結果。條件台詞的 `variants` 在靜態圖
+展開全部 next，runtime 則要求恰有一個變體命中。
 綠燈仍不能宣稱「遊戲好玩」、「物理正確」或「戲劇完整」。
+
+TO-BE mode 也不能自行知道作者忘了把哪一句舊話列進 `staleTextScan.phrases`，不能判斷
+六欄引用的量測在科學上是否足以支持主張，也不能驗證未施工 engine 的自由操作。
+這些仍由作者自查、第一輪完整對抗審與後續 runtime CONFORMANCE 負責。

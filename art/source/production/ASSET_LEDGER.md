@@ -1,7 +1,7 @@
 # 《發現之前》逐件美術資產帳
 
-版本：v0.1-candidate  
-日期：2026-07-31  
+版本：v0.1-candidate
+日期：2026-07-31
 用途：依《全系列美術製作規格書》§7，逐件連結生成方式、母版、runtime 衍生、歷史邊界與查核狀態。
 
 ## 一、欄位與狀態
@@ -97,3 +97,9 @@
 | `ch04_prop_tangent_prediction_sheet_v03` | D1-1 封存的無作用思想預測；只畫地月半徑與單一直切線，不是月球觀測紀錄，也不提前顯示實際端點或向內偏折 | `art/source/production/ch04/props/ch04_prop_tangent_prediction_sheet_master_v03.png` | `public/assets/ch04/props/ch04_prop_tangent_prediction_sheet_v03.webp` | OpenAI 內建 imagegen／2026-08-05 | `ch04/props/PROMPTS_CH04_TANGENT_PREDICTION_SHEET_V03_20260805.md` | Pillow Lanczos WebP q84，1200×750；無裁切、無 runtime 疊字 | generated／reviewed／browser pending |
 
 v02 多出一段未揭曉的彎曲弧線，會把後續「實際端點向地球偏」提前暗示；v03 移除該弧線並保留 v02 檔案作版本追溯。
+
+## 十二、2026-08-11｜第四章牛頓山頂大砲原典圖遊戲重建
+
+| 資產 ID | 用途與史實邊界 | 母版 | runtime | 工具／日期 | 提示與編修紀錄 | 衍生參數 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| `ch04_focus_newton_cannonball_reconstruction_v01` | D2-1 山頂大砲思想實驗；依 1728 刊本公版圖保留落地、繞行與外圈路徑關係，畫面為遊戲重建，不冒充原典掃描或牛頓親筆手稿 | `art/source/production/ch04/focus/ch04_focus_newton_cannonball_reconstruction_master_v01.png` | `public/assets/ch04/focus/ch04_focus_newton_cannonball_reconstruction_v01.webp` | OpenAI 內建 image generation／2026-08-11 | `ch04/focus/PROMPTS_CH04_NEWTON_CANNONBALL_RECONSTRUCTION_V01_20260811.md`；原典來源 SHA-256 `88651ef30da15f8e9afb5a6e784551ebebd3c57ca54f9054f1b246ff2edeb522` | sharp WebP q84，1672×941；軌跡已烤入圖，不用 runtime SVG 疊加 | generated from public-domain reference／reviewed／browser pending |

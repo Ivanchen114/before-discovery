@@ -108,7 +108,14 @@
   "ch6:H3-1": "bg_ch06_munich_model_audit_night",
   "ch6:H3-2": "bg_ch06_munich_model_audit_night",
   "ch6:HE-1": "bg_ch06_munich_joint_page_dawn",
-  "ch6:SC6-R1": "bg_ch06_munich_model_audit_night"
+  "ch6:SC6-R1": "bg_ch06_munich_model_audit_night",
+  "ch7:EM7-0": "bg_ch07_bologna_rain_arrival",
+  "ch7:EM7-1": "bg_ch07_galvani_anatomy_study_day",
+  "ch7:EM7-2": "bg_ch07_galvani_matrix_table",
+  "ch7:EM7-3": "bg_ch07_volta_pavia_lab",
+  "ch7:EM7-4": "bg_ch07_galvani_return_evening",
+  "ch7:EM7-E": "bg_ch07_aldini_study_1800_dawn",
+  "ch7:SC7-R1": "bg_ch07_galvani_matrix_table"
  },
  "apparatusBriefings": {
   "ch3:C1-1": {
@@ -1793,6 +1800,26 @@
    "sourceMaster": "art/source/production/ch04/focus/ch04_focus_mountain_cannon_master_v01.png"
   },
   {
+   "id": "ch04_focus_newton_cannonball_reconstruction_v01",
+   "kind": "cg",
+   "label": "牛頓山頂大砲原典圖遊戲重建",
+   "path": "ch04/focus/ch04_focus_newton_cannonball_reconstruction_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch04/focus/ch04_focus_newton_cannonball_reconstruction_master_v01.png",
+   "sourceReference": "art/source/historical/ch04/newton_cannonball_1728_public_domain.png",
+   "sourceUrl": "https://archive.org/details/1728-newton-a-treatise-of-the-system-of-the-world/page/n35/mode/2up",
+   "license": "Public Domain source reference; OpenAI-generated reconstruction",
+   "embeddedText": [
+    "A",
+    "B",
+    "C",
+    "F",
+    "V"
+   ]
+  },
+  {
    "id": "ch04_focus_stirred_tea_analogy_v01",
    "kind": "cg",
    "label": "1684 攪茶渦旋類比焦點鏡頭",
@@ -2591,7 +2618,9 @@
    "sourceMaster": "art/source/production/ch01/focus/ch01_focus_square_pattern_reading_master_v01.png",
    "shotRole": "reading",
    "pairId": "shared-discovery-ch01",
-   "embeddedText": ["1 4 9 16 25"]
+   "embeddedText": [
+    "1 4 9 16 25"
+   ]
   },
   {
    "id": "ch02_focus_evidence_next_test_v01",
@@ -2616,7 +2645,10 @@
    "sourceMaster": "art/source/production/ch02/focus/ch02_focus_ball_comparison_reading_master_v01.png",
    "shotRole": "reading",
    "pairId": "shared-discovery-ch02",
-   "embeddedText": ["銅球", "木球"]
+   "embeddedText": [
+    "銅球",
+    "木球"
+   ]
   },
   {
    "id": "ch03_focus_public_limited_claim_v01",
@@ -2641,7 +2673,10 @@
    "sourceMaster": "art/source/production/ch03/focus/ch03_focus_limited_claim_reading_master_v01.png",
    "shotRole": "reading",
    "pairId": "shared-discovery-ch03",
-   "embeddedText": ["排除", "未直接量"]
+   "embeddedText": [
+    "排除",
+    "未直接量"
+   ]
   },
   {
    "id": "ch04_focus_shared_moon_calculation_v01",
@@ -2666,7 +2701,11 @@
    "sourceMaster": "art/source/production/ch04/focus/ch04_focus_one_second_papers_reading_master_v01.png",
    "shotRole": "reading",
    "pairId": "shared-discovery-ch04",
-   "embeddedText": ["地表 1 秒：約 4.9 m", "月球 1 秒：約 1.36 mm", "待比較"]
+   "embeddedText": [
+    "地表 1 秒：約 4.9 m",
+    "月球 1 秒：約 1.36 mm",
+    "待比較"
+   ]
   },
   {
    "id": "ch05_focus_same_six_records_relation_v01",
@@ -2691,7 +2730,10 @@
    "sourceMaster": "art/source/production/ch05/focus/ch05_focus_two_ledgers_reading_master_v01.png",
    "shotRole": "reading",
    "pairId": "shared-discovery-ch05",
-   "embeddedText": ["動量帳", "活力帳"]
+   "embeddedText": [
+    "動量帳",
+    "活力帳"
+   ]
   },
   {
    "id": "ch06_focus_four_hands_strip_alignment_v01",
@@ -2716,7 +2758,10 @@
    "sourceMaster": "art/source/production/ch06/focus/ch06_focus_heat_strips_reading_master_v01.png",
    "shotRole": "reading",
    "pairId": "shared-discovery-ch06",
-   "embeddedText": ["碎屑", "薄片"]
+   "embeddedText": [
+    "碎屑",
+    "薄片"
+   ]
   },
   {
    "id": "ch06_focus_public_blank_admission_v01",
@@ -2727,6 +2772,243 @@
    "w": 1672,
    "h": 941,
    "sourceMaster": "art/source/production/ch06/focus/ch06_focus_public_blank_admission_master_v01.png"
+  },
+  {
+   "id": "bg_ch07_bologna_rain_arrival",
+   "kind": "bg",
+   "label": "1798 波隆那雨後抵達（合理重建）",
+   "path": "ch07/backgrounds/ch07_bg_bologna_rain_arrival_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_bologna_rain_arrival_master_v01.png"
+  },
+  {
+   "id": "bg_ch07_galvani_anatomy_study_day",
+   "kind": "bg",
+   "label": "1798 Galvani 解剖書房日景（合理重建）",
+   "path": "ch07/backgrounds/ch07_bg_galvani_anatomy_study_day_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_galvani_anatomy_study_day_master_v01.png"
+  },
+  {
+   "id": "bg_ch07_galvani_matrix_table",
+   "kind": "bg",
+   "label": "1798 Galvani 四格複驗桌（合理重建）",
+   "path": "ch07/backgrounds/ch07_bg_galvani_matrix_table_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_galvani_matrix_table_master_v01.png"
+  },
+  {
+   "id": "bg_ch07_volta_pavia_lab",
+   "kind": "bg",
+   "label": "1798 Volta 帕維亞儀器室（合理重建）",
+   "path": "ch07/backgrounds/ch07_bg_volta_pavia_lab_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_volta_pavia_lab_master_v01.png"
+  },
+  {
+   "id": "bg_ch07_galvani_return_evening",
+   "kind": "bg",
+   "label": "1798 波隆那五格判讀黃昏（合理重建）",
+   "path": "ch07/backgrounds/ch07_bg_galvani_return_evening_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_galvani_return_evening_master_v01.png"
+  },
+  {
+   "id": "bg_ch07_aldini_study_1800_dawn",
+   "kind": "bg",
+   "label": "1800 Aldini 書房清晨（合理重建）",
+   "path": "ch07/backgrounds/ch07_bg_aldini_study_1800_dawn_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_aldini_study_1800_dawn_master_v01.png"
+  },
+  {
+   "id": "dialogue_galvani61",
+   "kind": "portrait",
+   "label": "Luigi Galvani 約 61 歲（合理重建）",
+   "path": "ch07/characters/ch07_portrait_galvani_v02.webp",
+   "firstScreen": true,
+   "w": 1368,
+   "h": 1149,
+   "sourceMaster": "art/source/production/ch07/characters/ch07_portrait_galvani_alpha_master_v02.png"
+  },
+  {
+   "id": "dialogue_volta53",
+   "kind": "portrait",
+   "label": "Alessandro Volta 約 53 歲（合理重建）",
+   "path": "ch07/characters/ch07_portrait_volta_v02.webp",
+   "firstScreen": true,
+   "w": 1316,
+   "h": 1195,
+   "sourceMaster": "art/source/production/ch07/characters/ch07_portrait_volta_alpha_master_v02.png"
+  },
+  {
+   "id": "dialogue_aldini38",
+   "kind": "portrait",
+   "label": "Giovanni Aldini 約 38 歲（合理重建）",
+   "path": "ch07/characters/ch07_portrait_aldini_v02.webp",
+   "firstScreen": true,
+   "w": 1402,
+   "h": 1122,
+   "sourceMaster": "art/source/production/ch07/characters/ch07_portrait_aldini_alpha_master_v02.png"
+  },
+  {
+   "id": "ch07_focus_frog_witness_v01",
+   "kind": "cg",
+   "label": "第七章蛙腿接觸共同觀察鏡頭",
+   "path": "ch07/focus/ch07_focus_frog_witness_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/focus/ch07_focus_frog_witness_master_v01.png"
+  },
+  {
+   "id": "ch07_focus_four_papers_matrix_v01",
+   "kind": "cg",
+   "label": "第七章四張複驗紙閱讀鏡頭",
+   "path": "ch07/focus/ch07_focus_four_papers_matrix_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/focus/ch07_focus_four_papers_matrix_master_v01.png"
+  },
+  {
+   "id": "ch07_focus_volta_electrometer_v01",
+   "kind": "cg",
+   "label": "第七章旅人親手操作凝聚電量器鏡頭",
+   "path": "ch07/focus/ch07_focus_volta_electrometer_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/focus/ch07_focus_volta_electrometer_master_v01.png"
+  },
+  {
+   "id": "ch07_focus_volta_pile_v01",
+   "kind": "cg",
+   "label": "第七章旅人與 Aldini 疊堆鏡頭",
+   "path": "ch07/focus/ch07_focus_volta_pile_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/focus/ch07_focus_volta_pile_master_v01.png"
+  },
+  {
+   "id": "ch07_focus_six_papers_board_v01",
+   "kind": "cg",
+   "label": "第七章六張原紙合帳閱讀鏡頭",
+   "path": "ch07/focus/ch07_focus_six_papers_board_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/focus/ch07_focus_six_papers_board_master_v01.png"
+  },
+  {
+   "id": "ch07_focus_empty_recipient_letter_v01",
+   "kind": "cg",
+   "label": "第七章沒有收件人的信收束鏡頭",
+   "path": "ch07/focus/ch07_focus_empty_recipient_letter_v01.webp",
+   "firstScreen": false,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/focus/ch07_focus_empty_recipient_letter_master_v01.png"
+  },
+  {
+   "id": "chapter_thumbnail_ch07",
+   "kind": "cg",
+   "label": "第七章章節縮圖",
+   "path": "ch07/backgrounds/ch07_bg_bologna_rain_arrival_v01.webp",
+   "firstScreen": true,
+   "w": 1672,
+   "h": 941,
+   "sourceMaster": "art/source/production/ch07/backgrounds/ch07_bg_bologna_rain_arrival_master_v01.png"
+  },
+  {
+   "id": "card_GRID_BASELINE",
+   "kind": "card",
+   "label": "第七章 證人醒著的基準紙",
+   "path": "ch07/evidence/ch07_card_GRID_BASELINE_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_BASELINE_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
+  },
+  {
+   "id": "card_GRID_BIMETAL",
+   "kind": "card",
+   "label": "第七章 雙金屬閉合的觀測紙",
+   "path": "ch07/evidence/ch07_card_GRID_BIMETAL_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_BIMETAL_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
+  },
+  {
+   "id": "card_GRID_SAME_METAL",
+   "kind": "card",
+   "label": "第七章 同材質接法的觀測紙",
+   "path": "ch07/evidence/ch07_card_GRID_SAME_METAL_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_SAME_METAL_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
+  },
+  {
+   "id": "card_GRID_NO_METAL",
+   "kind": "card",
+   "label": "第七章 無金屬仍收縮的觀測紙",
+   "path": "ch07/evidence/ch07_card_GRID_NO_METAL_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_NO_METAL_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
+  },
+  {
+   "id": "card_GRID_ELECTROMETER",
+   "kind": "card",
+   "label": "第七章 沒有生命組織的針格",
+   "path": "ch07/evidence/ch07_card_GRID_ELECTROMETER_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_ELECTROMETER_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
+  },
+  {
+   "id": "card_GRID_PILE",
+   "kind": "card",
+   "label": "第七章 持續電效應的堆格",
+   "path": "ch07/evidence/ch07_card_GRID_PILE_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_PILE_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
+  },
+  {
+   "id": "card_GRID_STATE",
+   "kind": "card",
+   "label": "第七章 六格合帳頁",
+   "path": "ch07/evidence/ch07_card_GRID_STATE_v01.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 991,
+   "sourceMaster": "art/source/production/ch07/evidence/ch07_card_GRID_STATE_master_v01.png",
+   "renderPolicy": "complete-raster-no-visible-overlay"
   }
  ],
  "sceneDialoguePortrait": {
@@ -3050,7 +3332,11 @@
   "杜佩院士": "dialogue_dupre58",
   "朗福德伯爵": "dialogue_rumford45",
   "史坦格・鑽炮長": "dialogue_stang52",
-  "凱斯勒院士": "dialogue_kessler58"
+  "凱斯勒院士": "dialogue_kessler58",
+  "Galvani": "dialogue_galvani61",
+  "Volta": "dialogue_volta53",
+  "Volta（小冊）": "dialogue_volta53",
+  "Aldini": "dialogue_aldini38"
  },
  "speakerSide": {
   "伽利略": "right",
@@ -3070,7 +3356,11 @@
   "杜佩院士": "left",
   "朗福德伯爵": "right",
   "史坦格・鑽炮長": "left",
-  "凱斯勒院士": "left"
+  "凱斯勒院士": "left",
+  "Galvani": "right",
+  "Volta": "left",
+  "Volta（小冊）": "left",
+  "Aldini": "right"
  },
  "travelerSilhouette": {
   "left": "dialogue_traveler_silhouette",
@@ -3391,12 +3681,11 @@
    "match": "最高的山頂上，架一門砲",
    "items": [
     {
-     "asset": "ch04_focus_mountain_cannon_v01",
-     "overlay": "cannon-trajectories",
-     "alt": "高山左下方架著十七世紀大砲，右側天空留白等待引擎疊加三條軌跡"
+     "asset": "ch04_focus_newton_cannonball_reconstruction_v01",
+     "alt": "依牛頓 1728 年刊本原典圖重建的仿古紙頁：山頂水平發砲，不同初速形成落地、繞行與外圈軌道"
     }
    ],
-   "caption": "山與砲只提供思想實驗的情境；快慢不同的三條軌跡由引擎 SVG 疊加。"
+   "caption": "依牛頓 1728 年刊本原典圖重建（不是原典掃描，也不是牛頓親筆手稿）：不同初速讓砲彈落地、繞行或走上更外圈的路。"
   },
   {
    "scene": "D3-1",
@@ -3845,6 +4134,72 @@
     }
    ],
    "caption": "薄冊把未查現象留在桌上：有限來源受挫，不等於熱的機制已經證明。"
+  },
+  {
+   "scene": "EM7-1",
+   "match": "銅鉤擺過去，碰上鐵欄",
+   "items": [
+    {
+     "asset": "ch07_focus_frog_witness_v01",
+     "alt": "Galvani 與旅人的手同時停在黃銅鉤與鐵接點旁，覆布標本的接觸位置成為兩人共同注視的焦點"
+    }
+   ],
+   "caption": "腿踢了一下；兩個人先看同一個接點，再爭它能證明什麼。"
+  },
+  {
+   "scene": "EM7-2",
+   "match": "書商捎來一冊帕維亞印的小冊子",
+   "items": [
+    {
+     "asset": "ch07_focus_four_papers_matrix_v01",
+     "alt": "四張無字複驗原紙依接法排在桌上，最舊的 1794 年紙壓在一旁，沒有任何正誤印章"
+    }
+   ],
+   "caption": "四格都由玩家親手留下；舊紙沒有因新主張而消失。"
+  },
+  {
+   "scene": "EM7-3",
+   "match": "Volta 取出一座小裝置",
+   "items": [
+    {
+     "asset": "ch07_focus_volta_electrometer_v01",
+     "alt": "旅人的雙手操作黃銅與鋅片、薄盤和細針電量器，Volta 退在後方抱手旁觀"
+    }
+   ],
+   "caption": "儀器是 Volta 的，接觸與讀針由玩家親手完成。"
+  },
+  {
+   "scene": "EM7-E",
+   "match": "把一份傳抄的圖說攤開在矩陣旁",
+   "items": [
+    {
+     "asset": "ch07_focus_volta_pile_v01",
+     "alt": "旅人與 Aldini 依圖交替排放銅片、鋅片與濕布，尚未用任何發光效果預告結果"
+    }
+   ],
+   "caption": "圖說只給接法；堆能不能持續，由玩家把兩端接起來。"
+  },
+  {
+   "scene": "EM7-E",
+   "match": "六格第一次睡在同一張紙上",
+   "items": [
+    {
+     "asset": "ch07_focus_six_papers_board_v01",
+     "alt": "六張已取得原紙歸在同一頁，接法物件仍可逐格追查，兩條過寬墨線被保留並限縮"
+    }
+   ],
+   "caption": "六張紙第一次同頁；合帳不是抹平差異，而是讓每一格互相限制。"
+  },
+  {
+   "scene": "EM7-E",
+   "match": "摺成一封信的形狀",
+   "items": [
+    {
+     "asset": "ch07_focus_empty_recipient_letter_v01",
+     "alt": "清晨桌上一封摺好的信仍空著收件人欄，旁邊是可追查的六格矩陣與被劃限的原句"
+    }
+   ],
+   "caption": "收件人欄留白；證詞沒有因此失去去處。"
   }
  ],
  "viewFocusVisual": [
@@ -3895,6 +4250,20 @@
     "c1"
    ],
    "match": "這組紙最多支持到哪裡？"
+  },
+  {
+   "scene": "EM7-3",
+   "nodeIds": [
+    "e_electrometer"
+   ],
+   "match": "Volta 取出一座小裝置"
+  },
+  {
+   "scene": "EM7-E",
+   "nodeIds": [
+    "e_pile"
+   ],
+   "match": "把一份傳抄的圖說攤開在矩陣旁"
   }
  ],
  "sceneTreatment": {
@@ -4050,6 +4419,31 @@
      "caption": "白光退去。炮身正在旋轉，固定的鈍鑽把熱一刻一刻留進原紙。"
     }
    ]
+  },
+  "EM7-0": {
+   "fx": "montage",
+   "steps": [
+    {
+     "plate": "bg_ch07_bologna_rain_arrival",
+     "label": "1798｜義大利・波隆那",
+     "caption": "炮膛的火星退成雨聲；一隻腿替新的問題作證。"
+    }
+   ]
+  },
+  "EM7-E": {
+   "fx": "montage",
+   "steps": [
+    {
+     "plate": "bg_ch07_galvani_return_evening",
+     "label": "1798｜波隆那",
+     "caption": "倒下的全稱被劃線；還沒有證據的那一行留白。"
+    },
+    {
+     "plate": "bg_ch07_aldini_study_1800_dawn",
+     "label": "1800｜同一間書房",
+     "caption": "兩年後，另一張紙終於回來。寫下它的人已不在。"
+    }
+   ]
   }
  },
  "sceneBgm": {
@@ -4145,7 +4539,27 @@
   "ch5:EE-2": "ch5Emilie",
   "ch5:SC5-R1": "silence",
   "INT-C1": "ch3Harbor",
-  "INT-C2": "ch3Public"
+  "INT-C2": "ch3Public",
+  "ch6:H0-1": "ch6Arsenal",
+  "ch6:H0-2": "ch6Arsenal",
+  "ch6:H0-3": "ch6Sources",
+  "ch6:H1-1": "ch6Contact",
+  "ch6:H1-2": "ch6Contact",
+  "ch6:H1-3": "ch6Strip",
+  "ch6:H2-1": "ch6Containment",
+  "ch6:H2-2": "ch6Containment",
+  "ch6:H2-3": "ch6Continuous",
+  "ch6:H3-1": "ch6Audit",
+  "ch6:H3-2": "ch6Audit",
+  "ch6:HE-1": "ch6JointPage",
+  "ch6:SC6-R1": "silence",
+  "ch7:EM7-0": "ch7Bologna",
+  "ch7:EM7-1": "ch7Bologna",
+  "ch7:EM7-2": "ch7Matrix",
+  "ch7:EM7-3": "ch7Pavia",
+  "ch7:EM7-4": "ch7Matrix",
+  "ch7:EM7-E": "ch7Letter",
+  "ch7:SC7-R1": "silence"
  },
  "audioBasePath": "../public/assets/audio/",
  "bgmVersion": 2,
@@ -4440,11 +4854,93 @@
     "ch05/Ch5_Emilie_Night_Proof.mp3"
    ]
   },
+  "ch6Arsenal": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_Arsenal_Question.mp3"
+   ]
+  },
+  "ch6Sources": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_Four_Sources_Ledger.mp3"
+   ]
+  },
+  "ch6Contact": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_Chips_And_Contact.mp3"
+   ]
+  },
+  "ch6Strip": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_First_Rising_Strip.mp3"
+   ]
+  },
+  "ch6Containment": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_Seal_Air_And_Water.mp3"
+   ]
+  },
+  "ch6Continuous": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_Continuous_Run.mp3"
+   ]
+  },
+  "ch6Audit": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch06/Ch6_Model_Audit.mp3"
+   ]
+  },
+  "ch6JointPage": {
+   "mode": "once",
+   "clips": [
+    "ch06/Ch6_Sign_Observation.mp3"
+   ]
+  },
   "silence": {
    "mode": "silence",
    "clips": []
   },
-  "storm": null
+  "storm": null,
+  "ch7Bologna": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch07/Ch7_Bologna_Rain_And_Brass.mp3"
+   ]
+  },
+  "ch7Matrix": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch07/Ch7_Four_Papers_Question.mp3"
+   ]
+  },
+  "ch7Pavia": {
+   "mode": "once",
+   "repeatGapMs": 5000,
+   "clips": [
+    "ch07/Ch7_Pavia_Needle.mp3"
+   ]
+  },
+  "ch7Letter": {
+   "mode": "once",
+   "clips": [
+    "ch07/Ch7_Letter_Without_Recipient.mp3"
+   ]
+  }
  },
  "evidenceSummary": {
   "E1": "只能證明「近乎同落」——排除不了空氣與形狀。",
@@ -4484,7 +4980,14 @@
   "T2": "只轉或只壓都不持續升溫；接觸與相對運動同時存在時，紙帶才持續上升。",
   "T3": "扣緊皮圈後曲線仍與開放進氣時近似重合；空氣必要來源版本撤回，舊封條保留。",
   "T4": "四份來源的原預測帶各自保留；長時段曲線後逐張判讀，終點位置與封條狀態以本局卷宗為準。",
-  "T5": "共同頁分開操作、讀數與兩種解讀，保留範圍未決與兌換率未量得；四方各簽自己負責的欄。"
+  "T5": "共同頁分開操作、讀數與兩種解讀，保留範圍未決與兌換率未量得；四方各簽自己負責的欄。",
+  "GRID_BASELINE": "配置：外部已知刺激；不使用金屬接點。 觀測：本次蛙腿製備收縮。 邊界：只確認製備仍會反應。",
+  "GRID_BIMETAL": "配置：黃銅鉤接觸鐵片，形成雙金屬閉合接法。 觀測：蛙腿收縮。",
+  "GRID_SAME_METAL": "配置：同材質金屬弧接觸神經與肌肉。 觀測：本次蛙腿製備收縮。 邊界：只記本次接點與組織狀態。",
+  "GRID_NO_METAL": "配置：不使用金屬，讓神經與肌肉直接接觸。 觀測：沒有金屬在場仍然收縮。",
+  "GRID_ELECTROMETER": "配置：無蛙；銅與鋅相觸後，把接觸效應餵給薄盤。 觀測：提盤時細針偏轉。 邊界：這一格量電效應，不量肌肉收縮。",
+  "GRID_PILE": "配置：無動物組織；銅、鋅與浸鹽水布重複疊層。 觀測：兩端同觸時，反應持續存在，不只一下。",
+  "GRID_STATE": "合帳範圍：基準、雙金屬、同材質、無金屬、電量器、堆。 M 與 A 兩個全稱都失敗。 不同配置必須分開記；目前不能指定統一的來源角色。"
  },
  "evidenceVisual": {
   "E1": {
@@ -4848,28 +5351,160 @@
    "caption": "取得證據：兩本帳各答一種問題，短少的完整去向仍留白。"
   },
   "S8": {
-   "items": [{ "asset": "card_S8", "alt": "冰融化時持續吸熱但溫度暫停的未決現象卡" }],
+   "items": [
+    {
+     "asset": "card_S8",
+     "alt": "冰融化時持續吸熱但溫度暫停的未決現象卡"
+    }
+   ],
    "caption": "取得現象簿：潛熱等未查現象仍保留，不能由鑽炮反例一併抹去。"
   },
   "T1": {
-   "items": [{ "asset": "card_T1", "alt": "等重同溫的金屬碎屑與實心薄片回溫曲線近似重合" }],
+   "items": [
+    {
+     "asset": "card_T1",
+     "alt": "等重同溫的金屬碎屑與實心薄片回溫曲線近似重合"
+    }
+   ],
    "caption": "取得證據：碎屑與薄片放上同一把熱尺，碎屑來源版本失去熱容量退路。"
   },
   "T2": {
-   "items": [{ "asset": "card_T2", "alt": "只轉、只壓、接觸並轉動三條條件紙帶的比較" }],
+   "items": [
+    {
+     "asset": "card_T2",
+     "alt": "只轉、只壓、接觸並轉動三條條件紙帶的比較"
+    }
+   ],
    "caption": "取得證據：持續升溫跟著接觸與相對運動同時出現。"
   },
   "T3": {
-   "items": [{ "asset": "card_T3", "alt": "開放進氣與皮圈密合兩組升溫曲線近似重合" }],
+   "items": [
+    {
+     "asset": "card_T3",
+     "alt": "開放進氣與皮圈密合兩組升溫曲線近似重合"
+    }
+   ],
    "caption": "取得證據：關住外界空氣後升溫沒有按封存預測變慢。"
   },
   "T4": {
-   "items": [{ "asset": "card_T4", "alt": "碎屑、炮身、空氣與水四份卷袋並列，原預測帶保留；右側長時段升溫線，終點位置與封條狀態需展開本局卷宗查看" }],
+   "items": [
+    {
+     "asset": "card_T4",
+     "alt": "碎屑、炮身、空氣與水四份卷袋並列，原預測帶保留；右側長時段升溫線，終點位置與封條狀態需展開本局卷宗查看"
+    }
+   ],
    "caption": "取得證據：四份來源已逐張判讀；各自的原預測帶、終點位置與封條狀態仍可追查。"
   },
   "T5": {
-   "items": [{ "asset": "card_T5", "alt": "共同驗證頁分四欄署名，並保留範圍未決與兌換率未量得" }],
+   "items": [
+    {
+     "asset": "card_T5",
+     "alt": "共同驗證頁分四欄署名，並保留範圍未決與兌換率未量得"
+    }
+   ],
    "caption": "取得證據：一頁四種署名、兩筆未決；旅人只在最後交棒一次簽名。"
+  },
+  "GRID_BASELINE": {
+   "items": [
+    {
+     "asset": "card_GRID_BASELINE",
+     "alt": "亞麻布標本袋接受外部已知刺激後，兩條位移指示線偏離；本次製備仍會反應"
+    }
+   ],
+   "caption": "取得證據：外部已知刺激能使本次製備收縮；這格只保證證人醒著，不回答來源。",
+   "readerTitle": "證人醒著的基準紙",
+   "accessibleText": [
+    "配置：外部已知刺激；不使用金屬接點。",
+    "觀測：本次蛙腿製備收縮。",
+    "邊界：只確認製備仍會反應。"
+   ]
+  },
+  "GRID_BIMETAL": {
+   "items": [
+    {
+     "asset": "card_GRID_BIMETAL",
+     "alt": "黃銅與鐵兩種不同金屬閉合接觸，覆布標本的位移指示線改變"
+    }
+   ],
+   "caption": "取得證據：黃銅與鐵形成閉合接法時，蛙腿收縮。",
+   "readerTitle": "雙金屬閉合的觀測紙",
+   "accessibleText": [
+    "配置：黃銅鉤接觸鐵片，形成雙金屬閉合接法。",
+    "觀測：蛙腿收縮。"
+   ]
+  },
+  "GRID_SAME_METAL": {
+   "items": [
+    {
+     "asset": "card_GRID_SAME_METAL",
+     "alt": "兩端使用同材質黃銅接點，覆布標本的位移指示線仍顯示收縮"
+    }
+   ],
+   "caption": "取得證據：同材質接法完成時，本次蛙腿製備仍收縮。",
+   "readerTitle": "同材質接法的觀測紙",
+   "accessibleText": [
+    "配置：同材質金屬弧接觸神經與肌肉。",
+    "觀測：本次蛙腿製備收縮。",
+    "邊界：只記本次接點與組織狀態。"
+   ]
+  },
+  "GRID_NO_METAL": {
+   "items": [
+    {
+     "asset": "card_GRID_NO_METAL",
+     "alt": "桌上沒有金屬接點，玻璃棒與直接組織接觸後，位移指示線仍顯示收縮"
+    }
+   ],
+   "caption": "取得證據：沒有金屬在場，神經與肌肉直接接觸時仍然收縮。",
+   "readerTitle": "無金屬仍收縮的觀測紙",
+   "accessibleText": [
+    "配置：不使用金屬，讓神經與肌肉直接接觸。",
+    "觀測：沒有金屬在場仍然收縮。"
+   ]
+  },
+  "GRID_ELECTROMETER": {
+   "items": [
+    {
+     "asset": "card_GRID_ELECTROMETER",
+     "alt": "沒有生物組織的桌上，黃銅與鋅接觸後把效應餵給薄盤，提盤時細針偏轉"
+    }
+   ],
+   "caption": "取得證據：桌上沒有生命組織；金屬接觸累積到薄盤後，細針偏轉。",
+   "readerTitle": "沒有生命組織的針格",
+   "accessibleText": [
+    "配置：無蛙；銅與鋅相觸後，把接觸效應餵給薄盤。",
+    "觀測：提盤時細針偏轉。",
+    "邊界：這一格量電效應，不量肌肉收縮。"
+   ]
+  },
+  "GRID_PILE": {
+   "items": [
+    {
+     "asset": "card_GRID_PILE",
+     "alt": "銅片、鋅片與浸鹽水布交替疊成直立堆，雙手同觸兩端"
+    }
+   ],
+   "caption": "取得證據：沒有動物組織；銅、鋅與浸鹽水布依序疊層後，兩端反應持續存在。",
+   "readerTitle": "持續電效應的堆格",
+   "accessibleText": [
+    "配置：無動物組織；銅、鋅與浸鹽水布重複疊層。",
+    "觀測：兩端同觸時，反應持續存在，不只一下。"
+   ]
+  },
+  "GRID_STATE": {
+   "items": [
+    {
+     "asset": "card_GRID_STATE",
+     "alt": "六張原紙同頁排列，基準、三種蛙腿接法、細針與堆各自保留，兩道過寬主張線被限縮"
+    }
+   ],
+   "caption": "取得證據：六張原紙已同頁合帳；每一格的配置、觀測與原主張仍可追查。",
+   "readerTitle": "六格合帳頁",
+   "accessibleText": [
+    "合帳範圍：基準、雙金屬、同材質、無金屬、電量器、堆。",
+    "M 與 A 兩個全稱都失敗。",
+    "不同配置必須分開記；目前不能指定統一的來源角色。"
+   ]
   }
  },
  "collision5Visual": {
@@ -4937,6 +5572,7 @@
   "ch03": "chapter_thumbnail_ch03",
   "ch04": "chapter_thumbnail_ch04",
   "ch05": "chapter_thumbnail_ch05",
-  "ch06": "chapter_thumbnail_ch06"
+  "ch06": "chapter_thumbnail_ch06",
+  "ch07": "chapter_thumbnail_ch07"
  }
 }

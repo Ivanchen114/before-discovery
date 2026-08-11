@@ -1,6 +1,6 @@
 # 《發現之前》美術資產授權與來源索引
 
-版本：v0.1-candidate  
+版本：v0.1-candidate
 日期：2026-07-31
 
 ## 一、適用範圍
@@ -90,3 +90,31 @@
 | `ch05_focus_same_six_records_relation_v01` | `ch05/focus/ch05_focus_same_six_records_relation_v01.webp` | 同上 §5 | 無 | 可進內部／公開非商業版本 |
 | `ch05_focus_two_ledgers_reading_v01` | `ch05/focus/ch05_focus_two_ledgers_reading_v01.webp` | 同上 §6 | 無 | 可進內部／公開非商業版本 |
 | `ch06_focus_heat_strips_reading_v01` | `ch06/focus/ch06_focus_heat_strips_reading_v01.webp` | 同上 §7 | 無 | 可進內部／公開非商業版本 |
+
+## 十一、原典參考重建｜2026-08-11 牛頓山頂大砲圖
+
+`ch04_focus_newton_cannonball_reconstruction_v01` 由專案協作者 Codex 使用 OpenAI 內建 image generation 製作。科學構圖參考 Isaac Newton 1728 年英譯刊本 *A Treatise of the System of the World* 第 6 頁公版掃描；遊戲圖不是掃描複製品，也不是牛頓親筆手稿。
+
+| 資產 ID | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| `ch04_focus_newton_cannonball_reconstruction_v01` | `ch04/focus/ch04_focus_newton_cannonball_reconstruction_v01.webp` | `art/source/production/ch04/focus/PROMPTS_CH04_NEWTON_CANNONBALL_RECONSTRUCTION_V01_20260811.md` | 1728 刊本公版掃描，僅作構圖參考 | 來源 Public Domain；生成重建可進內部／公開非商業版本 |
+
+## 十二、OpenAI 生成資產｜2026-08-11 第七章完整正式美術
+
+第七章 22 件 runtime 圖像由專案協作者 Codex 使用 OpenAI 內建 image generation
+產生；未投入第三方影像、未直接模仿特定在世藝術家。圖像為歷史合理重建，
+不冒充原裝置照片、人物肖像真跡或原始觀測紙。史實器材關係參考波隆那大學
+Galvani 實驗說明、帕維亞大學 Volta Room 與 Volta 凝聚電量器公開資料；參考頁
+只校準器材與時代材質，沒有把頁面圖片投入生成器。
+
+| 資產組 | runtime 資產 | 母版與提示紀錄 | 第三方影像 | 授權狀態 |
+|---|---|---|---|---|
+| 第七章 6 張背景 | `ch07/backgrounds/*.webp` | `art/source/production/ch07/backgrounds/*_master_v01.png`；`art/source/production/ch07/PROMPTS_CH07_COMPLETE_ART_V01_20260811.md` | 無 | 可進內部／公開非商業版本 |
+| Galvani／Volta／Aldini 3 張角色 | `ch07/characters/*.webp` | v01 全身母版；runtime v02 取自 `*_chromakey_master_v02.png` 與 `*_alpha_master_v02.png`；同上提示紀錄 | 無 | 可進內部／公開非商業版本 |
+| 第七章 6 張焦點鏡頭 | `ch07/focus/*.webp` | `art/source/production/ch07/focus/*_master_v01.png`；同上提示紀錄 | 無 | 可進內部／公開非商業版本 |
+| `GRID_BASELINE` 至 `GRID_STATE` 7 張證據卡 | `ch07/evidence/*.webp` | `art/source/production/ch07/evidence/*_master_v01.png`；同上提示紀錄 | 無 | 可進內部／公開非商業版本 |
+
+七張證據卡均為完整扁平 raster，runtime 不加可見 SVG／HTML 疊圖；圖內不燒入
+結論文字、數字或正誤章。替代文字、caption 與逐格事實由 `assets.json` 的可存取層
+提供。基準、同材質與無金屬卡在定稿前均重新對照 `engine7.js` 的實際觀測，避免
+以美術候選錯畫成「未收縮」。

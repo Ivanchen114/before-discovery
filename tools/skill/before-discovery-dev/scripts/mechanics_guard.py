@@ -9,7 +9,11 @@ dramatically effective.
 from __future__ import annotations
 
 import argparse
+import copy
+import hashlib
 import json
+import re
+import subprocess
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,7 +22,8 @@ from typing import Any, Callable
 
 SCHEMA_VERSION = 2
 REPO_ROOT = Path(__file__).resolve().parents[4]
-CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5", "ch6"}
+CHAPTERS = {"ch1", "ch2", "ch3", "ch4", "ch5", "ch6", "ch7"}
+CHAPTER_TOKEN = re.compile(r"^ch[1-9][0-9]*$")
 CANONICAL_SCENES_TARGETS = {
     "ch1": Path("greybox/data/scenes.json"),
     "ch2": Path("greybox/data/scenes2.json"),
@@ -26,6 +31,23 @@ CANONICAL_SCENES_TARGETS = {
     "ch4": Path("greybox/data/scenes4.json"),
     "ch5": Path("greybox/data/scenes5.json"),
     "ch6": Path("greybox/data/scenes6.json"),
+    "ch7": Path("greybox/data/scenes7.json"),
+}
+ENGINE_ADAPTERS = {
+    "ch7": {
+        "adapter": "tools/skill/before-discovery-dev/scripts/engine7_runtime_adapter.mjs",
+        "engine": "greybox/src/engine7.js",
+    }
+}
+CH7_ENGINE_CHECKS = {
+    "matrixPermutations24",
+    "repeatAppendsWithoutRegrant",
+    "operationDominance",
+    "claimAPersistsUntilRepair",
+    "claimMRefutedBeforeDispatch",
+    "notYetRequiresDiscriminatingConfig",
+    "integrityTransactions",
+    "finalSuccessExact",
 }
 BEATS = (
     "question",
@@ -88,6 +110,7 @@ class ContractIndex:
     evidence_nodes: dict[tuple[str, str], tuple[str, str]]
     runtime: RuntimeBinding | None
     repo_root: Path
+    to_be: bool
 
 
 @dataclass
@@ -98,6 +121,7 @@ class RuntimeBinding:
     edges: dict[tuple[str, str], set[tuple[str, str]]]
     reachable: set[tuple[str, str]]
     dominators: dict[tuple[str, str], set[tuple[str, str]]]
+    engine_verified: bool = False
 
     def resolve_anchor(self, anchor: Any) -> tuple[str, str] | None:
         if not _string(anchor) or "/" not in anchor:
@@ -161,6 +185,14 @@ def _decision_runtime_node(
     """Resolve a decision's exact node without forcing every choice to be a spine beat."""
     if index.runtime is not None and _string(decision.get("runtimeAnchor")):
         return index.runtime.resolve_anchor(decision["runtimeAnchor"])
+    if index.runtime is not None and _string(decision.get("id")):
+        matches = [
+            key
+            for key, node in index.runtime.nodes.items()
+            if node.get("decisionId") == decision.get("id")
+        ]
+        if len(matches) == 1:
+            return matches[0]
     return index.beat_nodes.get(decision.get("segment"), {}).get(
         decision.get("anchor")
     )
@@ -301,6 +333,11 @@ def _load_runtime_binding(
             for option in options:
                 if isinstance(option, dict) and _string(option.get("next")):
                     raw_targets.append((key[0], option["next"]))
+        variants = node.get("variants")
+        if isinstance(variants, list):
+            for variant in variants:
+                if isinstance(variant, dict) and _string(variant.get("next")):
+                    raw_targets.append((key[0], variant["next"]))
         if node.get("type") == "goto":
             target_scene = node.get("scene")
             target_entry = scene_entries.get(target_scene)
@@ -376,9 +413,135 @@ def _load_runtime_binding(
     )
 
 
+def _contract_final_success_claim(contract: dict[str, Any]) -> str | None:
+    for segment in contract.get("segments", []):
+        if not isinstance(segment, dict):
+            continue
+        success = segment.get("mechanicalSpine", {}).get("success", {})
+        planned = success.get("_planned") if isinstance(success, dict) else None
+        if not isinstance(planned, str):
+            continue
+        match = re.search(r"章末主張上限＝「([^」]+)」", planned)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _verify_engine_adapter(
+    contract: dict[str, Any],
+    repo_root: Path,
+    add: Callable[[str, str, str], None],
+) -> bool:
+    """Run a registered repo-local adapter and verify its bounded JSON evidence."""
+    chapter = contract.get("chapter")
+    registration = ENGINE_ADAPTERS.get(chapter)
+    if registration is None:
+        return False
+    adapter_path = _repo_path(repo_root, registration.get("adapter"))
+    engine_path = _repo_path(repo_root, registration.get("engine"))
+    if adapter_path is None or not adapter_path.is_file():
+        add("ENG-01", "$.binding.engineAdapter", "registered adapter is missing inside the repository")
+        return False
+    if engine_path is None or not engine_path.is_file():
+        add("ENG-01", "$.binding.engineAdapter", "registered engine target is missing inside the repository")
+        return False
+    command = [
+        "node",
+        str(adapter_path),
+        "--repo-root",
+        str(repo_root),
+        "--engine",
+        str(engine_path),
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=8,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        add("ENG-01", "$.binding.engineAdapter", f"adapter execution failed: {exc}")
+        return False
+    if completed.returncode != 0:
+        add(
+            "ENG-01",
+            "$.binding.engineAdapter",
+            f"adapter exited {completed.returncode}; no runtime evidence accepted",
+        )
+        return False
+    try:
+        decoder = json.JSONDecoder()
+        payload, end = decoder.raw_decode(completed.stdout)
+        if completed.stdout[end:].strip():
+            raise ValueError("extra stdout after JSON payload")
+    except (json.JSONDecodeError, ValueError) as exc:
+        add("ENG-01", "$.binding.engineAdapter", f"adapter stdout is not one JSON object: {exc}")
+        return False
+    if not isinstance(payload, dict):
+        add("ENG-01", "$.binding.engineAdapter", "adapter JSON root must be an object")
+        return False
+    expected_engine = engine_path.relative_to(repo_root).as_posix()
+    expected_hash = hashlib.sha256(engine_path.read_bytes()).hexdigest()
+    checks = payload.get("checks")
+    claim = _contract_final_success_claim(contract)
+    valid = True
+
+    def require(condition: bool, message: str) -> None:
+        nonlocal valid
+        if not condition:
+            valid = False
+            add("ENG-01", "$.binding.engineAdapter", message)
+
+    require(payload.get("schemaVersion") == 1, "adapter schemaVersion must equal 1")
+    require(payload.get("chapter") == chapter, "adapter chapter does not match contract")
+    require(payload.get("enginePath") == expected_engine, "adapter enginePath does not match registration")
+    require(payload.get("engineSha256") == expected_hash, "adapter engine hash does not match current engine")
+    require(payload.get("ok") is True, "adapter did not report ok=true")
+    require(isinstance(checks, dict), "adapter checks must be an object")
+    if isinstance(checks, dict):
+        require(CH7_ENGINE_CHECKS.issubset(checks), "adapter omitted one or more required checks")
+        require(all(checks.get(key) is True for key in CH7_ENGINE_CHECKS), "one or more required checks are not true")
+    require(_string(claim), "contract does not expose an exact quoted final success claim")
+    require(payload.get("finalSuccessClaim") == claim, "adapter final success claim differs from contract")
+    return valid
+
+
+def _validate_to_be_binding(
+    contract: dict[str, Any],
+    repo_root: Path,
+    add: Callable[[str, str, str], None],
+) -> None:
+    """Validate a declared future binding without pretending runtime exists."""
+    binding = contract.get("binding")
+    if not isinstance(binding, dict):
+        add("TB-01", "$.binding", "TO-BE contract must declare a future binding")
+        return
+    if binding.get("targetFormat") != "scenes-json":
+        add(
+            "TB-01",
+            "$.binding.targetFormat",
+            "TO-BE binding must declare the planned scenes-json adapter",
+        )
+    raw_path = binding.get("targetPath")
+    target_path = _repo_path(repo_root, raw_path)
+    if target_path is None or not _string(raw_path):
+        add(
+            "TB-01",
+            "$.binding.targetPath",
+            "must be a future file path inside the repository",
+        )
+
+
 def validate_contract(
     data: dict[str, Any],
     repo_root: Path | None = None,
+    *,
+    to_be: bool = False,
+    brief_path: Path | None = None,
+    provenance_path: Path | None = None,
 ) -> list[Issue]:
     """Return every deterministic structural violation."""
 
@@ -389,14 +552,25 @@ def validate_contract(
 
     if data.get("schema_version") != SCHEMA_VERSION:
         add("MEC-01", "$.schema_version", f"must equal {SCHEMA_VERSION}")
-    if data.get("chapter") not in CHAPTERS:
-        add("MEC-01", "$.chapter", "must be one of ch1, ch2, ch3, ch4, ch5, ch6")
+    chapter = data.get("chapter")
+    if to_be:
+        if not _string(chapter) or CHAPTER_TOKEN.fullmatch(chapter) is None:
+            add("TB-01", "$.chapter", "must be a future chapter token such as ch7")
+    elif chapter not in CHAPTERS:
+        add("MEC-01", "$.chapter", "must be one of ch1, ch2, ch3, ch4, ch5, ch6, ch7")
 
     resolved_root = (repo_root or REPO_ROOT).resolve()
-    runtime = _load_runtime_binding(data, resolved_root, add)
+    if to_be:
+        _validate_to_be_binding(data, resolved_root, add)
+        runtime = None
+    else:
+        runtime = _load_runtime_binding(data, resolved_root, add)
+        if runtime is not None and chapter in ENGINE_ADAPTERS:
+            runtime.engine_verified = _verify_engine_adapter(data, resolved_root, add)
     segments, segment_ordinals, beats, beat_nodes = _index_segments(
         data,
         runtime,
+        to_be,
         add,
     )
     registry = _index_registry(data, segments, beats, add)
@@ -411,14 +585,24 @@ def validate_contract(
         evidence_nodes,
         runtime,
         resolved_root,
+        to_be,
     )
     _validate_decisions(data, index, add)
+    if to_be:
+        _validate_to_be_review(
+            data,
+            index,
+            brief_path=brief_path,
+            provenance_path=provenance_path,
+            add=add,
+        )
     return issues
 
 
 def _index_segments(
     data: dict[str, Any],
     runtime: RuntimeBinding | None,
+    to_be: bool,
     add: Callable[[str, str, str], None],
 ) -> tuple[
     dict[str, dict[str, Any]],
@@ -508,7 +692,18 @@ def _index_segments(
                     beat_nodes[beat_name] = runtime_node
             if not _positive_int(beat.get("ordinal")):
                 add("MEC-02", f"{beat_loc}.ordinal", "must be a positive integer")
-            if beat.get("reachable") is not True:
+            if to_be:
+                if beat.get("reachable") is not False:
+                    add(
+                        "TB-01",
+                        f"{beat_loc}.reachable",
+                        "TO-BE beat must stay explicitly false until runtime exists",
+                    )
+            elif beat.get("reachable") is not True and not (
+                runtime is not None
+                and runtime.engine_verified
+                and beat.get("reachable") is False
+            ):
                 add("MEC-02", f"{beat_loc}.reachable", "must be explicitly true")
             authorship = beat.get("authorship")
             if authorship not in AUTHORSHIPS:
@@ -842,6 +1037,7 @@ def _index_evidence(
                 if not _node_grants_evidence(
                     runtime.nodes[runtime_node],
                     source_id,
+                    engine_verified=runtime.engine_verified,
                 ):
                     add(
                         "DEC-05",
@@ -852,7 +1048,12 @@ def _index_evidence(
     return evidence, evidence_nodes
 
 
-def _node_grants_evidence(node: dict[str, Any], source_id: str) -> bool:
+def _node_grants_evidence(
+    node: dict[str, Any],
+    source_id: str,
+    *,
+    engine_verified: bool = False,
+) -> bool:
     effects: list[Any] = []
     if isinstance(node.get("effects"), list):
         effects.extend(node["effects"])
@@ -860,6 +1061,10 @@ def _node_grants_evidence(node: dict[str, Any], source_id: str) -> bool:
         for option in node["options"]:
             if isinstance(option, dict) and isinstance(option.get("effects"), list):
                 effects.extend(option["effects"])
+    if engine_verified and node.get("type") == "marker":
+        declared = node.get("engineEvidence")
+        if isinstance(declared, list) and source_id in declared:
+            return True
     return any(
         isinstance(effect, dict) and effect.get("evidence") == source_id
         for effect in effects
@@ -906,11 +1111,23 @@ def _validate_decisions(
         beat = index.beats.get(segment_id, {}).get(anchor)
         if beat is None:
             add("DEC-01", f"{loc}.anchor", "must reference a beat in the segment")
-        elif beat.get("reachable") is not True or beat.get("authorship") != "player":
+        elif (
+            (not index.to_be and beat.get("reachable") is not True and not (
+                index.runtime is not None
+                and index.runtime.engine_verified
+                and beat.get("reachable") is False
+            ))
+            or (index.to_be and beat.get("reachable") is not False)
+            or beat.get("authorship") != "player"
+        ):
             add(
                 "DEC-01",
                 f"{loc}.anchor",
-                "must reference a reachable player-authored beat",
+                (
+                    "must reference a planned player-authored beat"
+                    if index.to_be
+                    else "must reference a reachable player-authored beat"
+                ),
             )
         runtime_node = _decision_runtime_node(decision, index)
         if index.runtime is not None and _string(decision.get("runtimeAnchor")):
@@ -1050,6 +1267,7 @@ def _validate_registry_choice_coverage(
             node
             for node in from_question & to_outcome
             if index.runtime.nodes[node].get("type") == "choice"
+            and not _string(index.runtime.nodes[node].get("mechanicsExempt"))
         }
         for scene_id, node_id in sorted(scoped_choices - covered):
             add(
@@ -1223,7 +1441,322 @@ def _validate_refs(
             )
 
 
-def _manual_boundary() -> str:
+def _validate_to_be_review(
+    data: dict[str, Any],
+    index: ContractIndex,
+    *,
+    brief_path: Path | None,
+    provenance_path: Path | None,
+    add: Callable[[str, str, str], None],
+) -> None:
+    """Validate the pre-runtime design packet without claiming runtime reachability."""
+    review = data.get("toBeReview")
+    if not isinstance(review, dict):
+        add(
+            "TB-01",
+            "$.toBeReview",
+            "TO-BE mode requires the complete packet self-check block",
+        )
+        return
+    if review.get("status") != "REVIEW_READY":
+        add("TB-01", "$.toBeReview.status", "must equal REVIEW_READY")
+
+    packet = review.get("packet")
+    packet_texts: dict[str, str] = {}
+    if not isinstance(packet, dict):
+        add(
+            "TB-01",
+            "$.toBeReview.packet",
+            "must name the chapter brief and provenance sidecar",
+        )
+    else:
+        for label, supplied_path in (
+            ("brief", brief_path),
+            ("provenance", provenance_path),
+        ):
+            raw_path = packet.get(f"{label}Path")
+            declared_path = _repo_path(index.repo_root, raw_path)
+            version = packet.get(f"{label}Version")
+            if declared_path is None or not declared_path.is_file():
+                add(
+                    "TB-01",
+                    f"$.toBeReview.packet.{label}Path",
+                    "must name an existing file inside the repository",
+                )
+            elif supplied_path is None:
+                add(
+                    "TB-01",
+                    f"$.toBeReview.packet.{label}Path",
+                    f"CLI must supply --{label} for packet-complete checking",
+                )
+            else:
+                supplied = supplied_path.resolve()
+                if supplied != declared_path:
+                    add(
+                        "TB-01",
+                        f"$.toBeReview.packet.{label}Path",
+                        f"does not match supplied --{label} path",
+                    )
+                try:
+                    packet_texts[label] = declared_path.read_text(encoding="utf-8")
+                except OSError as exc:
+                    add(
+                        "TB-01",
+                        f"$.toBeReview.packet.{label}Path",
+                        f"cannot read packet file: {exc}",
+                    )
+            if not _string(version):
+                add(
+                    "TB-01",
+                    f"$.toBeReview.packet.{label}Version",
+                    "must declare the reviewed content version",
+                )
+
+    decisions: dict[str, dict[str, Any]] = {}
+    options: dict[tuple[str, str], dict[str, Any]] = {}
+    for decision in data.get("decisions", []):
+        if not isinstance(decision, dict) or not _string(decision.get("id")):
+            continue
+        decision_id = decision["id"]
+        decisions[decision_id] = decision
+        for option in decision.get("options", []):
+            if isinstance(option, dict) and _string(option.get("id")):
+                options[(decision_id, option["id"])] = option
+
+    def option_ref(value: Any, location: str) -> tuple[str, str] | None:
+        if not isinstance(value, dict) or not all(
+            _string(value.get(field)) for field in ("decisionId", "optionId")
+        ):
+            add("TB-02", location, "must reference decisionId and optionId")
+            return None
+        key = (value["decisionId"], value["optionId"])
+        if key not in options:
+            add("TB-02", location, "references an unknown decision option")
+            return None
+        return key
+
+    def evidence_ref(value: Any, location: str) -> tuple[str, str] | None:
+        if not isinstance(value, dict) or not all(
+            _string(value.get(field)) for field in ("sourceId", "field")
+        ):
+            add("TB-02", location, "must reference sourceId and field")
+            return None
+        key = (value["sourceId"], value["field"])
+        if key[0] not in index.evidence or key[1] not in index.evidence[key[0]]:
+            add("TB-02", location, "references an unknown evidence field")
+            return None
+        return key
+
+    rows = review.get("consistencyRows")
+    covered_segments: set[str] = set()
+    if not isinstance(rows, list) or not rows:
+        add(
+            "TB-02",
+            "$.toBeReview.consistencyRows",
+            "must contain the six-column claim-to-success self-check",
+        )
+        rows = []
+    for row_index, row in enumerate(rows):
+        loc = f"$.toBeReview.consistencyRows[{row_index}]"
+        if not isinstance(row, dict) or not _string(row.get("id")):
+            add("TB-02", loc, "must be an object with a non-empty id")
+            continue
+        segment_id = row.get("segment")
+        if segment_id not in index.segments:
+            add("TB-02", f"{loc}.segment", "must reference an existing segment")
+        else:
+            covered_segments.add(segment_id)
+        claim = option_ref(row.get("claim"), f"{loc}.claim")
+        for column in ("measurement", "evidence"):
+            refs = row.get(column)
+            if not isinstance(refs, list) or not refs:
+                add("TB-02", f"{loc}.{column}", "must be a non-empty array")
+            else:
+                for ref_index, ref in enumerate(refs):
+                    evidence_ref(ref, f"{loc}.{column}[{ref_index}]")
+        refutations = row.get("refutation")
+        if not isinstance(refutations, list) or not refutations:
+            add("TB-02", f"{loc}.refutation", "must be a non-empty array")
+        else:
+            for ref_index, ref in enumerate(refutations):
+                key = option_ref(ref, f"{loc}.refutation[{ref_index}]")
+                if key is not None and options[key].get("isCorrect") is not False:
+                    add(
+                        "TB-02",
+                        f"{loc}.refutation[{ref_index}]",
+                        "must reference an explicitly refutable option",
+                    )
+        operation = row.get("playerOperation")
+        operation_id = operation.get("decisionId") if isinstance(operation, dict) else None
+        operation_decision = decisions.get(operation_id)
+        if operation_decision is None:
+            add(
+                "TB-05",
+                f"{loc}.playerOperation",
+                "must reference a registered decision",
+            )
+        elif operation_decision.get("kind") != "operation":
+            add(
+                "TB-05",
+                f"{loc}.playerOperation",
+                "must reference a decision whose kind is operation",
+            )
+        elif operation_decision.get("segment") != segment_id:
+            add(
+                "TB-05",
+                f"{loc}.playerOperation",
+                "operation decision must belong to the same segment",
+            )
+        success = row.get("success")
+        if not isinstance(success, dict):
+            add("TB-06", f"{loc}.success", "must reference the segment success beat")
+            continue
+        success_segment = success.get("segment")
+        canonical_claim = option_ref(
+            success.get("canonicalClaim"),
+            f"{loc}.success.canonicalClaim",
+        )
+        if success_segment != segment_id:
+            add("TB-06", f"{loc}.success.segment", "must match the row segment")
+        if claim is not None and canonical_claim != claim:
+            add(
+                "TB-06",
+                f"{loc}.success.canonicalClaim",
+                "must reuse the row claim instead of duplicating a new success sentence",
+            )
+        success_beat = index.beats.get(segment_id, {}).get("success", {})
+        expected_claim_ref = (
+            f"{canonical_claim[0]}#{canonical_claim[1]}"
+            if canonical_claim is not None
+            else None
+        )
+        if success_beat.get("claimRef") != expected_claim_ref:
+            add(
+                "TB-06",
+                f"$.segments[{segment_id}].mechanicalSpine.success.claimRef",
+                "must point to the same canonical decision#option used by the row",
+            )
+    if covered_segments != set(index.segments):
+        add(
+            "TB-02",
+            "$.toBeReview.consistencyRows",
+            "must cover every contracted segment at least once",
+        )
+
+    baselines = review.get("controlBaselines")
+    baseline_segments: set[str] = set()
+    if not isinstance(baselines, list):
+        add("TB-04", "$.toBeReview.controlBaselines", "must be an array")
+        baselines = []
+    for baseline_index, baseline in enumerate(baselines):
+        loc = f"$.toBeReview.controlBaselines[{baseline_index}]"
+        if not isinstance(baseline, dict):
+            add("TB-04", loc, "must be an object")
+            continue
+        segment_id = baseline.get("segment")
+        if segment_id not in index.segments or segment_id in baseline_segments:
+            add("TB-04", f"{loc}.segment", "must name one unique existing segment")
+            continue
+        baseline_segments.add(segment_id)
+        status = baseline.get("status")
+        if status == "REQUIRED":
+            evidence_ref(baseline.get("source"), f"{loc}.source")
+        elif status == "NOT_APPLICABLE":
+            if not _string(baseline.get("reason")):
+                add("TB-04", f"{loc}.reason", "NOT_APPLICABLE requires a reason")
+        else:
+            add("TB-04", f"{loc}.status", "must be REQUIRED or NOT_APPLICABLE")
+    if baseline_segments != set(index.segments):
+        add(
+            "TB-04",
+            "$.toBeReview.controlBaselines",
+            "must explicitly resolve baseline status for every segment",
+        )
+
+    for decision_id, decision in decisions.items():
+        if decision.get("kind") != "evidence_judgment":
+            continue
+        decision_ordinal = decision.get("plannedOrdinal")
+        if not _positive_int(decision_ordinal):
+            add(
+                "TB-03",
+                f"$.decisions[{decision_id}].plannedOrdinal",
+                "evidence judgment must declare a positive plannedOrdinal",
+            )
+            continue
+        checked_timing_refs: set[tuple[Any, Any]] = set()
+        for option in decision.get("options", []):
+            if not isinstance(option, dict):
+                continue
+            refs = option.get("supportedBy") if option.get("isCorrect") is True else option.get("refutedBy")
+            if not isinstance(refs, list):
+                continue
+            for ref in refs:
+                if not isinstance(ref, dict):
+                    continue
+                source_id = ref.get("sourceId")
+                field_id = ref.get("field")
+                timing_ref = (source_id, field_id)
+                if timing_ref in checked_timing_refs:
+                    continue
+                checked_timing_refs.add(timing_ref)
+                field = index.evidence.get(source_id, {}).get(field_id)
+                field_ordinal = field.get("plannedOrdinal") if isinstance(field, dict) else None
+                if not _positive_int(field_ordinal):
+                    add(
+                        "TB-03",
+                        f"$.evidenceSources[{source_id}.{field_id}].plannedOrdinal",
+                        "referenced field must declare when it becomes visible",
+                    )
+                elif field_ordinal >= decision_ordinal:
+                    add(
+                        "TB-03",
+                        f"$.decisions[{decision_id}]",
+                        f"{source_id}.{field_id} is not visible before the judgment",
+                    )
+
+    stale = review.get("staleTextScan")
+    if not isinstance(stale, dict) or stale.get("status") != "PASS":
+        add("TB-07", "$.toBeReview.staleTextScan", "must declare status PASS")
+        return
+    scope = stale.get("scope")
+    if not isinstance(scope, list) or set(scope) != {"brief", "provenance", "contract"}:
+        add(
+            "TB-07",
+            "$.toBeReview.staleTextScan.scope",
+            "must cover brief, provenance, and contract",
+        )
+    phrases = stale.get("phrases")
+    if not isinstance(phrases, list) or any(not _string(item) for item in phrases):
+        add("TB-07", "$.toBeReview.staleTextScan.phrases", "must be a string array")
+        phrases = []
+    if not phrases and not _string(stale.get("emptyReason")):
+        add(
+            "TB-07",
+            "$.toBeReview.staleTextScan.emptyReason",
+            "is required when there are no superseded phrases yet",
+        )
+    scrubbed = copy.deepcopy(data)
+    scrubbed.get("toBeReview", {}).get("staleTextScan", {})["phrases"] = []
+    packet_texts["contract"] = json.dumps(scrubbed, ensure_ascii=False)
+    for phrase_index, phrase in enumerate(phrases):
+        for label, text in packet_texts.items():
+            if phrase in text:
+                add(
+                    "TB-07",
+                    f"$.toBeReview.staleTextScan.phrases[{phrase_index}]",
+                    f"superseded phrase still appears in {label}",
+                )
+
+
+def _manual_boundary(to_be: bool = False) -> str:
+    if to_be:
+        return (
+            "MANUAL: TO-BE mode checks packet completeness, internal references, "
+            "declared order, baseline resolution, operation registration, canonical "
+            "success claim reuse, and supplied stale phrases. It does not prove "
+            "runtime reachability, historical/physical validity, or dramatic quality."
+        )
     return (
         "MANUAL: the scenes-json binder proves static startScene reachability "
         "and dominance while conservatively over-approximating require/state "
@@ -1233,28 +1766,40 @@ def _manual_boundary() -> str:
     )
 
 
-def run_check(contract_path: Path) -> int:
+def run_check(
+    contract_path: Path,
+    *,
+    to_be: bool = False,
+    brief_path: Path | None = None,
+    provenance_path: Path | None = None,
+) -> int:
     try:
         contract = load_contract(contract_path)
     except MechanicsInputError as exc:
         print(f"MECHANICS_INPUT_ERROR: {exc}")
         return 1
-    issues = validate_contract(contract)
+    issues = validate_contract(
+        contract,
+        to_be=to_be,
+        brief_path=brief_path,
+        provenance_path=provenance_path,
+    )
+    label = "TO_BE_CONTRACT" if to_be else "MECHANICS_CONTRACT"
     if issues:
-        print(f"MECHANICS_CONTRACT: FAIL ({len(issues)} issue(s))")
+        print(f"{label}: FAIL ({len(issues)} issue(s))")
         for issue in issues:
             print(issue.render())
-        print(_manual_boundary())
+        print(_manual_boundary(to_be))
         return 2
     print(
-        "MECHANICS_CONTRACT: PASS "
+        f"{label}: PASS "
         f"chapter={contract.get('chapter')} "
         f"segments={len(contract.get('segments', []))} "
         f"decisions={len(contract.get('decisions', []))} "
         f"decisionStatus="
         f"{'NOT_APPLICABLE' if not contract.get('decisions') else 'VALIDATED'}"
     )
-    print(_manual_boundary())
+    print(_manual_boundary(to_be))
     return 0
 
 
@@ -1263,7 +1808,24 @@ def main() -> int:
         description="Check inquiry mechanics and evidence-judgment contracts."
     )
     parser.add_argument("--contract", required=True, type=Path)
-    return run_check(parser.parse_args().contract)
+    parser.add_argument(
+        "--to-be",
+        action="store_true",
+        help="validate a complete pre-runtime brief+provenance+contract packet",
+    )
+    parser.add_argument("--brief", type=Path)
+    parser.add_argument("--provenance", type=Path)
+    args = parser.parse_args()
+    if args.to_be and (args.brief is None or args.provenance is None):
+        parser.error("--to-be requires --brief and --provenance")
+    if not args.to_be and (args.brief is not None or args.provenance is not None):
+        parser.error("--brief/--provenance are only valid with --to-be")
+    return run_check(
+        args.contract,
+        to_be=args.to_be,
+        brief_path=args.brief,
+        provenance_path=args.provenance,
+    )
 
 
 if __name__ == "__main__":

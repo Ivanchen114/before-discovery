@@ -948,21 +948,21 @@ class RouteGuardTests(unittest.TestCase):
             fixture_root,
             "brief.md",
             artifact="chapter-brief",
-            chapter="ch7",
+            chapter="ch8",
             status="design-gate-passed",
         )
         spec_fixture = make_support_artifact(
             fixture_root,
             "spec.md",
             artifact="implementation-spec",
-            chapter="ch7",
+            chapter="ch8",
             status="frozen",
         )
         provenance_fixture = make_support_artifact(
             fixture_root,
             "provenance.md",
             artifact="historical-provenance",
-            chapter="ch7",
+            chapter="ch8",
             status="review-ready",
         )
         plan = run_guard(
@@ -970,7 +970,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "plan",
             "--mode",
@@ -978,12 +978,12 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R0",
             "--target-label",
-            "WP-CH7-HISTORY-PLAN",
+            "WP-CH8-HISTORY-PLAN",
         )
         self.assertEqual(plan.returncode, 0, plan.stdout + plan.stderr)
-        self.assertIn("CHAPTER TOKEN ch7 is not registered", plan.stdout)
+        self.assertIn("CHAPTER TOKEN ch8 is not registered", plan.stdout)
         self.assertIn("plan/review context only", plan.stdout)
-        self.assertIn("GAP history.ch7-source", plan.stdout)
+        self.assertIn("GAP history.ch8-source", plan.stdout)
 
         for phase in ("write", "implement", "art"):
             missing_both = run_guard(
@@ -991,7 +991,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--task",
                 "historical-claim",
                 "--chapter",
-                "ch7",
+                "ch8",
                 "--phase",
                 phase,
                 "--mode",
@@ -999,7 +999,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--lane",
                 "R3",
                 "--target-label",
-                f"WP-CH7-{phase.upper()}",
+                f"WP-CH8-{phase.upper()}",
             )
             self.assertEqual(
                 missing_both.returncode,
@@ -1017,7 +1017,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "write",
             "--mode",
@@ -1025,7 +1025,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH7-ONLY-BRIEF",
+            "WP-CH8-ONLY-BRIEF",
             "--chapter-brief-path",
             brief_fixture,
         )
@@ -1038,7 +1038,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "implement",
             "--mode",
@@ -1046,7 +1046,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH7-ONLY-PROVENANCE",
+            "WP-CH8-ONLY-PROVENANCE",
             "--provenance-path",
             provenance_fixture,
         )
@@ -1066,7 +1066,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "write",
             "--mode",
@@ -1074,7 +1074,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH7-COMPLETE",
+            "WP-CH8-COMPLETE",
             "--chapter-brief-path",
             brief_fixture,
             "--provenance-path",
@@ -1107,7 +1107,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--task",
                 "historical-claim",
                 "--chapter",
-                "ch7",
+                "ch8",
                 "--phase",
                 phase,
                 "--mode",
@@ -1115,7 +1115,7 @@ class RouteGuardTests(unittest.TestCase):
                 "--lane",
                 "R3",
                 "--target-label",
-                f"WP-CH7-COMPLETE-{phase.upper()}",
+                f"WP-CH8-COMPLETE-{phase.upper()}",
                 "--chapter-spec-path",
                 spec_fixture,
                 "--provenance-path",
@@ -1141,7 +1141,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "write",
             "--mode",
@@ -1149,7 +1149,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R2",
             "--target-label",
-            "WP-CH7-UNDERDECLARED",
+            "WP-CH8-UNDERDECLARED",
             "--chapter-brief-path",
             brief_fixture,
             "--provenance-path",
@@ -1205,7 +1205,7 @@ class RouteGuardTests(unittest.TestCase):
             fixture_root,
             "provenance.md",
             artifact="historical-provenance",
-            chapter="ch7",
+            chapter="ch8",
             status="verified",
         )
         bad_briefs = {
@@ -1213,21 +1213,21 @@ class RouteGuardTests(unittest.TestCase):
                 fixture_root,
                 "wrong-role.md",
                 artifact="implementation-spec",
-                chapter="ch7",
+                chapter="ch8",
                 status="design-gate-passed",
             ),
             "wrong-chapter": make_support_artifact(
                 fixture_root,
                 "wrong-chapter.md",
                 artifact="chapter-brief",
-                chapter="ch8",
+                chapter="ch9",
                 status="design-gate-passed",
             ),
             "unapproved": make_support_artifact(
                 fixture_root,
                 "unapproved.md",
                 artifact="chapter-brief",
-                chapter="ch7",
+                chapter="ch8",
                 status="draft",
             ),
         }
@@ -1238,7 +1238,7 @@ class RouteGuardTests(unittest.TestCase):
                     "--task",
                     "historical-claim",
                     "--chapter",
-                    "ch7",
+                    "ch8",
                     "--phase",
                     "write",
                     "--mode",
@@ -1246,7 +1246,7 @@ class RouteGuardTests(unittest.TestCase):
                     "--lane",
                     "R3",
                     "--target-label",
-                    f"WP-CH7-BAD-{label.upper()}",
+                    f"WP-CH8-BAD-{label.upper()}",
                     "--chapter-brief-path",
                     bad_brief,
                     "--provenance-path",
@@ -1266,7 +1266,7 @@ class RouteGuardTests(unittest.TestCase):
             fixture_root,
             "unfrozen-spec.md",
             artifact="implementation-spec",
-            chapter="ch7",
+            chapter="ch8",
             status="draft",
         )
         unfrozen = run_guard(
@@ -1274,7 +1274,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "implement",
             "--mode",
@@ -1282,7 +1282,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH7-UNFROZEN",
+            "WP-CH8-UNFROZEN",
             "--chapter-spec-path",
             unfrozen_spec,
             "--provenance-path",
@@ -1300,7 +1300,7 @@ class RouteGuardTests(unittest.TestCase):
             "--task",
             "historical-claim",
             "--chapter",
-            "ch7",
+            "ch8",
             "--phase",
             "write",
             "--mode",
@@ -1308,7 +1308,7 @@ class RouteGuardTests(unittest.TestCase):
             "--lane",
             "R3",
             "--target-label",
-            "WP-CH7-PACKAGE-JSON",
+            "WP-CH8-PACKAGE-JSON",
             "--chapter-brief-path",
             "greybox/package.json",
             "--provenance-path",

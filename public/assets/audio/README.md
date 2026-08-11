@@ -73,6 +73,18 @@
 | `ch05/Ch5_Ledger_Debate_B.mp3` | ch5Debate B | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
 | `ch05/Ch5_Ledger_Debate_C.mp3` | ch5Debate C | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
 | `ch05/Ch5_Emilie_Night_Proof.mp3` | ch5Emilie | 同上 | 同上 | 同上 | 同上 | 2026-08-04 |
+| `ch06/Ch6_Arsenal_Question.mp3` | ch6Arsenal | AI 生成（第六章 Gemini 正式提示詞包） | Google Gemini（Lyria）生成 | 生成內容，依 Google 生成式 AI 條款；生成者持用 | 陳育詮（生成）／Codex（整合） | 2026-08-11 |
+| `ch06/Ch6_Four_Sources_Ledger.mp3` | ch6Sources | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch06/Ch6_Chips_And_Contact.mp3` | ch6Contact | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch06/Ch6_First_Rising_Strip.mp3` | ch6Strip | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch06/Ch6_Seal_Air_And_Water.mp3` | ch6Containment | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch06/Ch6_Continuous_Run.mp3` | ch6Continuous | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch06/Ch6_Model_Audit.mp3` | ch6Audit | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch06/Ch6_Sign_Observation.mp3` | ch6JointPage | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch07/Ch7_Bologna_Rain_And_Brass.mp3` | ch7Bologna | AI 生成（第七章 Gemini 正式提示詞包） | Google Gemini（Lyria）生成 | 生成內容，依 Google 生成式 AI 條款；生成者持用 | 陳育詮（生成）／Codex（整合） | 2026-08-11 |
+| `ch07/Ch7_Four_Papers_Question.mp3` | ch7Matrix | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch07/Ch7_Pavia_Needle.mp3` | ch7Pavia | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
+| `ch07/Ch7_Letter_Without_Recipient.mp3` | ch7Letter | 同上 | 同上 | 同上 | 同上 | 2026-08-11 |
 
 `ch01/Beneath_the_Chisel.mp3` 與 `ch01/Counsel_of_Strings.mp3` 為 v1 音色 proof，v2 runtime 已解除引用但保留作回退／審計；其餘 v1 四首仍作 pisa、study、rain、dusk 的 A 段。獨立 `Challenge_Letter_Simplicio.mp3` 未落地，現以 `ch01/Debate_Hall_A.mp3` 提前曝光辛普里奧主題，作 A2-5 → A3 的音樂伏筆。
 
@@ -134,6 +146,34 @@
 - 技術規格、逐檔 SHA-256、實際秒數與 runtime 對應均收在第五章提示詞包；音色、相對音量與對白遮蔽仍由總監真人實聽驗收。
 
 完整提示詞與生成完成紀錄：`ch05/PROMPTS_BGM_CH5_GEMINI_20260804.md`。
+
+## 第六章 Gemini 正式音樂候選（Codex 接線，2026-08-11）
+
+- 八首 Gemini／Lyria MP3 已接入兵工廠、四來源掛帳、碎屑與接觸、第一張升溫紙帶、
+  空氣／水包覆、長時段運轉、模型對帳與共同驗證頁。
+- 11 座互動台不逐台換 11 首；以戲劇弧與證據轉折換曲，降低最高工作台密度章的
+  聽覺疲勞。`SC6-R1` 修復場維持沉默。
+- 八檔皆為雙聲道 MP3、44.1 kHz、192 kbps；七首約 30.77 秒、`Seal_Air_And_Water`
+  約 29.10 秒，總量約 5.64 MB。前七段曲末留白 5 秒後重播，HE-1 尾聲只播一次。
+- runtime 接線與檔案契約完成不等於 Audio Lock；音色、中文對白遮蔽、時代感與
+  H2-3 長時段工作台的聽覺疲勞仍由總監實聽裁決。
+
+完整提示詞、實際秒數與 SHA-256：`ch06/PROMPTS_BGM_CH6_GEMINI_20260811.md`。
+
+## 第七章 Gemini 正式音樂候選（Codex 接線，2026-08-11）
+
+- 四段聲景已改接總監以 Google Gemini／Lyria 生成的正式 MP3 候選；原程序式 WAV 依總監指示刪除，不再作 runtime fallback。
+- 波隆那雨後、四格矩陣、帕維亞細針與 1800 空信各有獨立 cue；修復場維持沉默。
+- 四檔皆為雙聲道 MP3、44.1 kHz、192 kbps、各約 30.77 秒，總量約 2.84 MB；前三段曲末留白 5 秒後淡入重播，空信尾聲只播一次。
+- 聲音總開關、鍵盤首手勢解鎖、背景頁暫停與不以低頻 drone 補尾沿用全系列規則。
+- runtime 接線與檔案契約完成不等於 Audio Lock；音色、中文對白遮蔽與時代感仍由總監實聽裁決。
+
+完整提示詞與交付校驗：`ch07/PROMPTS_BGM_CH7_GEMINI_20260811.md`。
+
+## 第七章程序式聲景（已退役）
+
+- 先期四段程序式 WAV 曾作完整化階段的可播放聲景；2026-08-11 依總監指示由 Gemini MP3 取代並刪除 WAV。
+- 可重現腳本與程序提示詞只保留作製作 provenance，不再列入 runtime 或 fallback。
 
 ## 生成紀錄(Sol 已審 2026-07-20:**候選、未凍結**)
 

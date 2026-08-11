@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mechanics_guard import validate_contract
+from mechanics_guard import ENGINE_ADAPTERS, validate_contract
 
 
 SCRIPT_PATH = Path(__file__).resolve()
@@ -211,6 +211,85 @@ def make_valid_contract() -> dict:
     }
 
 
+def make_valid_to_be_contract() -> dict:
+    contract = make_valid_contract()
+    contract["chapter"] = "ch7"
+    contract["binding"]["targetPath"] = "greybox/data/scenes7.json"
+    for beat in contract["segments"][0]["mechanicalSpine"].values():
+        beat["reachable"] = False
+    contract["segments"][0]["mechanicalSpine"]["success"][
+        "claimRef"
+    ] = "p1-concept#shared-motion"
+    contract["decisionRegistry"].append(
+        {
+            "id": "perform-p1-operation",
+            "segment": "p1",
+            "kind": "operation",
+            "anchor": "operation",
+        }
+    )
+    contract["decisions"].append(
+        {
+            "id": "perform-p1-operation",
+            "segment": "p1",
+            "kind": "operation",
+            "anchor": "operation",
+            "preselected": False,
+            "options": [{"id": "configure"}, {"id": "repeat"}],
+        }
+    )
+    for decision in contract["decisions"]:
+        if decision["kind"] == "evidence_judgment":
+            decision["plannedOrdinal"] = 5
+    contract["evidenceSources"][0]["fields"][0]["plannedOrdinal"] = 4
+    contract["toBeReview"] = {
+        "status": "REVIEW_READY",
+        "packet": {
+            "briefPath": "README.md",
+            "briefVersion": "fixture-v1",
+            "provenancePath": "decisions.md",
+            "provenanceVersion": "fixture-v1",
+        },
+        "consistencyRows": [
+            {
+                "id": "p1-six-columns",
+                "segment": "p1",
+                "claim": {
+                    "decisionId": "p1-concept",
+                    "optionId": "shared-motion",
+                },
+                "measurement": [{"sourceId": "S5", "field": "promptText"}],
+                "evidence": [{"sourceId": "S5", "field": "promptText"}],
+                "refutation": [
+                    {"decisionId": "p1-concept", "optionId": "small-lag"}
+                ],
+                "playerOperation": {"decisionId": "perform-p1-operation"},
+                "success": {
+                    "segment": "p1",
+                    "canonicalClaim": {
+                        "decisionId": "p1-concept",
+                        "optionId": "shared-motion",
+                    },
+                },
+            }
+        ],
+        "controlBaselines": [
+            {
+                "segment": "p1",
+                "status": "REQUIRED",
+                "source": {"sourceId": "S5", "field": "promptText"},
+            }
+        ],
+        "staleTextScan": {
+            "status": "PASS",
+            "scope": ["brief", "provenance", "contract"],
+            "phrases": [],
+            "emptyReason": "first complete packet fixture",
+        },
+    }
+    return contract
+
+
 def issue_codes(contract: dict, repo_root: Path | None = None) -> set[str]:
     return {
         issue.code
@@ -218,9 +297,42 @@ def issue_codes(contract: dict, repo_root: Path | None = None) -> set[str]:
     }
 
 
+def to_be_issue_codes(contract: dict) -> set[str]:
+    return {
+        issue.code
+        for issue in validate_contract(
+            contract,
+            repo_root=REPO_ROOT,
+            to_be=True,
+            brief_path=REPO_ROOT / "README.md",
+            provenance_path=REPO_ROOT / "decisions.md",
+        )
+    }
+
+
 class MechanicsGuardStructureTests(unittest.TestCase):
     def test_positive_contract_passes(self) -> None:
         self.assertEqual(validate_contract(make_valid_contract()), [])
+
+    def test_ch7_runtime_contract_requires_registered_engine_adapter(self) -> None:
+        contract_path = REPO_ROOT / (
+            "03_規格/發現之前_第七章mechanics_contract_v0.1_TO-BE_Fable_20260809.json"
+        )
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        self.assertEqual(validate_contract(contract), [])
+
+        registered = ENGINE_ADAPTERS["ch7"]["adapter"]
+        try:
+            ENGINE_ADAPTERS["ch7"]["adapter"] = "tools/skill/before-discovery-dev/scripts/NO_ADAPTER.mjs"
+            self.assertIn("ENG-01", issue_codes(contract))
+        finally:
+            ENGINE_ADAPTERS["ch7"]["adapter"] = registered
+
+        drifted = copy.deepcopy(contract)
+        drifted["segments"][1]["mechanicalSpine"]["success"]["_planned"] = (
+            "章末主張上限＝「兩邊都對了一半。」"
+        )
+        self.assertIn("ENG-01", issue_codes(drifted))
 
     def test_runtime_anchor_must_bind_an_in_scope_choice(self) -> None:
         missing = make_valid_contract()
@@ -348,6 +460,73 @@ class EvidenceJudgmentContractTests(unittest.TestCase):
             {"scene": "C3-2", "node": "x5", "field": "text"}
         )
         self.assertIn("DEC-06", issue_codes(late))
+
+
+class ToBePacketContractTests(unittest.TestCase):
+    def test_complete_to_be_packet_passes_without_scenes7(self) -> None:
+        self.assertEqual(
+            validate_contract(
+                make_valid_to_be_contract(),
+                repo_root=REPO_ROOT,
+                to_be=True,
+                brief_path=REPO_ROOT / "README.md",
+                provenance_path=REPO_ROOT / "decisions.md",
+            ),
+            [],
+        )
+
+    def test_to_be_requires_packet_and_six_column_rows(self) -> None:
+        missing = make_valid_to_be_contract()
+        del missing["toBeReview"]
+        self.assertIn("TB-01", to_be_issue_codes(missing))
+
+        no_rows = make_valid_to_be_contract()
+        no_rows["toBeReview"]["consistencyRows"] = []
+        self.assertIn("TB-02", to_be_issue_codes(no_rows))
+
+    def test_to_be_catches_late_evidence_and_missing_baseline(self) -> None:
+        late = make_valid_to_be_contract()
+        late["evidenceSources"][0]["fields"][0]["plannedOrdinal"] = 5
+        self.assertIn("TB-03", to_be_issue_codes(late))
+
+        no_baseline = make_valid_to_be_contract()
+        no_baseline["toBeReview"]["controlBaselines"] = []
+        self.assertIn("TB-04", to_be_issue_codes(no_baseline))
+
+    def test_to_be_deduplicates_timing_issue_per_decision_and_field(self) -> None:
+        late = make_valid_to_be_contract()
+        late["evidenceSources"][0]["fields"][0]["plannedOrdinal"] = 5
+        issues = validate_contract(
+            late,
+            repo_root=REPO_ROOT,
+            to_be=True,
+            brief_path=REPO_ROOT / "README.md",
+            provenance_path=REPO_ROOT / "decisions.md",
+        )
+        timing_issues = [issue for issue in issues if issue.code == "TB-03"]
+        self.assertEqual(len(timing_issues), 2)
+        self.assertEqual(
+            {issue.location for issue in timing_issues},
+            {"$.decisions[p1-concept]", "$.decisions[public-bounded-claim]"},
+        )
+
+    def test_to_be_catches_unregistered_operation_and_success_drift(self) -> None:
+        wrong_kind = make_valid_to_be_contract()
+        wrong_kind["decisionRegistry"][-1]["kind"] = "experiment_commitment"
+        wrong_kind["decisions"][-1]["kind"] = "experiment_commitment"
+        self.assertIn("TB-05", to_be_issue_codes(wrong_kind))
+
+        drift = make_valid_to_be_contract()
+        drift["segments"][0]["mechanicalSpine"]["success"][
+            "claimRef"
+        ] = "p1-concept#small-lag"
+        self.assertIn("TB-06", to_be_issue_codes(drift))
+
+    def test_to_be_catches_supplied_stale_phrase(self) -> None:
+        stale = make_valid_to_be_contract()
+        stale["toBeReview"]["staleTextScan"]["phrases"] = ["shared-motion"]
+        stale["toBeReview"]["staleTextScan"].pop("emptyReason")
+        self.assertIn("TB-07", to_be_issue_codes(stale))
 
 
 class RuntimeBindingAndExemptionTests(unittest.TestCase):
@@ -519,15 +698,31 @@ class RuntimeBindingAndExemptionTests(unittest.TestCase):
 
 
 class MechanicsGuardCliTests(unittest.TestCase):
-    def run_contract(self, contract: dict) -> subprocess.CompletedProcess[str]:
+    def run_contract(
+        self,
+        contract: dict,
+        *,
+        to_be: bool = False,
+    ) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "contract.json"
             path.write_text(
                 json.dumps(contract, ensure_ascii=False),
                 encoding="utf-8",
             )
+            command = [sys.executable, str(GUARD_PATH), "--contract", str(path)]
+            if to_be:
+                command.extend(
+                    [
+                        "--to-be",
+                        "--brief",
+                        str(REPO_ROOT / "README.md"),
+                        "--provenance",
+                        str(REPO_ROOT / "decisions.md"),
+                    ]
+                )
             return subprocess.run(
-                [sys.executable, str(GUARD_PATH), "--contract", str(path)],
+                command,
                 check=False,
                 capture_output=True,
                 text=True,
@@ -589,6 +784,12 @@ class MechanicsGuardCliTests(unittest.TestCase):
             )
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("MECHANICS_INPUT_ERROR", result.stdout)
+
+    def test_cli_to_be_passes_without_runtime_target(self) -> None:
+        result = self.run_contract(make_valid_to_be_contract(), to_be=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("TO_BE_CONTRACT: PASS", result.stdout)
+        self.assertIn("does not prove runtime reachability", result.stdout)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,1445 @@
+/* data/scenes7.js — 第七章場景執行載體（file:// 相容）。規範鏡像:scenes7.json。
+   ⚠ 本檔為生成物；請改 scenes7.json 後執行 node tools/build-ch7-data.mjs。 */
+(function (root) {
+ "use strict";
+ var data = {
+ "chapter": "ch7",
+ "startScene": "EM7-0",
+ "title": "一隻腿的證詞",
+ "evidenceNames": {
+  "GRID_BASELINE": "證人醒著的基準紙",
+  "GRID_BIMETAL": "雙金屬閉合的觀測紙",
+  "GRID_SAME_METAL": "同材質接法的觀測紙",
+  "GRID_NO_METAL": "無金屬仍收縮的觀測紙",
+  "GRID_ELECTROMETER": "沒有生命組織的針格",
+  "GRID_PILE": "持續電效應的堆格",
+  "GRID_STATE": "六格合帳頁"
+ },
+ "conclusionLint": {
+  "note": "本章只排除兩個全稱，不指定單一統一來源角色。",
+  "rules": [
+   {
+    "term": "電池",
+    "kind": "forbidden"
+   },
+   {
+    "term": "電流",
+    "kind": "forbidden"
+   },
+   {
+    "term": "伏特",
+    "kind": "forbidden"
+   }
+  ]
+ },
+ "narrativeExemptions": [
+  {
+   "rule": "R-TXT-6",
+   "scene": "EM7-2",
+   "nodes": [
+    "v_p2",
+    "ac2"
+   ],
+   "reason": "角色正在逐字讀出小冊與署名命題，引號是世界內文件，不是整句對白的排版外殼。"
+  },
+  {
+   "rule": "R-TXT-6",
+   "scene": "EM7-E",
+   "nodes": [
+    "e4",
+    "wf1"
+   ],
+   "reason": "旅人先引用剛取得的關鍵詞或待反駁原句，再接自己的判讀；引號本身承擔證物讀回。"
+  }
+ ],
+ "decisionRegistry": [
+  {
+   "id": "EM7-1.c1",
+   "scene": "EM7-1",
+   "node": "c1",
+   "nodeIndex": 4,
+   "kind": "observation_focus",
+   "preselected": false,
+   "options": [
+    {
+     "id": "dead-leg",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "contact-moment",
+     "isCorrect": true,
+     "refutedBy": []
+    }
+   ]
+  },
+  {
+   "id": "EM7-1.c_replicate",
+   "scene": "EM7-1",
+   "node": "c_replicate",
+   "nodeIndex": 9,
+   "kind": "operation_commitment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "take",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "sample",
+     "isCorrect": false,
+     "refutedBy": [
+      "EM7-1/n9"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EM7-2.c_exclusive",
+   "scene": "EM7-2",
+   "node": "c_exclusive",
+   "nodeIndex": 5,
+   "kind": "experiment_commitment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "claim-M",
+     "refutedBy": [
+      "RECORD_1794",
+      "t_no_metal"
+     ]
+    },
+    {
+     "id": "claim-A",
+     "refutedBy": [
+      "t_electrometer",
+      "t_pile"
+     ]
+    },
+    {
+     "id": "not-yet",
+     "refutedBy": []
+    }
+   ]
+  },
+  {
+   "id": "EM7-4.c_verdict_mid",
+   "scene": "EM7-4",
+   "node": "c_verdict_mid",
+   "nodeIndex": 1,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "bounded",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "both-fell",
+     "isCorrect": false,
+     "refutedBy": [
+      "EM7-3/p6"
+     ]
+    },
+    {
+     "id": "a-stable",
+     "isCorrect": false,
+     "refutedBy": [
+      "t_electrometer"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EM7-E.c_verdict_final",
+   "scene": "EM7-E",
+   "node": "c_verdict_final",
+   "nodeIndex": 10,
+   "kind": "evidence_judgment",
+   "preselected": false,
+   "options": [
+    {
+     "id": "scoped",
+     "isCorrect": true,
+     "refutedBy": []
+    },
+    {
+     "id": "metal-wins",
+     "isCorrect": false,
+     "refutedBy": [
+      "RECORD_1794",
+      "t_no_metal"
+     ]
+    },
+    {
+     "id": "a-open",
+     "isCorrect": false,
+     "refutedBy": [
+      "t_pile"
+     ]
+    }
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "EM7-0",
+   "title": "轉場：1798 初・慕尼黑→波隆那",
+   "nodes": [
+    {
+     "id": "m1",
+     "type": "line",
+     "speaker": "字幕板",
+     "text": "1798 年初｜巴伐利亞・慕尼黑——義大利・波隆那",
+     "next": "m2"
+    },
+    {
+     "id": "m2",
+     "type": "line",
+     "speaker": "圖板",
+     "text": "筆記頁自己翻動。炮膛的火星退成雨聲。上一頁的末行還看得見：「兌換率：未量得。」",
+     "next": "m3"
+    },
+    {
+     "id": "m3",
+     "type": "line",
+     "speaker": "落地板",
+     "text": "雨剛停。石板路的水窪裡有一排倒影：鐵欄杆，掛著什麼小小的東西。旅人的手指還壓在筆記那行未量得的債上。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EM7-1"
+    }
+   ]
+  },
+  {
+   "id": "EM7-1",
+   "title": "那一踢",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "波隆那，雨後的內院陽台。鐵欄杆上垂著幾隻處理過的蛙腿標本，黃銅小鉤穿過脊髓。一位老人背對著旅人，正徒手調整其中一只鉤子。",
+     "next": "n2"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "青蛙腿、銅鉤、鐵欄杆——這個我知道。我連結局都知道：最後贏的不是這位老先生。",
+     "next": "n3"
+    },
+    {
+     "id": "n3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "銅鉤擺過去，碰上鐵欄。那條腿踢了一下。乾脆、有力。",
+     "next": "n4"
+    },
+    {
+     "id": "n4",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（沒有回頭）你看見了嗎。",
+     "next": "c1"
+    },
+    {
+     "id": "c1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "你回答：",
+     "options": [
+      {
+       "id": "dead-leg",
+       "text": "看見了。牠踢了一下——可牠已經不是活的了。",
+       "next": "n5a"
+      },
+      {
+       "id": "contact-moment",
+       "text": "看見了。是鉤子碰到欄杆的那一刻。",
+       "next": "n5b"
+      }
+     ]
+    },
+    {
+     "id": "n5a",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "不是活的。（把腿輕輕擺正）所以踢牠的那股勁，不是牠的命。是別的東西，借牠的腿說了一句話。",
+     "next": "n6"
+    },
+    {
+     "id": "n5b",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（第一次回頭）你看的是接觸的那一刻。很好——大多數人只看腿。",
+     "next": "n6"
+    },
+    {
+     "id": "n6",
+     "type": "line",
+     "speaker": "stage",
+     "text": "書房。老人搬出的不是一冊，是一整箱：一七九一年的印本、逐年的紀錄簿、貼著標籤的散頁。九年的紙，攤了半張桌。",
+     "next": "n7"
+    },
+    {
+     "id": "n7",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "我叫 Galvani，教解剖的。這箱是牠們踢過的每一次。（拍拍其中最舊的一疊）都記著。",
+     "next": "q_source"
+    },
+    {
+     "id": "q_source",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（把銅鉤遞給旅人）牠踢了。用什麼踢的？電，我信。可那電是牠自己的，還是我們帶來的——九年了，兩邊的紙我都有，兩邊的話我都還不敢說死。",
+     "next": "n8"
+    },
+    {
+     "id": "n8",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "標準答案在我腦子裡待命。（看著那箱紙）……可他不是在問答案。他是在問：這一箱，撐得起哪一句。",
+     "next": "n9"
+    },
+    {
+     "id": "n9",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "先說好。在這張桌上，「我信」不算數——我的也不算。牠踢，就記；不踢，也記。你要幫忙，就先把這箱重新做給我看——紙會舊，手不會騙。",
+     "next": "c_replicate"
+    },
+    {
+     "id": "c_replicate",
+     "type": "choice",
+     "decisionId": "em1-accept-replication",
+     "speaker": "system",
+     "text": "這一箱——",
+     "options": [
+      {
+       "id": "take",
+       "text": "我來重做。從第一格開始。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "acceptReplication",
+          "args": {
+           "choice": "take-the-box"
+          }
+         }
+        }
+       ],
+       "next": "g1"
+      },
+      {
+       "id": "sample",
+       "text": "九年的紀錄都要重做？挑幾格關鍵的就夠了。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "acceptReplication",
+          "args": {
+           "choice": "sample-only"
+          }
+         }
+        }
+       ],
+       "next": "w1"
+      }
+     ]
+    },
+    {
+     "id": "w1",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（把箱子推正）挑格，就是先押了答案再找紙。全做。牠們踢過的每一次都算數。",
+     "next": "c_replicate"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EM7-2"
+    }
+   ]
+  },
+  {
+   "id": "EM7-2",
+   "title": "複驗矩陣",
+   "nodes": [
+    {
+     "id": "e_matrix",
+     "type": "embed",
+     "decisionId": "em1-configure-circuit",
+     "speaker": "system",
+     "system": "em1",
+     "phase": "matrix",
+     "text": "自由選擇四種接法；每一次配置與觀測都留在原紙。",
+     "hint": "基準、雙金屬、同材質、無金屬四格都要親手完成。",
+     "until": {
+      "ch7": "matrix-four"
+     },
+     "next": "t_baseline"
+    },
+    {
+     "id": "t_baseline",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_BASELINE"
+     ],
+     "configNote": "外部已知刺激；只確認本次蛙腿製備仍會反應",
+     "observation": "外部刺激到位時，蛙腿製備收縮。",
+     "next": "t_bimetal"
+    },
+    {
+     "id": "t_bimetal",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_BIMETAL"
+     ],
+     "configNote": "黃銅鉤接觸鐵片，形成雙金屬閉合接法",
+     "observation": "黃銅與鐵接觸閉合時，蛙腿收縮。",
+     "next": "t_same_metal"
+    },
+    {
+     "id": "t_same_metal",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_SAME_METAL"
+     ],
+     "configNote": "同材質金屬弧接觸神經與肌肉",
+     "observation": "同材質接法完成時，蛙腿收縮；只記本次接點與組織狀態。",
+     "next": "t_no_metal"
+    },
+    {
+     "id": "t_no_metal",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_NO_METAL",
+      "RECORD_1794"
+     ],
+     "configNote": "不使用金屬，讓神經與肌肉直接接觸",
+     "observation": "沒有金屬在場，神經與肌肉直接接觸時仍然收縮。",
+     "archival1794": "沒有金屬在場仍記錄到收縮。",
+     "next": "v_p1"
+    },
+    {
+     "id": "v_p1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "書商捎來一冊帕維亞印的小冊子——Volta 教授對動物電的公開評論，波隆那已有人傳抄。",
+     "next": "v_p2"
+    },
+    {
+     "id": "v_p2",
+     "type": "line",
+     "speaker": "Volta（小冊）",
+     "text": "「Galvani 教授的觀察無可挑剔，他的解釋我一個字也不能收。踢動的腿是好樣的——好在牠靈敏，不好在把靈敏當成了來源。」",
+     "next": "n10"
+    },
+    {
+     "id": "n10",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（讀完，把小冊平放在矩陣旁——不摺，不收）城裡的人開始問我了。（看旅人）你幫我擬一份回覆。你做過這一箱，你有資格擬。",
+     "next": "n11"
+    },
+    {
+     "id": "n11",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "我——那個自以為知道結局的人——現在握著筆。（筆尖懸著）他的紙這麼全。帕維亞的針那麼準。……這兩件事，真的在打同一場架嗎？",
+     "next": "c_exclusive"
+    },
+    {
+     "id": "c_exclusive",
+     "type": "choice",
+     "decisionId": "em1-exclusive-claim",
+     "speaker": "system",
+     "text": "你把哪一句寫進回覆？",
+     "options": [
+      {
+       "id": "claim-M",
+       "text": "蛙腿收縮所需的電效應只能由金屬提供。",
+       "effects": [
+        {
+         "flag": [
+          "ch7Claim",
+          "M"
+         ]
+        },
+        {
+         "labAction": {
+          "action": "commitExclusiveClaim",
+          "args": {
+           "claim": "M"
+          }
+         }
+        }
+       ],
+       "next": "mb1"
+      },
+      {
+       "id": "claim-A",
+       "text": "任何可持續的電效應都必須有生命組織在場。",
+       "effects": [
+        {
+         "flag": [
+          "ch7Claim",
+          "A"
+         ]
+        },
+        {
+         "labAction": {
+          "action": "commitExclusiveClaim",
+          "args": {
+           "claim": "A"
+          }
+         }
+        }
+       ],
+       "next": "ac1"
+      },
+      {
+       "id": "not-yet",
+       "text": "這一箱還沒把話問完。下一格，由我來選。",
+       "effects": [
+        {
+         "flag": [
+          "ch7Claim",
+          "not-yet"
+         ]
+        },
+        {
+         "labAction": {
+          "action": "commitExclusiveClaim",
+          "args": {
+           "claim": "not-yet"
+          }
+         }
+        }
+       ],
+       "next": "nc1"
+      }
+     ]
+    },
+    {
+     "id": "mb1",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（不慍不火，把 1794 那頁舊紙轉過來，正對旅人）這格。四年前。沒有金屬。（頓）另一張紙——你親手重做過牠，就在這張桌上。",
+     "next": "mb2"
+    },
+    {
+     "id": "mb2",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "……對。我做過。牠踢了。我剛剛寫的「只能」，被桌上的紙——被我自己填的格——擋回來了。",
+     "next": "mb3"
+    },
+    {
+     "id": "mb3",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（收回紙）擬回覆不趕在今晚。（把筆推回給旅人）想清楚「只能」兩個字要花掉你什麼，再落筆。",
+     "next": "c_insist"
+    },
+    {
+     "id": "c_insist",
+     "type": "choice",
+     "mechanicsExempt": "CH7-CR-001 §5.4.3 的獨立研究誠信誘惑，不屬兩段 mechanics spine",
+     "speaker": "system",
+     "text": "筆還在手裡。",
+     "options": [
+      {
+       "id": "withdraw",
+       "text": "收回。重擬。",
+       "next": "c_exclusive"
+      },
+      {
+       "id": "send",
+       "text": "照原稿送印——「只能由金屬提供」。",
+       "require": {
+        "flagAbsent": "ch7T3Used"
+       },
+       "effects": [
+        {
+         "flag": [
+          "ch7T3Used",
+          1
+         ]
+        },
+        {
+         "labAction": {
+          "action": "refuseCorrection",
+          "args": {}
+         }
+        }
+       ],
+       "next": "c_exclusive"
+      }
+     ]
+    },
+    {
+     "id": "ac1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "Galvani 讀完旅人擬的句子，久久沒有動。書房裡只有紙的聲音。",
+     "next": "ac2"
+    },
+    {
+     "id": "ac2",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "「必須有生命在場」。（抬眼）我的紙還推不倒它；帕維亞的針，我也沒見過。（把筆蘸好墨，遞回）這句話現在姓你了。我的名字，簽在你旁邊。",
+     "next": "ac3"
+    },
+    {
+     "id": "ac3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "回覆送去傳抄。話，出了門。",
+     "next": "g1"
+    },
+    {
+     "id": "nc1",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "好。下一格你選。（把矩陣轉向旅人）哪一格，能讓兩邊的話分出高下？",
+     "next": "c_next"
+    },
+    {
+     "id": "c_next",
+     "type": "choice",
+     "decisionId": "em1-next-discriminating-config",
+     "speaker": "system",
+     "text": "下一格要怎麼問？",
+     "options": [
+      {
+       "id": "repeat-no-metal",
+       "text": "拿掉所有金屬，再量一次收縮。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "commitNextConfig",
+          "args": {
+           "choice": "next-no-metal-contraction"
+          }
+         }
+        }
+       ],
+       "next": "nw1"
+      },
+      {
+       "id": "tissue-free",
+       "text": "拿掉青蛙——看電效應還量不量得到。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "commitNextConfig",
+          "args": {
+           "choice": "next-tissue-free-charge"
+          }
+         }
+        }
+       ],
+       "next": "na1"
+      },
+      {
+       "id": "repeat-known",
+       "text": "同一格再做十次，看牠穩不穩。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "commitNextConfig",
+          "args": {
+           "choice": "next-repeat-known"
+          }
+         }
+        }
+       ],
+       "next": "nw2"
+      }
+     ]
+    },
+    {
+     "id": "nw1",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "那格有兩張紙了——你要做第三張也行，複驗不嫌多。但它分不出新高下。",
+     "next": "c_next"
+    },
+    {
+     "id": "nw2",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "穩定是好問題——但它考的是手，不是話。",
+     "next": "c_next"
+    },
+    {
+     "id": "na1",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（沉默一拍）……那要去帕維亞。我的桌上沒有那種儀器。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EM7-3"
+    }
+   ]
+  },
+  {
+   "id": "EM7-3",
+   "title": "兩端之間",
+   "nodes": [
+    {
+     "id": "p1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "帕維亞。另一種房間：黃銅、玻璃、絲線、成排的圓盤。沒有蛙，沒有神經，沒有肌肉。Volta 拆信的動作比讀信快。",
+     "next": "p2-A"
+    },
+    {
+     "id": "p2-A",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "（讀到署名句）「必須有生命組織在場」。（把紙彈得啪響）好極了。簽了名的。（起身）那請你親手做一件事——做的東西上連一根毛都沒有。",
+     "require": {
+      "flag": [
+       "ch7Claim",
+       "A"
+      ]
+     },
+     "next": "p3"
+    },
+    {
+     "id": "p2-N",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "波隆那出了個會設題的。（笑意剛起就收住）好——儀器我出。手，你出。",
+     "require": {
+      "flag": [
+       "ch7Claim",
+       "not-yet"
+      ]
+     },
+     "next": "p3"
+    },
+    {
+     "id": "p2-M0",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "他讓你來看針？（下巴微微一收，像在掂量這句話）……老頭子居然肯。那就不只看——你來接。",
+     "require": {
+      "flag": [
+       "ch7Claim",
+       "M"
+      ]
+     },
+     "next": "p3"
+    },
+    {
+     "id": "p3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "Volta 取出一座小裝置，推到旅人面前：兩種金屬片、一枚薄盤、一支細針。他自己退開半步，抱起手。",
+     "next": "p3b"
+    },
+    {
+     "id": "p3b",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "波隆那的手在波隆那的桌上做過什麼，我聽說了。現在讓它在帕維亞的桌上再做一次。我的針不認人，只認接觸。",
+     "next": "p4"
+    },
+    {
+     "id": "p4",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "腿太吵了。牠一踢，你們就只看牠。（指細針）這根針不會演戲。（把銅片與鋅片放進旅人掌心）銅碰鋅。把那一點點什麼，餵給盤子。",
+     "next": "e_electrometer"
+    },
+    {
+     "id": "e_electrometer",
+     "type": "embed",
+     "speaker": "system",
+     "system": "em1",
+     "phase": "electrometer",
+     "text": "選金屬對、相觸、餵薄盤，再提盤讀針。",
+     "hint": "由你親手完成四步，針格才會留痕。",
+     "until": {
+      "ch7": "electrometer"
+     },
+     "next": "t_electrometer"
+    },
+    {
+     "id": "t_electrometer",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_ELECTROMETER"
+     ],
+     "configNote": "無蛙；銅與鋅相觸後，把接觸效應餵給薄盤",
+     "observation": "桌上沒有生命組織；薄盤累積接觸後，提盤時細針偏轉。",
+     "next": "p4b"
+    },
+    {
+     "id": "p4b",
+     "type": "line",
+     "speaker": "stage",
+     "text": "桌上沒有任何一樣東西是活的——薄盤卻記下了旅人剛才的每一次「碰」。",
+     "next": "p5"
+    },
+    {
+     "id": "p5",
+     "type": "line",
+     "speaker": "stage",
+     "text": "細針動了。很小，但乾淨。是旅人自己的手弄出來的。",
+     "next": "v9"
+    },
+    {
+     "id": "v9",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "針動了——沒有腿。腿踢了——那是收縮。啊！這兩件事量的根本不是同一個東西。「腿踢不踢」問收縮哪裡來；「針動不動」問電哪裡來。我一直把兩個問題疊成一句「誰贏」。",
+     "next": "p6"
+    },
+    {
+     "id": "p6",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "（收儀器）針動一下，是一下。（看著旅人，罕見地精確）你們波隆那那句「可持續」——我今天還給不了你。給我時間。",
+     "next": "p7"
+    },
+    {
+     "id": "p7",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "他自己劃了自己的界。這一針殺不死那句話——他知道，而且他說了。",
+     "next": "p8"
+    },
+    {
+     "id": "p8",
+     "type": "line",
+     "speaker": "Volta",
+     "text": "回去告訴解剖學家：他的腿是好證人。證人不是兇手。（頓）……再替我補一句：九年的紀錄，帕維亞讀了三遍。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EM7-4"
+    }
+   ]
+  },
+  {
+   "id": "EM7-4",
+   "title": "中間判讀",
+   "nodes": [
+    {
+     "id": "r1",
+     "type": "line",
+     "variants": [
+      {
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "A"
+        ]
+       },
+       "speaker": "stage",
+       "text": "書房。矩陣攤滿半張桌：波隆那的四格、帕維亞的針格——五格裡沒有一格不是旅人自己的手填的——一箱舊紙、那份已送出的回覆底稿。",
+       "next": "c_verdict_mid"
+      },
+      {
+       "require": {
+        "any": [
+         {
+          "flag": [
+           "ch7Claim",
+           "M"
+          ]
+         },
+         {
+          "flag": [
+           "ch7Claim",
+           "not-yet"
+          ]
+         }
+        ]
+       },
+       "speaker": "stage",
+       "text": "書房。矩陣攤滿半張桌：波隆那的四格、帕維亞的針格——五格裡沒有一格不是旅人自己的手填的——一箱舊紙。",
+       "next": "c_verdict_mid"
+      }
+     ]
+    },
+    {
+     "id": "c_verdict_mid",
+     "type": "choice",
+     "decisionId": "em1-mid-verdict",
+     "speaker": "system",
+     "text": "今天，這桌紙判得動哪句話？",
+     "options": [
+      {
+       "id": "bounded",
+       "text": "M 倒了——一七九四的紙加上我的複驗。A 還沒有人量過「可持續」——今天殺不死，也立不起來。",
+       "effects": [
+        {
+         "flag": [
+          "ch7MidVerdict",
+          "bounded"
+         ]
+        },
+        {
+         "labAction": {
+          "action": "recordMidVerdict",
+          "args": {
+           "choice": "mid-m-fell-a-open"
+          }
+         }
+        }
+       ],
+       "next": "r_mid"
+      },
+      {
+       "id": "both-fell",
+       "text": "M 和 A 都倒了——針已經替金屬作證。",
+       "effects": [
+        {
+         "flag": [
+          "ch7MidVerdict",
+          "both-fell"
+         ]
+        },
+        {
+         "labAction": {
+          "action": "recordMidVerdict",
+          "args": {
+           "choice": "mid-both-fell"
+          }
+         }
+        }
+       ],
+       "next": "r_mid"
+      },
+      {
+       "id": "a-stable",
+       "text": "A 穩了——針只動一下，撐不了場面。",
+       "effects": [
+        {
+         "flag": [
+          "ch7MidVerdict",
+          "a-stable"
+         ]
+        },
+        {
+         "labAction": {
+          "action": "recordMidVerdict",
+          "args": {
+           "choice": "mid-a-stable"
+          }
+         }
+        }
+       ],
+       "next": "r_mid"
+      }
+     ]
+    },
+    {
+     "id": "r_mid",
+     "type": "line",
+     "variants": [
+      {
+       "require": {
+        "flag": [
+         "ch7MidVerdict",
+         "bounded"
+        ]
+       },
+       "speaker": "Galvani",
+       "text": "（聽完，點頭很慢）你沒有替任何一邊多說一個字。",
+       "next": "s_mid"
+      },
+      {
+       "require": {
+        "flag": [
+         "ch7MidVerdict",
+         "both-fell"
+        ]
+       },
+       "speaker": "Galvani",
+       "text": "針動了一下。（把 Volta 那句「給我時間」的轉述指給旅人看）連帕維亞自己都沒把「一下」寫成「一直」。你比他還急。",
+       "next": "f_mid_retry"
+      },
+      {
+       "require": {
+        "flag": [
+         "ch7MidVerdict",
+         "a-stable"
+        ]
+       },
+       "speaker": "stage",
+       "text": "Galvani 沒說話，把矩陣往旅人那邊推近半寸。",
+       "next": "r_mid_voice"
+      }
+     ]
+    },
+    {
+     "id": "r_mid_voice",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "不對——「撐不了場面」不等於「必須有生命」。針的那一下是真的。A 要活，得靠自己的紙，不能靠對手的針矮。",
+     "next": "f_mid_retry"
+    },
+    {
+     "id": "f_mid_retry",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "把矩陣轉回去。再看一次。桌上的紙不趕時間。",
+     "next": "c_verdict_mid"
+    },
+    {
+     "id": "s_mid",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "好。（在矩陣邊寫下兩行，一行劃線，一行空著）倒了的，劃線。沒判的——留白。（擱筆）我這輩子大概就陪它到這裡了。留白的這行，別替我急著填。",
+     "next": "e1"
+    },
+    {
+     "id": "e1",
+     "type": "line",
+     "speaker": "字幕",
+     "text": "1798 年 12 月，Galvani 逝於波隆那。",
+     "next": "g1"
+    },
+    {
+     "id": "g1",
+     "type": "goto",
+     "scene": "EM7-E"
+    }
+   ]
+  },
+  {
+   "id": "EM7-E",
+   "title": "最終判讀與沒有收件人的信",
+   "nodes": [
+    {
+     "id": "e2",
+     "type": "line",
+     "speaker": "字幕",
+     "text": "1800 年夏末。",
+     "next": "e3"
+    },
+    {
+     "id": "e3",
+     "type": "line",
+     "speaker": "stage",
+     "text": "消息越過阿爾卑斯山傳回義大利：帕維亞的 Volta 教授致皇家學會的信，六月底在倫敦宣讀——他把銅、鋅與浸過鹽水的布疊成一座「堆」，沒有蛙，沒有神經，沒有肌肉，那股勁就穩定地、不停地流。",
+     "next": "e4"
+    },
+    {
+     "id": "e4",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "「可持續」。他真的把時間要走了，然後帶著這個回來。",
+     "next": "e5"
+    },
+    {
+     "id": "e5",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人回到那間書房——如今由 Galvani 的外甥照看：教實驗物理的 Aldini。矩陣還在。留白的那一行還空著。",
+     "next": "e5b"
+    },
+    {
+     "id": "e5b",
+     "type": "line",
+     "speaker": "Aldini",
+     "text": "（把一份傳抄的圖說攤開在矩陣旁）倫敦宣讀之後，這張圖沿路被抄——誰都能疊。（看旅人）我的手替舅舅辯了這些年——太偏了。做過那一箱的手——你來。",
+     "next": "e_pile"
+    },
+    {
+     "id": "e_pile",
+     "type": "embed",
+     "speaker": "system",
+     "system": "em1",
+     "phase": "pile",
+     "text": "依圖說排層，再親手同觸兩端。",
+     "hint": "銅、鋅、浸鹽水布重複成足夠層數。",
+     "until": {
+      "ch7": "pile"
+     },
+     "next": "t_pile"
+    },
+    {
+     "id": "t_pile",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_PILE"
+     ],
+     "configNote": "無動物組織；銅、鋅與浸鹽水布依序重複疊層",
+     "observation": "兩端同觸時，反應持續存在，不只一下。",
+     "next": "e5c"
+    },
+    {
+     "id": "e5c",
+     "type": "line",
+     "speaker": "stage",
+     "text": "層疊到位。桌上沒有一樣東西活過。那股勁咬住指尖，不放。不是一下。是一直。",
+     "next": "e5d"
+    },
+    {
+     "id": "e5d",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "帕維亞的針只肯說「一下」。這座堆說的是「一直」。兩年前那行留白，等的就是這兩個字。",
+     "next": "e_board"
+    },
+    {
+     "id": "e_board",
+     "type": "embed",
+     "speaker": "system",
+     "system": "em1",
+     "phase": "board",
+     "text": "把六張原紙逐張歸回同一頁。",
+     "hint": "六格都要在場，才可封存已測範圍。",
+     "until": {
+      "ch7": "board"
+     },
+     "next": "t_board"
+    },
+    {
+     "id": "t_board",
+     "type": "marker",
+     "engineEvidence": [
+      "GRID_STATE"
+     ],
+     "completeness": true,
+     "testedScope": [
+      "baseline",
+      "bimetal",
+      "sameMetal",
+      "noMetal",
+      "electrometer",
+      "pile"
+     ],
+     "next": "e5e"
+    },
+    {
+     "id": "e5e",
+     "type": "line",
+     "speaker": "stage",
+     "text": "九年的箱，兩年的路——六格第一次睡在同一張紙上。",
+     "next": "c_verdict_final"
+    },
+    {
+     "id": "c_verdict_final",
+     "type": "choice",
+     "decisionId": "em1-config-verdict",
+     "speaker": "system",
+     "text": "六格攤在同一頁上。現在，這行留白怎麼寫？",
+     "options": [
+      {
+       "id": "scoped",
+       "text": "M 與 A 兩個全稱都失敗；不同配置必須分開記，目前不能指定統一的來源角色。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "recordFinalVerdict",
+          "args": {
+           "choice": "m-a-both-fell-record-configs-separately"
+          }
+         }
+        }
+       ],
+       "next": "r_named",
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "A"
+        ]
+       }
+      },
+      {
+       "id": "scoped-N",
+       "text": "M 與 A 兩個全稱都失敗；不同配置必須分開記，目前不能指定統一的來源角色。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "recordFinalVerdict",
+          "args": {
+           "choice": "m-a-both-fell-record-configs-separately"
+          }
+         }
+        }
+       ],
+       "next": "r_named",
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "not-yet"
+        ]
+       }
+      },
+      {
+       "id": "scoped-M",
+       "text": "M 與 A 兩個全稱都失敗；不同配置必須分開記，目前不能指定統一的來源角色。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "recordFinalVerdict",
+          "args": {
+           "choice": "m-a-both-fell-record-configs-separately"
+          }
+         }
+        }
+       ],
+       "next": "r_named",
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "M"
+        ]
+       }
+      },
+      {
+       "id": "metal-wins",
+       "text": "堆贏了——電本來就只是金屬的事。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "recordFinalVerdict",
+          "args": {
+           "choice": "pile-proves-metal-only"
+          }
+         }
+        }
+       ],
+       "next": "wf1"
+      },
+      {
+       "id": "a-open",
+       "text": "堆沒量過收縮——A 那行繼續留白。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "recordFinalVerdict",
+          "args": {
+           "choice": "a-remains-open"
+          }
+         }
+        }
+       ],
+       "next": "wf2"
+      }
+     ]
+    },
+    {
+     "id": "wf1",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "「只是金屬的事」——一七九四那格還在桌上。堆殺得死「必須有生命」，殺不死那次沒有金屬的踢。",
+     "next": "c_verdict_final"
+    },
+    {
+     "id": "wf2",
+     "type": "line",
+     "speaker": "stage",
+     "text": "留白的行旁邊，堆的抄本靜靜攤著：不停地流，沒有生命。旅人重讀 A 的原句——「任何」「必須」兩個詞在燭光下特別重。",
+     "next": "c_verdict_final"
+    },
+    {
+     "id": "r_named",
+     "type": "line",
+     "variants": [
+      {
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "A"
+        ]
+       },
+       "speaker": "stage",
+       "text": "同一批傳抄過旅人回覆的人，如今把堆的消息與那句「必須有生命組織在場」並排傳看——句尾的簽名，兩年了，還看得很清楚。",
+       "next": "f_repair"
+      },
+      {
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "not-yet"
+        ]
+       },
+       "speaker": "stage",
+       "text": "你當年選定的那個區分配置，被 1800 年的世界親手做完了。",
+       "next": "s_scoped"
+      },
+      {
+       "require": {
+        "flag": [
+         "ch7Claim",
+         "M"
+        ]
+       },
+       "speaker": "stage",
+       "text": "堆的消息沿城傳開——矩陣旁的人都在等那行留白。",
+       "next": "s_scoped"
+      }
+     ]
+    },
+    {
+     "id": "f_repair",
+     "type": "system",
+     "speaker": "stage",
+     "text": "旅人在自己的原句上劃限縮線、補條件——不換乾淨紙，寫進矩陣末頁。信出過門，名簽過字；改的每一筆，都改在人人看得見的地方。先還自己的債，才有資格填別人的留白。",
+     "effects": [
+      {
+       "labAction": {
+        "action": "repairExclusiveClaim",
+        "args": {}
+       }
+      }
+     ],
+     "next": "s_scoped"
+    },
+    {
+     "id": "s_scoped",
+     "type": "line",
+     "speaker": "旅人(你)",
+     "text": "旅人把兩年前那行留白填上：「M 與 A 兩個全稱都失敗；不同配置必須分開記，目前不能指定統一的來源角色。」",
+     "next": "e6"
+    },
+    {
+     "id": "e6",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人在筆記上寫了一句：「兩邊都不是笨蛋，只是——」寫到一半，停住。拿筆劃掉。墨線下那半句還認得出來。",
+     "next": "e7"
+    },
+    {
+     "id": "e7",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "這句話太順口了。順口的話，這一箱紙沒有一張撐得起。",
+     "next": "e8"
+    },
+    {
+     "id": "e8",
+     "type": "line",
+     "speaker": "stage",
+     "text": "旅人把矩陣末頁小心撕下，對摺，再對摺——摺成一封信的形狀。提筆，在收件人那一欄——（筆尖懸了很久）——最後是空的。信放進筆記最深處，和另外幾封摺好的擠在一起。",
+     "next": "e9"
+    },
+    {
+     "id": "e9",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "有些信不是寫給人的。是寫給那行留白的——證人已經退庭了，證詞還押在我這裡。",
+     "next": "e10"
+    },
+    {
+     "id": "e10",
+     "type": "system",
+     "speaker": "system",
+     "text": "旅人筆記裡多了「一隻腿的證詞」這一頁。金屬相觸會給電，堆把它疊得又穩又長；神經與肌肉自己也藏著電，一七九四年那格誰也刪不掉。是誰，在什麼接法裡，量到了什麼——三個問題，三本帳。",
+     "next": "e11"
+    },
+    {
+     "id": "e11",
+     "type": "line",
+     "speaker": "旅人・心聲",
+     "text": "路過鏡子時，旅人停了半步——兩年，這張臉一天都沒多。（闔筆記前，最後一行）那座堆的做法正沿著那封信傳開。穩定的、不停的電——接下來的人會拿它去碰什麼？聽說倫敦有棟房子，整棟都在做實驗。",
+     "next": "facts"
+    },
+    {
+     "id": "facts",
+     "type": "histfacts",
+     "next": "end"
+    },
+    {
+     "id": "end",
+     "type": "end"
+    }
+   ]
+  },
+  {
+   "id": "SC7-R1",
+   "title": "把藏起來的紙放回桌上",
+   "nodes": [
+    {
+     "id": "n1",
+     "type": "line",
+     "speaker": "stage",
+     "text": "桌上有一格空位——那張被收起來的紙的位置，比紙本身更顯眼。",
+     "next": "c1"
+    },
+    {
+     "id": "c1",
+     "type": "choice",
+     "speaker": "system",
+     "text": "怎麼修？",
+     "options": [
+      {
+       "id": "withdraw",
+       "text": "把紙放回去。被它反駁的那句，我劃限縮線，簽名認錯。",
+       "effects": [
+        {
+         "labAction": {
+          "action": "repairWithholding",
+          "args": {}
+         }
+        }
+       ],
+       "next": "n2"
+      },
+      {
+       "id": "excuse",
+       "text": "那張紙的樣本狀態有問題，不算數。",
+       "next": "w1"
+      },
+      {
+       "id": "silence",
+       "text": "先不處理，先把回覆送出去。",
+       "next": "w2"
+      }
+     ]
+    },
+    {
+     "id": "w1",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "基準格記著樣本那天醒著。你可以質疑，不能把已在桌上的資格一筆抹掉。",
+     "next": "c1"
+    },
+    {
+     "id": "w2",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "桌上少一張紙，你的每一張都跟著輕。",
+     "next": "c1"
+    },
+    {
+     "id": "n2",
+     "type": "line",
+     "speaker": "Galvani",
+     "text": "（把紙撫平放回）紙不怕被反駁。（看旅人）怕的是被藏。",
+     "next": "back"
+    },
+    {
+     "id": "back",
+     "type": "return"
+    }
+   ]
+  }
+ ]
+};
+ if (typeof module === "object" && module.exports) { module.exports = data; }
+ else { root.GB = root.GB || {}; root.GB.DATA = root.GB.DATA || {}; root.GB.DATA.scenes7 = data; }
+})(typeof self !== "undefined" ? self : this);

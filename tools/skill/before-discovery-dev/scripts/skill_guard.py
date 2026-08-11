@@ -14,7 +14,7 @@ import unicodedata
 from pathlib import Path
 
 from mechanics_guard import run_check as check_mechanics
-from narrative_guard import check_narrative
+from narrative_guard import CHAPTERS, check_narrative
 
 
 SCRIPT_PATH = Path(__file__).resolve()
@@ -1728,7 +1728,7 @@ def main() -> int:
     )
     narrative_parser.add_argument(
         "--chapter",
-        choices=["ch1", "ch2", "ch3", "ch4", "ch5", "ch6"],
+        choices=sorted(CHAPTERS, key=lambda value: int(value[2:])),
         required=True,
         action=StoreOnceAction,
     )
@@ -1775,7 +1775,22 @@ def main() -> int:
         "--contract",
         required=True,
         action=StoreOnceAction,
-        help="schema-1 inquiry mechanics contract JSON",
+        help="schema-2 inquiry mechanics contract JSON",
+    )
+    mechanics_parser.add_argument(
+        "--to-be",
+        action="store_true",
+        help="check a complete pre-runtime chapter design packet",
+    )
+    mechanics_parser.add_argument(
+        "--brief",
+        action=StoreOnceAction,
+        help="chapter brief required by --to-be",
+    )
+    mechanics_parser.add_argument(
+        "--provenance",
+        action=StoreOnceAction,
+        help="historical provenance sidecar required by --to-be",
     )
 
     subparsers.add_parser("sync-mirror", help="regenerate the human-readable mirror")
@@ -1822,7 +1837,20 @@ def main() -> int:
             story_audit=args.story_audit,
         )
     if args.command == "check-mechanics":
-        return check_mechanics(resolve_target_path(args.contract))
+        if args.to_be and (not args.brief or not args.provenance):
+            parser.error("check-mechanics --to-be requires --brief and --provenance")
+        if not args.to_be and (args.brief or args.provenance):
+            parser.error("--brief/--provenance require --to-be")
+        return check_mechanics(
+            resolve_target_path(args.contract),
+            to_be=args.to_be,
+            brief_path=(
+                resolve_target_path(args.brief) if args.brief else None
+            ),
+            provenance_path=(
+                resolve_target_path(args.provenance) if args.provenance else None
+            ),
+        )
     if args.command == "sync-mirror":
         return sync_mirror()
     return 1

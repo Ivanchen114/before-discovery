@@ -2,8 +2,8 @@
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
   "registry_status": "candidate",
-  "skill_version": "3.5.0-candidate",
-  "updated": "2026-08-08",
+  "skill_version": "3.6.0-candidate",
+  "updated": "2026-08-11",
   "truth_modes": [
     "AS-IS",
     "TO-BE",
@@ -77,7 +77,8 @@
     "chapter.ch3",
     "chapter.ch4",
     "chapter.ch5",
-    "chapter.ch6"
+    "chapter.ch6",
+    "chapter.ch7"
   ],
   "routes": [
     {
@@ -115,6 +116,32 @@
           "supersedes": [],
           "blocks_skill_activation": false,
           "note": "active 流程法源；Claude A=0、B=0，總監以 ADR-013 接受。"
+        },
+        {
+          "id": "core.new-chapter-packet-review-candidate",
+          "path": "01_治理/發現之前_新章設計包整包送審與兩輪收斂修正案_v0.1-candidate_20260810.md",
+          "status": "candidate",
+          "authority": "reference",
+          "phase": [
+            "plan",
+            "write",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "context",
+            "TO-BE": "constraint",
+            "CONFORMANCE": "comparison"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "一、適用範圍",
+            "二、作者送審前硬門檻",
+            "三、兩輪收斂",
+            "五、放行條件"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": true,
+          "note": "v3.6.0 candidate 的新章三件套與 TO-BE 審查流程；須獨立審查、總監裁決並併入 active 宿主後退役本候選來源。"
         },
         {
           "id": "core.collaboration",
@@ -260,7 +287,7 @@
             "二、施工時只認這個法源順序",
             "三、每章最低核心循環",
             "十一、出貨門檻",
-            "開工前十一問"
+            "開工前十三問"
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
@@ -1263,6 +1290,34 @@
           "note": "第四章個案遷移法源。"
         },
         {
+          "id": "save.ch7-implementation-spec",
+          "path": "01_治理/發現之前_CH7-CR-001_章節登錄與一隻腿的證詞runtime實作_20260811.md",
+          "chapters": [
+            "ch7"
+          ],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": [
+            "implement",
+            "verify",
+            "review"
+          ],
+          "mode_roles": {
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
+          },
+          "tracked_required": true,
+          "required_headings": [
+            "五、engine7 狀態與操作契約",
+            "六、save、sanitizer 與 fail closed",
+            "九、自動與人工驗收"
+          ],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第七章 Design Gate 已通過的 schema 1、letter-envelope、sanitizer 與拒絕策略個案法源。"
+        },
+        {
           "id": "save.ch4-runtime",
           "path": "greybox/src/ch4-migration.js",
           "chapters": [
@@ -1337,7 +1392,8 @@
             "implement"
           ],
           "satisfied_by": [
-            "save.ch4-migration-spec"
+            "save.ch4-migration-spec",
+            "save.ch7-implementation-spec"
           ],
           "note": "涉及新 schema／scene-node cursor 時必須明列個案遷移表。"
         }
@@ -2839,27 +2895,32 @@
         },
         {
           "id": "ch6.art-appendix",
-          "path": null,
+          "path": "01_治理/發現之前_CH6-ART-001_熱從哪裡來正式美術與聲音總帳_20260811.md",
           "domains": [
             "art"
           ],
-          "status": "missing",
-          "authority": "unresolved",
+          "status": "candidate",
+          "authority": "chapter_change",
           "phase": [
             "art",
             "implement",
             "release"
           ],
           "mode_roles": {
-            "AS-IS": "unavailable",
-            "TO-BE": "unavailable",
-            "CONFORMANCE": "unavailable"
+            "AS-IS": "comparison",
+            "TO-BE": "primary",
+            "CONFORMANCE": "target"
           },
           "tracked_required": false,
-          "required_headings": [],
+          "required_headings": [
+            "一、章節定位與 Style Key",
+            "二、現行正式視覺總帳（35 個實體檔）",
+            "四、Gemini／Lyria 正式音樂（8）",
+            "五、runtime 接線與測試契約",
+            "七、人工驗收與 Lock"
+          ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "gap_reason": "第六章尚無依全系列美術總規格建立的章節美術製作附錄。",
           "applies_when": [
             "art-change"
           ],
@@ -2868,7 +2929,177 @@
             "implement",
             "release"
           ],
-          "note": "新增或重製第六章正式美術時 blocker；既有資產唯讀驗證不受阻。"
+          "note": "CH6-ART-001 已補齊既有 35 個美術實體檔與八首正式音樂的章別總帳；總監於 2026-08-11 通過 Art／Audio Lock，正式網址 browser acceptance 仍須以當次發佈證據另行確認。"
+        }
+      ]
+    },
+    {
+      "id": "chapter.ch7",
+      "tasks": [
+        "chapter-7",
+        "ch7",
+        "ch07"
+      ],
+      "requires": [
+        "core",
+        "save"
+      ],
+      "sources": [
+        {
+          "id": "ch7.scenes",
+          "path": "greybox/data/scenes7.json",
+          "domains": ["runtime", "narrative"],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": ["write", "implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "primary", "TO-BE": "comparison", "CONFORMANCE": "actual"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第七章唯一 runtime 劇本正本；條件台詞維持同一 node id，工作台留痕以自動 marker 綁 engine 證據。"
+        },
+        {
+          "id": "ch7.engine",
+          "path": "greybox/src/engine7.js",
+          "domains": ["runtime", "design", "save"],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": ["implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "primary", "TO-BE": "comparison", "CONFORMANCE": "actual"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第七章矩陣、電量器、堆、合帳、排他主張與研究誠信狀態真相。"
+        },
+        {
+          "id": "ch7.script",
+          "path": "04_劇本/第七章劇本稿_一隻腿的證詞_v0.1_Fable_20260810.md",
+          "domains": ["narrative", "history"],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": ["write", "implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "comparison", "TO-BE": "primary", "CONFORMANCE": "target"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "Script Freeze 通過的第七章玩家可見台詞、選擇後果與戲劇目的。"
+        },
+        {
+          "id": "ch7.brief",
+          "path": "02_設計/發現之前_第七章chapter-brief_EM1_Galvani與Volta_v0.1_Fable_20260809.md",
+          "domains": ["design", "narrative", "history"],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": ["plan", "write", "review"],
+          "mode_roles": {"AS-IS": "comparison", "TO-BE": "primary", "CONFORMANCE": "target"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第七章案件資格、雙主張邊界、時間跨度與收法。"
+        },
+        {
+          "id": "ch7.provenance",
+          "path": "02_設計/發現之前_第七章provenance_sidecar_EM1_v0.1_Fable_20260809.md",
+          "domains": ["history", "design"],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": ["plan", "write", "verify", "review"],
+          "mode_roles": {"AS-IS": "comparison", "TO-BE": "primary", "CONFORMANCE": "target"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "Galvani、Volta、1794 無金屬實驗、1796 電量器與 1800 堆的史料邊界。"
+        },
+        {
+          "id": "ch7.mechanics-contract",
+          "path": "03_規格/發現之前_第七章mechanics_contract_v0.1_TO-BE_Fable_20260809.json",
+          "domains": ["design", "runtime", "testing"],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": ["plan", "implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "comparison", "TO-BE": "primary", "CONFORMANCE": "target"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "v0.7 兩段 mechanics spine；runtime 模式由 scenes binder 與已登錄 engine adapter 取代 reachable 自報。"
+        },
+        {
+          "id": "ch7.histfacts",
+          "path": "greybox/data/histfacts7.json",
+          "domains": ["history", "runtime"],
+          "status": "active",
+          "authority": "runtime_canonical",
+          "phase": ["write", "implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "primary", "TO-BE": "comparison", "CONFORMANCE": "actual"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第七章玩家可見史實頁；內容限於 provenance 已查證項。"
+        },
+        {
+          "id": "ch7.implementation-spec",
+          "path": "01_治理/發現之前_CH7-CR-001_章節登錄與一隻腿的證詞runtime實作_20260811.md",
+          "domains": ["design", "runtime", "save", "testing"],
+          "status": "active",
+          "authority": "chapter_change",
+          "phase": ["implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "comparison", "TO-BE": "primary", "CONFORMANCE": "target"},
+          "tracked_required": true,
+          "required_headings": ["五、engine7 狀態與操作契約", "六、save、sanitizer 與 fail closed", "九、自動與人工驗收"],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "Design Gate 已通過的 CH7-CR-001 與 scoped 施工白名單。"
+        },
+        {
+          "id": "ch7.engine-adapter",
+          "path": "tools/skill/before-discovery-dev/scripts/engine7_runtime_adapter.mjs",
+          "domains": ["runtime", "testing"],
+          "status": "active",
+          "authority": "test_contract",
+          "phase": ["implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "evidence", "TO-BE": "comparison", "CONFORMANCE": "evidence"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "repo-local Node adapter；限定單一 JSON、engine hash 與八項行為證據。"
+        },
+        {
+          "id": "ch7.tests",
+          "path": "greybox/tests/run-ch7.mjs",
+          "domains": ["runtime", "save", "testing"],
+          "status": "active",
+          "authority": "test_contract",
+          "phase": ["implement", "verify", "review"],
+          "mode_roles": {"AS-IS": "evidence", "TO-BE": "comparison", "CONFORMANCE": "evidence"},
+          "tracked_required": true,
+          "required_headings": [],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "note": "第七章 registry、engine、sanitizer、save、UI 與負向控制。"
+        },
+        {
+          "id": "ch7.art-appendix",
+          "path": "01_治理/發現之前_CH7-ART-001_一隻腿的證詞正式美術與聲音成品化_20260811.md",
+          "domains": ["art"],
+          "status": "candidate",
+          "authority": "chapter_change",
+          "phase": ["art", "implement", "release"],
+          "mode_roles": {"AS-IS": "comparison", "TO-BE": "primary", "CONFORMANCE": "target"},
+          "tracked_required": false,
+          "required_headings": ["一、成品定義", "三、必要資產白名單", "五、驗收", "六、Art Lock 裁決（2026-08-11）"],
+          "supersedes": [],
+          "blocks_skill_activation": false,
+          "applies_when": ["art-change"],
+          "blocking_phases": ["art", "release"],
+          "note": "CH7-ART-001 已獲正式視覺 Art Lock；總監於 2026-08-11 另行通過四首 Gemini／Lyria MP3 的 Audio Lock，正式網址 browser acceptance 仍須以當次發佈證據另行確認。"
         }
       ]
     }

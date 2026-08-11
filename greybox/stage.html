@@ -874,7 +874,10 @@
   #labCoach { margin: 7px 0; padding: 8px 11px; border-radius: 5px;
     background: rgba(31,48,63,0.08); color: var(--color-ink-primary); font-family: var(--font-dialogue); }
   #labCoach[hidden] { display: none; }
-  #labCoach::before { content: "伽利略｜"; color: var(--color-evidence); font-weight: 700; }
+  /* 講評者姓名必須由章別決定；預設留空，避免隱藏的舊斜面元件在
+     其他章的讀屏樹裡冒充伽利略。 */
+  #labCoach::before { content: ""; color: var(--color-evidence); font-weight: 700; }
+  body[data-chapter="ch1"] #labCoach::before { content: "伽利略｜"; }
   #labRun { width: 100%; font-weight: 600; letter-spacing: 0.12em; font-family: var(--font-dialogue); }
   #labBook { border-left: 2px solid rgba(90, 70, 56, 0.24); padding-left: 22px; }
   #labGoal { margin: 0 0 12px; padding: 11px 13px; border: 1px solid rgba(122,75,42,0.42);
@@ -3012,19 +3015,19 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
         <div id="nbHead">
           <h2>旅人筆記</h2>
           <div id="nbTabs" role="tablist" aria-label="筆記分頁">
-            <button id="nbTabEvidence" role="tab" aria-selected="true">證據/實驗</button>
+            <button id="nbTabEvidence" role="tab" aria-selected="true">證據／研究</button>
             <button id="nbTabLog" role="tab" aria-selected="false">完整紀錄</button>
           </div>
           <span class="spacer"></span>
           <button id="btnDrawerClose" type="button">關閉 ✕</button>
         </div>
         <div id="nbPages">
-          <section id="nbLeft" aria-label="證據與實驗紀錄">
-            <h3>證據</h3>
+          <section id="nbLeft" aria-label="正式證據與研究紀錄">
+            <h3>正式證據</h3>
             <div id="nbCards"></div>
             <div id="evidence"><b>證據</b>:<span id="evidenceList">(尚無)</span></div>
-            <h3>實驗紀錄(快照)</h3>
-            <div id="nbLabSnap"><p class="hint" style="color:var(--color-ink-secondary)">(尚無實驗紀錄)</p></div>
+            <h3>研究紀錄（快照）</h3>
+            <div id="nbLabSnap"><p class="hint" style="color:var(--color-ink-secondary)">(尚無研究紀錄)</p></div>
           </section>
           <section id="nbRight" aria-label="完整紀錄">
             <h3>完整紀錄</h3>
@@ -3140,7 +3143,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 
 </div>
 
-<script src="data/series.js?v=asset-e021a350f26d"></script>
+<script src="data/series.js?v=asset-eb4da4730e5a"></script>
+<script src="src/chapter-registry.js?v=asset-88f7682a60ac"></script>
 <script src="data/patterns.js?v=asset-d7342770b335"></script>
 <script src="data/debate.js?v=asset-22b3f56fd1a4"></script>
 <script src="data/debate2.js?v=asset-379a4bd9894b"></script>
@@ -3151,9 +3155,10 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts4.js?v=asset-1126fa724e1b"></script>
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
 <script src="data/histfacts6.js?v=asset-df72fe7398b9"></script>
-<script src="data/assets.js?v=asset-e0f44f3fdeac"></script>
-<script src="src/sanitize.js?v=asset-f59f7a1e8b5a"></script>
-<script src="src/save-envelope.js?v=asset-0b9496000751"></script>
+<script src="data/histfacts7.js?v=asset-11e56407f561"></script>
+<script src="data/assets.js?v=asset-08e25c7dd061"></script>
+<script src="src/sanitize.js?v=asset-f7e65106544f"></script>
+<script src="src/save-envelope.js?v=asset-c65b1248ed7b"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-0777fc954c67"></script>
 <script src="src/engine2.js?v=asset-fa9fe59ca97c"></script>
@@ -3161,12 +3166,14 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="src/engine4.js?v=asset-e85cc1639c42"></script>
 <script src="src/engine5.js?v=asset-a01cff18eade"></script>
 <script src="src/engine6.js?v=asset-288a92e0eab3"></script>
+<script src="src/engine7.js?v=asset-4ce386028bbc"></script>
 <script src="data/scenes.js?v=asset-aefb208a43e4"></script>
 <script src="data/scenes2.js?v=asset-fa9987ebaf44"></script>
 <script src="data/scenes3.js?v=asset-bbc4bf2faa64"></script>
 <script src="data/scenes4.js?v=asset-8854e7846ba9"></script>
 <script src="data/scenes5.js?v=asset-6100725aa019"></script>
 <script src="data/scenes6.js?v=asset-fa8ad38cab62"></script>
+<script src="data/scenes7.js?v=asset-8555d0ea6013"></script>
 <script src="src/ch4-migration.js?v=asset-a84d3be8533f"></script>
 <script>
 (function () {
@@ -3177,41 +3184,26 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   data.scenes1 = data.scenes;
   window.GB.Engine1 = window.GB.Engine;
   var requested = new URLSearchParams(location.search).get("chapter");
-  var chapter = requested === "ch06" ? "ch06" : (requested === "ch05" ? "ch05" : (requested === "ch04" ? "ch04" : (requested === "ch03" ? "ch03" : (requested === "ch02" ? "ch02" : "ch01"))));
-  window.BD_CHAPTER = chapter;
-  if (chapter === "ch02") {
-    data.debate = data.debate2;
-    data.histfacts = data.histfacts2;
-    data.scenes = data.scenes2;
-    window.GB.Engine = window.GB.Engine2;
-    window.BD_SAVE_KEY = "bd_ch2_save";
-  } else if (chapter === "ch03") {
-    data.histfacts = data.histfacts3;
-    data.scenes = data.scenes3;
-    window.GB.Engine = window.GB.Engine3;
-    window.BD_SAVE_KEY = "bd_ch3_save";
-  } else if (chapter === "ch04") {
-    data.histfacts = data.histfacts4;
-    data.scenes = data.scenes4;
-    window.GB.Engine = window.GB.Engine4;
-    window.BD_SAVE_KEY = "before-discovery:chapter4:v1";
-  } else if (chapter === "ch05") {
-    data.debate = data.debate5;
-    data.histfacts = data.histfacts5;
-    data.scenes = data.scenes5;
-    window.GB.Engine = window.GB.Engine5;
-    window.BD_SAVE_KEY = "before-discovery:chapter5:v1";
-  } else if (chapter === "ch06") {
-    data.histfacts = data.histfacts6;
-    data.scenes = data.scenes6;
-    window.GB.Engine = window.GB.Engine6;
-    window.BD_SAVE_KEY = "before-discovery:chapter6:v1";
+  var registry = window.GB.ChapterRegistry;
+  var chapterMeta = requested ? registry.byRoute(requested) : registry.byId("ch1");
+  if (!chapterMeta) {
+    window.BD_CHAPTER_ERROR = "此章尚未登錄：" + String(requested || "(空白)");
+    chapterMeta = registry.byId("ch1");
   }
-  document.body.setAttribute("data-chapter", data.scenes.chapter);
+  var runtime = chapterMeta.runtime;
+  window.BD_CHAPTER = chapterMeta.route;
+  data.debate = runtime.debateKey ? data[runtime.debateKey] : {};
+  data.histfacts = data[runtime.histfactsKey];
+  data.scenes = data[runtime.scenesKey];
+  window.GB.Engine = window.GB[runtime.engineKey];
+  window.BD_SAVE_KEY = runtime.saveKey;
+  if (!data.scenes || !data.histfacts || !window.GB.Engine)
+    window.BD_CHAPTER_ERROR = "此章已登錄，但 runtime 尚未完整載入：" + chapterMeta.id;
+  document.body.setAttribute("data-chapter", chapterMeta.id);
 })();
 </script>
-<script src="src/narrative.js?v=asset-8ab84c023e59"></script>
-<script src="src/chapter-ui.js?v=asset-a32588e6339f"></script>
+<script src="src/narrative.js?v=asset-a042438b0d83"></script>
+<script src="src/chapter-ui.js?v=asset-95397d0a2b73"></script>
 <script>
 (function () {
   "use strict";
@@ -3223,14 +3215,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     ? window.GB.DATA.series.chapters || [] : [];
   var currentId = window.GB && window.GB.Narrative
     ? window.GB.Narrative.CHAPTER_ID : "";
-  var saveKeys = {
-    ch1: "bd_ch1_save",
-    ch2: "bd_ch2_save",
-    ch3: "bd_ch3_save",
-    ch4: "before-discovery:chapter4:v1",
-    ch5: "before-discovery:chapter5:v1",
-    ch6: "before-discovery:chapter6:v1"
-  };
   var lastFocus = null;
 
   function localValue(key) {
@@ -3243,7 +3227,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
     } catch (e) { return {}; }
   }
   function savedState(id) {
-    try { return JSON.parse(localValue(saveKeys[id]) || "null"); } catch (e) { return null; }
+    var meta = window.GB.ChapterRegistry.byId(id);
+    try { return JSON.parse(localValue(meta && meta.runtime.saveKey) || "null"); } catch (e) { return null; }
   }
   function refreshDirectorySemantics() {
     var progress = seriesProgress();
@@ -3346,6 +3331,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-fe7a9e954442"></script>
+<script src="src/stage-ui.js?v=asset-c4c4f356e0ae"></script>
 </body>
 </html>

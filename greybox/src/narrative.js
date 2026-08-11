@@ -5,28 +5,31 @@
 (function (root, factory) {
   "use strict";
   if (typeof module === "object" && module.exports) {
-    module.exports = factory(require("../data/scenes.js"), require("./engine.js"), require("../data/debate.js"));
-    module.exports._factory = factory; /* M1:測試可用第二章資料另建實例(瀏覽器端 ch2 走 chapter2.html 重指 DATA.scenes,本行不影響) */
+    var registry = require("./chapter-registry.js");
+    module.exports = factory(require("../data/scenes.js"), require("./engine.js"), require("../data/debate.js"), registry);
+    module.exports._factory = function (scenes, engine, debate, suppliedRegistry) {
+      return factory(scenes, engine, debate, suppliedRegistry || registry);
+    }; /* 測試可用章別資料另建實例；registry 仍由 series.json 單源提供。 */
   } else {
     root.GB = root.GB || {};
-    root.GB.Narrative = factory(root.GB.DATA.scenes, root.GB.Engine, root.GB.DATA.debate);
+    root.GB.Narrative = factory(root.GB.DATA.scenes, root.GB.Engine, root.GB.DATA.debate, root.GB.ChapterRegistry);
   }
-})(typeof self !== "undefined" ? self : this, function (SCENES, Engine, DEBATE) {
+})(typeof self !== "undefined" ? self : this, function (SCENES, Engine, DEBATE, Registry) {
   "use strict";
 
   /* 每章各自擁有 schema：第一章既有值=3；第二章依 R-STA2/R-SAV2 自 1 起。
      不能只靠 localStorage key 隔離，否則 ch1 raw code 會被 ch2 誤認成自己的進度。 */
-  var CHAPTER_ID = /^ch[1-6]$/.test(SCENES.chapter || "") ? SCENES.chapter : "ch1";
-  var SAVE_SCHEMA = CHAPTER_ID === "ch1" ? 3 : (CHAPTER_ID === "ch4" ? 2 : 1);
+  /* 第一章 canonical 在章別欄位制度前建立，缺 chapter 視為唯一 legacy ch1 例外；
+     任何非空未知值仍 fail closed。 */
+  var chapterToken = SCENES.chapter || "ch1";
+  var CHAPTER_META = Registry && Registry.byId ? Registry.byId(chapterToken) : null;
+  if (!CHAPTER_META || !CHAPTER_META.runtime)
+    throw new Error("未登錄或缺少 runtime metadata 的章別:" + String(SCENES.chapter || "(空白)"));
+  var CHAPTER_ID = CHAPTER_META.id;
+  var SAVE_SCHEMA = CHAPTER_META.runtime.saveSchema;
   var REP_MIN = 0, REP_MAX = 5;
-  var REPAIR_SCENE = {
-    ch1: "SC-R1",
-    ch2: "SC-R1",
-    ch3: "SC3-R1",
-    ch4: "SC4-R1",
-    ch5: "SC5-R1",
-    ch6: "SC6-R1"
-  }[CHAPTER_ID];
+  var INITIAL_REP = CHAPTER_META.runtime.initialRep;
+  var REPAIR_SCENE = CHAPTER_META.runtime.repairScene;
   var CH = (DEBATE && DEBATE.chapter) || {};
 
   /* ENGINE-CR-034：只有場景資料可自動派送的章別動作。
@@ -39,7 +42,10 @@
     ch4: ["sealTangentPrediction", "convertMoonTime", "judgeScaleRatio", "judgeScaleRelation", "archiveEvidenceSet"],
     ch5: [],
     ch6: ["judgeChipComparison", "judgeFrictionConditions", "judgeDryStrip",
-      "sealAirPrediction", "judgeAirComparison", "writeScopeDebt", "finalizeJointPage"]
+      "sealAirPrediction", "judgeAirComparison", "writeScopeDebt", "finalizeJointPage"],
+    ch7: ["acceptReplication", "commitExclusiveClaim", "commitNextConfig",
+      "recordMidVerdict", "recordFinalVerdict", "repairExclusiveClaim",
+      "refuseCorrection", "repairWithholding"]
   };
 
   function dataLabActions() {
@@ -84,7 +90,7 @@
     var out = {
       schemaVersion: SAVE_SCHEMA,
       mode: mode === "scholar" ? "scholar" : "explore",
-      rep: 3,
+      rep: INITIAL_REP,
       flags: {},
       evidence: {},
       lab: Engine.initialState(),
@@ -105,7 +111,12 @@
   function firstNodeId(sceneId) { return sceneMap[sceneId].def.nodes[0].id; }
   function getNode(state) {
     var sc = sceneMap[state.cursor.scene];
-    return sc ? sc.nodes[state.cursor.node] : null;
+    var node = sc ? sc.nodes[state.cursor.node] : null;
+    if (!node || !Array.isArray(node.variants)) return node;
+    var matches = node.variants.filter(function (variant) { return visible(state, variant); });
+    if (matches.length !== 1)
+      throw new Error("條件台詞必須恰有一個變體:" + state.cursor.scene + "/" + state.cursor.node);
+    return Object.assign({}, node, matches[0], { id: node.id, type: node.type, variants: node.variants });
   }
   function say(state, speaker, text) {
     state.transcript.push({ scene: state.cursor.scene, node: state.cursor.node, speaker: speaker, text: text });
@@ -218,6 +229,7 @@
       var node = getNode(state);
       if (!node) throw new Error("節點不存在:" + state.cursor.scene + "/" + state.cursor.node);
       if (node.type === "goto") { moveTo(state, node.scene); continue; }
+      if (node.type === "marker") { state.cursor.node = node.next; continue; }
       if (node.type === "return") {
         var rs = state.flags.returnScene, rn = state.flags.returnNode;
         if (!rs) throw new Error("return 節點無返回游標");
@@ -893,6 +905,8 @@
   /* ---------- embed 完成條件 ---------- */
   function untilMet(state, until) {
     if (!until) return true;
+    if (until.ch7)
+      return CHAPTER_ID === "ch7" && Engine.gateSatisfied && Engine.gateSatisfied(state.lab, until.ch7);
     if (until.e3) {
       var e3 = state.lab.evidence.e3;
       if (until.e3 === "established") return e3.a && e3.b;
@@ -1021,6 +1035,8 @@
       state.lab.evidence.k5 && state.lab.archiveLab && state.lab.archiveLab.complete);
     if (CHAPTER_ID === "ch6") return !!(state && state.lab && state.lab.evidence &&
       state.lab.evidence.t5 && state.lab.jointPage && state.lab.jointPage.complete);
+    if (CHAPTER_ID === "ch7") return !!(state && state.lab && state.lab.verdicts &&
+      state.lab.verdicts.final && state.lab.phase === "scoped");
     return true;
   }
 
@@ -1033,7 +1049,7 @@
       return { state: state0, error: "資料層實驗台動作未列入章別白名單:" + (spec.action || "(空白)") };
     var result = labAction(state0, spec.action, spec.args || {});
     if (result.error) return result;
-    return { state: result.state };
+    return { state: result.state, redirected: !!result.redirected };
   }
 
   function advance(state0) {
@@ -1099,6 +1115,7 @@
         };
     }
     state = labResult.state;
+    if (labResult.redirected) return { state: state, option: opt, redirected: true };
     state.cursor.node = opt.next;
     return { state: state, option: opt };
   }
@@ -1322,6 +1339,13 @@
       "placeAuditEvidence", "setLatentDisposition", "completeAudit", "setJointColumn", "writeScopeDebt",
       "finalizeJointPage"
     ].indexOf(action) >= 0 && Engine[action]) r = Engine[action](state.lab, args || {});
+    else if (CHAPTER_ID === "ch7" && [
+      "acceptReplication", "runEm1Config", "commitExclusiveClaim", "commitNextConfig",
+      "touchElectrometerMetals", "feedElectrometerPlate", "liftElectrometerPlate",
+      "recordMidVerdict", "setPileLayer", "testPileEnds", "placeMatrixTrace",
+      "sealMatrixBoard", "recordFinalVerdict", "repairExclusiveClaim",
+      "concealArchival1794", "withdrawMatrixTrace", "refuseCorrection", "repairWithholding"
+    ].indexOf(action) >= 0 && Engine[action]) r = Engine[action](state.lab, args || {});
     else return { state: state0, error: "未知實驗台動作:" + action };
     if (r.error) return { state: state0, error: r.error, result: r };
     state.lab = r.state;
@@ -1329,9 +1353,9 @@
       if (action === "submitPartialProof") state.flags.ch4OpeningChoice = "partial";
       if (action === "deferPress" && !state.flags.ch4OpeningChoice) state.flags.ch4OpeningChoice = "defer";
     }
-    var e3 = state.lab.evidence.e3;
+    var e3 = state.lab && state.lab.evidence && state.lab.evidence.e3;
     if (e3 && e3.a && e3.b && !state.evidence.E3) grantEvidence(state, "E3", "lab");
-    var f2g = state.lab.evidence.f2;
+    var f2g = state.lab && state.lab.evidence && state.lab.evidence.f2;
     if (f2g && f2g.law && f2g.ball && !state.evidence.F2) grantEvidence(state, "F2", "lab2");
     ["G1", "G2", "G3", "G4", "G5"].forEach(function (id) {
       if (state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
@@ -1354,12 +1378,38 @@
       if (CHAPTER_ID === "ch6" && state.lab.evidence && state.lab.evidence[id.toLowerCase()] && !state.evidence[id])
         grantEvidence(state, id, "heat6");
     });
+    var labEvent = {
+      t: "lab",
+      action: action,
+      at: state.cursor.scene + "/" + state.cursor.node
+    };
+    var labEventPushed = false;
+    if (CHAPTER_ID === "ch7" && r.repDelta) {
+      labEvent.sourceId = r.repSource;
+      state.eventLog.push(labEvent);
+      labEventPushed = true;
+    }
+    if (CHAPTER_ID === "ch7" && r.stageText) {
+      state.transcript.push({
+        scene: state.cursor.scene,
+        node: state.cursor.node + ".result",
+        speaker: "stage",
+        text: r.stageText
+      });
+    }
+    if (CHAPTER_ID === "ch7" && typeof r.returnNode === "string") {
+      state.cursor.node = r.returnNode;
+    }
     if (r.repDelta) {
       var repSource = CHAPTER_ID === "ch3" ? "ship3." :
         (CHAPTER_ID === "ch4" ? "orbit4." :
           (CHAPTER_ID === "ch5" ? "collision5." :
             (CHAPTER_ID === "ch6" ? "heat6." : "lab.")));
-      applyRep(state, r.repDelta, repSource + action, r.repReason);
+      applyRep(state, r.repDelta, r.repSource || (repSource + action), r.repReason);
+      if (r.clearRepLock) {
+        delete state.flags.repLocked;
+        state.eventLog.push({ t: "flagClear", k: "repLocked", at: r.repSource || action });
+      }
     }
     if (action === "judge") {
       if ((r.claim && !r.claim.ok) || r.rejected) {
@@ -1369,18 +1419,17 @@
         state.flags.labFailStreak = "0";
       }
     }
-    var labEvent = {
-      t: "lab",
-      action: action,
-      at: state.cursor.scene + "/" + state.cursor.node
-    };
     if (CHAPTER_ID === "ch4") {
       labEvent.sequence = state.lab.sequence;
       if (["runOrbitPaperTrial", "assertK1", "assertK2", "assertK3", "assertK4"]
           .indexOf(action) >= 0)
         labEvent.args = clone(args || {});
     }
-    state.eventLog.push(labEvent);
+    if (!labEventPushed) state.eventLog.push(labEvent);
+    if (CHAPTER_ID === "ch7" && state.flags.repLocked === "1") {
+      var redirected = redirectIfLocked(state);
+      return { state: redirected.state, result: r, redirected: redirected.redirected };
+    }
     return { state: state, result: r };
   }
 
@@ -1462,6 +1511,7 @@
     ownsEvidence: ownsEvidence, projectCh1: projectCh1,
     redirectIfLocked: redirectIfLocked,
     serialize: serialize, deserialize: deserialize, loadSave: loadSave,
-    SAVE_SCHEMA: SAVE_SCHEMA, CHAPTER_ID: CHAPTER_ID, _sceneMap: sceneMap
+    SAVE_SCHEMA: SAVE_SCHEMA, CHAPTER_ID: CHAPTER_ID,
+    INITIAL_REP: INITIAL_REP, REPAIR_SCENE: REPAIR_SCENE, _sceneMap: sceneMap
   };
 });

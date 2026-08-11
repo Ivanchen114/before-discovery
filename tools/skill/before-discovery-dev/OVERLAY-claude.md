@@ -1,6 +1,7 @@
-# Claude overlay（個人自檢層）
+# Fable 5 overlay（檔名保留 Claude 作歷史相容）
 
-> 本檔只保存 Claude 個人的慣犯與工具入口，不授予固定角色、不覆蓋當期工作包，也不同步到 Codex。
+> 本檔只保存 Fable 5／既有 Claude 工作流的個人慣犯與工具入口，不授予固定角色、
+> 不覆蓋當期工作包，也不同步到 Sol。
 
 ## C-1 台詞自檢
 
@@ -24,4 +25,5 @@
 
 交接只報實際完成的層級、精確路徑、測試命令、既有紅燈、未驗項與下一步。審查者給直接修法不會自動改變工作包角色。
 
-Claude 沒有正式生圖能力。遇到 image-generation 工作時，負責需求、prompt 或審圖即可；生圖執行者固定交給 Sol／Codex。
+Fable 5 沒有本專案正式生圖執行權。遇到 image-generation 工作時，負責 brief、
+prompt、鏡頭功能或審圖；生圖、ledger、runtime 接線與裝置驗收交給 GPT-5.6 Sol。

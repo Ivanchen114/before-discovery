@@ -4,6 +4,9 @@
    引擎與 loadSave 零改動(R-SAV-02 四分類不變;本檢查是其後的第五道匯入閘,僅 btnImport 路徑)。 */
 (function (root) {
   "use strict";
+  var REGISTRY = typeof module === "object" && module.exports
+    ? require("./chapter-registry.js")
+    : (root.GB && root.GB.ChapterRegistry);
   var BAD_KEYS = ["__proto__", "constructor", "prototype"]; /* 陣列而非字面量:字面量的 __proto__ 不會成為自有鍵 */
   /* transcript 的章別白名單明確允許 3000 筆；通用深掃不得先用較小上限誤殺合法長局。
      各高風險清單(runs/claims/series)仍在章別 sanitizer 內維持 100/300 筆的窄限。 */
@@ -203,6 +206,9 @@
    * 產生的鎖定、修復游標與本輪首次旗標。
    */
   function sanitizeReputationLifecycle(state, scenes, chapterId) {
+    var chapterMeta = REGISTRY && REGISTRY.byId ? REGISTRY.byId(chapterId) : null;
+    if (!chapterMeta || !chapterMeta.runtime)
+      return fail("信譽生命週期找不到章別 metadata:" + chapterId);
     var flags = state && state.flags;
     var events = state && state.eventLog;
     if (!flags || typeof flags !== "object" || Array.isArray(flags))
@@ -505,9 +511,26 @@
           values: [
           "公開撤回越界結論，恢復原紙、未決與署名邊界"
         ] }
+      },
+      ch7: {
+        "ch7:conceal-1794": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"lab", action:"concealArchival1794" }],
+          values: ["把已知反例藏離桌面，企圖讓排他主張失去可見反證"]
+        },
+        "ch7:refuse-correction": {
+          expectedDelta: -1,
+          requiresBefore: [{ t:"lab", action:"refuseCorrection" }],
+          values: ["眼前已有兩張反證，仍抽走原紙並企圖把排他主張送出"]
+        },
+        "SC7-R1/c1.withdraw": {
+          expectedDelta: 1, requiresRepairCycle: true,
+          requiresBefore: [{ t:"choice", at:"SC7-R1/c1", pick:"withdraw" }],
+          values: ["把藏起來的原紙放回桌上，在被反駁的句子上劃限縮線並署名認錯"]
+        }
       }
     }[chapterId] || {};
-    var replayRep = 3;
+    var replayRep = chapterMeta.runtime.initialRep;
     var replayLocked = false;
     var latestZeroRepIndex = -1;
     var latestRepLockIndex = -1;
@@ -572,6 +595,13 @@
               repEvent.reason.length > 240))
           return fail("信譽事件理由格式錯誤");
         var reasonRule = reasonRules[repEvent.at];
+        if (!reasonRule && chapterId === "ch7" && /^ch7:withdraw-trace:(baseline|bimetal|sameMetal|noMetal|electrometer|pile)$/.test(repEvent.at)) {
+          reasonRule = {
+            expectedDelta: -1,
+            requiresBefore: [{ t:"lab", action:"withdrawMatrixTrace" }],
+            values: ["把自己已留痕的觀測收離桌面，隱去不利原紙"]
+          };
+        }
         if (!reasonRule)
           return fail("信譽事件來源未登錄:" + repEvent.at);
         if (repEvent.d !== reasonRule.expectedDelta)
@@ -719,10 +749,7 @@
       }
     }
 
-    var repairScene = {
-      ch1: "SC-R1", ch2: "SC-R1", ch3: "SC3-R1",
-      ch4: "SC4-R1", ch5: "SC5-R1"
-    }[chapterId];
+    var repairScene = chapterMeta.runtime.repairScene;
     var sceneNodes = {};
     (scenes && scenes.scenes || []).forEach(function (scene) {
       sceneNodes[scene.id] = {};
@@ -765,10 +792,13 @@
             !hasBaseline || !/^(0|[1-9][0-9]*)$/.test(flags.scr1_baseline))
           return fail("第一、二章信譽修復狀態不一致");
       } else {
-        if (hasBaseline ||
-            ["n1", "n2", "c1", "w1", "w2", "n3"].indexOf(state.cursor.node) < 0)
+        var completedRepairNode = chapterId === "ch7" ? "n2" : "n3";
+        var allowedRepairNodes = chapterId === "ch7"
+          ? ["n1", "c1", "w1", "w2", "n2"]
+          : ["n1", "n2", "c1", "w1", "w2", "n3"];
+        if (hasBaseline || allowedRepairNodes.indexOf(state.cursor.node) < 0)
           return fail("信譽修復場含不相容欄位");
-        if (state.cursor.node === "n3") {
+        if (state.cursor.node === completedRepairNode) {
           if (state.rep !== 1 || flags.repLocked != null)
             return fail("信譽修復撤回後的數值或鎖定狀態錯誤");
           var choiceAt = repairScene + "/c1";
@@ -4714,9 +4744,291 @@
     return { ok: true, state: state };
   }
 
+  /* 第七章：不修補、不猜測。每張原紙、署名、事故與結論都必須能由
+     append-only records 反推；UI 投影欄位不得成為另一份事實來源。 */
+  function sanitizeImport7(state, scenes, engine7) {
+    if (!state || typeof state !== "object") return fail("存檔內容格式錯誤");
+    var generic = scrub(state, 0, { n: LIMITS.maxNodes });
+    if (generic) return fail(generic);
+    if (state.schemaVersion !== 1 || state.chapter !== "ch7") return fail("存檔版本或章節不相容");
+    if (state.mode !== "explore" && state.mode !== "scholar") return fail("遊戲模式無法辨識");
+    if (!isInt(state.rep) || state.rep < 0 || state.rep > 5) return fail("信譽數值錯誤");
+    if (!engine7 || !Array.isArray(engine7.MATRIX_KEYS) || !engine7.FIXTURES)
+      return fail("第七章封閉資料源未載入");
+
+    var sceneIds = {}, nodeIds = {}, sceneOrder = {}, nodeOrder = {};
+    (scenes && scenes.scenes || []).forEach(function (scene, sceneIndex) {
+      sceneIds[scene.id] = true; sceneOrder[scene.id] = sceneIndex;
+      nodeIds[scene.id] = {}; nodeOrder[scene.id] = {};
+      (scene.nodes || []).forEach(function (node, nodeIndex) {
+        nodeIds[scene.id][node.id] = true; nodeOrder[scene.id][node.id] = nodeIndex;
+      });
+    });
+    if (!state.cursor || !sceneIds[state.cursor.scene] || !nodeIds[state.cursor.scene][state.cursor.node])
+      return fail("存檔中的故事位置無法辨識");
+    var reputation = sanitizeReputationLifecycle(state, scenes, "ch7");
+    if (!reputation.ok) return reputation;
+
+    var lab = state.lab;
+    if (!lab || ["qualification", "exclusive-claim", "next-config", "electrometer", "mid-verdict",
+        "await-pile", "pile", "board", "final-verdict", "named", "scoped"].indexOf(lab.phase) < 0 ||
+        !isInt(lab.recordSeq) || lab.recordSeq < 0 || !Array.isArray(lab.records) ||
+        lab.records.length !== lab.recordSeq || lab.records.length > 1000)
+      return fail("第七章原紙流水號或階段格式錯誤");
+    if (!lab.matrix || !lab.matrix.traces || !lab.integrity || !lab.commitment ||
+        !lab.verdicts || !lab.evidence || !lab.electrometer || !lab.pile)
+      return fail("第七章必要工作台欄位缺失");
+
+    var recordById = {}, recordsByKind = {}, traceByConfig = {};
+    var allowedKinds = ["replication-commitment", "matrix-trace", "archival-source", "exclusive-claim",
+      "next-config-commitment", "electrometer-touch", "electrometer-feed", "mid-verdict",
+      "pile-layer", "pile-test", "board-placement", "matrix-board", "final-verdict",
+      "claim-repair", "integrity-incident", "attempted-claim", "integrity-repair"];
+    for (var ri = 0; ri < lab.records.length; ri++) {
+      var record = lab.records[ri], seq = ri + 1;
+      if (!record || record.seq !== seq || record.id !== "em1-r" + seq ||
+          allowedKinds.indexOf(record.kind) < 0 || recordById[record.id])
+        return fail("第七章原紙 id、順序或種類不合法");
+      recordById[record.id] = record;
+      (recordsByKind[record.kind] = recordsByKind[record.kind] || []).push(record);
+      if (record.kind === "matrix-trace") {
+        var fixture = engine7.FIXTURES[record.config];
+        if (!fixture || record.traceId !== "t_" + (record.config === "sameMetal" ? "same_metal" :
+            (record.config === "noMetal" ? "no_metal" : record.config)) ||
+            record.configNote !== fixture.configNote || record.observation !== fixture.observation)
+          return fail("第七章原紙與封閉 fixture 不一致");
+        (traceByConfig[record.config] = traceByConfig[record.config] || []).push(record);
+      }
+    }
+    if (lab.recordSeq !== lab.records.length) return fail("第七章原紙流水號不連續");
+
+    var keys = engine7.MATRIX_KEYS.slice();
+    var early = ["baseline", "bimetal", "sameMetal", "noMetal"];
+    for (var ki = 0; ki < keys.length; ki++) {
+      var key = keys[ki], rows = traceByConfig[key] || [], pointer = lab.matrix.traces[key];
+      if (pointer !== (rows.length ? rows[0].id : null)) return fail("第七章具名 trace 沒有指向第一次原紙:" + key);
+      if (lab.evidence[key] !== !!pointer) return fail("第七章證據投影與原紙不一致:" + key);
+      for (var rj = 1; rj < rows.length; rj++) if (rows[rj].repeated !== true)
+        return fail("第七章重複配置沒有標為複驗:" + key);
+    }
+    var noMetal = traceByConfig.noMetal && traceByConfig.noMetal[0];
+    var archival = recordsByKind["archival-source"] || [];
+    if ((noMetal && archival.length !== 1) || (!noMetal && archival.length) ||
+        archival.length && (archival[0].sourceId !== "RECORD_1794" || archival[0].year !== 1794 ||
+          archival[0].seq <= noMetal.seq || lab.matrix.archival1794 !== archival[0].id) ||
+        !archival.length && lab.matrix.archival1794 !== null)
+      return fail("第七章一七九四年舊紙的揭曉時序不合法");
+
+    var repRows = recordsByKind["replication-commitment"] || [];
+    var replicationAccepted = repRows.some(function (row) { return row.choice === "take-the-box" && row.accepted === true; });
+    if (lab.commitment.replicationAccepted !== replicationAccepted ||
+        Object.keys(traceByConfig).length && !replicationAccepted)
+      return fail("第七章接箱承諾與操作紀錄不一致");
+    if (repRows.some(function (row) {
+      return ["take-the-box", "sample-only"].indexOf(row.choice) < 0 || row.accepted !== (row.choice === "take-the-box");
+    })) return fail("第七章接箱承諾含未知選項");
+
+    var claimRows = recordsByKind["exclusive-claim"] || [];
+    if (claimRows.some(function (row) {
+      return ["M", "A", "not-yet"].indexOf(row.claim) < 0 ||
+        row.signed !== (row.claim === "A") || row.public !== (row.claim === "A") ||
+        row.disposition !== (row.claim === "M" ? "refuted-before-dispatch" :
+          (row.claim === "A" ? "circulated" : "withheld"));
+    })) return fail("第七章排他主張紀錄格式錯誤");
+    if (claimRows.length) {
+      var firstClaim = claimRows[0];
+      if (!early.every(function (k) { return lab.matrix.traces[k] && recordById[lab.matrix.traces[k]].seq < firstClaim.seq; }))
+        return fail("第七章排他主張早於前四格");
+      var latestClaim = claimRows[claimRows.length - 1];
+      if (lab.commitment.exclusiveClaim !== latestClaim.claim ||
+          lab.commitment.signed !== (latestClaim.claim === "A") ||
+          lab.commitment.public !== (latestClaim.claim === "A"))
+        return fail("第七章署名／公開狀態與原主張不一致");
+    } else if (lab.commitment.exclusiveClaim !== null || lab.commitment.signed || lab.commitment.public) {
+      return fail("第七章憑空出現署名或主張");
+    }
+    var attemptedTypes = { "exclusive-claim": true, "attempted-claim": true };
+    if (!Array.isArray(lab.commitment.attemptedClaims) || lab.commitment.attemptedClaims.some(function (id) {
+      return !recordById[id] || !attemptedTypes[recordById[id].kind];
+    }) || lab.commitment.attemptedClaims.length !== claimRows.length + (recordsByKind["attempted-claim"] || []).length)
+      return fail("第七章主張嘗試清單與原紙不一致");
+
+    var nextRows = recordsByKind["next-config-commitment"] || [];
+    if (nextRows.some(function (row) {
+      return ["next-no-metal-contraction", "next-tissue-free-charge", "next-repeat-known"].indexOf(row.choice) < 0 ||
+        row.discriminating !== (row.choice === "next-tissue-free-charge");
+    })) return fail("第七章下一格承諾格式錯誤");
+    var acceptedNext = nextRows.filter(function (row) { return row.discriminating; });
+    if (lab.commitment.nextConfig !== (acceptedNext.length ? "next-tissue-free-charge" : null) ||
+        lab.commitment.exclusiveClaim === "not-yet" && lab.matrix.traces.electrometer && !acceptedNext.length)
+      return fail("第七章 not-yet 路沒有支付區分配置");
+
+    var touchRows = recordsByKind["electrometer-touch"] || [];
+    var feedRows = recordsByKind["electrometer-feed"] || [];
+    if (touchRows.some(function (row) { return typeof row.pair !== "string" || row.valid !== (row.pair === "copper-zinc"); }) ||
+        feedRows.some(function (row, index) { return row.feed !== index + 1; }))
+      return fail("第七章電量器操作紀錄格式錯誤");
+    var lastTouch = touchRows.length ? touchRows[touchRows.length - 1] : null;
+    if (lab.electrometer.pair !== (lastTouch ? lastTouch.pair : null) ||
+        lab.electrometer.touched !== !!(lastTouch && lastTouch.valid) ||
+        lab.electrometer.feeds !== feedRows.length || typeof lab.electrometer.lifted !== "boolean")
+      return fail("第七章電量器投影與操作紀錄不一致");
+    var electroTrace = traceByConfig.electrometer && traceByConfig.electrometer[0];
+    if (electroTrace && (!touchRows.some(function (row) { return row.valid && row.seq < electroTrace.seq; }) ||
+        !feedRows.length || feedRows[feedRows.length - 1].seq > electroTrace.seq ||
+        electroTrace.feedCount !== feedRows.length || !lab.electrometer.lifted) ||
+        !electroTrace && lab.electrometer.lifted)
+      return fail("第七章針格沒有完整操作 dominance");
+
+    var layerRows = recordsByKind["pile-layer"] || [], savedLayers = [], layerRecordInvalid = false;
+    layerRows.forEach(function (row) {
+      if (typeof row.reset !== "boolean" || !isInt(row.position) || row.position < 1)
+        layerRecordInvalid = true;
+      if (row.reset) savedLayers = [];
+      savedLayers.push(row.material);
+      if (row.position !== savedLayers.length) layerRecordInvalid = true;
+    });
+    if (!Array.isArray(lab.pile.layers) || lab.pile.layers.some(function (m) {
+      return ["copper", "zinc", "brine"].indexOf(m) < 0;
+    }) || layerRecordInvalid || lab.pile.layers.join("|") !== savedLayers.join("|"))
+      return fail("第七章堆的目前層序與操作紀錄不一致");
+    var pileTests = recordsByKind["pile-test"] || [];
+    if (pileTests.some(function (row) {
+      return !Array.isArray(row.layers) || row.sustained !== engine7.validPile(row.layers);
+    })) return fail("第七章堆的測試結果與封閉規則不一致");
+    var lastPileTest = pileTests.length ? pileTests[pileTests.length - 1] : null;
+    if (lab.pile.tested !== !!lastPileTest || lab.pile.sustained !== !!(lastPileTest && lastPileTest.sustained))
+      return fail("第七章堆的結果投影與嘗試不一致");
+    var pileTrace = traceByConfig.pile && traceByConfig.pile[0];
+    if (pileTrace && (!pileTests.some(function (row) { return row.sustained && row.seq < pileTrace.seq; }) ||
+        !engine7.validPile(pileTrace.layers))) return fail("第七章堆格沒有合法疊層操作");
+
+    if (!Array.isArray(lab.matrix.boardOrder) || lab.matrix.boardOrder.some(function (key, index, list) {
+      return keys.indexOf(key) < 0 || list.indexOf(key) !== index || !lab.matrix.traces[key];
+    })) return fail("第七章合帳頁含未知或重複原紙");
+    var boardPlacements = recordsByKind["board-placement"] || [];
+    var uniquePlaced = [];
+    boardPlacements.forEach(function (row) { if (uniquePlaced.indexOf(row.trace) < 0) uniquePlaced.push(row.trace); });
+    if (uniquePlaced.join("|") !== lab.matrix.boardOrder.join("|")) return fail("第七章合帳順序與操作紀錄不一致");
+    var boards = recordsByKind["matrix-board"] || [];
+    if (boards.length > 1 || lab.matrix.boardComplete !== (boards.length === 1) ||
+        lab.evidence.board !== lab.matrix.boardComplete || !Array.isArray(lab.matrix.testedScope) ||
+        lab.matrix.testedScope.join("|") !== (boards.length ? boards[0].testedScope.join("|") : "") ||
+        boards.length && (!boards[0].completeness || keys.some(function (key) { return boards[0].testedScope.indexOf(key) < 0; })))
+      return fail("第七章六格合帳不是由原紙衍生");
+
+    var midRows = recordsByKind["mid-verdict"] || [];
+    var finalRows = recordsByKind["final-verdict"] || [];
+    if (midRows.some(function (row) { return row.correct !== (row.choice === "mid-m-fell-a-open"); }) ||
+        finalRows.some(function (row) { return row.correct !== (row.choice === "m-a-both-fell-record-configs-separately"); }))
+      return fail("第七章判讀結果與核准句不一致");
+    var correctMid = midRows.filter(function (row) { return row.correct; });
+    var correctFinal = finalRows.filter(function (row) { return row.correct; });
+    if (lab.verdicts.mid !== (correctMid.length ? "mid-m-fell-a-open" : null) ||
+        lab.verdicts.final !== (correctFinal.length ? "m-a-both-fell-record-configs-separately" : null) ||
+        !Array.isArray(lab.verdicts.attempts) || lab.verdicts.attempts.length !== midRows.length + finalRows.length ||
+        lab.verdicts.attempts.some(function (id) { return !recordById[id] || ["mid-verdict", "final-verdict"].indexOf(recordById[id].kind) < 0; }))
+      return fail("第七章判讀嘗試清單與原紙不一致");
+    if (midRows.length && (!electroTrace || midRows[0].seq < electroTrace.seq) ||
+        finalRows.length && (!boards.length || finalRows[0].seq < boards[0].seq))
+      return fail("第七章判讀早於證據揭曉");
+
+    var repairs = recordsByKind["claim-repair"] || [];
+    if (repairs.length > 1 || lab.commitment.repaired !== (repairs.length === 1) ||
+        repairs.length && (lab.commitment.exclusiveClaim !== "A" || !lab.commitment.public || !correctFinal.length ||
+          repairs[0].seq < correctFinal[0].seq || repairs[0].method !== "scope-on-original"))
+      return fail("第七章公開署名的限縮因果不合法");
+
+    var incidents = recordsByKind["integrity-incident"] || [];
+    var incidentIds = incidents.map(function (row) { return row.id; });
+    if (!Array.isArray(lab.integrity.incidents) || lab.integrity.incidents.join("|") !== incidentIds.join("|") ||
+        !Array.isArray(lab.integrity.usedSourceIds) || lab.integrity.usedSourceIds.length !== incidents.length)
+      return fail("第七章失信事故帳與原紙不一致");
+    var sourceSet = {};
+    for (var ii = 0; ii < incidents.length; ii++) {
+      var incident = incidents[ii];
+      if (sourceSet[incident.sourceId] || lab.integrity.usedSourceIds[ii] !== incident.sourceId ||
+          !/^ch7:(conceal-1794|refuse-correction|withdraw-trace:(baseline|bimetal|sameMetal|noMetal|electrometer|pile))$/.test(incident.sourceId))
+        return fail("第七章失信來源重複或未登錄");
+      sourceSet[incident.sourceId] = true;
+    }
+    var integrityRepairs = recordsByKind["integrity-repair"] || [];
+    if (integrityRepairs.some(function (row) {
+      return incidentIds.indexOf(row.incidentId) < 0 || row.method !== "restore-and-scope-on-original";
+    })) return fail("第七章修復沒有指回同一事故");
+    var unrepaired = incidents.filter(function (incident) {
+      return !integrityRepairs.some(function (row) { return row.incidentId === incident.id && row.seq > incident.seq; });
+    });
+    if (unrepaired.length > 1 || !!lab.integrity.activeWithholding !== !!unrepaired.length ||
+        unrepaired.length && (lab.integrity.activeWithholding.incidentId !== unrepaired[0].id ||
+          lab.integrity.activeWithholding.sourceId !== unrepaired[0].sourceId ||
+          lab.integrity.activeWithholding.kind !== unrepaired[0].incidentKind ||
+          lab.integrity.activeWithholding.id !== unrepaired[0].targetId))
+      return fail("第七章目前離桌投影與事故史不一致");
+
+    var expectedPhase = "qualification";
+    if (early.every(function (key) { return !!lab.matrix.traces[key]; })) expectedPhase = "exclusive-claim";
+    if (lab.commitment.exclusiveClaim) expectedPhase = lab.commitment.exclusiveClaim === "not-yet" && !lab.commitment.nextConfig ? "next-config" : "electrometer";
+    if (electroTrace) expectedPhase = correctMid.length ? "await-pile" : "mid-verdict";
+    if (lab.pile.layers.length && !pileTrace) expectedPhase = "pile";
+    if (pileTrace) expectedPhase = boards.length ? "final-verdict" : "board";
+    if (correctFinal.length) expectedPhase = lab.commitment.exclusiveClaim === "A" && !repairs.length ? "named" : "scoped";
+    if (lab.phase !== expectedPhase) return fail("第七章階段與原紙進度不一致");
+
+    var effectiveScene = state.cursor.scene === "SC7-R1" ? state.flags.returnScene : state.cursor.scene;
+    var effectiveNode = state.cursor.scene === "SC7-R1" ? state.flags.returnNode : state.cursor.node;
+    if (sceneOrder[effectiveScene] > sceneOrder["EM7-2"] && (!lab.commitment.exclusiveClaim || !early.every(function (k) { return !!lab.matrix.traces[k]; })))
+      return fail("故事位置已越過尚未完成的前四格與署名門");
+    if (sceneOrder[effectiveScene] > sceneOrder["EM7-3"] && !electroTrace)
+      return fail("故事位置已越過尚未完成的電量器操作");
+    if (sceneOrder[effectiveScene] > sceneOrder["EM7-4"] && !correctMid.length)
+      return fail("故事位置已越過尚未完成的中間判讀");
+    if (effectiveScene === "EM7-E") {
+      var pos = nodeOrder[effectiveScene][effectiveNode];
+      if (pos > nodeOrder[effectiveScene].e_pile && !pileTrace) return fail("故事位置已越過尚未完成的堆");
+      if (pos > nodeOrder[effectiveScene].e_board && !boards.length) return fail("故事位置已越過尚未完成的合帳");
+      if (pos > nodeOrder[effectiveScene].c_verdict_final && !correctFinal.length) return fail("故事位置已越過尚未完成的最終判讀");
+      if (lab.commitment.exclusiveClaim === "A" && pos > nodeOrder[effectiveScene].f_repair && !repairs.length)
+        return fail("A 路跳過同紙限縮");
+    }
+    if (state.ended && (!correctFinal.length || lab.phase !== "scoped")) return fail("第七章完章狀態提前成立");
+    if (!state.evidence || Object.keys(state.evidence).length) return fail("第七章章證據不得繞過矩陣自報");
+    if (!Array.isArray(state.transcript) || state.transcript.length > 4000) return fail("對話紀錄格式錯誤");
+    for (var ti = 0; ti < state.transcript.length; ti++) {
+      var line = state.transcript[ti];
+      if (!line || !sceneIds[line.scene] || typeof line.text !== "string" || line.text.length > 2400)
+        return fail("對話紀錄中有一筆格式錯誤");
+    }
+    return { ok: true, state: state };
+  }
+
+  function sanitizeByChapter(chapterId, state, context) {
+    var meta = REGISTRY && REGISTRY.byId ? REGISTRY.byId(chapterId) : null;
+    if (!meta || !meta.runtime) return fail("匯入淨化找不到章別 metadata:" + chapterId);
+    context = context || {};
+    var sanitizer = meta.runtime.sanitizerKey;
+    if (sanitizer === "sanitizeImport")
+      return sanitizeImport(state, context.patterns, context.scenes);
+    if (sanitizer === "sanitizeImport2")
+      return sanitizeImport2(state, context.scenes, context.engine);
+    if (sanitizer === "sanitizeImport3")
+      return sanitizeImport3(state, context.scenes);
+    if (sanitizer === "sanitizeImport4")
+      return sanitizeImport4(state, context.scenes, context.engine);
+    if (sanitizer === "sanitizeImport5")
+      return sanitizeImport5(state, context.scenes, context.engine);
+    if (sanitizer === "sanitizeImport6")
+      return sanitizeImport6(state, context.scenes, context.engine);
+    if (sanitizer === "sanitizeImport7" && typeof sanitizeImport7 === "function")
+      return sanitizeImport7(state, context.scenes, context.engine);
+    return fail("匯入淨化器未登錄:" + sanitizer);
+  }
+
   var api = { sanitizeImport: sanitizeImport, sanitizeImport2: sanitizeImport2,
     sanitizeImport3: sanitizeImport3, sanitizeImport4: sanitizeImport4,
     sanitizeImport5: sanitizeImport5, sanitizeImport6: sanitizeImport6,
+    sanitizeImport7: sanitizeImport7,
+    sanitizeByChapter: sanitizeByChapter,
     _scrub: scrub, LIMITS: LIMITS };
   if (typeof module === "object" && module.exports) { module.exports = api; }
   else { root.GB = root.GB || {}; root.GB.Sanitize = api; }

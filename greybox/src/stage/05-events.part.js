@@ -31,7 +31,7 @@
     var d = ev.detail, view;
     if (d.type === "embed") view = d.system === "ship" ? "ship"
       : (d.system === "orbit" ? "orbit"
-      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision" || d.system === "heat") ? "lab" : "debate"));
+      : ((d.system === "incline" || d.system === "catapult" || d.system === "collision" || d.system === "heat" || d.system === "em1") ? "lab" : "debate"));
     else if (d.type === "review" || d.type === "histfacts" || d.type === "choice" || d.type === "end") view = d.type;
     else view = "narration";
     body.setAttribute("data-view", view);
@@ -60,54 +60,18 @@
       var nc = $("nextCard");
       if (nc.hidden) {
         var nextBtn = $("ncNextBtn");
-        var nextHref = null;
-        if (CHAPTER_ID === "ch1") {
-          nc.querySelector(".ncSealed").textContent = "第一章《重物的渴望》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一章";
-          nc.querySelector(".ncTitle").textContent = "第一寸的弧線";
-          nc.querySelector(".ncHook").textContent = "它往前,又往下——兩件事,同時發生。帕多瓦的運河邊,有人整晚睡不著。";
-          nc.querySelector(".ncSys").textContent = "第二章現已開放。第一章進度與筆記已封存於這台裝置。";
-          nextBtn.textContent = "進入第二章";
-          nextHref = "stage.html?chapter=ch02";
-        } else if (CHAPTER_ID === "ch2") {
-          nc.querySelector(".ncSealed").textContent = "第二章《第一寸的弧線》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一章";
-          nc.querySelector(".ncTitle").textContent = "船艙裡的靜止";
-          nc.querySelector(".ncHook").textContent = "球桿早已離開,小白球仍向前。若整艘船也在前進,桅頂鬆手的石頭會落在哪裡?";
-          nc.querySelector(".ncSys").textContent = "第三章現已開放。第二章進度與筆記已封存於這台裝置。";
-          nextBtn.textContent = "進入第三章";
-          nextHref = "stage.html?chapter=ch03";
-        } else if (CHAPTER_ID === "ch3") {
-          nc.querySelector(".ncSealed").textContent = "第三章《船艙裡的靜止》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一章";
-          nc.querySelector(".ncTitle").textContent = "月亮的無盡墜落";
-          nc.querySelector(".ncHook").textContent = "船上的石頭保留前行；如果月亮也在前行，究竟是什麼讓它不斷轉彎？";
-          nc.querySelector(".ncSys").textContent = "第四章現已開放。第三章進度與筆記已封存於這台裝置。";
-          nextBtn.textContent = "進入第四章";
-          nextHref = "stage.html?chapter=ch04";
-        } else if (CHAPTER_ID === "ch4") {
-          nc.querySelector(".ncSealed").textContent = "第四章《月亮的無盡墜落》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一個問題";
-          nc.querySelector(".ncTitle").textContent = "碰撞之後，什麼應該守住?";
-          nc.querySelector(".ncHook").textContent = "一本帳記方向與運動總量；另一本帳記能抬多高、壓多深。兩本帳都有人說是真的。";
-          nc.querySelector(".ncSys").textContent = "第五章現已開放。第四章進度與筆記已封存於這台裝置。";
-          nextBtn.textContent = "進入第五章";
-          nextHref = "stage.html?chapter=ch05";
-        } else if (CHAPTER_ID === "ch5") {
-          nc.querySelector(".ncSealed").textContent = "第五章《兩本帳，哪一本是真的？》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一個問題";
-          nc.querySelector(".ncTitle").textContent = "短少的那一截，去了哪裡？";
-          nc.querySelector(".ncHook").textContent = "黏土留下了可量的痕跡；要把去向全帳對平，還得學會怎麼量熱。";
-          nc.querySelector(".ncSys").textContent = "第六章現已開放。第五章進度與筆記已封存於這台裝置。";
-          nextBtn.textContent = "進入第六章";
-          nextHref = "stage.html?chapter=ch06";
-        } else if (CHAPTER_ID === "ch6") {
-          nc.querySelector(".ncSealed").textContent = "第六章《熱從哪裡來？》——已封存";
-          nc.querySelector(".ncNext").textContent = "下一筆債";
-          nc.querySelector(".ncTitle").textContent = "熱與功，究竟怎麼換算？";
-          nc.querySelector(".ncHook").textContent = "來源退下了，兌換率仍未量出。下一次，要讓兩種帳在同一把尺上相遇。";
-          nc.querySelector(".ncSys").textContent = "第六章進度與共同驗證頁已封存於這台裝置。";
-        }
+        var currentMeta = window.GB.ChapterRegistry.byId(CHAPTER_ID);
+        var nextMeta = window.GB.ChapterRegistry.nextOf(CHAPTER_ID);
+        var card = currentMeta.endCard || {};
+        var nextHref = nextMeta ? "stage.html?chapter=" + nextMeta.route : null;
+        nc.querySelector(".ncSealed").textContent = currentMeta.label + "《" + currentMeta.title + "》——已封存";
+        nc.querySelector(".ncNext").textContent = card.nextLabel || (nextMeta ? "下一章" : "旅程暫歇");
+        nc.querySelector(".ncTitle").textContent = card.nextTitle || (nextMeta ? nextMeta.title : "返回旅程目錄");
+        nc.querySelector(".ncHook").textContent = card.hook || "這一頁已封存；下一個問題仍在等候登錄。";
+        nc.querySelector(".ncSys").textContent = nextMeta
+          ? nextMeta.label + "現已開放。" + currentMeta.label + "進度與筆記已封存於這台裝置。"
+          : currentMeta.label + "進度與筆記已封存於這台裝置。";
+        nextBtn.textContent = nextMeta ? "進入" + nextMeta.label : "";
         nextBtn.hidden = !nextHref;
         nextBtn.onclick = nextHref ? function () { location.href = nextHref; } : null;
         nc.hidden = false;
@@ -129,18 +93,21 @@
        (d.scene === "E1-2" && d.nodeId === "lab1") ||
        /* D1-1/e1 的 K0 封存刻意維持短操作；第四章大型工作台轉場
           放在 D1-2/e1 的同尺紙，避免切線紙剛封好就被整章備忘蓋住。 */
-       (d.scene === "D1-2" && d.nodeId === "e1") || d.scene === "SC-R1" || d.scene === "SC6-R1");
+       (d.scene === "D1-2" && d.nodeId === "e1") ||
+       (d.scene === "EM7-2" && d.nodeId === "e_matrix") ||
+       d.scene === "SC-R1" || d.scene === "SC6-R1" || d.scene === "SC7-R1");
     var gateDebate = view === "debate" && fromStory && !debIntroSeen;
     if (gateLab || gateDebate) {
       pendingEmbarkView = view;
       pendingEmbarkScene = d.scene || null;
       body.classList.add("embarkGate");
       $("btnEmbark").textContent = gateDebate ? "▸ 步入辯論會"
-        : ((d.scene === "SC-R1" || d.scene === "SC6-R1") ? "▸ 用一筆乾淨紀錄道歉"
+        : ((d.scene === "SC-R1" || d.scene === "SC6-R1" || d.scene === "SC7-R1") ? "▸ 把原紙放回桌上"
+        : (CHAPTER_ID === "ch7" ? "▸ 攤開複驗矩陣"
         : (CHAPTER_ID === "ch6" ? "▸ 攤開四種來源的帳"
         : (CHAPTER_ID === "ch5" ? "▸ 攤開兩本帳"
         : (CHAPTER_ID === "ch4" ? "▸ 攤開兩張紙開始對帳"
-        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台"))))));
+        : (CHAPTER_ID === "ch3" ? "▸ 登上實驗船" : (CHAPTER_ID === "ch2" ? "▸ 走進彈射工坊" : "▸ 前往實驗台")))))));
       $("btnEmbark").hidden = false;
       syncFlags();
     } else if ((view === "lab" || view === "ship" || view === "orbit") && !labIntroSeen && !body.classList.contains("embarkGate")) {

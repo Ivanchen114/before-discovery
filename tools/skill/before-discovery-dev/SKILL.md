@@ -5,9 +5,12 @@ description: Use for review, diagnosis, design, writing, implementation, testing
 
 # 《發現之前》開發路由器
 
-**版本**：v3.5.0-candidate（2026-08-08）
+**版本**：v3.6.0-candidate（2026-08-10）
 **狀態**：candidate；v3.4.7 是 HEAD 內最近一次 active 版。本版新增第六章路由與
-互動骨架審查，須完成獨立 CONFORMANCE、總監裁決與 activation 驗證後才可冒充生效版。
+互動骨架審查，並依 ADR-015 更新 Fable 5／GPT-5.6 Sol 分工入口、依 ADR-016
+加入選擇後果的可知性 Gate、依 71-bis 加入證據成品載體分類路由；v3.6.0 另候選
+加入新章三件套整包送審、六欄一致性與 TO-BE mechanics guard。須完成獨立
+CONFORMANCE、總監裁決、宿主法源生效與 activation 驗證後才可冒充生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
 `references/source-registry.json` 管理。
@@ -44,13 +47,14 @@ stop_conditions:
 
 只有缺值會改變主審對象、修改權限或驗收標準時才停下詢問。指定版本不存在時先回報，不得自行拿另一版代替。
 
-角色、移交、lane 與雙 Gate 的現行正式條文見：
+角色、預設分工、移交、lane 與雙 Gate 的現行正式條文見：
 
 `01_治理/發現之前_開發工作包與審查閘門規範_v0.1.md`
 
 審查者提供直接修法，不會自動取得施工權；角色只因當期任務書、總監指派或明確移交而改變。
 
-能力限制不因角色移交而消失：目前正式生圖只能由 Sol／Codex 執行。Claude 可提出需求、prompt、接線規格與獨立審圖，但不得被指定為生圖執行者。
+能力限制不因角色移交而消失：目前正式生圖只能由 GPT-5.6 Sol 執行。Fable 5 可
+提出需求、prompt、鏡頭功能、接線規格與獨立審圖，但不得被指定為生圖執行者。
 
 ---
 
@@ -103,7 +107,7 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py route \
 
 ```text
 core runtime design workbench narrative history art license browser accessibility
-reputation save archive release review testing chapter.ch1 ... chapter.ch6
+reputation save archive release review testing chapter.ch1 ... chapter.ch7
 ```
 
 未登錄新章沒有 `chapter.chN` 專屬 source；先走通用路由，並依上文用章規格與
@@ -189,6 +193,22 @@ git status --short
 `--task historical-inquiry`。路由後依正式敘事法源 §十的完整精修流程執行；
 不得先靠局部潤稿掩蓋場景功能缺口，也不得用 OS 補足主角在場。
 
+設計或施工玩家選擇後果時，另讀 `decisions.md` 的 ADR-014／ADR-016 與
+`GOV-ADR-001`。每個承重岔口在 branch map、劇本或功能規格中必填四欄：
+
+```text
+當下誰知道什麼？
+現在最多能反駁到哪？
+還缺哪個證據？
+錯誤在哪一場揭曉？
+```
+
+依四欄決定立即攻防與延後裁決：人物已能用當時邏輯、程序、資料或職責指出的問題
+當場回應；真假仍待後續證據時，只能裁主張資格，不能預支答案。同一選擇可同時有
+當場的資格／信譽後果與後續的自然／資料裁決。不得把 NPC 立即反應一律判成壞設計，
+也不得把「失敗前進」機械化成所有錯誤都拖到後場。正式試玩是否為 Gate 只讀當期
+ADR／CR；不得沿用已退役的問卷、人數或 spike 門檻。
+
 台詞、幕間、轉場與工作台注入字串的撰寫或改寫，另讀
 `02_設計/發現之前_文字與對白規範_v0.1.md`：轉場動機、旅人不念規程、
 實體動作密度、玩家發言權、斷言簽收儀式與必須保護的既有段落都只維護在該法源，
@@ -208,6 +228,18 @@ git status --short
 漏掉跨章信譽法源與該章 CR。
 
 史實性證據圖與時代場景在生圖前同時路由 `history`：runtime 史實頁只提供現況對照，新增的年代、器物、服飾、文本或科學主張仍須回查原典或權威館藏，並把來源與生成參數寫入逐件 ledger。
+
+取得後證據圖在 prompt、製圖或施工前，另讀
+`02_設計/發現之前_實驗證據所有權與認知進階原則_v0.1.md` §5.2；該節生效後，先依
+canonical runtime 列出固定欄與狀態欄，再分類為 `fixed summary`、`finite variant`
+或 `player state`，據此選擇完整 raster、完整變體集或完整 deterministic 動態製圖。
+不得預設「精確文字與數字一律疊 SVG」，也不得預設「完整 raster 一律優先」。字體
+依作者聲部，不依「看起來古」決定。
+
+交付時分列 runtime fact check、逐字稿、放大閱讀、alt／caption、來源 ledger，以及
+變體並排或存檔往返結果；以上只列路由所需交付面，細目與判準由 §5.2 單一持有。
+任一固定圖畫入 canonical state 中不存在的玩家選擇、預測、裂封、撤回、署名或借條，
+狀態為 `BLOCKED`，不得以美術驗收或綠色測試降級。
 
 ---
 
@@ -229,9 +261,13 @@ R2–R4 施工前須有 `DESIGN GATE：PASS`；施工後依現行流程法源完
 → production smoke 與回退點
 ```
 
+這是可能的驗證層級順序，不表示每個工作包都以真人試玩為硬前置；當期 ADR／CR
+明示取消或改制時，如實標 `Human playtest: NOT RUN／N-A`，不得自行恢復舊 Gate。
+
 定點 verification pass 只有在原問題、原 path set、接口與狀態皆未擴張時才足夠。schema、存檔、共用引擎、導航、證據層、新分支、新狀態鍵、跨章或範圍漂移，一律升級完整 CONFORMANCE。
 
-四律展開稿與 runtime 在交付前執行 `skill_guard.py check-narrative`。它支援 ch1–ch6，
+四律展開稿與 runtime 在交付前執行 `skill_guard.py check-narrative`。它從已驗證的
+`series.json` 取得已登錄章別（目前 ch1–ch7），
 把首個玩家行動、公開發言／活躍心聲／相容庫存、逐章禁詞、金句候選、章際問句與
 壓縮率做成可重跑診斷；`--story-audit` 另列場景標題、choice/embed、匯流形狀、
 工作台接縫與陣列相鄰的最長 line 段。四律本體使用明示節拍 contract 防止核准節點
@@ -241,18 +277,47 @@ R2–R4 施工前須有 `DESIGN GATE：PASS`；施工後依現行流程法源完
 
 主要實驗、觀察、建模、史料判讀、對帳、出版與公開論證段，在 **Design Gate 先
 撰寫並人工審查 schema v2 contract**；此時它是 TO-BE 的結構承諾，不能冒充機械
-PASS。等 canonical `scenes*.json` 已存在後，才在 Implementation Gate 與交付前執行：
+PASS。
+
+新章三件套的整包送審與兩輪收斂規則目前由
+`01_治理/發現之前_新章設計包整包送審與兩輪收斂修正案_v0.1-candidate_20260810.md`
+候選；未經獨立審查與總監裁決前不得冒充 active。採用本 candidate 的工作包，作者
+須先交齊 brief、provenance、contract，並在 contract 的 `toBeReview` 用 ID 完成
+「主張—量測—證據—反證—玩家操作—成功句」六欄、baseline、planned ordinal、
+canonical success claim 與三檔舊句掃描，再執行：
+
+```bash
+python3 tools/skill/before-discovery-dev/scripts/skill_guard.py check-mechanics \
+  --contract <chapter-mechanics-contract.json> \
+  --to-be \
+  --brief <chapter-brief.md> \
+  --provenance <provenance-sidecar.md>
+```
+
+`TO_BE_CONTRACT: PASS` 只證明三件套可進第一輪完整對抗審；不證明 runtime 可達、
+物理／史實正確或 Design Gate 通過。第一輪審查一次列完所有可確認 A／B；第二輪
+原則上只驗修正。只有修法新引入 A／B，或另發現會污染物理、史實、玩家代理權、
+存檔／狀態契約的既存硬傷時，才能附證據重開；純機械殘留採精確回執，不延伸新輪。
+第七章 EM1 v0.4 是本 profile 起草前已收斂的過渡包；缺 `toBeReview` 所得 `TB-01`
+只記為 profile 不適用，不反向重開內容審查。第一個強制採用者是本案生效後才開始的
+下一章設計包。
+
+等 canonical `scenes*.json` 已存在後，才在 Implementation Gate 與交付前執行：
 
 ```bash
 python3 tools/skill/before-discovery-dev/scripts/skill_guard.py check-mechanics \
   --contract <chapter-mechanics-contract.json>
 ```
 
-它把 contract 綁到該章 canonical scenes JSON，以靜態控制流與 dominance 守
+一般模式把 contract 綁到該章 canonical scenes JSON，以靜態控制流與 dominance 守
 「探究段雙軌承重」及 `evidence_judgment` 的可否證結構：玩家承諾、操作、留痕、
 解讀、阻力、成功／失敗後果，及錯項引用的可見來源欄位。新章若尚未有相應
 `scenes-json` adapter／canonical target，交付狀態必須保持 BLOCKED，不得拿
-`reachable: true` 自證。格式、負向 fixture 與人工邊界見
+`reachable: true` 自證。工作台內操作若跨出 scenes 靜態圖，必須另有 source registry
+登錄的 repo-local engine adapter；guard 以陣列參數、timeout、單一 JSON、chapter／engine
+hash 與必要欄位 fail closed 驗證。第七章是首個實例：contract 可保留 TO-BE 時的
+`reachable:false`，但只有 scenes 實際可達且 engine adapter 全綠時才視為 runtime 證據。
+格式、負向 fixture 與人工邊界見
 `references/mechanics-guard.md`。工具不能證明動態 state／`require`／`return` 的
 完整可行性、錯項真的可信、物理／史實真的正確或台詞真的精彩；綠燈不得冒充真人
 試玩。
@@ -321,7 +386,7 @@ python3 tools/skill/before-discovery-dev/scripts/skill_guard.py validate --activ
 
 只有在下列條件全成立後才可把 candidate 改成 active：
 
-1. Claude 完成獨立對抗審；
+1. Fable 5 完成獨立對抗審；
 2. 流程法源已獲總監裁決且狀態為 active；
 3. registry 的 active 必讀來源已進入 HEAD commit，且 worktree 內容逐路徑等於
    HEAD；只存在 index 暫存區、未提交修改或未追蹤子檔都不算；
