@@ -2,7 +2,7 @@
   document.addEventListener("bd:scene", function (ev) { setScene(ev.detail.sceneId); });
   document.addEventListener("bd:evidence", function (ev) {
     var d = ev.detail || {};
-    showEvidenceFocus(d.code, d.name || "新證據", d.visualKey);
+    showEvidenceFocus(d.code, d.name || "新證據", d.visualKey, d.overlay, d.disposition);
     /* 實驗引擎直接入卷、沒有取得台詞時，也要和有台詞的證據得到同一套視聽回饋。 */
     playEvidenceGain($("sceneFocus"));
   });

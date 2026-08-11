@@ -445,6 +445,8 @@
     border-bottom: 1px solid var(--color-ink-secondary); margin: 8px 0 6px; }
   #evidence { border: 1px dashed var(--color-ink-secondary); padding: 8px 10px; margin-bottom: 8px; }
   #nbCards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 10px; }
+  #nbHistoricalCards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 10px; }
+  #nbHistorical[hidden] { display: none; }
   .evcard { aspect-ratio: 8 / 5; background-size: cover; background-position: center;
             border: 1px solid var(--color-ink-secondary); border-radius: 4px;
             width: 100%; padding: 8px 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px;
@@ -466,9 +468,20 @@
     z-index: 2; padding: 6px 0; background: var(--color-surface-notebook); }
   #evidenceReaderTitle { margin: 0; font: 600 clamp(20px,2.2vw,30px)/1.25 var(--font-dialogue); }
   #btnEvidenceReaderClose { min-width: 88px; min-height: 44px; margin-left: auto; cursor: pointer; }
-  #evidenceReaderSheet figure { margin: 6px 0 10px; text-align: center; }
-  #evidenceReaderImage { display: block; width: 100%; max-height: 68vh; object-fit: contain;
+  #evidenceReaderMedia { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,360px),1fr)); gap: 10px; }
+  #evidenceReaderMedia figure { margin: 6px 0 10px; text-align: center; }
+  #evidenceReaderMedia img { display: block; width: 100%; max-height: 68vh; object-fit: contain;
     border: 1px solid rgba(90,70,56,.42); background: #16110d; }
+  #evidenceReaderProjection, .evProjection { padding: 8px 10px; border: 1px solid rgba(90,70,56,.42);
+    background: rgba(250,245,228,.9); color: var(--color-ink-primary); }
+  #evidenceReaderProjection[hidden] { display: none; }
+  .evProjection { margin-top: auto; font: 600 .7em/1.35 var(--font-ui); }
+  .evProjection b { display: block; font-size: 1.05em; }
+  .evProjection ul { margin: 4px 0 0; padding-left: 1.25em; }
+  .evProjection li { margin: 2px 0; }
+  .evProjection svg { width: 100%; height: auto; max-height: 150px; display: block; background: #101923; }
+  .evcard.withheld { background-image: none !important; border-style: dashed; }
+  .evcard.historical b::after { content: " · 歷史參考"; font-size: .72em; font-weight: 500; }
   #evidenceReaderCaption { margin-top: 7px; font: 600 clamp(15px,1.4vw,19px)/1.45 var(--font-ui); }
   #evidenceReaderWarning { margin: 8px 0; padding: 8px 10px; color: #5d271e; border-left: 4px solid #9b4f3b;
     background: rgba(155,79,59,.12); font-weight: 700; }
@@ -480,7 +493,7 @@
     #evidenceReader { padding: 1%; }
     #evidenceReaderSheet { width: 98%; max-height: 98%; padding: 8px 12px 12px; }
     #evidenceReaderSheet > header { top: -8px; }
-    #evidenceReaderImage { max-height: 58vh; }
+    #evidenceReaderMedia img { max-height: 58vh; }
     #evidenceReaderCaption { font-size: 13px; }
   }
   /* --- 實驗台去現代感:舊紙帳簿風(表現層 CSS,引擎資料零改動) --- */
@@ -2155,6 +2168,8 @@
     border: 1px solid rgba(93,65,39,.35); background: rgba(255,251,234,.52); }
   .shipNotebookSnapshotGroup p { margin: 3px 0; font-size: 13px; line-height: 1.4; }
   .shipNotebookSnapshotGroup details { margin: 4px 0; font-size: 12px; }
+  #nbLabSnap button, #nbLabSnap summary { min-height: 44px !important; }
+  #nbLabSnap summary { display: flex; align-items: center; padding: 5px 2px; cursor: pointer; }
   .shipNotebookSnapshotGroup .shipNotebookReplay { width: 100%; margin-top: 5px; }
   .shipDossierNotebookPage .shipCandidateCard { background: rgba(255,252,238,.7); }
   .shipDossierNotebookPage .shipCandidateCard .shipAction.active { color: #fff8e8;
@@ -3026,6 +3041,10 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
             <h3>正式證據</h3>
             <div id="nbCards"></div>
             <div id="evidence"><b>證據</b>:<span id="evidenceList">(尚無)</span></div>
+            <section id="nbHistorical" hidden>
+              <h3>歷史參考</h3>
+              <div id="nbHistoricalCards"></div>
+            </section>
             <h3>研究紀錄（快照）</h3>
             <div id="nbLabSnap"><p class="hint" style="color:var(--color-ink-secondary)">(尚無研究紀錄)</p></div>
           </section>
@@ -3041,10 +3060,13 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
             <h2 id="evidenceReaderTitle">證據圖</h2>
             <button id="btnEvidenceReaderClose" type="button">關閉 ✕</button>
           </header>
-          <figure>
-            <img id="evidenceReaderImage" alt="">
-            <figcaption id="evidenceReaderCaption"></figcaption>
-          </figure>
+          <div id="evidenceReaderMedia">
+            <figure>
+              <img id="evidenceReaderImage" alt="">
+              <figcaption id="evidenceReaderCaption"></figcaption>
+            </figure>
+          </div>
+          <section id="evidenceReaderProjection" aria-label="本局資料投影" hidden></section>
           <p id="evidenceReaderWarning" role="status" hidden></p>
           <details id="evidenceReaderTranscript">
             <summary>開啟文字版</summary>
@@ -3156,8 +3178,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 <script src="data/histfacts5.js?v=asset-b84bfbafee38"></script>
 <script src="data/histfacts6.js?v=asset-df72fe7398b9"></script>
 <script src="data/histfacts7.js?v=asset-11e56407f561"></script>
-<script src="data/assets.js?v=asset-08e25c7dd061"></script>
-<script src="src/sanitize.js?v=asset-f7e65106544f"></script>
+<script src="data/assets.js?v=asset-2f06f1b66f9c"></script>
+<script src="src/sanitize.js?v=asset-9a22f9255e4a"></script>
 <script src="src/save-envelope.js?v=asset-c65b1248ed7b"></script>
 <script src="src/text-format.js?v=asset-bfae061c2e7f"></script>
 <script src="src/engine.js?v=asset-0777fc954c67"></script>
@@ -3202,8 +3224,8 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
   document.body.setAttribute("data-chapter", chapterMeta.id);
 })();
 </script>
-<script src="src/narrative.js?v=asset-a042438b0d83"></script>
-<script src="src/chapter-ui.js?v=asset-95397d0a2b73"></script>
+<script src="src/narrative.js?v=asset-3ff4d9409355"></script>
+<script src="src/chapter-ui.js?v=asset-607633456498"></script>
 <script>
 (function () {
   "use strict";
@@ -3331,6 +3353,6 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/play-experience.js?v=asset-67ba5b39d9dd"></script>
-<script src="src/stage-ui.js?v=asset-c4c4f356e0ae"></script>
+<script src="src/stage-ui.js?v=asset-8654de718b08"></script>
 </body>
 </html>

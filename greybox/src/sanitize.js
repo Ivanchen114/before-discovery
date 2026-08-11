@@ -4992,7 +4992,45 @@
         return fail("A 路跳過同紙限縮");
     }
     if (state.ended && (!correctFinal.length || lab.phase !== "scoped")) return fail("第七章完章狀態提前成立");
-    if (!state.evidence || Object.keys(state.evidence).length) return fail("第七章章證據不得繞過矩陣自報");
+
+    /*
+     * 正式證據不是另一份可自報的真相：工作台原紙先證明結果成立，
+     * marker 的 evidence 事件再證明玩家已走到「收入旅人筆記」那一拍。
+     * 因此允許操作完成與收紙之間短暫存在 trace=true/evidence=false，
+     * 但不允許 evidence 沒有原紙、沒有取得事件，或事件指向錯的 marker。
+     */
+    if (!state.evidence || typeof state.evidence !== "object" || Array.isArray(state.evidence))
+      return fail("第七章章證據欄位格式錯誤");
+    var evidenceRules7 = {
+      GRID_BASELINE: { marker:"EM7-2/t_baseline", ready:function () { return !!lab.matrix.traces.baseline; } },
+      GRID_BIMETAL: { marker:"EM7-2/t_bimetal", ready:function () { return !!lab.matrix.traces.bimetal; } },
+      GRID_SAME_METAL: { marker:"EM7-2/t_same_metal", ready:function () { return !!lab.matrix.traces.sameMetal; } },
+      GRID_NO_METAL: { marker:"EM7-2/t_no_metal", ready:function () { return !!lab.matrix.traces.noMetal; } },
+      GRID_ELECTROMETER: { marker:"EM7-3/t_electrometer", ready:function () { return !!lab.matrix.traces.electrometer; } },
+      GRID_PILE: { marker:"EM7-E/t_pile", ready:function () { return !!lab.matrix.traces.pile; } },
+      GRID_STATE: { marker:"EM7-E/t_board", ready:function () { return lab.matrix.boardComplete && boards.length === 1; } }
+    };
+    var evidenceEvents7 = (state.eventLog || []).filter(function (event) { return event && event.t === "evidence"; });
+    var evidenceEventById7 = {};
+    for (var ee7 = 0; ee7 < evidenceEvents7.length; ee7++) {
+      var evidenceEvent7 = evidenceEvents7[ee7], rule7 = evidenceRules7[evidenceEvent7.id];
+      if (!rule7 || evidenceEventById7[evidenceEvent7.id] || evidenceEvent7.at !== rule7.marker)
+        return fail("第七章證據取得事件無法辨識:" + String(evidenceEvent7.id || "unknown"));
+      evidenceEventById7[evidenceEvent7.id] = evidenceEvent7;
+    }
+    var chapterEvidenceIds7 = Object.keys(state.evidence);
+    for (var ce7 = 0; ce7 < chapterEvidenceIds7.length; ce7++) {
+      var chapterEvidenceId7 = chapterEvidenceIds7[ce7], chapterEvidenceRule7 = evidenceRules7[chapterEvidenceId7];
+      if (!chapterEvidenceRule7 || state.evidence[chapterEvidenceId7] !== true ||
+          !chapterEvidenceRule7.ready() || !evidenceEventById7[chapterEvidenceId7])
+        return fail("第七章章證據沒有原紙與取得事件:" + chapterEvidenceId7);
+    }
+    var evidenceEventIds7 = Object.keys(evidenceEventById7);
+    for (var ei7 = 0; ei7 < evidenceEventIds7.length; ei7++) {
+      var eventEvidenceId7 = evidenceEventIds7[ei7];
+      if (state.evidence[eventEvidenceId7] !== true || !evidenceRules7[eventEvidenceId7].ready())
+        return fail("第七章證據事件沒有對應工作台真相:" + eventEvidenceId7);
+    }
     if (!Array.isArray(state.transcript) || state.transcript.length > 4000) return fail("對話紀錄格式錯誤");
     for (var ti = 0; ti < state.transcript.length; ti++) {
       var line = state.transcript[ti];

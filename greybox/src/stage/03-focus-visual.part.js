@@ -215,34 +215,62 @@
   }
   /* CH4-CR-014：舞台只解析 chapter-ui 投影出的具名 visualKey。
      有 variants 而 key 不合法時，退回中性圖並明示無法安全還原；固定卡的 null 正常。 */
-  function resolveEvidenceVisual(code, visualKey) {
+  function resolveEvidenceVisual(code, visualKey, overlay, disposition) {
     var rule = ASSETS && ASSETS.evidenceVisual && ASSETS.evidenceVisual[code];
     if (!rule) return null;
+    var withheld = disposition && disposition.status === "withheld";
     var variant = null, fallback = false;
-    if (rule.variants) {
+    if (rule.variants && !withheld) {
       variant = typeof visualKey === "string" ? rule.variants[visualKey] : null;
       fallback = !variant;
       if (fallback && typeof console !== "undefined" && console.warn)
         console.warn("[CH4-CR-014] 證據圖狀態無法安全還原，已使用中性圖：" + code);
     }
+    var caption = withheld ? (disposition.label || "原紙已離桌，待修復") :
+      ((variant && variant.caption) || rule.caption || "");
+    /* 暫扣時連文字等價內容也必須一起離桌；否則圖片雖藏起來，
+       讀圖器仍會把原配置與觀測完整念出來。 */
+    var accessible = withheld
+      ? [disposition.reason || "這張原紙目前不可讀；修復後恢復內容。"]
+      : (rule.accessibleText || []).concat(variant && variant.accessibleText || []);
+    if (!accessible.length) {
+      var summary = ASSETS && ASSETS.evidenceSummary && ASSETS.evidenceSummary[code];
+      accessible.push(summary || caption || ("證據代號 " + code));
+    }
     return {
       code: code,
       visualKey: variant ? visualKey : null,
-      items: (variant && variant.items) || rule.items || [],
-      caption: (variant && variant.caption) || rule.caption || "",
-      readerTitle: (variant && variant.readerTitle) || rule.readerTitle || "",
-      accessibleText: (rule.accessibleText || []).concat(
-        variant && variant.accessibleText || []),
+      items: withheld ? [] : ((variant && variant.items) || rule.items || []),
+      caption: caption,
+      readerTitle: withheld ? "內容暫扣" :
+        ((variant && variant.readerTitle) || rule.readerTitle || ""),
+      accessibleText: accessible,
+      overlay: overlay || null,
+      disposition: disposition || { status:"available" },
+      projectionOnly: !!rule.projectionOnly,
+      neutralBase: !!rule.neutralBase,
+      identity: rule.identity || null,
       fallback: fallback,
       fallbackNotice: fallback ? (rule.fallbackNotice || "證據圖狀態無法安全還原。") : ""
     };
   }
-  function showEvidenceFocus(code, name, visualKey) {
-    var rule = resolveEvidenceVisual(code, visualKey);
+  /* projectionOnly 是整份證據的邊界；neutralBase 可在整份或單張 item
+     宣告。多圖證據逐張判斷，避免一張安全底圖放行同組的預製答案圖，
+     也避免安全的第二張原紙被整組總閘門吃掉。 */
+  function visibleEvidenceItems(rule) {
+    if (!rule || rule.disposition && rule.disposition.status === "withheld") return [];
+    var items = rule.items || [];
+    if (!rule.projectionOnly || rule.neutralBase) return items.slice();
+    return items.filter(function (item) { return item && item.neutralBase === true; });
+  }
+  function showEvidenceFocus(code, name, visualKey, overlay, disposition) {
+    var rule = resolveEvidenceVisual(code, visualKey, overlay, disposition);
     if (!rule) return;
     var caption = rule.caption || ("取得證據：" + name);
     if (rule.fallbackNotice) caption += "｜" + rule.fallbackNotice;
-    showFocusVisual({ items: rule.items, caption: caption });
+    /* 動態證據只准顯示玩家實際狀態投影；固定底圖不得在取得瞬間偷渡預製答案。 */
+    var visibleItems = visibleEvidenceItems(rule);
+    if (visibleItems.length) showFocusVisual({ items: visibleItems, caption: caption });
     var fig = $("sceneFocus");
     if (fig && !fig.hidden) fig.classList.add("evidence-acquired");
   }
@@ -250,9 +278,10 @@
     if (!list || !list.length) return;
     var items = [], captions = [];
     list.forEach(function (evidence) {
-      var rule = resolveEvidenceVisual(evidence.code, evidence.visualKey);
+      var rule = resolveEvidenceVisual(evidence.code, evidence.visualKey,
+        evidence.overlay, evidence.disposition);
       if (!rule) return;
-      (rule.items || []).forEach(function (item) { items.push(item); });
+      visibleEvidenceItems(rule).forEach(function (item) { items.push(item); });
       var caption = rule.caption || ("取得證據：" + evidence.name);
       if (rule.fallbackNotice) caption += "｜" + rule.fallbackNotice;
       captions.push(caption);

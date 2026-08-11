@@ -229,7 +229,17 @@
       var node = getNode(state);
       if (!node) throw new Error("節點不存在:" + state.cursor.scene + "/" + state.cursor.node);
       if (node.type === "goto") { moveTo(state, node.scene); continue; }
-      if (node.type === "marker") { state.cursor.node = node.next; continue; }
+      if (node.type === "marker") {
+        /* marker 是引擎完成後把原紙收入旅人筆記的穩定接縫。
+           只接受 evidenceNames 已登錄的正式證據；像 RECORD_1794 這類
+           原始資料識別碼仍留在研究紀錄，不得冒充成新的證據卡。 */
+        (node.engineEvidence || []).forEach(function (id) {
+          if (SCENES.evidenceNames && SCENES.evidenceNames[id])
+            grantEvidence(state, id, state.cursor.scene + "/" + node.id);
+        });
+        state.cursor.node = node.next;
+        continue;
+      }
       if (node.type === "return") {
         var rs = state.flags.returnScene, rn = state.flags.returnNode;
         if (!rs) throw new Error("return 節點無返回游標");

@@ -19,6 +19,7 @@ const Engine3 = require("../src/engine3.js");
 const Engine4 = require("../src/engine4.js");
 const Engine5 = require("../src/engine5.js");
 const Engine6 = require("../src/engine6.js");
+const Registry = require("../src/chapter-registry.js");
 const Narrative = require("../src/narrative.js");
 const scenes3 = require("../data/scenes3.js");
 const scenes4 = require("../data/scenes4.js");
@@ -7140,28 +7141,100 @@ tests.push({
 });
 
 tests.push({
-  name: "六章證據視覺|每項宣告證據皆有可解析圖像，取得與筆記共用單一映射",
+  name: "跨章證據視覺|series registry 全章、狀態投影、史料身分與來源契約",
   fn: () => {
     const assets = require("../data/assets.js");
+    const seriesRegistry = require("../data/series.js");
     const entries = new Map(assets.entries.map((e) => [e.id, e]));
-    const required = [...new Set(
-      [scenes, scenes2, scenes3, scenes4, scenes5, scenes6]
-        .flatMap((chapter) => Object.keys(chapter.evidenceNames || {}))
-    )];
-    for (const code of required) {
+    const chapterEvidence = seriesRegistry.chapters.flatMap((chapter) => {
+      const key = chapter.runtime?.scenesKey;
+      const file = key === "scenes1" ? "scenes.js" : `${key}.js`;
+      const data = require("../data/" + file);
+      return Object.keys(data.evidenceNames || {}).map((code) => ({ chapter: chapter.id, code }));
+    });
+    const repeated = chapterEvidence.filter((row, index, all) =>
+      all.findIndex((candidate) => candidate.code === row.code) !== index);
+    if (repeated.length) throw new Error("跨章證據代號重複：" + repeated.map((row) => row.code).join("、"));
+    if (!chapterEvidence.length || chapterEvidence.some((row) => row.chapter === "ch7") === false)
+      throw new Error("證據盤點未由 series registry 納入第七章");
+    for (const { chapter, code } of chapterEvidence) {
       const visual = assets.evidenceVisual && assets.evidenceVisual[code];
-      if (!visual || !visual.items?.length || !visual.caption) throw new Error("證據缺視覺映射：" + code);
+      if (!visual || !visual.items?.length || !visual.caption)
+        throw new Error(`${chapter} 證據缺視覺映射：${code}`);
+      const hasAccessibleText = Array.isArray(visual.accessibleText) &&
+        visual.accessibleText.some((line) => String(line || "").trim());
+      const hasEvidenceSummary = !!String(assets.evidenceSummary?.[code] || "").trim();
+      if (!hasAccessibleText && !hasEvidenceSummary)
+        throw new Error(`${chapter} 證據缺 accessibleText／evidenceSummary：${code}`);
       for (const item of visual.items) {
         if (item.evidence === "E2") continue;
         const entry = entries.get(item.asset);
         if (!entry?.path || !existsSync(path.join(here, "../../public/assets/", entry.path)))
           throw new Error("證據圖無法解析：" + code + " → " + item.asset);
-        if (entry.sourceMaster && entry.sourceMaster.startsWith("art/") &&
-            !existsSync(path.join(here, "../../", entry.sourceMaster)))
-          throw new Error("證據圖母版無法解析：" + code + " → " + entry.sourceMaster);
+        const master = String(entry.sourceMaster || "");
+        const debt = entry.historicalDebt;
+        if (master.startsWith("art/")) {
+          if (!existsSync(path.join(here, "../../", master)))
+            throw new Error("證據圖母版無法解析：" + code + " → " + master);
+        } else if (!debt?.status || !debt?.identity || !debt?.reason) {
+          throw new Error("證據圖來源契約既非可解析母版，也無結構化債務：" + code + " → " + item.asset);
+        }
       }
     }
-    if (required.length !== 37) throw new Error("六章證據宣告數改變，請重審視覺盤點：" + required.length);
+    for (const code of ["S1", "S2", "S3", "S4"]) {
+      const visual = assets.evidenceVisual[code];
+      const locations = {
+        縮圖身分: visual.identity?.label,
+        圖說: visual.caption,
+        閱讀器標題: visual.readerTitle
+      };
+      for (const [location, value] of Object.entries(locations))
+        if (!/重建/.test(String(value || "")) || !/(非|不是).*(掃描|原稿|原書|原頁)/.test(String(value || "")))
+          throw new Error(`${code} 的${location}未獨立揭露重建與非原件身分`);
+      for (const [index, item] of (visual.items || []).entries())
+        if (!/重建/.test(String(item.alt || "")) || !/(非|不是).*(掃描|原稿|原書|原頁)/.test(String(item.alt || "")))
+          throw new Error(`${code} 第 ${index + 1} 張替代文字未獨立揭露重建與非原件身分`);
+    }
+    if (assets.evidenceVisual.E2.items[0].asset !== "card_E2")
+      throw new Error("E2 仍懸空，未接上可放大的證據圖");
+    const highRiskProjection = ["F1","F2","F4","F5","G1","G2","G3","G4","G5",
+      "K1","K3","S8","T1","T2","T3","T4","T5","GRID_BASELINE","GRID_BIMETAL",
+      "GRID_SAME_METAL","GRID_NO_METAL","GRID_ELECTROMETER","GRID_PILE","GRID_STATE"];
+    for (const code of highRiskProjection)
+      if (!assets.evidenceVisual[code]?.projectionOnly)
+        throw new Error("固定答案圖仍可冒充玩家資料：" + code);
+    for (const code of ["S1", "S2", "F1", "S3", "S4", "K1"]) {
+      const visual = assets.evidenceVisual[code];
+      const entry = entries.get(visual.items[0]?.asset);
+      if (!visual.neutralBase || !entry?.path?.includes("neutral"))
+        throw new Error("中性底圖未以機器可驗欄位與版本化路徑登錄：" + code);
+    }
+    const historical = Object.values(assets.historicalReference || {}).flat();
+    if (!historical.some((item) => item.id === "H4_ROPE_BALL") ||
+        !historical.some((item) => item.id === "H4_MOUNTAIN_CANNON"))
+      throw new Error("第四章繩球與山頂大砲未進獨立歷史參考層");
+    const formalCodes = new Set(chapterEvidence.map((item) => item.code));
+    const formalAssets = new Set(chapterEvidence.flatMap(({ code }) =>
+      (assets.evidenceVisual[code]?.items || []).map((item) => item.asset)));
+    for (const reference of historical) {
+      if (formalCodes.has(reference.id) || assets.evidenceVisual[reference.id])
+        throw new Error("歷史參考誤混入正式 evidenceNames／evidenceVisual：" + reference.id);
+      for (const item of reference.items || []) if (formalAssets.has(item.asset))
+        throw new Error("歷史參考資產誤與正式證據共用：" + reference.id + " → " + item.asset);
+      const identityLocations = {
+        縮圖身分: reference.identity,
+        圖說備援: reference.caption,
+        閱讀器標題: reference.readerTitle
+      };
+      for (const [location, value] of Object.entries(identityLocations))
+        if (!/重建/.test(String(value || "")) || !/(非|不是)/.test(String(value || "")))
+          throw new Error(`${reference.id} 的${location}未獨立揭露重建與非原件身分`);
+      for (const [index, item] of (reference.items || []).entries()) {
+        for (const [location, value] of Object.entries({ 替代文字:item.alt, 圖說:item.caption }))
+          if (!/重建/.test(String(value || "")) || !/(非|不是)/.test(String(value || "")))
+            throw new Error(`${reference.id} 第 ${index + 1} 張${location}未獨立揭露重建與非原件身分`);
+      }
+    }
     const s5Visual = assets.evidenceVisual.S5;
     const s5Asset = entries.get(s5Visual.items[0].asset);
     if (s5Visual.items[0].asset === "bg_ch03_marseille_harbor_dawn" || s5Asset?.kind !== "card" || !s5Asset?.path?.startsWith("ch03/cards/"))
@@ -7199,7 +7272,28 @@ tests.push({
       throw new Error("有取得台詞的證據未在逐字機真正開演時入鏡");
     if (!ui.includes('addLine(r.node.speaker, r.node.text, classFor(r.node.speaker), sourceScene, r.node.id)'))
       throw new Error("證據台詞未保留取得當下的原始場景");
-    if (!notebook.includes("resolveEvidenceVisual(code, item.visualKey)") || !notebook.includes("assetEntry(visualAsset)")) throw new Error("旅人筆記未共用證據視覺 resolver");
+    for (const fragment of [
+      "disposition: evidenceDispositionForState(s, item.code)",
+      "overlay: evidenceOverlayForState(s, item.code)",
+      "resolveEvidenceVisual(code, item.visualKey, item.overlay, item.disposition)",
+      "var visibleItems = visibleEvidenceItems(rule)",
+      "visibleEvidenceItems(rule).forEach",
+      "var visibleItems = visibleEvidenceItems(resolved).filter",
+      "var isWithheld = !!(resolved && resolved.disposition",
+      "visibleItems.forEach(function (entry, index)",
+      "renderHistoricalReferences()"
+    ]) if (!ui.includes(fragment) && !focus.includes(fragment) && !notebook.includes(fragment))
+      throw new Error("證據圖狀態／閱讀接線缺失：" + fragment);
+    const dispositionSource = ui.slice(ui.indexOf("function evidenceDispositionForState"),
+      ui.indexOf("function evidenceRecordById"));
+    const disposition = Function("CHAPTER_ID", `${dispositionSource}; return evidenceDispositionForState;`)("ch7");
+    const withheldState = { lab: { integrity: { activeWithholding: { kind: "trace", id: "noMetal" } } } };
+    if (disposition(withheldState, "GRID_NO_METAL").status !== "withheld" ||
+        disposition(withheldState, "GRID_STATE").status !== "withheld" ||
+        disposition(withheldState, "GRID_BASELINE").status !== "available")
+      throw new Error("第七章暫扣狀態沒有一致投影到正式證據與合帳卡");
+    if (disposition({ lab: { integrity: { activeWithholding: null } } }, "GRID_NO_METAL").status !== "available")
+      throw new Error("第七章修復後正式證據內容沒有恢復");
   }
 });
 
@@ -7255,9 +7349,12 @@ tests.push({
     duplicate.lab.modelLab.evidencePackage.stamps[2].caseId = "planets";
     if (projection(duplicate, "K4") !== null) throw new Error("重複帳列被猜成世界線");
 
-    const resolver = Function("ASSETS", "console",
-      "return (" + extractFunction(focus, "resolveEvidenceVisual") + ");")(
+    const visualRuntime = Function("ASSETS", "console",
+      extractFunction(focus, "resolveEvidenceVisual") + "\n" +
+      extractFunction(focus, "visibleEvidenceItems") + "\n" +
+      "return { resolveEvidenceVisual, visibleEvidenceItems };")(
         assets, { warn: () => {} });
+    const resolver = visualRuntime.resolveEvidenceVisual;
     if (resolver("K1", null).fallback !== false)
       throw new Error("K1 visualKey:null 誤觸 fallback 診斷");
     for (const [, , key] of worlds) {
@@ -7270,12 +7367,28 @@ tests.push({
         fallback.fallbackNotice !== "此存檔的借條狀態無法安全還原。")
       throw new Error("K4 缺鍵未 fail-closed 到中性圖＋圖外標示");
 
+    const withheld = resolver("GRID_BIMETAL", null, null, {
+      status:"withheld", label:"原紙已離桌，待修復", reason:"暫扣探針文字"
+    });
+    if (withheld.items.length || withheld.accessibleText.length !== 1 ||
+        withheld.accessibleText[0] !== "暫扣探針文字" ||
+        visualRuntime.visibleEvidenceItems(withheld).length)
+      throw new Error("暫扣證據仍從圖片或文字等價內容旁路洩漏原紙");
+    const g3Items = visualRuntime.visibleEvidenceItems(resolver("G3", null));
+    if (g3Items.length !== 2 || g3Items.some((item) => item.neutralBase !== true))
+      throw new Error("G3 安全的兩張情境底圖沒有逐張進入多圖讀圖器");
+    const f5Items = visualRuntime.visibleEvidenceItems(resolver("F5", null));
+    if (f5Items.length !== 1 || f5Items[0].asset !== "workshop2_projectile_apparatus_master" ||
+        f5Items.some((item) => ["card_F3", "prop_inked_incline_board"].includes(item.asset)))
+      throw new Error("F5 中性器材與烤入答案的舊圖沒有逐張分流");
+
     for (const fragment of [
       "pendingEvidence.push(projectEvidenceVisual({",
       "return items.map(function (item) { return projectEvidenceVisual(item, state); });",
       "visualKey: evidenceVisualKeyForState(s, item.code)",
-      "resolveEvidenceVisual(code, item.visualKey)",
-      "var bgE = assetEntry(visualAsset) || specificBg || tpl;",
+      "resolveEvidenceVisual(code, item.visualKey, item.overlay, item.disposition)",
+      "var isWithheld = !!(resolved && resolved.disposition && resolved.disposition.status === \"withheld\");",
+      "var bgE = isWithheld ? tpl : (assetEntry(visualAsset)",
       "openEvidenceReader(item, name, resolved, card)",
       "ev.key !== \"Enter\" && ev.key !== \" \" && ev.key !== \"Spacebar\"",
       "closeEvidenceReader(true)"
@@ -7283,10 +7396,10 @@ tests.push({
       throw new Error("CH4-CR-014 接線缺失:" + fragment);
     if (notebook.includes("specificBg || assetEntry(visualAsset)"))
       throw new Error("靜態 card_K4 仍可壓過狀態 resolver（負向控制）");
-    if (!events.includes('showEvidenceFocus(d.code, d.name || "新證據", d.visualKey);'))
-      throw new Error("即時取得事件未攜帶 visualKey");
-    for (const id of ["evidenceReader", "evidenceReaderImage", "evidenceReaderTranscript",
-      "evidenceReaderText", "btnEvidenceReaderClose"])
+    if (!events.includes('showEvidenceFocus(d.code, d.name || "新證據", d.visualKey, d.overlay, d.disposition);'))
+      throw new Error("即時取得事件未攜帶 visualKey／overlay／disposition");
+    for (const id of ["evidenceReader", "evidenceReaderMedia", "evidenceReaderImage", "evidenceReaderProjection",
+      "evidenceReaderTranscript", "evidenceReaderText", "btnEvidenceReaderClose"])
       if (!html.includes('id="' + id + '"')) throw new Error("放大閱讀器缺 DOM:" + id);
     if (!html.includes('role="dialog" aria-modal="true" aria-labelledby="evidenceReaderTitle"') ||
         !notebook.includes("evidenceReaderReturnFocus") || !notebook.includes('ev.key === "Tab"'))
@@ -9832,7 +9945,7 @@ tests.push({
     for (const tok of ["item.evidence && item.evidence.length", "structuredGain || legacyGain",
       "function playEvidenceGain(target)", 'playEvidenceGain($("dialogue"))'])
       if (!tw.includes(tok)) throw new Error("結構化解鎖契約缺失:" + tok);
-    if (!events.includes('showEvidenceFocus(d.code, d.name || "新證據", d.visualKey);') ||
+    if (!events.includes('showEvidenceFocus(d.code, d.name || "新證據", d.visualKey, d.overlay, d.disposition);') ||
         !events.includes('playEvidenceGain($("sceneFocus"));'))
       throw new Error("無取得台詞的實驗證據未觸發同一套視聽儀式");
     if (!html.includes("#dialogue.fx-gain, #sceneFocus.fx-gain"))
@@ -10648,9 +10761,9 @@ tests.push({
   name: "旅人筆記|第一章快照由 state 重建，不複製當下隱藏表格",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const start = ui.indexOf('ship3El("p", "第一章斜面實驗紀錄"');
-    const end = ui.indexOf('if (CHAPTER_ID !== "ch3"', start);
-    const snapshot = ui.slice(Math.max(0, start - 900), end);
+    const start = ui.indexOf("/* notebook-renderer:ch1 — stable boundary for behavior contracts. */");
+    const end = ui.indexOf("/* notebook-renderer:ch2 — stable boundary for behavior contracts. */", start);
+    const snapshot = ui.slice(start, end);
     for (const fragment of [
       "lab.evidence && lab.evidence.runs",
       "lab.inference && lab.inference.claims",
@@ -10671,8 +10784,8 @@ tests.push({
   name: "旅人筆記|第四章保留研究過程，不把原紙自動升格成證據",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const start = ui.indexOf('if (CHAPTER_ID !== "ch4" || !state || !state.lab');
-    const end = ui.indexOf("function ship3DossierCurrentAssertionId", start);
+    const start = ui.indexOf("/* notebook-renderer:ch4 — stable boundary for behavior contracts. */");
+    const end = ui.indexOf("/* notebook-renderer:ch5 — stable boundary for behavior contracts. */", start);
     if (start < 0 || end < 0) throw new Error("第四章書桌紀錄快照沒有接上旅人筆記");
     const snapshot = ui.slice(start, end);
     for (const fragment of [
@@ -10696,24 +10809,23 @@ tests.push({
 });
 
 tests.push({
-  name: "旅人筆記|一至六章都有狀態式研究紀錄，證據取得仍由引擎負責",
+  name: "旅人筆記|registry 全部正式章都有狀態式研究紀錄，證據取得仍由引擎負責",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const starts = [1, 2, 3, 4, 5, 6].map((chapter) => ({
-      chapter,
-      index: ui.indexOf('document.addEventListener("bd:notebook-snapshot", function (ev) {\n' +
-        `    if (CHAPTER_ID !== "ch${chapter}" || !state ||`)
+    const starts = Registry.chapters.map((chapter) => ({
+      chapter: chapter.id,
+      index: ui.indexOf(`/* notebook-renderer:${chapter.id} — stable boundary for behavior contracts. */`)
     }));
-    for (const item of starts) {
-      if (item.index < 0) throw new Error(`第${item.chapter}章缺少旅人筆記狀態投影`);
-      const next = starts.find((candidate) => candidate.chapter === item.chapter + 1);
+    starts.forEach((item, index) => {
+      if (item.index < 0) throw new Error(`${item.chapter} 缺少旅人筆記狀態投影`);
+      const next = starts[index + 1];
       const end = next?.index > item.index ? next.index : ui.indexOf("function ship3DossierCurrentAssertionId", item.index);
       const snapshot = ui.slice(item.index, end > item.index ? end : item.index + 12000);
       if (!snapshot.includes("ev.detail.handled = true"))
-        throw new Error(`第${item.chapter}章旅人筆記未接管通用 DOM 快照`);
+        throw new Error(`${item.chapter} 旅人筆記未接管通用 DOM 快照`);
       if (/\.evidence\s*\[[^\]]+\]\s*=|\.evidence\.[a-z0-9_]+\s*=/.test(snapshot))
-        throw new Error(`第${item.chapter}章開啟旅人筆記時不得授予證據`);
-    }
+        throw new Error(`${item.chapter} 開啟旅人筆記時不得授予證據`);
+    });
 
     const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     for (const fragment of ["證據／研究", "正式證據", "研究紀錄（快照）", "尚無研究紀錄"])
@@ -10725,8 +10837,8 @@ tests.push({
   name: "旅人筆記|第二章保留裝置、原始讀值、封存預測與玩家判讀",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const start = ui.indexOf('if (CHAPTER_ID !== "ch2" || !state || !state.lab');
-    const end = ui.indexOf('if (CHAPTER_ID !== "ch3" || !state ||', start);
+    const start = ui.indexOf("/* notebook-renderer:ch2 — stable boundary for behavior contracts. */");
+    const end = ui.indexOf("/* notebook-renderer:ch3 — stable boundary for behavior contracts. */", start);
     const snapshot = ui.slice(start, end);
     for (const fragment of [
       "lab.assemblyLog", "lab.series", "前三筆原始讀值", "第五筆封存預測",
@@ -10740,8 +10852,8 @@ tests.push({
   name: "旅人筆記|第五章在 J1 與第三球揭曉前不提前顯示結果",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const start = ui.indexOf('if (CHAPTER_ID !== "ch5" || !state || !state.lab');
-    const end = ui.indexOf('if (CHAPTER_ID !== "ch6" || !state || !state.lab', start);
+    const start = ui.indexOf("/* notebook-renderer:ch5 — stable boundary for behavior contracts. */");
+    const end = ui.indexOf("/* notebook-renderer:ch6 — stable boundary for behavior contracts. */", start);
     const snapshot = ui.slice(start, end);
     for (const fragment of [
       "lab.collisionRuns", "lab.clayRuns", "lab.evidence && lab.evidence.j1",
@@ -10758,8 +10870,8 @@ tests.push({
   name: "旅人筆記|第六章保留來源、溫度線、封存預測、稽核與聯名帳",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
-    const start = ui.indexOf('if (CHAPTER_ID !== "ch6" || !state || !state.lab');
-    const end = ui.indexOf("function ship3DossierCurrentAssertionId", start);
+    const start = ui.indexOf("/* notebook-renderer:ch6 — stable boundary for behavior contracts. */");
+    const end = ui.indexOf("/* notebook-renderer:ch7 — stable boundary for behavior contracts. */", start);
     const snapshot = ui.slice(start, end);
     for (const fragment of [
       "lab.sourceLedger", "lab.records", "chip-comparison", "friction-condition",

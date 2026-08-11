@@ -51,8 +51,8 @@
     },
     {
       "id": "shared-notebook",
-      "version": "v0.1",
-      "path": "02_設計/發現之前_旅人筆記系統_跨章規格_v0.1.md"
+      "version": "v0.2",
+      "path": "02_設計/發現之前_旅人筆記系統_跨章規格_v0.2.md"
     }
   ],
   "adrCoverage": {
@@ -109,6 +109,8 @@
     "GB-ADR-052": ["ch04", "ch04-design"],
     "GB-ADR-053": ["ch05"],
     "GB-ADR-054": ["shared"],
-    "GB-ADR-055": ["shared-notebook"]
+    "GB-ADR-055": ["shared-notebook"],
+    "GB-ADR-056": ["shared", "shared-notebook"],
+    "GB-ADR-057": ["shared", "shared-notebook"]
   }
 }

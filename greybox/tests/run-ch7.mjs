@@ -158,6 +158,21 @@ add("CH7 engine｜24 種前四格順序、重做與押注門", () => {
     "重做覆寫具名 trace 或未增加原紙");
 });
 
+add("CH7 旅人筆記｜marker 把已完成原紙收入正式證據但不把原始資料 ID 冒充證據", () => {
+  let state = narrativeAtMatrix();
+  for (const config of Engine.EARLY_KEYS)
+    state = Narrative.labAction(state, "runEm1Config", { config }).state;
+  state = Narrative.embedComplete(state).state;
+  state = viewAdvanceTo(state, "choice", "c_exclusive");
+  state = Narrative.choose(state, "claim-A").state;
+  for (const id of ["GRID_BASELINE", "GRID_BIMETAL", "GRID_SAME_METAL", "GRID_NO_METAL"])
+    assert(state.evidence[id] === true, `${id} 完成後沒有收入旅人筆記`);
+  assert(!state.evidence.RECORD_1794, "原始資料 ID 被冒充成正式證據卡");
+  const evidenceEvents = state.eventLog.filter((event) => event.t === "evidence").map((event) => event.id);
+  assert(evidenceEvents.length === 4 && evidenceEvents.every((id) => state.evidence[id]),
+    "第七章筆記授證事件與正式證據狀態不一致");
+});
+
 add("CH7 engine｜三具名操作 dominance、錯序留痕與非對稱主張", () => {
   let state = engineThroughEarly();
   const m = Engine.commitExclusiveClaim(state, { claim: "M" });
@@ -238,7 +253,9 @@ add("CH7 save｜完整 A 路、schema1 信件碼與 sanitizer 負向控制", () 
     (s) => { s.lab.matrix.traces.noMetal = s.lab.matrix.traces.baseline; },
     (s) => { s.lab.commitment.repaired = false; },
     (s) => { s.lab.matrix.boardComplete = false; },
-    (s) => { s.ended = true; s.lab.phase = "named"; }
+    (s) => { s.ended = true; s.lab.phase = "named"; },
+    (s) => { s.eventLog = s.eventLog.filter((event) => !(event.t === "evidence" && event.id === "GRID_BASELINE")); },
+    (s) => { s.evidence.GRID_FORGED = true; }
   ];
   for (let i = 0; i < mutations.length; i++) {
     const forged = clone(state); mutations[i](forged);

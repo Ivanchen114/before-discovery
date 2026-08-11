@@ -77,7 +77,7 @@ if (assets.chapterThumbnail.ch04 !== "chapter_thumbnail_ch04")
   fail("第四章章節縮圖未接上");
 
 const expectedEvidenceAssets = {
-  K1: { id:"card_K1_raster_v02", w:1586, h:992 },
+  K1: { id:"card_K1", w:800, h:500 },
   K2: { id:"ch04_focus_shared_moon_calculation_v01", w:1672, h:941 },
   K3: { id:"card_K3", w:1200, h:750 },
   K4: { id:"card_K4", w:1200, h:750 },
@@ -113,6 +113,8 @@ for (const [code, expected] of Object.entries(expectedEvidenceAssets)) {
     if (!entry.path.endsWith(".webp") || !entry.sourceMaster ||
         !existsSync(path.join(here, "../../", entry.sourceMaster)))
       fail("K1 未使用有 Art Lock 母版的完整 raster");
+    if (!visual.projectionOnly || !visual.neutralBase || !entry.path.includes("neutral"))
+      fail("K1 未使用可解析中性底圖，或未維持狀態投影優先");
     if (statSync(file).size > 768 * 1024)
       fail("K1 證據圖超過單檔 768 KB 工作預算");
     if (!visual.readerTitle || visual.accessibleText?.length !== 2)

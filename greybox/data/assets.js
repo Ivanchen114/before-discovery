@@ -482,7 +482,7 @@
    "label": "高塔落球紀錄",
    "path": "ch01/cards/card_E1.webp",
    "firstScreen": false,
-   "sourceMaster": "新繪或以 prop 特寫合成",
+   "sourceMaster": "art/source/production/ch01/cards/final/ch01_card_E1_master_v01.png",
    "w": 800,
    "h": 500
   },
@@ -493,6 +493,11 @@
    "path": "ch01/cards/card_E2.webp",
    "firstScreen": false,
    "sourceMaster": "OpenAI imagegen 2026-07-21；E1/E3 卡框風格參考；精確文字與箭頭由 HTML/SVG 疊層",
+   "historicalDebt": {
+    "status": "generated-base-source-not-archived",
+    "identity": "教學示意底圖，非史料",
+    "reason": "既有生圖底板未保存可驗證母版；精確物理關係由程式圖層負責。"
+   },
    "note": "時代質感由生圖底板承擔；物理語意與可讀文字由程式疊層，缺圖時回退 SVG",
    "w": 800,
    "h": 500
@@ -503,7 +508,7 @@
    "label": "斜面奇數律(數據紙)",
    "path": "ch01/cards/card_E3.webp",
    "firstScreen": false,
-   "sourceMaster": "",
+   "sourceMaster": "art/source/production/ch01/cards/final/ch01_card_E3_master_v01.png",
    "w": 800,
    "h": 500
   },
@@ -513,7 +518,7 @@
    "label": "介質阻力辨析",
    "path": "ch01/cards/card_E4.webp",
    "firstScreen": false,
-   "sourceMaster": "",
+   "sourceMaster": "art/source/production/ch01/cards/final/ch01_card_E4_master_v01.png",
    "w": 800,
    "h": 500
   },
@@ -523,7 +528,7 @@
    "label": "外推論證鏈",
    "path": "ch01/cards/card_E5.webp",
    "firstScreen": false,
-   "sourceMaster": "",
+   "sourceMaster": "art/source/production/ch01/cards/final/ch01_card_E5_master_v01.png",
    "w": 800,
    "h": 500
   },
@@ -531,9 +536,9 @@
    "id": "card_S1",
    "kind": "card",
    "label": "德爾夫特來的信",
-   "path": "ch01/cards/card_S1.webp",
+   "path": "ch01/cards/card_S1_neutral_v02.webp",
    "firstScreen": false,
-   "sourceMaster": "",
+   "sourceMaster": "art/source/production/ch01/cards/ch01_card_S1_delft_letter_neutral_master_v02.png",
    "w": 800,
    "h": 500
   },
@@ -541,9 +546,9 @@
    "id": "card_S2",
    "kind": "card",
    "label": "《論運動》手稿",
-   "path": "ch01/cards/card_S2.webp",
+   "path": "ch01/cards/card_S2_neutral_v02.webp",
    "firstScreen": false,
-   "sourceMaster": "ch01_prop_manuscript_detail_v01 可用",
+   "sourceMaster": "art/source/production/ch01/cards/ch01_card_S2_de_motu_neutral_master_v02.png",
    "w": 800,
    "h": 500
   },
@@ -1089,7 +1094,7 @@
    "firstScreen": false,
    "w": 1920,
    "h": 1080,
-   "sourceMaster": "第二章背景補圖批次；art/source/production/ch02/backgrounds"
+   "sourceMaster": "art/source/production/ch02/backgrounds/ch02_bg_workshop_theory_rain_night_master_v01.png"
   },
   {
    "id": "bg_ch02_canal_dusk_1608",
@@ -1229,7 +1234,7 @@
    "firstScreen": false,
    "w": 1599,
    "h": 900,
-   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+   "sourceMaster": "art/source/production/ch02/props/ch02_prop_projectile_apparatus_master_chroma_v01.png"
   },
   {
    "id": "part_latchRelease",
@@ -1309,27 +1314,37 @@
    "firstScreen": false,
    "w": 1200,
    "h": 675,
-   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+   "sourceMaster": "art/source/production/ch02/props/ch02_prop_inked_incline_board_chroma_v01.png"
   },
   {
    "id": "card_S3",
    "kind": "card",
-   "label": "card_S3",
-   "path": "ch02/cards/card_S3.webp",
+   "label": "塔爾塔利亞砲術圖・教學重建",
+   "path": "ch02/cards/card_S3_neutral_v02.webp",
    "firstScreen": false,
    "w": 800,
    "h": 500,
-   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+   "sourceMaster": "art/source/production/ch02/cards/ch02_card_S3_tartaglia_neutral_master_v02.png"
   },
   {
    "id": "card_S4",
    "kind": "card",
-   "label": "card_S4",
-   "path": "ch02/cards/card_S4.webp",
+   "label": "Guidobaldo 實驗筆記・教學重建",
+   "path": "ch02/cards/card_S4_neutral_v02.webp",
    "firstScreen": false,
    "w": 800,
    "h": 500,
-   "sourceMaster": "第二章 P0/P1；art/source/production/ch02/asset-manifest.json"
+   "sourceMaster": "art/source/production/ch02/cards/ch02_card_S4_guidobaldo_neutral_master_v02.png"
+  },
+  {
+   "id": "card_F1_neutral_v02",
+   "kind": "card",
+   "label": "F1 船桅落球・待驗預測",
+   "path": "ch02/cards/ch02_card_F1_mast_prediction_neutral_v02.webp",
+   "firstScreen": false,
+   "w": 800,
+   "h": 500,
+   "sourceMaster": "art/source/production/ch02/cards/ch02_card_F1_mast_prediction_neutral_master_v02.png"
   },
   {
    "id": "card_F3",
@@ -1339,7 +1354,7 @@
    "firstScreen": false,
    "w": 1200,
    "h": 750,
-   "sourceMaster": "Codex imagegen 歷史裝置底板＋可驗算 SVG 等時軌跡；art/source/production/ch02/cards"
+   "sourceMaster": "art/source/production/ch02/cards/ch02_card_F3_simultaneous_release_master_v01.png"
   },
   {
    "id": "chapter_thumbnail_ch02",
@@ -1866,11 +1881,12 @@
   {
    "id": "card_K1",
    "kind": "card",
-   "label": "K1 一直改向的路",
-   "path": "ch04/evidence/ch04_card_K1_orbit_deflection_v01.svg",
+   "label": "K1 一直改向的路・中性推演底圖",
+   "path": "ch04/evidence/ch04_card_K1_orbit_deflection_neutral_v03.webp",
    "firstScreen": false,
-   "w": 1200,
-   "h": 750
+   "w": 800,
+   "h": 500,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K1_orbit_deflection_neutral_master_v03.png"
   },
   {
    "id": "card_K1_raster_v02",
@@ -1909,7 +1925,12 @@
    "path": "ch04/evidence/ch04_card_K3_sealed_predictions_v01.svg",
    "firstScreen": false,
    "w": 1200,
-   "h": 750
+   "h": 750,
+   "historicalDebt": {
+    "status": "programmatic-state-projection",
+    "identity": "本局預測資料圖，非史料",
+    "reason": "固定 SVG 僅為舊底圖；正式內容由玩家封存與揭曉狀態投影。"
+   }
   },
   {
    "id": "card_K4",
@@ -1918,7 +1939,12 @@
    "path": "ch04/evidence/ch04_card_K4_model_comparison_v01.svg",
    "firstScreen": false,
    "w": 1200,
-   "h": 750
+   "h": 750,
+   "historicalDebt": {
+    "status": "variant-resolver-owned",
+    "identity": "本局模型比較圖，非史料",
+    "reason": "中性 SVG 只作無法還原時的安全退路；四種正式世界線各有可解析母版。"
+   }
   },
   {
    "id": "card_K4_no_loans_raster_v03",
@@ -1967,7 +1993,12 @@
    "path": "ch04/evidence/ch04_card_K5_scoped_proof_v01.svg",
    "firstScreen": false,
    "w": 1200,
-   "h": 750
+   "h": 750,
+   "historicalDebt": {
+    "status": "programmatic-canonical-diagram",
+    "identity": "出版邊界教學圖，非史料",
+    "reason": "可驗證文字由 runtime 與資料層負責，SVG 不冒充牛頓手稿。"
+   }
   },
   {
    "id": "card_S6",
@@ -4952,7 +4983,9 @@
   "E3a": "規律本身成立——但還沒說它跟什麼無關。",
   "E3b": "只換球重,規律沒有改變。",
   "E3c": "換了傾角,規律的形狀仍然不變。",
+  "E3": "水鐘等時切段後，各段新增距離呈一、三、五、七的奇數律；只換球重或傾角複驗，規律的形式仍然不變。",
   "E4": "重量沒變,只改形狀或介質,先後就變了。",
+  "E5": "奇數律在各傾角都保持同一形式；增陡只改變快慢，垂直則是斜面立到底的極限方向。因此可把斜面上量到的平方關係誠實外推至自由落下，但並未直接量過垂直落下。",
   "S1": "歷史背景——別人也做過,不是你的主證。",
   "S2": "他也曾卡住——是故事,不是反證。",
   "F1": "待驗預測：船若等速前行，桅頂落球應落回桅腳附近；第二章尚未取得船上紀錄。",
@@ -5006,11 +5039,17 @@
   "E2": {
    "items": [
     {
-     "evidence": "E2",
+     "asset": "card_E2",
      "alt": "綁縛悖論示意圖"
     }
    ],
-   "caption": "取得證據：綁縛悖論。"
+   "caption": "取得證據：綁縛悖論。精確關係由程式圖層呈現。",
+   "readerTitle": "兩顆綁在一起會更快，還是更慢？",
+   "accessibleText": [
+    "若小石拖慢大石，綁起來應比大石慢。",
+    "若重量越大越快，綁起來又應比大石快。",
+    "同一前提推出互相衝突的結果。"
+   ]
   },
   "E3": {
    "items": [
@@ -5043,28 +5082,42 @@
    "items": [
     {
      "asset": "card_S1",
-     "alt": "德爾夫特來信"
+     "alt": "依劇情線索製作的德爾夫特來信教學重建，不是史料掃描"
     }
    ],
-   "caption": "取得史料：德爾夫特來信。"
+   "caption": "取得歷史線索：德爾夫特來信（教學重建，非史料掃描）。",
+   "readerTitle": "德爾夫特來信｜教學重建，非史料掃描",
+   "neutralBase": true,
+   "identity": {
+    "kind": "reconstruction",
+    "label": "教學重建 · 非史料掃描"
+   }
   },
   "S2": {
    "items": [
     {
      "asset": "card_S2",
-     "alt": "論運動手稿"
+     "alt": "依劇情線索製作的《論運動》手稿教學重建，不是原稿掃描"
     }
    ],
-   "caption": "取得史料：《論運動》手稿。"
+   "caption": "取得歷史線索：《論運動》手稿（教學重建，非原稿掃描）。",
+   "readerTitle": "《論運動》手稿｜教學重建，非原稿掃描",
+   "neutralBase": true,
+   "identity": {
+    "kind": "reconstruction",
+    "label": "教學重建 · 非原稿掃描"
+   }
   },
   "F1": {
    "items": [
     {
-     "asset": "bg_ch02_workshop_theory_rain_night",
-     "alt": "雨夜推演室中的船桅待驗預測"
+     "asset": "card_F1_neutral_v02",
+     "alt": "1608 年雨夜書桌上的封存預測紙、船桅模型與石球；紙面沒有預先畫出落點"
     }
    ],
-   "caption": "記下預測：船桅落球。"
+   "caption": "記下預測：船桅落球。",
+   "projectionOnly": true,
+   "neutralBase": true
   },
   "F2": {
    "items": [
@@ -5073,7 +5126,8 @@
      "alt": "桌緣彈射裝置與量測沙盤"
     }
    ],
-   "caption": "取得證據：桌緣彈射的平方根關係。"
+   "caption": "取得證據：桌緣彈射的平方根關係。",
+   "projectionOnly": true
   },
   "F3": {
    "items": [
@@ -5091,13 +5145,15 @@
      "alt": "從起點就開始彎曲的墨跡軌跡"
     }
    ],
-   "caption": "取得證據：墨跡曲線。"
+   "caption": "取得證據：墨跡曲線。",
+   "projectionOnly": true
   },
   "F5": {
    "items": [
     {
      "asset": "workshop2_projectile_apparatus_master",
-     "alt": "桌緣彈射裝置"
+     "alt": "桌緣彈射裝置",
+     "neutralBase": true
     },
     {
      "asset": "card_F3",
@@ -5108,25 +5164,38 @@
      "alt": "墨跡曲線"
     }
    ],
-   "caption": "取得證據：三組結果能說到哪裡，也不能說到哪裡。"
+   "caption": "取得證據：三組結果能說到哪裡，也不能說到哪裡。",
+   "projectionOnly": true
   },
   "S3": {
    "items": [
     {
      "asset": "card_S3",
-     "alt": "塔爾塔利亞砲術圖"
+     "alt": "依塔爾塔利亞砲術問題製作的教學重建，不是原書插圖掃描"
     }
    ],
-   "caption": "取得史料：塔爾塔利亞砲術圖。"
+   "caption": "取得歷史線索：塔爾塔利亞砲術圖（依問題重建，非原書掃描）。",
+   "readerTitle": "塔爾塔利亞砲術圖｜依問題重建，非原書掃描",
+   "neutralBase": true,
+   "identity": {
+    "kind": "reconstruction",
+    "label": "依問題重建 · 非原書掃描"
+   }
   },
   "S4": {
    "items": [
     {
      "asset": "card_S4",
-     "alt": "Guidobaldo 實驗筆記抄頁"
+     "alt": "依 Guidobaldo 實驗線索製作的教學重建，不是筆記原頁掃描"
     }
    ],
-   "caption": "取得史料：Guidobaldo 的實驗筆記。"
+   "caption": "取得歷史線索：Guidobaldo 實驗筆記（教學重建，非原頁掃描）。",
+   "readerTitle": "Guidobaldo 實驗筆記｜教學重建，非原頁掃描",
+   "neutralBase": true,
+   "identity": {
+    "kind": "reconstruction",
+    "label": "教學重建 · 非原頁掃描"
+   }
   },
   "S5": {
    "items": [
@@ -5144,7 +5213,8 @@
      "alt": "岸紙確認走穩的三次桅頂落石"
     }
    ],
-   "caption": "取得證據：岸紙確認走穩的三回，落點集中在桅腳附近。"
+   "caption": "取得證據：岸紙確認走穩的三回，落點集中在桅腳附近。",
+   "projectionOnly": true
   },
   "G2": {
    "items": [
@@ -5153,20 +5223,24 @@
      "alt": "關閉艙窗後，停泊與走穩時的水面和垂直落球對照"
     }
    ],
-   "caption": "取得證據：關閉艙窗後，停泊與走穩各做三回；水面都沒有固定偏向，小球也落在放手點正下方。"
+   "caption": "取得證據：關閉艙窗後，停泊與走穩各做三回；水面都沒有固定偏向，小球也落在放手點正下方。",
+   "projectionOnly": true
   },
   "G3": {
    "items": [
     {
      "asset": "ship3_g3_accelerating",
-     "alt": "解纜起步時偏到桅後的落點"
+     "alt": "解纜起步時的甲板情境底圖；實際落點由本局資料另行呈現",
+     "neutralBase": true
     },
     {
      "asset": "ship3_g1_mast_steady",
-     "alt": "出港平駛時集中在桅腳附近的落點"
+     "alt": "出港平駛時的甲板情境底圖；實際落點由本局資料另行呈現",
+     "neutralBase": true
     }
    ],
-   "caption": "取得證據：解纜起步時偏後，出港平駛時接近桅腳；一次後偏不能代表所有前進船況。"
+   "caption": "取得證據：解纜起步時偏後，出港平駛時接近桅腳；一次後偏不能代表所有前進船況。",
+   "projectionOnly": true
   },
   "G4": {
    "items": [
@@ -5175,7 +5249,8 @@
      "alt": "船上與岸上的雙參考物紙帶"
     }
    ],
-   "caption": "取得證據：先以同號鼓點對齊，再逐拍扣掉桅杆位置；這一趟的岸紙可以換成船紙。"
+   "caption": "取得證據：先以同號鼓點對齊，再逐拍扣掉桅杆位置；這一趟的岸紙可以換成船紙。",
+   "projectionOnly": true
   },
   "G5": {
    "items": [
@@ -5184,13 +5259,14 @@
      "alt": "碼頭公開演示與證據邊界"
     }
    ],
-   "caption": "取得證據：反對失效，不等於所有主張都已得證。"
+   "caption": "取得證據：反對失效，不等於所有主張都已得證。",
+   "projectionOnly": true
   },
   "K1": {
    "items": [
     {
-     "asset": "card_K1_raster_v02",
-     "alt": "燭光木桌上三張軌跡試跑紙與一張舊切線預測紙；兩條軌跡留在窄帶內，第三張只露出越界的一段，桌角放著木球與鬆弛細繩"
+     "asset": "card_K1",
+     "alt": "1679 年冬季書桌上的四張空白推演紙、舊參考紙、木球與鬆弛細繩；軌跡與結果由本局資料另行疊上"
     }
    ],
    "caption": "取得證據：沒有偏折就沿切線離開；持續向內改向才形成軌道。",
@@ -5198,7 +5274,9 @@
    "accessibleText": [
     "保留原來的前進，每一拍又朝當下地球偏一點。",
     "偏多少，必須與原來的速度相配。"
-   ]
+   ],
+   "projectionOnly": true,
+   "neutralBase": true
   },
   "K2": {
    "items": [
@@ -5216,7 +5294,8 @@
      "alt": "先封存 Mars 與 Jupiter 週期預測再揭露觀測的時間線"
     }
    ],
-   "caption": "取得證據：兩個週期都在看見答案前留下預測。"
+   "caption": "取得證據：兩個週期都在看見答案前留下預測。",
+   "projectionOnly": true
   },
   "K4": {
    "items": [
@@ -5361,7 +5440,8 @@
      "alt": "冰融化時持續吸熱但溫度暫停的未決現象卡"
     }
    ],
-   "caption": "取得現象簿：潛熱等未查現象仍保留，不能由鑽炮反例一併抹去。"
+   "caption": "取得現象簿：潛熱等未查現象仍保留，不能由鑽炮反例一併抹去。",
+   "projectionOnly": true
   },
   "T1": {
    "items": [
@@ -5370,7 +5450,8 @@
      "alt": "等重同溫的金屬碎屑與實心薄片回溫曲線近似重合"
     }
    ],
-   "caption": "取得證據：碎屑與薄片放上同一把熱尺，碎屑來源版本失去熱容量退路。"
+   "caption": "取得證據：碎屑與薄片放上同一把熱尺，碎屑來源版本失去熱容量退路。",
+   "projectionOnly": true
   },
   "T2": {
    "items": [
@@ -5379,7 +5460,8 @@
      "alt": "只轉、只壓、接觸並轉動三條條件紙帶的比較"
     }
    ],
-   "caption": "取得證據：持續升溫跟著接觸與相對運動同時出現。"
+   "caption": "取得證據：持續升溫跟著接觸與相對運動同時出現。",
+   "projectionOnly": true
   },
   "T3": {
    "items": [
@@ -5388,7 +5470,8 @@
      "alt": "開放進氣與皮圈密合兩組升溫曲線近似重合"
     }
    ],
-   "caption": "取得證據：關住外界空氣後升溫沒有按封存預測變慢。"
+   "caption": "取得證據：關住外界空氣後升溫沒有按封存預測變慢。",
+   "projectionOnly": true
   },
   "T4": {
    "items": [
@@ -5397,7 +5480,8 @@
      "alt": "碎屑、炮身、空氣與水四份卷袋並列，原預測帶保留；右側長時段升溫線，終點位置與封條狀態需展開本局卷宗查看"
     }
    ],
-   "caption": "取得證據：四份來源已逐張判讀；各自的原預測帶、終點位置與封條狀態仍可追查。"
+   "caption": "取得證據：四份來源已逐張判讀；各自的原預測帶、終點位置與封條狀態仍可追查。",
+   "projectionOnly": true
   },
   "T5": {
    "items": [
@@ -5406,7 +5490,8 @@
      "alt": "共同驗證頁分四欄署名，並保留範圍未決與兌換率未量得"
     }
    ],
-   "caption": "取得證據：一頁四種署名、兩筆未決；旅人只在最後交棒一次簽名。"
+   "caption": "取得證據：一頁四種署名、兩筆未決；旅人只在最後交棒一次簽名。",
+   "projectionOnly": true
   },
   "GRID_BASELINE": {
    "items": [
@@ -5417,6 +5502,7 @@
    ],
    "caption": "取得證據：外部已知刺激能使本次製備收縮；這格只保證證人醒著，不回答來源。",
    "readerTitle": "證人醒著的基準紙",
+   "projectionOnly": true,
    "accessibleText": [
     "配置：外部已知刺激；不使用金屬接點。",
     "觀測：本次蛙腿製備收縮。",
@@ -5432,6 +5518,7 @@
    ],
    "caption": "取得證據：黃銅與鐵形成閉合接法時，蛙腿收縮。",
    "readerTitle": "雙金屬閉合的觀測紙",
+   "projectionOnly": true,
    "accessibleText": [
     "配置：黃銅鉤接觸鐵片，形成雙金屬閉合接法。",
     "觀測：蛙腿收縮。"
@@ -5446,6 +5533,7 @@
    ],
    "caption": "取得證據：同材質接法完成時，本次蛙腿製備仍收縮。",
    "readerTitle": "同材質接法的觀測紙",
+   "projectionOnly": true,
    "accessibleText": [
     "配置：同材質金屬弧接觸神經與肌肉。",
     "觀測：本次蛙腿製備收縮。",
@@ -5461,6 +5549,7 @@
    ],
    "caption": "取得證據：沒有金屬在場，神經與肌肉直接接觸時仍然收縮。",
    "readerTitle": "無金屬仍收縮的觀測紙",
+   "projectionOnly": true,
    "accessibleText": [
     "配置：不使用金屬，讓神經與肌肉直接接觸。",
     "觀測：沒有金屬在場仍然收縮。"
@@ -5475,6 +5564,7 @@
    ],
    "caption": "取得證據：桌上沒有生命組織；金屬接觸累積到薄盤後，細針偏轉。",
    "readerTitle": "沒有生命組織的針格",
+   "projectionOnly": true,
    "accessibleText": [
     "配置：無蛙；銅與鋅相觸後，把接觸效應餵給薄盤。",
     "觀測：提盤時細針偏轉。",
@@ -5490,6 +5580,7 @@
    ],
    "caption": "取得證據：沒有動物組織；銅、鋅與浸鹽水布依序疊層後，兩端反應持續存在。",
    "readerTitle": "持續電效應的堆格",
+   "projectionOnly": true,
    "accessibleText": [
     "配置：無動物組織；銅、鋅與浸鹽水布重複疊層。",
     "觀測：兩端同觸時，反應持續存在，不只一下。"
@@ -5504,12 +5595,57 @@
    ],
    "caption": "取得證據：六張原紙已同頁合帳；每一格的配置、觀測與原主張仍可追查。",
    "readerTitle": "六格合帳頁",
+   "projectionOnly": true,
    "accessibleText": [
     "合帳範圍：基準、雙金屬、同材質、無金屬、電量器、堆。",
     "M 與 A 兩個全稱都失敗。",
     "不同配置必須分開記；目前不能指定統一的來源角色。"
    ]
   }
+ },
+ "historicalReference": {
+  "ch4": [
+   {
+    "id": "H4_ROPE_BALL",
+    "name": "繩球演示",
+    "unlockText": "取得參考卡「繩球演示」",
+    "identity": "教學重建 · 非牛頓原物",
+    "items": [
+     {
+      "asset": "ch04_prop_rope_ball_setup_v01",
+      "alt": "教學重建的木球與細繩演示裝置，不是牛頓原物或史料掃描",
+      "caption": "繩球演示裝置的教學重建，非牛頓原物或史料掃描"
+     }
+    ],
+    "caption": "歷史參考：繩球演示（教學重建，非牛頓原物或史料掃描）。它只借幾何說明持續轉彎，不替引力機制授證。",
+    "readerTitle": "繩球演示｜教學重建，非牛頓原物",
+    "accessibleText": [
+     "身分：教學重建，不是牛頓原物或史料掃描。",
+     "用途：只幫忙理解持續轉彎需要持續改變運動。",
+     "邊界：不能單獨證明月亮的引力機制。"
+    ]
+   },
+   {
+    "id": "H4_MOUNTAIN_CANNON",
+    "name": "山頂大砲",
+    "unlockText": "山頂大砲圖卡已放到桌邊",
+    "identity": "依 1728 年刊本原典圖重建 · 非牛頓手稿",
+    "items": [
+     {
+      "asset": "ch04_focus_newton_cannonball_reconstruction_v01",
+      "alt": "依牛頓 1728 年刊本原典圖製作的遊戲重建，不是牛頓親筆手稿或原典掃描",
+      "caption": "依 1728 年《A Treatise of the System of the World》刊本圖重建，非牛頓親筆手稿或原典掃描"
+     }
+    ],
+    "caption": "歷史參考：牛頓山頂大砲（依 1728 年刊本原典圖重建；非牛頓親筆手稿、非原典掃描）。",
+    "readerTitle": "牛頓山頂大砲｜依 1728 年刊本重建，非牛頓手稿",
+    "accessibleText": [
+     "身分：依 1728 年刊本圖重建，不是牛頓親筆手稿。",
+     "圖意：不同初速會落地、繞行或進入更外側路徑。",
+     "來源：A Treatise of the System of the World，1728 年刊本。"
+    ]
+   }
+  ]
  },
  "collision5Visual": {
   "momentum": "ch05_lab_collision_rig",

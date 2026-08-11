@@ -45,22 +45,79 @@
     if (!reader || reader.hidden) return;
     reader.hidden = true;
     $("nbSheet").removeAttribute("aria-hidden");
-    $("evidenceReaderImage").removeAttribute("src");
+    var image = $("evidenceReaderImage");
+    if (image) image.removeAttribute("src");
     if (!silent && evidenceReaderReturnFocus && typeof evidenceReaderReturnFocus.focus === "function")
       evidenceReaderReturnFocus.focus();
     evidenceReaderReturnFocus = null;
   }
+  function renderEvidenceOverlay(host, overlay, compact) {
+    host.innerHTML = "";
+    if (!overlay) { host.hidden = true; return false; }
+    host.hidden = false;
+    host.classList.add("evProjection");
+    var title = document.createElement("b");
+    title.textContent = overlay.title || "本局資料";
+    host.appendChild(title);
+    if (overlay.kind === "orbit-trials" && (overlay.trials || []).length) {
+      var ns = "http://www.w3.org/2000/svg";
+      var svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", "0 0 120 120");
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", "本局選入斷言的紙上軌道路徑");
+      var earth = document.createElementNS(ns, "circle");
+      earth.setAttribute("cx", "60"); earth.setAttribute("cy", "60"); earth.setAttribute("r", "14");
+      earth.setAttribute("fill", "#356c88"); earth.setAttribute("stroke", "#b6d4e4");
+      svg.appendChild(earth);
+      var colors = ["#f0ca72", "#8fc9d8", "#d99573"];
+      (overlay.trials || []).forEach(function (trial, index) {
+        var poly = document.createElementNS(ns, "polyline");
+        poly.setAttribute("fill", "none"); poly.setAttribute("stroke", colors[index % colors.length]);
+        poly.setAttribute("stroke-width", "1.8"); poly.setAttribute("vector-effect", "non-scaling-stroke");
+        poly.setAttribute("points", (trial.path || []).map(function (point) {
+          return (60 + point.x * 34).toFixed(2) + "," + (60 - point.y * 34).toFixed(2);
+        }).join(" "));
+        svg.appendChild(poly);
+      });
+      host.appendChild(svg);
+    }
+    var lines = (overlay.lines || []).slice();
+    if (overlay.trials) lines = lines.concat(overlay.trials.map(function (trial) { return trial.label; }));
+    if (compact) lines = lines.slice(0, 3);
+    if (lines.length) {
+      var ul = document.createElement("ul");
+      lines.forEach(function (line) {
+        var li = document.createElement("li"); li.textContent = line; ul.appendChild(li);
+      });
+      host.appendChild(ul);
+    }
+    return true;
+  }
   function openEvidenceReader(item, name, resolved, trigger) {
     var reader = $("evidenceReader");
-    var first = resolved && resolved.items && resolved.items[0];
-    var art = first && assetEntry(first.asset);
-    if (!reader || !art) return;
+    if (!reader || !resolved) return;
     evidenceReaderReturnFocus = trigger;
     $("evidenceReaderTitle").textContent = resolved.readerTitle || name;
-    var img = $("evidenceReaderImage");
-    img.src = assetUrl(art);
-    img.alt = first.alt || (name + "證據圖");
-    $("evidenceReaderCaption").textContent = resolved.caption || name;
+    var media = $("evidenceReaderMedia");
+    media.innerHTML = "";
+    var visibleItems = visibleEvidenceItems(resolved).filter(function (entry) {
+      return entry && assetEntry(entry.asset);
+    });
+    visibleItems.forEach(function (entry, index) {
+      var art = assetEntry(entry.asset);
+      var figure = document.createElement("figure");
+      var img = document.createElement("img");
+      if (index === 0) img.id = "evidenceReaderImage";
+      img.src = assetUrl(art);
+      img.alt = entry.alt || (name + "證據圖第 " + (index + 1) + " 張");
+      var caption = document.createElement("figcaption");
+      if (index === 0) caption.id = "evidenceReaderCaption";
+      caption.textContent = entry.caption ||
+        (visibleItems.length > 1 ? (name + "｜第 " + (index + 1) + " 張") : (resolved.caption || name));
+      figure.appendChild(img); figure.appendChild(caption); media.appendChild(figure);
+    });
+    media.hidden = !visibleItems.length;
+    renderEvidenceOverlay($("evidenceReaderProjection"), resolved.overlay, false);
     var warning = $("evidenceReaderWarning");
     warning.textContent = resolved.fallbackNotice || "";
     warning.hidden = !resolved.fallback;
@@ -91,13 +148,20 @@
       var name = item && item.name || "未命名證據";
       if (!code) return;
       var specificBg = assetEntry("card_" + code);
-      var resolved = resolveEvidenceVisual(code, item.visualKey);
-      var visualAsset = resolved && resolved.items && resolved.items[0] && resolved.items[0].asset;
+      var resolved = resolveEvidenceVisual(code, item.visualKey, item.overlay, item.disposition);
+      var readableItems = visibleEvidenceItems(resolved);
+      var visualAsset = readableItems[0] && readableItems[0].asset;
       /* 狀態圖必須先過 resolver；禁止靜態 card_K4 蓋過封存世界線。 */
-      var bgE = assetEntry(visualAsset) || specificBg || tpl;
-      var canRead = !!(resolved && assetEntry(visualAsset));
+      var isWithheld = !!(resolved && resolved.disposition && resolved.disposition.status === "withheld");
+      var bgE = isWithheld ? tpl : (assetEntry(visualAsset) ||
+        (!resolved || !resolved.projectionOnly ? specificBg : null) || tpl);
+      var canRead = !!(resolved && ((resolved.items || []).some(function (entry) {
+        return entry && assetEntry(entry.asset);
+      }) || resolved.overlay || (resolved.accessibleText || []).length));
       var card = document.createElement(canRead ? "button" : "div");
       card.className = "evcard";
+      if (resolved && resolved.disposition && resolved.disposition.status === "withheld")
+        card.classList.add("withheld");
       card.dataset.evidenceCode = code;
       if (canRead) {
         card.type = "button";
@@ -109,6 +173,16 @@
       if (bgE) card.style.backgroundImage = "url(" + assetUrl(bgE) + ")";
       var b = document.createElement("b"); b.textContent = name;
       card.appendChild(b);
+      if (resolved && resolved.identity) {
+        var identity = document.createElement("span");
+        identity.textContent = resolved.identity.label || "教學重建";
+        card.appendChild(identity);
+      }
+      if (resolved && resolved.overlay) {
+        var projection = document.createElement("div");
+        renderEvidenceOverlay(projection, resolved.overlay, true);
+        card.appendChild(projection);
+      }
       if (code === "E2" && !specificBg) { /* 生圖底板缺席時，仍以 SVG 保住完整語意。 */
         card.insertAdjacentHTML("beforeend", e2DiagramMarkup());
         card.lastElementChild.setAttribute("aria-label", "綁縛悖論示意：大小二石以鏈相繫");
@@ -124,6 +198,34 @@
       });
       wrap.appendChild(card);
     });
+  }
+  function renderHistoricalReferences() {
+    var section = $("nbHistorical"), wrap = $("nbHistoricalCards");
+    if (!section || !wrap) return;
+    wrap.innerHTML = "";
+    var rules = ASSETS && ASSETS.historicalReference && ASSETS.historicalReference[CHAPTER_ID] || [];
+    var seenText = $("log") ? $("log").textContent : "";
+    rules.filter(function (rule) {
+      return !rule.unlockText || seenText.indexOf(rule.unlockText) >= 0;
+    }).forEach(function (rule) {
+      var entry = rule.items && rule.items[0];
+      if (!entry || !assetEntry(entry.asset)) return;
+      var card = document.createElement("button");
+      card.type = "button"; card.className = "evcard historical";
+      card.style.backgroundImage = "url(" + assetUrl(assetEntry(entry.asset)) + ")";
+      card.setAttribute("aria-label", "放大閱讀歷史參考「" + rule.name + "」");
+      var title = document.createElement("b"); title.textContent = rule.name; card.appendChild(title);
+      var identity = document.createElement("span"); identity.textContent = rule.identity || "歷史參考"; card.appendChild(identity);
+      card.addEventListener("click", function () {
+        openEvidenceReader(null, rule.name, {
+          items:rule.items, caption:rule.caption, readerTitle:rule.readerTitle || rule.name,
+          accessibleText:rule.accessibleText || [], identity:{ label:rule.identity },
+          projectionOnly:false, neutralBase:false, overlay:null, disposition:{ status:"available" }
+        }, card);
+      });
+      wrap.appendChild(card);
+    });
+    section.hidden = !wrap.children.length;
   }
   /* 器材圖:實驗台主視覺(水鐘+銅球木槽);辯論面板角落《物理學》評注本。 */
   function mountDecor() {
@@ -166,6 +268,7 @@
   function openNotebook() {
     snapshotLab();
     renderEvidenceCards();
+    renderHistoricalReferences();
     applyNotebookBg();
     $("notebook").hidden = false;
     $("btnDrawer").setAttribute("aria-expanded", "true");
