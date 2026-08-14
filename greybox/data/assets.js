@@ -1711,7 +1711,7 @@
   {
    "id": "ch04_prop_cross_scale_surface_sheet_v01",
    "kind": "prop",
-   "label": "1665 同尺紙・地表一秒教學重建底圖",
+   "label": "1665 地月比較紙・地表一秒教學重建底圖",
    "path": "ch04/props/ch04_prop_cross_scale_surface_sheet_v01.webp",
    "firstScreen": false,
    "w": 1200,
@@ -1721,7 +1721,7 @@
   {
    "id": "ch04_prop_cross_scale_moon_sheet_v01",
    "kind": "prop",
-   "label": "1665 同尺紙・月球六十秒教學重建底圖",
+   "label": "1665 地月比較紙・月球六十秒教學重建底圖",
    "path": "ch04/props/ch04_prop_cross_scale_moon_sheet_v01.webp",
    "firstScreen": false,
    "w": 1200,
@@ -1731,7 +1731,7 @@
   {
    "id": "ch04_prop_cross_scale_surface_sheet_v02",
    "kind": "prop",
-   "label": "1665 同尺紙・地表一秒完整教學重建",
+   "label": "1665 地月比較紙・地表一秒完整教學重建",
    "path": "ch04/props/ch04_prop_cross_scale_surface_sheet_v02.webp",
    "firstScreen": false,
    "w": 1200,
@@ -1741,7 +1741,7 @@
   {
    "id": "ch04_prop_cross_scale_moon_sheet_v02",
    "kind": "prop",
-   "label": "1665 同尺紙・月球六十秒完整教學重建",
+   "label": "1665 地月比較紙・月球六十秒完整教學重建",
    "path": "ch04/props/ch04_prop_cross_scale_moon_sheet_v02.webp",
    "firstScreen": false,
    "w": 1200,
@@ -1954,7 +1954,12 @@
    "firstScreen": false,
    "w": 1586,
    "h": 992,
-   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_no_loans_raster_candidate_v03.png"
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_no_loans_raster_candidate_v03.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；Art-Locked raster 不冒充史料。"
+   }
   },
   {
    "id": "card_K4_planets_loan_raster_v03",
@@ -1964,7 +1969,12 @@
    "firstScreen": false,
    "w": 1586,
    "h": 992,
-   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_planets_loan_raster_candidate_v03.png"
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_planets_loan_raster_candidate_v03.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；Art-Locked raster 不冒充史料。"
+   }
   },
   {
    "id": "card_K4_comet_loan_raster_v03",
@@ -1974,7 +1984,12 @@
    "firstScreen": false,
    "w": 1586,
    "h": 992,
-   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_comet_loan_raster_candidate_v03.png"
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_comet_loan_raster_candidate_v03.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；Art-Locked raster 不冒充史料。"
+   }
   },
   {
    "id": "card_K4_both_loans_raster_v04",
@@ -1984,20 +1999,86 @@
    "firstScreen": false,
    "w": 1586,
    "h": 992,
-   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_both_loans_raster_candidate_v04.png"
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_both_loans_raster_candidate_v04.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；Art-Locked raster 不冒充史料。"
+   }
+  },
+  {
+   "id": "card_K4_no_loans_raster_v04",
+   "kind": "card",
+   "label": "K4 模型比較・兩格皆未加借條・白話封版",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_no_loans_raster_v04.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_no_loans_raster_candidate_v04.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；完整扁平 raster 已把舊術語換成玩家已知的原結果／對不上。"
+   }
+  },
+  {
+   "id": "card_K4_planets_loan_raster_v04",
+   "kind": "card",
+   "label": "K4 模型比較・只借行星・白話封版",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_planets_loan_raster_v04.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_planets_loan_raster_candidate_v04.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；完整扁平 raster 已把舊術語換成玩家已知的原結果／對不上。"
+   }
+  },
+  {
+   "id": "card_K4_comet_loan_raster_v04",
+   "kind": "card",
+   "label": "K4 模型比較・只借彗星・白話封版",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_comet_loan_raster_v04.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_comet_loan_raster_candidate_v04.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；完整扁平 raster 已把舊術語換成玩家已知的原結果／對不上。"
+   }
+  },
+  {
+   "id": "card_K4_both_loans_raster_v05",
+   "kind": "card",
+   "label": "K4 模型比較・兩格皆加借條・白話封版",
+   "path": "ch04/evidence/ch04_card_K4_model_comparison_both_loans_raster_v05.webp",
+   "firstScreen": false,
+   "w": 1586,
+   "h": 992,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K4_model_comparison_both_loans_raster_candidate_v05.png",
+   "historicalDebt": {
+    "status": "art-locked-modern-teaching-comparison",
+    "identity": "現代教學比較，非十七世紀原始對帳表",
+    "reason": "精確殘差與簡化漩渦推算由本章固定模型現代重算；完整扁平 raster 已把舊術語換成玩家已知的原結果／對不上。"
+   }
   },
   {
    "id": "card_K5",
    "kind": "card",
    "label": "K5 能算到哪裡，也要停在哪裡",
-   "path": "ch04/evidence/ch04_card_K5_scoped_proof_v01.svg",
+   "path": "ch04/evidence/ch04_card_K5_scoped_proof_raster_v03.webp",
    "firstScreen": false,
-   "w": 1200,
-   "h": 750,
+   "w": 1536,
+   "h": 1024,
+   "sourceMaster": "art/source/production/ch04/evidence/ch04_card_K5_scoped_proof_raster_candidate_v03.png",
    "historicalDebt": {
-    "status": "programmatic-canonical-diagram",
-    "identity": "出版邊界教學圖，非史料",
-    "reason": "可驗證文字由 runtime 與資料層負責，SVG 不冒充牛頓手稿。"
+    "status": "art-locked-fixed-summary-raster",
+    "identity": "六段證明鏈教學圖，非《原理》原頁",
+    "reason": "六段鏈含玩家取得的五張證據與球殼定理頁；完整歷史紙面 raster 烘焙逐字稿，不冒充牛頓手稿或《原理》原頁。"
    }
   },
   {
@@ -2133,12 +2214,12 @@
   {
    "id": "dialogue_newton41",
    "kind": "portrait",
-   "label": "Isaac Newton 約 41 歲（合理重建）",
-   "path": "ch04/characters/ch04_char_newton41_v03.webp",
+   "label": "Isaac Newton 成年期（約 36–44 歲，共用合理重建）",
+   "path": "ch04/characters/ch04_char_newton41_v04.webp",
    "firstScreen": false,
    "w": 900,
    "h": 1200,
-   "sourceMaster": "art/source/production/ch04/characters/ch04_char_newton41_alpha_v02.png"
+   "sourceMaster": "art/source/production/ch04/characters/ch04_char_newton41_alpha_v03.png"
   },
   {
    "id": "dialogue_halley28",
@@ -3555,7 +3636,7 @@
   },
   {
    "scene": "D1-2",
-   "match": "月球一秒的『向內差距』",
+   "match": "月亮的實際位置比直線位置朝地球偏了多少",
    "items": [
     {
      "asset": "ch04_prop_tangent_geometry_base_v01",
@@ -3687,7 +3768,7 @@
      "alt": "1665 年工作桌的抽屜被輕輕關上，兩張尚未完成的計算紙留在裡面"
     }
    ],
-   "caption": "兩張紙先進抽屜：量級對上了，但「憑什麼從地心量」尚未被證明。"
+   "caption": "兩張紙先進抽屜：60 與約 3600 對上了，但「憑什麼從地心量」還沒有答案。"
   },
   {
    "scene": "D2-1",
@@ -3706,7 +3787,7 @@
    "items": [
     {
      "asset": "ch04_focus_newton_orbit_montage_1679_v01",
-     "alt": "1679 年燭光下，旅人與牛頓一同核對多張快慢與向內扳量不同的試跑紙"
+     "alt": "1679 年燭光下，旅人與牛頓一同核對多張原本速度與朝地心箭頭長度不同的試跑紙"
     }
    ],
    "caption": "玩家先試跑並挑出三張可比較紀錄；牛頓與旅人再共同核對。底圖只承載手、紙與燭光，路徑與設定仍由引擎依玩家操作繪製。"
@@ -3731,7 +3812,7 @@
      "alt": "哈雷木匣裡兩包仍以蠟封住的觀測紙，資料內容尚未揭露"
     }
    ],
-   "caption": "觀測仍在封口裡：先留下預測，才有資格拆開火星與木星的資料。"
+   "caption": "火星與木星的觀測紙仍封在木匣裡：先寫下預測，兩張都封好後才打開資料。"
   },
   {
    "scene": "D4-1",
@@ -3746,25 +3827,25 @@
   },
   {
    "scene": "D4-1",
-   "match": "磁石圖卡",
+   "match": "牛頓放下一塊磁石",
    "items": [
     {
      "asset": "ch04_focus_lodestone_needle_analogy_v01",
      "alt": "1684 年劍橋書桌上的天然磁石與一根分開放置的鐵針；兩者尚未接觸，畫面沒有磁力線或箭頭"
     }
    ],
-   "caption": "磁石只借「隔空」與「距離越遠、作用越弱」兩點；不能把磁力機制等同引力。"
+   "caption": "磁石只借「隔空」與「距離越遠、作用越弱」兩點；它沒有說明引力為什麼能隔空拉動。"
   },
   {
    "scene": "D4-1",
-   "match": "三份觀測封面",
+   "match": "三個紙袋排成一列",
    "items": [
     {
      "asset": "ch04_focus_three_observation_folios_v01",
      "alt": "劍橋書桌上並列三份獨立封好的觀測卷宗，封面分別以月牙、兩顆圓點與彗星符號區分，沒有可讀數據"
     }
    ],
-   "caption": "三份封面只標示待過帳的資料類別；距離、週期、日期與星位仍由引擎表格承載。"
+   "caption": "三份封面只標示等待比較的資料類別；距離、週期、日期與星位仍由表格呈現。"
   },
   {
    "scene": "D4-2",
@@ -3780,14 +3861,14 @@
   },
   {
    "scene": "D4-2",
-   "match": "作者欄沒有旅人的名條",
+   "match": "作者欄沒有旅人的名字",
    "items": [
     {
      "asset": "ch04_prop_print_credit_sources_v01",
      "alt": "印刷版框旁分開擺放書信、計算紙與觀測紀錄，沒有任何一份覆蓋其他來源"
     }
    ],
-   "caption": "署名決定之後，來源仍各自留在紙上：問題、證明、觀測與編務不能互相抹除。"
+   "caption": "作者欄寫好之後，各份來源仍留在紙上：誰提出問題、誰完成證明、誰提供觀測、誰推動出版，都不能互相抹除。"
   },
   {
    "scene": "P0-2",
@@ -4268,7 +4349,7 @@
     "wg1",
     "wg2"
    ],
-   "match": "月球一秒的『向內差距』"
+   "match": "月亮的實際位置比直線位置朝地球偏了多少"
   },
   {
    "scene": "B2-4",
@@ -5002,10 +5083,10 @@
   "G4": "同一事件的船上與岸上紙帶；先以同號鼓點對齊，再逐拍扣掉桅杆位置，這一趟的岸紙才能換成船紙。",
   "G5": "實驗排除『船若前進，落石必落後』的反對，但沒有直接量到地球在動。",
   "K1": "沒有向內偏折時月亮沿切線離開；每一拍向地心改向，才形成閉合軌道。",
-  "K2": "月距與週期算出月球一秒正矢約 1.36 mm；與地表一秒約 4.9 m 相差約 3600 倍，旅人再把它接到月距約 60R。",
-  "K3": "Mars 與 Jupiter 的週期都在觀測揭露前封存，舊預測即使改律也不會被刪除。",
-  "K4": "反平方與簡單共轉渦旋都跑過 Moon、Planets、Comet；比較只涵蓋這兩個明列版本。",
-  "K5": "證據鏈、來源署名與作用機制邊界同時通過校樣；可計算規則成立，機制仍未決。",
+  "K2": "月距與週期算出月球一秒向地球偏約 1.36 mm；與地表一秒約 4.9 m 相差約 3600 倍，旅人再把它接到月距約 60R。",
+  "K3": "火星與木星的週期都在打開觀測資料前寫下並封好；即使後來改用新規則，舊預測也不會被刪除。",
+  "K4": "現代教學比較把反平方與本章固定流速的簡化漩渦都跑過月亮、行星、彗星；精確數字是現代重算，結論只涵蓋這兩個明列版本。",
+  "K5": "五張已取得證據接上球殼定理，補起『從地心量』的數學橋；工作來源可查，但為什麼能隔空拉動仍沒有答案。",
   "S6": "正統主張把碰撞前後帶方向的 mv 當作同一本帳；這是待檢驗的主張，不是本輪結果。",
   "S7": "黏土壓痕提供可量的深度尺度，但不替短少的可見運動說明完整去向。",
   "J1": "鋼頭、油灰頭各三筆：帶方向的 mv 在碰撞前後都閉合。",
@@ -5291,7 +5372,7 @@
    "items": [
     {
      "asset": "card_K3",
-     "alt": "先封存 Mars 與 Jupiter 週期預測再揭露觀測的時間線"
+     "alt": "火星與木星的週期預測先寫下並封好，之後才打開觀測資料比較"
     }
    ],
    "caption": "取得證據：兩個週期都在看見答案前留下預測。",
@@ -5301,71 +5382,80 @@
    "items": [
     {
      "asset": "card_K4",
-     "alt": "反平方與簡單共轉渦旋跨 Moon、Planets、Comet 的六格比較矩陣"
+     "alt": "現代教學比較：反平方模型與本章固定流速的簡化漩渦模型，跨月亮、行星、彗星的六格比較表；不是十七世紀原始對帳表"
     }
    ],
-   "caption": "取得證據：同一批天空下的雙模型比較。",
-   "readerTitle": "一條規則穿過三種天空",
-   "fallbackNotice": "此存檔的借條狀態無法安全還原。",
+   "caption": "取得現代教學比較：兩套固定模型都用同一批月亮、行星與彗星資料；精確殘差與推算值為現代重算。",
+   "readerTitle": "一條規則穿過三種天空｜現代教學比較",
+   "identity": {
+    "kind": "reconstruction",
+    "label": "現代教學比較 · 固定簡化模型"
+   },
+   "fallbackNotice": "此存檔的黃色補充紙（桌上稱借條）狀態無法安全還原。",
    "accessibleText": [
-    "反平方 Moon：對得上；殘差 0.36%。",
-    "反平方 Planets：對得上；兩筆較大殘差 0.32%。",
-    "反平方 Comet：方向對得上；此列只判方向，不出百分比。",
-    "簡單渦旋 Moon：只有說法；沒有交出可核對數字。",
-    "簡單渦旋 Planets：對不上；推得 6.4 年，實測 11.86 年——差 45.8%。",
-    "簡單渦旋 Comet：方向相反；與固定流向衝突。"
+    "身分：現代教學比較；精確殘差與簡化漩渦推算是本章固定模型的現代重算，不是十七世紀原始對帳表，也不代表所有漩渦理論。",
+    "反平方模型・月亮：對得上；殘差 0.36%。",
+    "反平方模型・行星：對得上；兩筆較大殘差 0.32%。",
+    "反平方模型・彗星：方向對得上；此列只判方向，不出百分比。",
+    "簡單渦旋模型・月亮：只有說法；沒有交出可核對數字。",
+    "簡單渦旋模型・行星：對不上；推得 6.4 年，實測 11.86 年——差 45.8%。",
+    "簡單渦旋模型・彗星：方向相反；與固定流向衝突。"
    ],
    "variants": {
     "no_loans": {
      "items": [
       {
-       "asset": "card_K4_no_loans_raster_v03",
-       "alt": "模型比較對帳桌：反平方三格對得上；簡單渦旋一格只有說法、兩格對不上，行星與彗星都未加借條"
+       "asset": "card_K4_no_loans_raster_v04",
+       "alt": "現代教學比較桌：反平方三格對得上；固定流速的簡化漩渦一格只有說法、兩格對不上，行星與彗星都未貼黃色補充紙；不是十七世紀原始對帳表"
       }
      ],
-     "caption": "模型比較已封存：行星與彗星都未加借條。",
+     "caption": "現代重算完成：行星與彗星都未貼黃色補充紙（桌上稱借條）。",
      "accessibleText": [
-      "封存的借條狀態：行星未加借條；彗星未加借條。",
+      "身分：現代教學比較；固定簡化模型與精確數字均非十七世紀原始對帳表。",
+      "比較完成時的借條：行星未加；彗星未加。",
       "三份資料、兩套固定規矩：拉力帳三格都對得上；漩渦帳一格只有說法，另外兩格對不上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
      ]
     },
     "planets_loan": {
      "items": [
       {
-       "asset": "card_K4_planets_loan_raster_v03",
-       "alt": "模型比較對帳桌：行星渦旋格貼有木星分層流速借條，彗星格未加借條且保留失配"
+       "asset": "card_K4_planets_loan_raster_v04",
+       "alt": "現代教學比較桌：行星簡化漩渦格貼有木星分層流速的黃色補充紙；彗星格未貼，原本對不上的結果仍保留；不是十七世紀原始對帳表"
       }
      ],
-     "caption": "模型比較已封存：行星加了借條；彗星未加借條。",
+     "caption": "現代重算完成：行星貼了黃色補充紙（桌上稱借條）；彗星未貼。",
      "accessibleText": [
-      "封存的借條狀態：行星借條——木星那一層另設流速；彗星未加借條，失配保留。",
+      "身分：現代教學比較；固定簡化模型與精確數字均非十七世紀原始對帳表。",
+      "比較完成時的借條：行星——木星那一層另設流速；彗星未加，原本對不上的結果保留。",
       "拉力帳三格都對得上。漩渦帳的行星格改了流速表才貼合，借條仍在；彗星格對不上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
      ]
     },
     "comet_loan": {
      "items": [
       {
-       "asset": "card_K4_comet_loan_raster_v03",
-       "alt": "模型比較對帳桌：彗星渦旋格貼有未量過的穿流借條，行星格未加借條且保留失配"
+       "asset": "card_K4_comet_loan_raster_v04",
+       "alt": "現代教學比較桌：彗星簡化漩渦格貼有尚未量過的穿流黃色補充紙；行星格未貼，原本對不上的結果仍保留；不是十七世紀原始對帳表"
       }
      ],
-     "caption": "模型比較已封存：行星未加借條；彗星加了借條。",
+     "caption": "現代重算完成：行星未貼黃色補充紙；彗星貼了補充紙（桌上稱借條）。",
      "accessibleText": [
-      "封存的借條狀態：行星未加借條，失配保留；彗星借條——彗星可以穿過流（未量過）。",
+      "身分：現代教學比較；固定簡化模型與精確數字均非十七世紀原始對帳表。",
+      "比較完成時的借條：行星未加，原本對不上的結果保留；彗星——可以穿過流（未量過）。",
       "拉力帳三格都對得上。漩渦帳的彗星格靠未量過的穿流假設才講得通；行星格對不上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
      ]
     },
     "both_loans": {
      "items": [
       {
-       "asset": "card_K4_both_loans_raster_v04",
-       "alt": "模型比較對帳桌：行星渦旋格與彗星渦旋格各貼一張借條，兩筆逐案新增的代價都保留在帳上"
+       "asset": "card_K4_both_loans_raster_v05",
+       "alt": "現代教學比較桌：行星與彗星的簡化漩渦格各貼一張黃色補充紙，兩項看完結果才加入的新假設都保留；不是十七世紀原始對帳表"
       }
      ],
-     "caption": "模型比較已封存：行星與彗星都加了借條。",
+     "caption": "現代重算完成：行星與彗星都貼了黃色補充紙（桌上稱借條）。",
      "accessibleText": [
-      "封存的借條狀態：行星借條——木星那一層另設流速；彗星借條——彗星可以穿過流（未量過）。",
-      "拉力帳三格都對得上。漩渦帳原先兩格失配；每次改成講得通，逐案新增的代價都留在借條上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
+      "身分：現代教學比較；固定簡化模型與精確數字均非十七世紀原始對帳表。",
+      "比較完成時的借條：行星——木星那一層另設流速；彗星——可以穿過流（未量過）。",
+      "拉力帳三格都對得上。漩渦帳原先兩格對不上；每次改成講得通，逐案新增的代價都留在借條上。這只比較同一規則跨資料的表現，不等於已說明拉力如何穿過空間。"
      ]
     }
    }
@@ -5374,10 +5464,21 @@
    "items": [
     {
      "asset": "card_K5",
-     "alt": "證據鏈、四條信用線與引力機制留白的完整校樣"
+     "alt": "五張已取得證據接上球殼定理，形成六段證明鏈；四種工作寫回真正做過的人，引力如何隔空作用仍留白的教學校樣"
     }
    ],
-   "caption": "取得證據：證明、署名與未決機制都停在各自邊界。"
+   "caption": "取得證據：球殼定理補上『從地心量』的數學橋；六段來源與工作歸屬可查，作用原因仍留白。",
+   "readerTitle": "能算到哪裡，也要停在哪裡｜六段證明鏈",
+   "identity": {
+    "kind": "diagram",
+    "label": "證明鏈教學圖 · 非《原理》原頁"
+   },
+   "accessibleText": [
+    "五張已取得證據依序接回原有前進、持續改向、同一把尺、事前預測與三種天空；玩家再把球殼定理頁放入第六段。",
+    "球殼定理讓均勻球形天體可按球心處理，補上『憑什麼從地心量』的數學橋。",
+    "虎克提出問題方向與平方反比猜想；哈雷追問並推動出版；佛蘭斯蒂德提供帶日期的天文與彗星觀測；牛頓完成數學證明、球體處理與跨天體整合。",
+    "同一規則跨過不同尺度，不等於已說明拉力如何穿過空間；這批資料沒有回答作用原因。"
+   ]
   },
   "S6": {
    "items": [
@@ -5617,12 +5718,12 @@
       "caption": "繩球演示裝置的教學重建，非牛頓原物或史料掃描"
      }
     ],
-    "caption": "歷史參考：繩球演示（教學重建，非牛頓原物或史料掃描）。它只借幾何說明持續轉彎，不替引力機制授證。",
+    "caption": "歷史參考：繩球演示（教學重建，非牛頓原物或史料掃描）。它只幫忙看懂持續轉彎，沒有說明月亮為什麼被拉。",
     "readerTitle": "繩球演示｜教學重建，非牛頓原物",
     "accessibleText": [
      "身分：教學重建，不是牛頓原物或史料掃描。",
      "用途：只幫忙理解持續轉彎需要持續改變運動。",
-     "邊界：不能單獨證明月亮的引力機制。"
+     "邊界：不能單獨證明月亮為什麼會被拉向地球。"
     ]
    },
    {

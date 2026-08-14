@@ -51,12 +51,23 @@ for (const [scene, id] of Object.entries(expectedBackgrounds)) {
 
 const portraits = {
   dialogue_newton22: "ch04/characters/ch04_char_newton22_v03.webp",
-  dialogue_newton41: "ch04/characters/ch04_char_newton41_v03.webp",
+  dialogue_newton41: "ch04/characters/ch04_char_newton41_v04.webp",
   dialogue_halley28: "ch04/characters/ch04_char_halley28_v02.webp"
+};
+const portraitMasters = {
+  dialogue_newton22: "art/source/production/ch04/characters/ch04_char_newton22_alpha_v02.png",
+  dialogue_newton41: "art/source/production/ch04/characters/ch04_char_newton41_alpha_v03.png",
+  dialogue_halley28: "art/source/production/ch04/characters/ch04_char_halley28_alpha_v02.png"
 };
 for (const [id, assetPath] of Object.entries(portraits)) {
   const entry = entries.get(id);
-  if (!entry || entry.path !== assetPath || entry.w !== 900 || entry.h !== 1200)
+  if (
+    !entry ||
+    entry.path !== assetPath ||
+    entry.sourceMaster !== portraitMasters[id] ||
+    entry.w !== 900 ||
+    entry.h !== 1200
+  )
     fail("人物資產宣告錯誤:" + id);
   if (!existsSync(path.join(here, "../../public/assets", assetPath))) fail("人物檔案不存在:" + assetPath);
 }
@@ -81,7 +92,7 @@ const expectedEvidenceAssets = {
   K2: { id:"ch04_focus_shared_moon_calculation_v01", w:1672, h:941 },
   K3: { id:"card_K3", w:1200, h:750 },
   K4: { id:"card_K4", w:1200, h:750 },
-  K5: { id:"card_K5", w:1200, h:750 }
+  K5: { id:"card_K5", w:1536, h:1024 }
 };
 for (const [code, expected] of Object.entries(expectedEvidenceAssets)) {
   const entry = entries.get(expected.id);
@@ -121,6 +132,16 @@ for (const [code, expected] of Object.entries(expectedEvidenceAssets)) {
       fail("K1 放大閱讀缺圖外逐字文字版");
     continue;
   }
+  if (code === "K5") {
+    if (!entry.path.endsWith(".webp") || !entry.sourceMaster ||
+        !existsSync(path.join(here, "../../", entry.sourceMaster)))
+      fail("K5 未使用有鎖定母版的完整 raster");
+    if (statSync(file).size > 768 * 1024)
+      fail("K5 證據圖超過單檔 768 KB 工作預算");
+    if (!visual.readerTitle || visual.accessibleText?.length !== 4)
+      fail("K5 放大閱讀缺圖外逐字文字版");
+    continue;
+  }
   const svg = readFileSync(file, "utf-8");
   if (!svg.includes('role="img"') || !svg.includes("<title") || !svg.includes("<desc"))
     fail("第四章證據圖缺可及性文字:" + expected.id);
@@ -133,7 +154,11 @@ const rasterLocks = {
   card_K4_no_loans_raster_v03: "5d125862cd16f97c82b47f7bf0cbecc63955769b6eebf648b93173684cc16687",
   card_K4_planets_loan_raster_v03: "66a0c985e9cbd71dc5e18672358baa10630c212a1f9b30d8efdcdc604db43bdf",
   card_K4_comet_loan_raster_v03: "e74d3442267f1fbce4d2305fac2d1dca07a7540cc6da5d17380faa2a4427ee62",
-  card_K4_both_loans_raster_v04: "7c9240725524d032d7e32a982a5ea36ba89e29afd5a6053349431e5fd71a49c8"
+  card_K4_both_loans_raster_v04: "7c9240725524d032d7e32a982a5ea36ba89e29afd5a6053349431e5fd71a49c8",
+  card_K4_no_loans_raster_v04: "5497d1c4719d403b39cce3d47e15b1b701ec6fb26c062bef8f8ae527b7dab9d7",
+  card_K4_planets_loan_raster_v04: "58f4170ebb97a27f8cd81b23af1b23566b853df545bcc86dfa4e9d10f172b428",
+  card_K4_comet_loan_raster_v04: "9814357465464f520bb172b2667c5249c4f11aeb6a10eba9c660983a2778a692",
+  card_K4_both_loans_raster_v05: "313db3355d10c7982d1c71d0f7c644eec1e6670fb2a7cdcb04d28a8b438b4925"
 };
 for (const [id, expectedSha] of Object.entries(rasterLocks)) {
   const entry = entries.get(id);
@@ -149,23 +174,59 @@ for (const [id, expectedSha] of Object.entries(rasterLocks)) {
 
 const k4Visual = assets.evidenceVisual.K4;
 const k4Variants = {
-  no_loans: { asset: "card_K4_no_loans_raster_v03", loans: [] },
-  planets_loan: { asset: "card_K4_planets_loan_raster_v03", loans: [{ caseId: "planets" }] },
-  comet_loan: { asset: "card_K4_comet_loan_raster_v03", loans: [{ caseId: "comet" }] },
-  both_loans: { asset: "card_K4_both_loans_raster_v04", loans: [{ caseId: "planets" }, { caseId: "comet" }] }
+  no_loans: { asset: "card_K4_no_loans_raster_v04", loans: [] },
+  planets_loan: { asset: "card_K4_planets_loan_raster_v04", loans: [{ caseId: "planets" }] },
+  comet_loan: { asset: "card_K4_comet_loan_raster_v04", loans: [{ caseId: "comet" }] },
+  both_loans: { asset: "card_K4_both_loans_raster_v05", loans: [{ caseId: "planets" }, { caseId: "comet" }] }
 };
 if (k4Visual.items?.[0]?.asset !== "card_K4" ||
-    k4Visual.fallbackNotice !== "此存檔的借條狀態無法安全還原。")
+    k4Visual.identity?.kind !== "reconstruction" ||
+    !k4Visual.identity?.label?.includes("現代教學比較") ||
+    !k4Visual.readerTitle?.includes("現代教學比較") ||
+    !k4Visual.fallbackNotice?.includes("黃色補充紙"))
   fail("K4 fail-closed 中性圖或圖外標示缺失");
 for (const [key, expected] of Object.entries(k4Variants)) {
   const variant = k4Visual.variants?.[key];
   if (variant?.items?.[0]?.asset !== expected.asset || !variant.caption ||
       !variant.accessibleText?.length)
     fail("K4 有限變體未完整登錄:" + key);
+  if (!variant.items[0].alt.includes("現代教學比較") ||
+      !variant.caption.includes("現代重算") ||
+      !variant.accessibleText[0].includes("非十七世紀原始對帳表") ||
+      variant.accessibleText.join(" ").includes("失配"))
+    fail("K4 圖外歷史身分或白話用詞漂移:" + key);
   const claim = Engine4._ledgerClaimText({ loans: expected.loans });
   if (variant.accessibleText.at(-1) !== claim)
     fail("K4 文字版沒有逐字取自 deterministic ledgerClaimText:" + key);
 }
+for (const id of Object.values(k4Variants).map((row) => row.asset)) {
+  const entry = entries.get(id);
+  if (entry?.historicalDebt?.status !== "art-locked-modern-teaching-comparison" ||
+      !entry.historicalDebt?.identity?.includes("非十七世紀原始對帳表"))
+    fail("K4 Art Lock 未登錄現代重算身分:" + id);
+}
+
+const k5Entry = entries.get("card_K5");
+const k5Visual = assets.evidenceVisual.K5;
+if (k5Entry?.path !== "ch04/evidence/ch04_card_K5_scoped_proof_raster_v03.webp" ||
+    k5Entry?.w !== 1536 || k5Entry?.h !== 1024 ||
+    k5Entry?.sourceMaster !== "art/source/production/ch04/evidence/ch04_card_K5_scoped_proof_raster_candidate_v03.png" ||
+    k5Entry?.historicalDebt?.status !== "art-locked-fixed-summary-raster" ||
+    k5Entry?.historicalDebt?.identity !== "六段證明鏈教學圖，非《原理》原頁" ||
+    k5Visual?.identity?.label !== "證明鏈教學圖 · 非《原理》原頁" ||
+    !k5Visual?.readerTitle?.includes("六段證明鏈") ||
+    k5Visual?.accessibleText?.length !== 4)
+  fail("K5 v03 完整 raster 或圖外身分未完整登錄");
+const k5Runtime = path.join(here, "../../public/assets", k5Entry.path);
+const k5Master = path.join(here, "../../", k5Entry.sourceMaster);
+if (!existsSync(k5Runtime) || !existsSync(k5Master) || statSync(k5Runtime).size > 768 * 1024)
+  fail("K5 v03 runtime／母版缺失或超過 768 KB 工作預算");
+const k5Sha = createHash("sha256").update(readFileSync(k5Master)).digest("hex");
+if (k5Sha !== "a9e4d0dfa7b715b1c82ca552dc3f35a35dd211f189f9882f708bf6927979a4c2")
+  fail("K5 v03 母版雜湊漂移");
+for (const old of ["ch04_card_K5_scoped_proof_v01.svg", "ch04_card_K5_scoped_proof_v02.svg"])
+  if (!existsSync(path.join(here, "../../public/assets/ch04/evidence", old)))
+    fail("K5 舊檔未保留追溯:" + old);
 
 const k4Fallback = readFileSync(path.join(
   here, "../../public/assets/ch04/evidence/ch04_card_K4_model_comparison_v01.svg"), "utf-8");
@@ -227,12 +288,12 @@ const focusProps = {
   ch04_prop_halley_sealed_observation_box_v01: {
     scene: "D3-1",
     match: "哈雷掏出封蠟",
-    guard: "先留下預測"
+    guard: "先寫下預測"
   },
   ch04_prop_print_credit_sources_v01: {
     scene: "D4-2",
-    match: "作者欄沒有旅人的名條",
-    guard: "署名決定之後"
+    match: "作者欄沒有旅人的名字",
+    guard: "各份來源仍留在紙上"
   }
 };
 for (const [id, expected] of Object.entries(focusProps)) {
@@ -252,7 +313,7 @@ for (const [id, expected] of Object.entries(focusProps)) {
 
 const generatedFocus = {
   ch04_focus_drawer_closes_1665_v01: {
-    scene: "D1-2", match: "兩張紙放進抽屜", guard: "尚未被證明"
+    scene: "D1-2", match: "兩張紙放進抽屜", guard: "還沒有答案"
   },
   ch04_focus_newton_orbit_montage_1679_v01: {
     scene: "D2-1", match: "桌上排著旅人挑出的三張紙", guard: "路徑與設定仍由引擎依玩家操作繪製"
@@ -264,10 +325,10 @@ const generatedFocus = {
     scene: "D4-1", match: "攪茶圖卡", guard: "不表示渦旋已被證明"
   },
   ch04_focus_lodestone_needle_analogy_v01: {
-    scene: "D4-1", match: "磁石圖卡", guard: "不能把磁力機制等同引力"
+    scene: "D4-1", match: "牛頓放下一塊磁石", guard: "沒有說明引力為什麼"
   },
   ch04_focus_three_observation_folios_v01: {
-    scene: "D4-1", match: "三份觀測封面", guard: "仍由引擎表格承載"
+    scene: "D4-1", match: "三個紙袋排成一列", guard: "仍由表格呈現"
   },
   ch04_focus_shell_theorem_page_v01: {
     scene: "D4-2", match: "厚薄均勻的球殼", guard: "由引擎 SVG 疊加"
@@ -335,8 +396,10 @@ for (const fragment of [
   "stampLedgerCell",
   "addModelLoan",
   "declineModelLoan",
-  "revealShellPage",
+  "assembleKnownProofSources",
+  "judgeShellBalance",
   "placeShellPage",
+  "assignCreditPlan",
   "removeTravelerFromAuthorField",
   "orbitProofTrack",
   "cannon-trajectory-overlay"
@@ -349,8 +412,8 @@ for (const fragment of [
   "orbit4ScaleSheets",
   "orbit4ScaleGeometry",
   "有興趣再看幾何算式",
-  "向內差距 s＝2r sin²(θ／2)",
-  "這不是輸入答案，而是事後顯影"
+  "端點短差 s＝2r sin²(θ／2)",
+  "這不是輸入答案，而是事後把差距放大"
 ]) if (!chapterUi.includes(fragment)) fail("同尺紙底圖、真實幾何或事後顯影缺漏:" + fragment);
 for (const obsolete of [
   "ch04_prop_cross_scale_surface_sheet_v02",

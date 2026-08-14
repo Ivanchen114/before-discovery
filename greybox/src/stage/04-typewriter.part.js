@@ -13,6 +13,18 @@
     var active = typing || waiting || queue.length > 0 || ackPending;
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
+    /* 工作台人物回應不是裝飾：回應尚未由玩家收掉時，底層操作必須真正停住。
+       只縮版面仍可讓滑鼠／Tab 穿透，會造成下一題在人物說完前先解鎖。 */
+    var workbenchPanel = document.querySelector("#panelWrap");
+    if (workbenchPanel && ["ship", "lab", "orbit"].indexOf(body.getAttribute("data-view")) >= 0) {
+      if (active) {
+        workbenchPanel.setAttribute("inert", "");
+        workbenchPanel.setAttribute("aria-hidden", "true");
+      } else {
+        workbenchPanel.removeAttribute("inert");
+        workbenchPanel.removeAttribute("aria-hidden");
+      }
+    }
     /* 對話真正播完才把鍵盤焦點交給轉場鈕；不得只在進場瞬間猜一次時機。 */
     if (!active && body.classList.contains("embarkGate") &&
         (!$("btnEmbark").hidden || !$("intermissionChoices").hidden)) {

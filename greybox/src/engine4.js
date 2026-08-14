@@ -193,6 +193,7 @@
       },
       modelLab: {
         methodVersion: "hearing-v1",
+        caseOrderVersion: "fixed-v1",
         runs: [], gravityComplete: false, vortexComplete: false,
         selectedRecords: [], comparisonClaim: null,
         protocolAttempts: [], protocolLocked: false, protocol: null,
@@ -210,8 +211,12 @@
       proof: {
         slots: [], attribution: {}, hookeScope: null, hookeScopeAttempts: [],
         slotAttempts: [], attributionAttempts: [], boundaryAttempts: [],
+        shellInsightAttempts: [],
+        shellInsightVersion: "judgment-v1",
         boundaryChoice: null, overclaimTried: false,
         shellPageReady: false, shellPagePlaced: false,
+        creditDisputeVersion: "dialogue-v1",
+        creditDisputeAcknowledgements: [],
         authorField: { names: ["Newton", "Traveler"], travelerRemoved: false },
         press: {
           window: 1, reservedWindows: 3, openingChoice: null,
@@ -1778,6 +1783,10 @@
     if (!("protocol" in s.modelLab)) s.modelLab.protocol = null;
     if (!Array.isArray(s.modelLab.rowOrder)) s.modelLab.rowOrder = [];
     if (!Array.isArray(s.modelLab.completedRows)) s.modelLab.completedRows = [];
+    if (!s.modelLab.caseOrderVersion) {
+      s.modelLab.caseOrderVersion = (s.modelLab.rowOrder.length || s.modelLab.runs.length)
+        ? "legacy-free" : "fixed-v1";
+    }
     if (!s.modelLab.rowStage || typeof s.modelLab.rowStage !== "object")
       s.modelLab.rowStage = {};
     if (!Array.isArray(s.modelLab.stampAttempts)) s.modelLab.stampAttempts = [];
@@ -1815,6 +1824,16 @@
       if (!state0.modelLab.predictions.inverseSquare.beforeRuns ||
           !state0.modelLab.predictions.simpleVortex.beforeRuns)
         return err(state0, "model-prediction-order-invalid");
+      var orderVersion = state0.modelLab.caseOrderVersion ||
+        ((state0.modelLab.rowOrder || []).length ? "legacy-free" : "fixed-v1");
+      if (orderVersion === "fixed-v1") {
+        var completed = state0.modelLab.completedRows || [];
+        var opened = state0.modelLab.rowOrder || [];
+        var active = opened.find(function (id) { return completed.indexOf(id) < 0; });
+        var expected = CASES[completed.length];
+        if (active && active !== caseId) return err(state0, "model-row-in-progress");
+        if (!active && caseId !== expected) return err(state0, "model-case-sequence-required");
+      }
     }
     var s = ensureModelProtocolFields(clone(state0)), ml = s.modelLab;
     if (ml.completedRows.indexOf(caseId) >= 0) return err(state0, "ledger-row-complete");
@@ -1955,7 +1974,7 @@
       return "拉力帳三格都對得上。漩渦帳的行星格改了流速表才貼合，借條仍在；彗星格對不上。" + boundary;
     if (!planetLoan && cometLoan)
       return "拉力帳三格都對得上。漩渦帳的彗星格靠未量過的穿流假設才講得通；行星格對不上。" + boundary;
-    return "拉力帳三格都對得上。漩渦帳原先兩格失配；每次改成講得通，逐案新增的代價都留在借條上。" + boundary;
+    return "拉力帳三格都對得上。漩渦帳原先兩格對不上；每次改成講得通，逐案新增的代價都留在借條上。" + boundary;
   }
 
   function sealModelComparison(state0, claim) {
@@ -2186,12 +2205,97 @@
     return { state: s, ok: CREDIT_EXPECT[contribution] === person };
   }
 
+  function assembleKnownProofSources(state0) {
+    if (!state0.evidence || !state0.evidence.k4)
+      return err(state0, "k4-required");
+    if (state0.archiveLab && state0.archiveLab.clipAttempts &&
+        state0.archiveLab.clipAttempts.length)
+      return err(state0, "archive-records-locked");
+    var sequence = [
+      ["inertia", "M3"],
+      ["inward", "K1"],
+      ["distance", "K2"],
+      ["withheld", "K3"],
+      ["model", "K4"]
+    ];
+    var needed = sequence.filter(function (row) {
+      return !(state0.proof.slots || []).some(function (current) {
+        return current.slot === row[0] && current.evidenceId === row[1];
+      });
+    }).length;
+    if ((state0.proof.slotAttempts || []).length + needed > MAX_LONG_HISTORY)
+      return err(state0, "proof-attempt-limit");
+    var s = clone(state0), placed = 0;
+    for (var i = 0; i < sequence.length; i++) {
+      var slot = sequence[i][0], evidenceId = sequence[i][1];
+      var current = (s.proof.slots || []).find(function (row) {
+        return row.slot === slot;
+      });
+      if (current && current.evidenceId === evidenceId) continue;
+      var result = placeProofLink(s, slot, evidenceId);
+      if (result.error) return err(state0, result.error);
+      s = result.state;
+      placed += 1;
+    }
+    return { state: s, ok: true, placed: placed, complete: true };
+  }
+
+  function assignCreditPlan(state0, plan) {
+    var plans = {
+      "work-by-work": {
+        direction: "Hooke", publication: "Halley",
+        observations: "Flamsteed", proof: "Newton"
+      },
+      "all-to-newton": {
+        direction: "Newton", publication: "Newton",
+        observations: "Newton", proof: "Newton"
+      },
+      "letters-own-proof": {
+        direction: "Hooke", publication: "Halley",
+        observations: "Flamsteed", proof: "Hooke"
+      }
+    };
+    if (!plans[plan]) return err(state0, "unknown-credit-plan");
+    if (state0.archiveLab && state0.archiveLab.clipAttempts &&
+        state0.archiveLab.clipAttempts.length)
+      return err(state0, "archive-records-locked");
+    if (!state0.proof || state0.proof.hookeScope !== HOOKE_SCOPE_EXPECT)
+      return err(state0, "hooke-scope-required");
+    if ((state0.proof.attributionAttempts || []).length + 4 > MAX_LONG_HISTORY)
+      return err(state0, "proof-attempt-limit");
+    var s = clone(state0), selected = plans[plan];
+    var creditError = null;
+    ["direction", "publication", "observations", "proof"].forEach(function (key) {
+      if (creditError) return;
+      var result = assignCredit(s, key, selected[key]);
+      if (result.error) creditError = result.error;
+      else s = result.state;
+    });
+    if (creditError) return err(state0, creditError);
+    return {
+      state: s,
+      ok: plan === "work-by-work",
+      plan: plan,
+      attribution: clone(s.proof.attribution),
+      consequence: plan === "work-by-work" ? null : "credit-lines-break"
+    };
+  }
+
   function ensureProofFields(s) {
     s.proof = s.proof || {};
     if (!Array.isArray(s.proof.hookeScopeAttempts)) s.proof.hookeScopeAttempts = [];
     if (!Array.isArray(s.proof.slotAttempts)) s.proof.slotAttempts = [];
     if (!Array.isArray(s.proof.attributionAttempts)) s.proof.attributionAttempts = [];
     if (!Array.isArray(s.proof.boundaryAttempts)) s.proof.boundaryAttempts = [];
+    if (!Array.isArray(s.proof.shellInsightAttempts)) s.proof.shellInsightAttempts = [];
+    if (!Array.isArray(s.proof.creditDisputeAcknowledgements))
+      s.proof.creditDisputeAcknowledgements = [];
+    if (!s.proof.creditDisputeVersion)
+      s.proof.creditDisputeVersion = "dialogue-v1";
+    if (!s.proof.shellInsightVersion) {
+      s.proof.shellInsightVersion = s.proof.shellPageReady
+        ? "legacy-revealed" : "judgment-v1";
+    }
     if (!("hookeScope" in s.proof)) s.proof.hookeScope = null;
     s.proof.press = s.proof.press || {};
     if (!("priorityRecord" in s.proof.press)) s.proof.press.priorityRecord = null;
@@ -2206,21 +2310,63 @@
     return s;
   }
 
-  function revealShellPage(state0) {
+  function creditDisputeAcknowledged(proof) {
+    if (!proof || typeof proof !== "object") return false;
+    if (proof.creditDisputeVersion === "legacy-past-scope") return true;
+    return proof.creditDisputeVersion === "dialogue-v1" &&
+      Array.isArray(proof.creditDisputeAcknowledgements) &&
+      proof.creditDisputeAcknowledgements.length === 1 &&
+      proof.creditDisputeAcknowledgements[0] &&
+      proof.creditDisputeAcknowledgements[0].ok === true;
+  }
+
+  function judgeShellBalance(state0, choice) {
     if (!state0.evidence || !["k1", "k2", "k3", "k4"].every(function (id) {
       return state0.evidence[id];
     })) return err(state0, "k1-k4-required");
+    if (["near-side-wins", "whole-shell-pulls", "matched-cones"].indexOf(choice) < 0)
+      return err(state0, "unknown-shell-judgment");
+    var firstFive = {
+      inertia: "M3", inward: "K1", distance: "K2", withheld: "K3", model: "K4"
+    };
+    if (!Object.keys(firstFive).every(function (slot) {
+      return (state0.proof.slots || []).some(function (row) {
+        return row.slot === slot && row.evidenceId === firstFive[slot];
+      });
+    })) return err(state0, "proof-chain-required");
+    if (state0.proof.shellPageReady) return err(state0, "shell-page-already-ready");
+    if (full(state0.proof.shellInsightAttempts || [], MAX_LONG_HISTORY))
+      return err(state0, "proof-attempt-limit");
     var s = ensureProofFields(clone(state0));
-    if (!s.proof.shellPageReady) {
+    var ok = choice === "matched-cones";
+    var attempt = {
+      id: s.proof.shellInsightAttempts.length + 1,
+      choice: choice,
+      ok: ok,
+      at: tick(s)
+    };
+    s.proof.shellInsightAttempts.push(attempt);
+    if (ok) {
       s.proof.shellPageReady = true;
       s.proof.shellPageRevealedAt = tick(s);
     }
-    return { state: s, ok: true, ready: true };
+    return {
+      state: s,
+      ok: ok,
+      attempt: clone(attempt),
+      ready: s.proof.shellPageReady,
+      consequence: ok ? null : "shell-balance-mismatch"
+    };
   }
 
   function placeShellPage(state0) {
     if (!state0.proof || !state0.proof.shellPageReady)
       return err(state0, "shell-page-not-ready");
+    var shellVersion = state0.proof.shellInsightVersion || "legacy-revealed";
+    if (shellVersion === "judgment-v1" &&
+        !(state0.proof.shellInsightAttempts || []).some(function (row) {
+          return row && row.ok === true && row.choice === "matched-cones";
+        })) return err(state0, "shell-insight-required");
     if (state0.proof.shellPagePlaced)
       return err(state0, "shell-page-already-placed");
     var r = placeProofLink(state0, "shell", "SHELL");
@@ -2229,6 +2375,32 @@
     s.proof.shellPagePlaced = true;
     s.proof.shellPagePlacedAt = tick(s);
     return { state: s, ok: true, slot: "shell", evidenceId: "SHELL" };
+  }
+
+  function acknowledgeCreditDispute(state0) {
+    if (!state0.proof || !state0.proof.shellPagePlaced)
+      return err(state0, "shell-page-placement-required");
+    if (state0.archiveLab && state0.archiveLab.clipAttempts &&
+        state0.archiveLab.clipAttempts.length)
+      return err(state0, "archive-records-locked");
+    var version = state0.proof.creditDisputeVersion || "dialogue-v1";
+    if (["dialogue-v1", "legacy-past-scope"].indexOf(version) < 0)
+      return err(state0, "credit-dispute-version-unsupported");
+    if (creditDisputeAcknowledged(state0.proof))
+      return err(state0, "credit-dispute-already-acknowledged");
+    var s = ensureProofFields(clone(state0));
+    var acknowledgement = {
+      id: s.proof.creditDisputeAcknowledgements.length + 1,
+      source: "hooke-letter-1679",
+      ok: true,
+      at: tick(s)
+    };
+    s.proof.creditDisputeAcknowledgements.push(acknowledgement);
+    return {
+      state: s,
+      ok: true,
+      acknowledgement: clone(acknowledgement)
+    };
   }
 
   function removeTravelerFromAuthorField(state0) {
@@ -2256,6 +2428,10 @@
         state0.archiveLab.clipAttempts.length)
       return err(state0, "archive-records-locked");
     if (!state0.evidence.k4) return err(state0, "k4-required");
+    if (!state0.proof || !state0.proof.shellPagePlaced)
+      return err(state0, "shell-page-placement-required");
+    if (!creditDisputeAcknowledged(state0.proof))
+      return err(state0, "credit-dispute-acknowledgement-required");
     if (["hookeComplete", "newtonAlone", HOOKE_SCOPE_EXPECT].indexOf(choice) < 0)
       return err(state0, "unknown-hooke-scope");
     if (full(state0.proof && state0.proof.hookeScopeAttempts,
@@ -2411,8 +2587,14 @@
       if (!proof.attribution || proof.attribution[c] !== CREDIT_EXPECT[c]) creditWrong.push(c);
     });
     var hookeScopeOk = proof.hookeScope === HOOKE_SCOPE_EXPECT;
+    var creditDisputeOk = creditDisputeAcknowledged(proof);
     var boundaryOk = proof.boundaryChoice === "ruleEstablished";
-    var shellOk = proof.shellPageReady === true && proof.shellPagePlaced === true &&
+    var shellInsightOk = proof.shellInsightVersion === "legacy-revealed" ||
+      (proof.shellInsightVersion === "judgment-v1" &&
+        (proof.shellInsightAttempts || []).some(function (row) {
+          return row && row.ok === true && row.choice === "matched-cones";
+        }));
+    var shellOk = shellInsightOk && proof.shellPageReady === true && proof.shellPagePlaced === true &&
       slots.shell === "SHELL";
     var author = proof.authorField || {};
     var authorOk = author.travelerRemoved === true && Array.isArray(author.names) &&
@@ -2422,9 +2604,10 @@
     }));
     return {
       complete: !missing.length && !wrong.length && !creditWrong.length &&
-        hookeScopeOk && boundaryOk && shellOk && authorOk && evidenceOk,
+        hookeScopeOk && creditDisputeOk && boundaryOk && shellOk && authorOk && evidenceOk,
       missing: missing, wrong: wrong, creditWrong: creditWrong,
       hookeScope: proof.hookeScope || null, hookeScopeOk: hookeScopeOk,
+      creditDisputeOk: creditDisputeOk,
       boundary: proof.boundaryChoice, boundaryOk: boundaryOk,
       shellOk: shellOk, authorOk: authorOk, evidenceOk: evidenceOk
     };
@@ -2593,8 +2776,12 @@
     beginLedgerRow: beginLedgerRow, stampLedgerCell: stampLedgerCell,
     addModelLoan: addModelLoan, declineModelLoan: declineModelLoan,
     sealModelComparison: sealModelComparison,
-    placeProofLink: placeProofLink, assignCredit: assignCredit, setHookeScope: setHookeScope,
-    revealShellPage: revealShellPage, placeShellPage: placeShellPage,
+    placeProofLink: placeProofLink, assembleKnownProofSources: assembleKnownProofSources,
+    assignCredit: assignCredit, assignCreditPlan: assignCreditPlan,
+    setHookeScope: setHookeScope,
+    judgeShellBalance: judgeShellBalance,
+    placeShellPage: placeShellPage,
+    acknowledgeCreditDispute: acknowledgeCreditDispute,
     removeTravelerFromAuthorField: removeTravelerFromAuthorField,
     submitPartialProof: submitPartialProof, setBoundary: setBoundary,
     previewProof: previewProof, submitProof: submitProof, deferPress: deferPress,

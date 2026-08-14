@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">能算到哪裡，也要停在哪裡</title>
+  <desc id="desc">五張已取得的證據接上球殼定理，形成六段可追查的證明鏈；概念、出版、觀測與證明分別寫回真正做過工作的人，引力如何隔空作用仍留白。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#191a20"/>
+      <stop offset="1" stop-color="#09090d"/>
+    </linearGradient>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#9ab2c4"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1132" height="682" rx="24" fill="none" stroke="#9f927a" stroke-width="2"/>
+  <text x="70" y="88" fill="#f3e8cc" font-size="38" font-weight="700" font-family="Noto Serif TC, PingFang TC, serif">能算到哪裡，也要停在哪裡</text>
+  <text x="70" y="125" fill="#bdb4a3" font-size="20" font-family="Noto Sans TC, PingFang TC, sans-serif">五張走過的紙接上球殼定理；來源與未知邊界都留在同一張校樣。</text>
+
+  <g font-family="Noto Sans TC, PingFang TC, sans-serif">
+    <rect x="70" y="158" width="1060" height="205" rx="18" fill="#151c26" stroke="#66798a"/>
+    <text x="100" y="198" fill="#d9c9aa" font-size="22" font-weight="700">六段證明鏈</text>
+    <text x="100" y="228" fill="#aeb9c2" font-size="16">前五張證據已取得；最後由玩家把球殼頁放進證明。</text>
+
+    <g font-size="15" font-weight="700" text-anchor="middle">
+      <circle cx="145" cy="301" r="42" fill="#536843" stroke="#e4ce82" stroke-width="4"/>
+      <text x="145" y="296" fill="#f2e9d4">原有</text><text x="145" y="316" fill="#f2e9d4">前進</text>
+      <path d="M190 301L270 301" stroke="#9ab2c4" stroke-width="4" marker-end="url(#arr)"/>
+
+      <circle cx="315" cy="301" r="42" fill="#536843" stroke="#e4ce82" stroke-width="4"/>
+      <text x="315" y="296" fill="#f2e9d4">持續</text><text x="315" y="316" fill="#f2e9d4">改向</text>
+      <path d="M360 301L440 301" stroke="#9ab2c4" stroke-width="4" marker-end="url(#arr)"/>
+
+      <circle cx="485" cy="301" r="42" fill="#536843" stroke="#e4ce82" stroke-width="4"/>
+      <text x="485" y="296" fill="#f2e9d4">同一</text><text x="485" y="316" fill="#f2e9d4">把尺</text>
+      <path d="M530 301L610 301" stroke="#9ab2c4" stroke-width="4" marker-end="url(#arr)"/>
+
+      <circle cx="655" cy="301" r="42" fill="#536843" stroke="#e4ce82" stroke-width="4"/>
+      <text x="655" y="296" fill="#f2e9d4">事前</text><text x="655" y="316" fill="#f2e9d4">預測</text>
+      <path d="M700 301L780 301" stroke="#9ab2c4" stroke-width="4" marker-end="url(#arr)"/>
+
+      <circle cx="825" cy="301" r="42" fill="#536843" stroke="#e4ce82" stroke-width="4"/>
+      <text x="825" y="296" fill="#f2e9d4">三種</text><text x="825" y="316" fill="#f2e9d4">天空</text>
+      <path d="M870 301L950 301" stroke="#9ab2c4" stroke-width="4" marker-end="url(#arr)"/>
+
+      <circle cx="995" cy="301" r="48" fill="#6c5938" stroke="#f0cd72" stroke-width="5"/>
+      <text x="995" y="296" fill="#fff2c8">球殼</text><text x="995" y="316" fill="#fff2c8">定理</text>
+    </g>
+
+    <rect x="70" y="390" width="660" height="240" rx="18" fill="#181c20" stroke="#786d5d"/>
+    <text x="100" y="432" fill="#d9c9aa" font-size="22" font-weight="700">四種工作，各回真正做過它的人</text>
+    <text x="105" y="478" fill="#efcf8b" font-size="19" font-weight="700">Hooke</text><text x="250" y="478" fill="#d5d0c6" font-size="18">提出問題方向與平方反比猜想</text>
+    <text x="105" y="518" fill="#efcf8b" font-size="19" font-weight="700">Halley</text><text x="250" y="518" fill="#d5d0c6" font-size="18">1684 追問、催促並推動出版</text>
+    <text x="105" y="558" fill="#efcf8b" font-size="19" font-weight="700">Flamsteed</text><text x="250" y="558" fill="#d5d0c6" font-size="18">提供帶日期的天文與彗星觀測</text>
+    <text x="105" y="598" fill="#efcf8b" font-size="19" font-weight="700">Newton</text><text x="250" y="598" fill="#d5d0c6" font-size="18">數學證明、球體處理與跨天體整合</text>
+
+    <rect x="760" y="390" width="370" height="240" rx="18" fill="#2d2520" stroke="#a88764" stroke-width="2"/>
+    <text x="790" y="432" fill="#e7d4b8" font-size="22" font-weight="700">證明邊界</text>
+    <rect x="790" y="458" width="310" height="84" rx="10" fill="#e5d7bd" stroke="#a28c6d" stroke-dasharray="9 7" stroke-width="3"/>
+    <text x="945" y="493" text-anchor="middle" fill="#6d5b48" font-size="18">拉力如何穿過空間？</text>
+    <text x="945" y="524" text-anchor="middle" fill="#8b3f36" font-size="24" font-weight="700">這批資料沒有回答</text>
+    <text x="945" y="578" text-anchor="middle" fill="#d7c4aa" font-size="18">同一規則跨過不同尺度</text>
+    <text x="945" y="607" text-anchor="middle" fill="#d7c4aa" font-size="18">不等於作用原因已解開</text>
+  </g>
+
+  <rect x="120" y="652" width="960" height="48" rx="14" fill="#25364a" stroke="#7f9bb1"/>
+  <text x="600" y="684" text-anchor="middle" fill="#f5e6be" font-size="21" font-weight="700" font-family="Noto Sans TC, PingFang TC, sans-serif">球殼定理讓「從地心量」站得住；不知道的原因仍誠實留白。</text>
+</svg>

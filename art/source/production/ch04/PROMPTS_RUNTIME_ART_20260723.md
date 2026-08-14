@@ -84,6 +84,8 @@ runtime：`public/assets/ch04/characters/ch04_char_newton22_v01.webp`
 來源：`characters/ch04_char_newton41_chroma_v01.png` → `characters/ch04_char_newton41_alpha_v02.png`
 runtime：`public/assets/ch04/characters/ch04_char_newton41_v01.webp`
 
+2026-08-14 年齡可辨識修訂：舊成熟版在 158–220 px 下與 22 歲版過近，已依 `characters/PROMPTS_CH04_NEWTON41_MATURE_V04_20260814.md` 另生成 identity-preserve 成熟版；透明母版為 `characters/ch04_char_newton41_alpha_v03.png`，runtime 為 `public/assets/ch04/characters/ch04_char_newton41_v04.webp`。舊版本保留追溯。
+
 ### 10. Halley・28 歲・1684
 
 > Plausible Edmond Halley at age 28: lively dark hazel eyes, broad intelligent forehead, youthful rounded jaw, clean shaven, shoulder-length naturally curled dark brown hair; well-kept but travel-worn charcoal-brown coat, dark waistcoat and plain linen cravat. Direct, practical and confident with a restrained half-smile; not deferential, elderly, aristocratic or a sea captain.

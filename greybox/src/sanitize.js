@@ -1946,6 +1946,26 @@
         !lab.sourceLab || !lab.orbitLab || !lab.scaleLab || !lab.planetLab ||
         !lab.modelLab || !lab.proof || !lab.evidence)
       return fail("第四章實驗紀錄格式錯誤");
+    /* CH4-CR-018 信用對話 gate：新版存檔必須留下 acknowledgeCreditDispute
+       的 engine trace。功能上線前已經做過 Hooke 範圍判讀的 schema2 舊檔，
+       只標成 legacy-past-scope 續接，不反向捏造玩家操作或 lab event。 */
+    if (lab.proof.creditDisputeAcknowledgements == null)
+      lab.proof.creditDisputeAcknowledgements = [];
+    if (lab.proof.creditDisputeVersion == null) {
+      var hasCreditAcknowledgementTrace =
+        Array.isArray(lab.proof.creditDisputeAcknowledgements) &&
+        lab.proof.creditDisputeAcknowledgements.length > 0;
+      var hasCreditAcknowledgementEvent = Array.isArray(state.eventLog) &&
+        state.eventLog.some(function (event) {
+          return event && event.t === "lab" &&
+            event.action === "acknowledgeCreditDispute";
+        });
+      var hasLegacyHookeScope = Array.isArray(lab.proof.hookeScopeAttempts) &&
+        lab.proof.hookeScopeAttempts.length > 0;
+      lab.proof.creditDisputeVersion = hasLegacyHookeScope &&
+        !hasCreditAcknowledgementTrace && !hasCreditAcknowledgementEvent
+        ? "legacy-past-scope" : "dialogue-v1";
+    }
     /* 2026-08-05 以前的 schema2 沒有 K3 最終盲驗判讀。已取得 K3 的合法舊檔
        以 legacy-v2 保留；尚未取得者補成 blind-v1，必須親自完成新判讀。 */
     if (!lab.planetLab.methodVersion)
@@ -1959,6 +1979,11 @@
       lab.modelLab.methodVersion = (lab.modelLab.runs && lab.modelLab.runs.length) ||
         (lab.modelLab.rowOrder && lab.modelLab.rowOrder.length) || lab.evidence.k4
         ? "ledger-v1" : "hearing-v1";
+    }
+    if (!lab.modelLab.caseOrderVersion) {
+      lab.modelLab.caseOrderVersion = (lab.modelLab.rowOrder && lab.modelLab.rowOrder.length) ||
+        (lab.modelLab.runs && lab.modelLab.runs.length) || lab.evidence.k4
+        ? "legacy-free" : "fixed-v1";
     }
     if (!lab.modelLab.predictions || typeof lab.modelLab.predictions !== "object" ||
         Array.isArray(lab.modelLab.predictions)) lab.modelLab.predictions = {};
@@ -2581,6 +2606,7 @@
         return fail("模型比較含無法辨識的資料");
     }
     if (["hearing-v1", "ledger-v1"].indexOf(lab.modelLab.methodVersion) < 0 ||
+        ["fixed-v1", "legacy-free"].indexOf(lab.modelLab.caseOrderVersion) < 0 ||
         !Array.isArray(lab.modelLab.rowOrder) || lab.modelLab.rowOrder.length > 3 ||
         !Array.isArray(lab.modelLab.completedRows) || lab.modelLab.completedRows.length > 3 ||
         !lab.modelLab.rowStage || typeof lab.modelLab.rowStage !== "object" ||
@@ -2732,6 +2758,15 @@
     if (JSON.stringify(openedRowOrder) !== JSON.stringify(lab.modelLab.rowOrder) ||
         JSON.stringify(completedRowOrder) !== JSON.stringify(lab.modelLab.completedRows))
       return fail("對帳桌列順序與玩家操作時間不一致");
+    if (lab.modelLab.methodVersion === "hearing-v1" &&
+        lab.modelLab.caseOrderVersion === "fixed-v1") {
+      var expectedPrefix = ledgerCases.slice(0, lab.modelLab.rowOrder.length);
+      var expectedCompletedPrefix = ledgerCases.slice(0, lab.modelLab.completedRows.length);
+      if (JSON.stringify(lab.modelLab.rowOrder) !== JSON.stringify(expectedPrefix) ||
+          JSON.stringify(lab.modelLab.completedRows) !== JSON.stringify(expectedCompletedPrefix) ||
+          lab.modelLab.rowOrder.length - lab.modelLab.completedRows.length > 1)
+        return fail("新版三份天空沒有依月亮、行星、彗星逐袋完成");
+    }
     for (var roi = 1; roi < openedRowOrder.length; roi++) {
       if (lab.modelLab.rowStage[openedRowOrder[roi - 1]].openedAt >=
           lab.modelLab.rowStage[openedRowOrder[roi]].openedAt)
@@ -2898,6 +2933,8 @@
         !Array.isArray(lab.proof.slotAttempts) || lab.proof.slotAttempts.length > 100 ||
         !Array.isArray(lab.proof.attributionAttempts) ||
         lab.proof.attributionAttempts.length > 100 ||
+        !Array.isArray(lab.proof.shellInsightAttempts || []) ||
+        (lab.proof.shellInsightAttempts || []).length > 100 ||
         !Array.isArray(lab.proof.boundaryAttempts) ||
         lab.proof.boundaryAttempts.length > 100 ||
         !lab.proof.attribution || typeof lab.proof.attribution !== "object" ||
@@ -2965,6 +3002,32 @@
     }
     if (JSON.stringify(currentAttribution) !== JSON.stringify(lab.proof.attribution))
       return fail("信用歸戶現態與玩家最後一次操作不一致");
+    var shellInsightAttempts = lab.proof.shellInsightAttempts || [];
+    if (!lab.proof.shellInsightVersion)
+      lab.proof.shellInsightVersion = lab.proof.shellPageReady
+        ? "legacy-revealed" : "judgment-v1";
+    if (["judgment-v1", "legacy-revealed"].indexOf(lab.proof.shellInsightVersion) < 0)
+      return fail("球殼判讀版本無法辨識");
+    for (var sia = 0; sia < shellInsightAttempts.length; sia++) {
+      var shellAttempt = shellInsightAttempts[sia];
+      if (!shellAttempt || shellAttempt.id !== sia + 1 ||
+          ["near-side-wins", "whole-shell-pulls", "matched-cones"].indexOf(shellAttempt.choice) < 0 ||
+          shellAttempt.ok !== (shellAttempt.choice === "matched-cones") ||
+          !isInt(shellAttempt.at) || shellAttempt.at < 1 ||
+          shellAttempt.at > lab.sequence ||
+          (sia && shellAttempt.at <= shellInsightAttempts[sia - 1].at))
+        return fail("球殼判讀缺少玩家操作紀錄");
+    }
+    var successfulShellInsights = shellInsightAttempts.filter(function (row) { return row.ok; });
+    if (successfulShellInsights.length > 1 ||
+        (successfulShellInsights.length &&
+          (!lab.proof.shellPageReady ||
+            successfulShellInsights[0].at >= lab.proof.shellPageRevealedAt)))
+      return fail("球殼判讀與證明頁揭露不一致");
+    if (lab.proof.shellInsightVersion === "judgment-v1" &&
+        (lab.proof.shellPageReady || lab.proof.shellPagePlaced || lab.evidence.k5) &&
+        successfulShellInsights.length !== 1)
+      return fail("新版球殼頁缺少玩家成功判讀");
     var press = lab.proof.press;
     if (!press || !isInt(press.window) || press.window < 1 || press.window > 3 ||
         press.reservedWindows !== 3 || ["open", "schedule-lost"].indexOf(press.status) < 0 ||
@@ -3111,6 +3174,22 @@
       if (JSON.stringify(expectedResearchActions) !==
           JSON.stringify(loggedResearchActions))
         return fail("盲驗／聽證紀錄與敘事層玩家操作不一致");
+      var expectedCreditDisputeActions =
+        (lab.proof.creditDisputeAcknowledgements || []).map(function (record) {
+          return {
+            action: "acknowledgeCreditDispute",
+            sequence: record.at
+          };
+        });
+      var loggedCreditDisputeActions = state.eventLog.filter(function (event, index) {
+        return index > migrationEventIndex && event && event.t === "lab" &&
+          event.action === "acknowledgeCreditDispute";
+      }).map(function (event) {
+        return { action: event.action, sequence: event.sequence };
+      });
+      if (JSON.stringify(expectedCreditDisputeActions) !==
+          JSON.stringify(loggedCreditDisputeActions))
+        return fail("署名爭議確認與敘事層玩家操作不一致");
     }
     var completeProofRows = press.proofs.filter(function (record) {
       return record.kind === "complete" && record.complete === true &&
@@ -3180,6 +3259,35 @@
           ? lab.proof.hookeScopeAttempts[lab.proof.hookeScopeAttempts.length - 1].choice
           : null))
       return fail("Hooke 貢獻句現態與玩家最後一次操作不一致");
+    var creditDisputeVersions = ["dialogue-v1", "legacy-past-scope"];
+    var creditDisputeAcknowledgements = lab.proof.creditDisputeAcknowledgements;
+    if (creditDisputeVersions.indexOf(lab.proof.creditDisputeVersion) < 0 ||
+        !Array.isArray(creditDisputeAcknowledgements) ||
+        creditDisputeAcknowledgements.length > 1)
+      return fail("署名爭議確認紀錄格式錯誤");
+    for (var cda = 0; cda < creditDisputeAcknowledgements.length; cda++) {
+      var creditAcknowledgement = creditDisputeAcknowledgements[cda];
+      if (!creditAcknowledgement || creditAcknowledgement.id !== cda + 1 ||
+          creditAcknowledgement.source !== "hooke-letter-1679" ||
+          creditAcknowledgement.ok !== true ||
+          !isInt(creditAcknowledgement.at) || creditAcknowledgement.at < 1 ||
+          creditAcknowledgement.at > lab.sequence)
+        return fail("署名爭議確認缺少玩家操作紀錄");
+    }
+    if (lab.proof.creditDisputeVersion === "dialogue-v1") {
+      if (creditDisputeAcknowledgements.length &&
+          (!lab.proof.shellPagePlaced ||
+            creditDisputeAcknowledgements[0].at <= lab.proof.shellPagePlacedAt))
+        return fail("署名爭議確認早於球殼頁入槽");
+      if (lab.proof.hookeScopeAttempts.length &&
+          (creditDisputeAcknowledgements.length !== 1 ||
+            lab.proof.hookeScopeAttempts[0].at <=
+              creditDisputeAcknowledgements[0].at))
+        return fail("Hooke 貢獻句早於署名爭議確認");
+    } else if (creditDisputeAcknowledgements.length ||
+        !lab.proof.hookeScopeAttempts.length) {
+      return fail("舊版署名續接標記與實際進度不一致");
+    }
     var boundaryChoices = ["mechanismSolved", "newtonAlone", "ruleEstablished"];
     for (var bai = 0; bai < lab.proof.boundaryAttempts.length; bai++) {
       var boundaryAttempt = lab.proof.boundaryAttempts[bai];
@@ -3271,6 +3379,17 @@
       lab.proof.hookeScopeAttempts.forEach(function (attempt) {
         if (attempt.at < submittedAt) hookeScopeAt = attempt.choice;
       });
+      var creditDisputeAcknowledgementsAt =
+        (lab.proof.creditDisputeAcknowledgements || []).filter(function (attempt) {
+          return attempt.at < submittedAt;
+        }).map(function (attempt) {
+          return {
+            id: attempt.id,
+            source: attempt.source,
+            ok: attempt.ok,
+            at: attempt.at
+          };
+        });
       var boundaryAt = null;
       lab.proof.boundaryAttempts.forEach(function (attempt) {
         if (attempt.at < submittedAt) boundaryAt = attempt.choice;
@@ -3279,6 +3398,16 @@
         lab.proof.shellPageRevealedAt < submittedAt;
       var shellPlacedAt = isInt(lab.proof.shellPagePlacedAt) &&
         lab.proof.shellPagePlacedAt < submittedAt;
+      var shellInsightsAt = (lab.proof.shellInsightAttempts || []).filter(function (attempt) {
+        return attempt.at < submittedAt;
+      }).map(function (attempt) {
+        return {
+          id: attempt.id,
+          choice: attempt.choice,
+          ok: attempt.ok,
+          at: attempt.at
+        };
+      });
       var authorAt = {
         names: ["Newton", "Traveler"],
         travelerRemoved: false
@@ -3295,7 +3424,12 @@
         slots: slotsAt,
         attribution: attributionAt,
         hookeScope: hookeScopeAt,
+        creditDisputeVersion: lab.proof.creditDisputeVersion,
+        creditDisputeAcknowledgements: creditDisputeAcknowledgementsAt,
         boundaryChoice: boundaryAt,
+        shellInsightAttempts: shellInsightsAt,
+        shellInsightVersion: lab.proof.shellInsightVersion ||
+          (shellReadyAt ? "legacy-revealed" : "judgment-v1"),
         shellPageReady: shellReadyAt,
         shellPagePlaced: shellPlacedAt,
         authorField: authorAt
@@ -3304,7 +3438,9 @@
     var proofRevisionTimes = lab.proof.slotAttempts
       .concat(lab.proof.attributionAttempts)
       .concat(lab.proof.hookeScopeAttempts)
+      .concat(lab.proof.creditDisputeAcknowledgements || [])
       .concat(lab.proof.boundaryAttempts)
+      .concat(lab.proof.shellInsightAttempts || [])
       .map(function (attempt) { return attempt.at; });
     for (var psiSnapshot = 0; psiSnapshot < press.proofs.length; psiSnapshot++) {
       var historicalProof = press.proofs[psiSnapshot];
@@ -3866,11 +4002,17 @@
     lab.proof.hookeScopeAttempts.forEach(function (row) {
       rememberOperation("proof-scope", row.at);
     });
+    (lab.proof.creditDisputeAcknowledgements || []).forEach(function (row) {
+      rememberOperation("credit-dispute-acknowledgement", row.at);
+    });
     lab.proof.attributionAttempts.forEach(function (row) {
       rememberOperation("proof-credit", row.at);
     });
     lab.proof.boundaryAttempts.forEach(function (row) {
       rememberOperation("proof-boundary", row.at);
+    });
+    (lab.proof.shellInsightAttempts || []).forEach(function (row) {
+      rememberOperation("shell-insight", row.at);
     });
     rememberOperation("shell-reveal", lab.proof.shellPageRevealedAt);
     rememberOperation("shell-place", lab.proof.shellPagePlacedAt);
@@ -4163,8 +4305,12 @@
     }
     var proofActionTimes = lab.proof.slotAttempts.map(function (row) { return row.at; })
       .concat(lab.proof.hookeScopeAttempts.map(function (row) { return row.at; }))
+      .concat((lab.proof.creditDisputeAcknowledgements || []).map(function (row) {
+        return row.at;
+      }))
       .concat(lab.proof.attributionAttempts.map(function (row) { return row.at; }))
       .concat(lab.proof.boundaryAttempts.map(function (row) { return row.at; }))
+      .concat((lab.proof.shellInsightAttempts || []).map(function (row) { return row.at; }))
       .concat([
         lab.proof.shellPageRevealedAt,
         lab.proof.shellPagePlacedAt,

@@ -11,12 +11,12 @@ SOURCE_DIR = ROOT / "art/source/production/ch04/characters"
 OUTPUT_DIR = ROOT / "public/assets/ch04/characters"
 PORTRAITS = {
     "ch04_char_newton22_alpha_v02.png": "ch04_char_newton22_v03.webp",
-    "ch04_char_newton41_alpha_v02.png": "ch04_char_newton41_v03.webp",
+    "ch04_char_newton41_alpha_v03.png": "ch04_char_newton41_v04.webp",
     "ch04_char_halley28_alpha_v02.png": "ch04_char_halley28_v02.webp",
 }
 ALPHA_REPAIR_PORTRAITS = {
     "ch04_char_newton22_alpha_v02.png",
-    "ch04_char_newton41_alpha_v02.png",
+    "ch04_char_newton41_alpha_v03.png",
 }
 TARGET_SIZE = (900, 1200)
 OPAQUE_CORE_THRESHOLD = 24
@@ -140,7 +140,8 @@ def main():
         contain(repaired).save(
             output,
             "WEBP",
-            quality=94,
+            quality=88,
+            alpha_quality=100,
             method=6,
             exact=True,
         )

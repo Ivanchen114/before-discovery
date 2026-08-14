@@ -52,9 +52,13 @@ requireText(ch4, [
 ], "第四章");
 forbidText(ch4, ["commitOrbitBeat", "bad-scale-ratio", "ledger-row-required"], "第四章");
 requireText(ui, [
-  'var paperDraft = orbit4ClaimDraft["k1-paper"]',
-  'input.checked = !!paperDraft.picked["trial:" + run.id]',
-  'paperDraft.picked["trial:" + run.id] = input.checked',
+  'var paperDraft = orbit4ClaimDraft["k1-paper-two-questions"]',
+  'input.checked = chosen',
+  'paperDraft.firstPicked[run.id] = input.checked',
+  'paperDraft.secondPicked[run.id] = input.checked',
+  'paperDraft.repairId = secondResult.repairId',
+  'paperDraft.firstReplyAcknowledged',
+  'paperDraft.secondReplyAcknowledged',
   'paperClaim.onchange = function () { paperDraft.claim = paperClaim.value; }',
   "orbit4ClaimDraft = {};"
 ], "第四章錯誤斷言草稿保留");

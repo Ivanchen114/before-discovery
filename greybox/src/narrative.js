@@ -1311,12 +1311,18 @@
     else if (action === "sealModelComparison" && Engine.sealModelComparison)
       r = Engine.sealModelComparison(state.lab, args.claim);
     else if (action === "placeProofLink" && Engine.placeProofLink) r = Engine.placeProofLink(state.lab, args.slot, args.evidenceId);
+    else if (action === "assembleKnownProofSources" && Engine.assembleKnownProofSources)
+      r = Engine.assembleKnownProofSources(state.lab);
     else if (action === "assignCredit" && Engine.assignCredit) r = Engine.assignCredit(state.lab, args.contribution, args.person);
+    else if (action === "assignCreditPlan" && Engine.assignCreditPlan)
+      r = Engine.assignCreditPlan(state.lab, args.plan);
     else if (action === "setHookeScope" && Engine.setHookeScope) r = Engine.setHookeScope(state.lab, args.choice);
-    else if (action === "revealShellPage" && Engine.revealShellPage)
-      r = Engine.revealShellPage(state.lab);
+    else if (action === "judgeShellBalance" && Engine.judgeShellBalance)
+      r = Engine.judgeShellBalance(state.lab, args.choice);
     else if (action === "placeShellPage" && Engine.placeShellPage)
       r = Engine.placeShellPage(state.lab);
+    else if (action === "acknowledgeCreditDispute" && Engine.acknowledgeCreditDispute)
+      r = Engine.acknowledgeCreditDispute(state.lab);
     else if (action === "removeTravelerFromAuthorField" && Engine.removeTravelerFromAuthorField)
       r = Engine.removeTravelerFromAuthorField(state.lab);
     else if (action === "submitPartialProof" && Engine.submitPartialProof) r = Engine.submitPartialProof(state.lab, args.scope);

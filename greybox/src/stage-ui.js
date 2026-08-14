@@ -577,6 +577,18 @@
     var active = typing || waiting || queue.length > 0 || ackPending;
     body.classList.toggle("held", active);
     body.classList.toggle("queue-active", active);
+    /* 工作台人物回應不是裝飾：回應尚未由玩家收掉時，底層操作必須真正停住。
+       只縮版面仍可讓滑鼠／Tab 穿透，會造成下一題在人物說完前先解鎖。 */
+    var workbenchPanel = document.querySelector("#panelWrap");
+    if (workbenchPanel && ["ship", "lab", "orbit"].indexOf(body.getAttribute("data-view")) >= 0) {
+      if (active) {
+        workbenchPanel.setAttribute("inert", "");
+        workbenchPanel.setAttribute("aria-hidden", "true");
+      } else {
+        workbenchPanel.removeAttribute("inert");
+        workbenchPanel.removeAttribute("aria-hidden");
+      }
+    }
     /* 對話真正播完才把鍵盤焦點交給轉場鈕；不得只在進場瞬間猜一次時機。 */
     if (!active && body.classList.contains("embarkGate") &&
         (!$("btnEmbark").hidden || !$("intermissionChoices").hidden)) {
@@ -1352,7 +1364,7 @@
       } else {
         lines = [
           "先看右頁的「現在只做一件事」，不用預讀後面的步驟。",
-          "需要預測時先封存，資料才會揭開；原答案不會被刪掉。",
+          "要預測時，先把答案寫下並封好，之後才拆資料；猜錯的那張也會留下。",
           "做錯會留在紙上。看提示、調整，再試一次即可。"
         ];
         $("btnLabIntroGo").textContent = "知道了，回到工作台";
