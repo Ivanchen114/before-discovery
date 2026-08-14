@@ -2,8 +2,8 @@
   "schema_version": 4,
   "registry_id": "before-discovery-source-registry",
   "registry_status": "candidate",
-  "skill_version": "3.6.0-candidate",
-  "updated": "2026-08-11",
+  "skill_version": "3.6.1-candidate",
+  "updated": "2026-08-14",
   "truth_modes": [
     "AS-IS",
     "TO-BE",
@@ -557,11 +557,13 @@
             "三、時代盲點與誘答設計（v0.1.4）",
             "3.7 證據判斷可否證契約（v0.1.4）",
             "5.1 全章證據解鎖與配圖契約",
+            "5.2 取得後證據成品 71-bis",
+            "5.3 紙件資產作者與生命週期路由",
             "六、歷史誠實邊界"
           ],
           "supersedes": [],
           "blocks_skill_activation": false,
-          "note": "全章證據解鎖／配圖、證據所有權、誘答可否證契約與歷史誠實的單一法源；historical-inquiry 不因本 route 自動載入一二章工作台外形。"
+          "note": "全章證據解鎖／配圖、取得後成品分類、紙件作者／生命週期、證據所有權、誘答可否證契約與歷史誠實的單一法源；historical-inquiry 不因本 route 自動載入一二章工作台外形。"
         },
         {
           "id": "design.reputation-lifecycle",

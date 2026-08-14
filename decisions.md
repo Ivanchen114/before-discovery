@@ -494,6 +494,13 @@ ADR-017 已建立四層筆記模型，但原實作與測試只明列第一至六
 
 ## 決議紀錄
 
+- **紙件資產作者／生命週期路由與 Skill candidate v3.6.1 Design Gate 通過（2026-08-14）**：
+  總監在審看跨章草紙風格候選後明示 `GO`，准把「草紙是推理狀態、不是全系列皮膚」
+  寫入跨章證據法源 §5.3，並在 `before-discovery-dev` candidate 加入紙件工作包卡、
+  `neutralBase` 空白內容停線、後續揭曉防洩漏，以及單件候選核准／章級 Art Lock
+  分流。本裁決只授權法源、
+  Skill candidate、registry／鏡像與索引同步；不等於四張候選圖已 Art Lock，不授權
+  runtime 接線、正式安裝版 activation、commit、push、deploy 或發佈。
 - **CH7《一隻腿的證詞》正式視覺 Art Lock 通過（2026-08-11）**：總監看過
   正式視覺總覽後明示「我覺得很可以」。鎖定 runtime 現行 22 張資產：6 張 v01
   背景、3 張 v02 近景人物、6 張 v01 焦點圖與 7 張 v01 完整扁平 raster 證據卡。

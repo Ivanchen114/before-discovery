@@ -5,11 +5,13 @@ description: Use for review, diagnosis, design, writing, implementation, testing
 
 # 《發現之前》開發路由器
 
-**版本**：v3.6.0-candidate（2026-08-10）
+**版本**：v3.6.1-candidate（2026-08-14）
 **狀態**：candidate；v3.4.7 是 HEAD 內最近一次 active 版。本版新增第六章路由與
 互動骨架審查，並依 ADR-015 更新 Fable 5／GPT-5.6 Sol 分工入口、依 ADR-016
 加入選擇後果的可知性 Gate、依 71-bis 加入證據成品載體分類路由；v3.6.0 另候選
-加入新章三件套整包送審、六欄一致性與 TO-BE mechanics guard。須完成獨立
+加入新章三件套整包送審、六欄一致性與 TO-BE mechanics guard；v3.6.1 再加入紙件
+資產的作者／生命週期工作包卡、`neutralBase` 停線條件，以及單件候選核准／章級
+Art Lock 分流。須完成獨立
 CONFORMANCE、總監裁決、宿主法源生效與 activation 驗證後才可冒充生效版。
 
 本 skill 是任務分類器、法源路由器與狀態守門員，不是第二份專案法典。規則內容以 repo 法源為準；路由與狀態由
@@ -229,8 +231,24 @@ ADR／CR；不得沿用已退役的問卷、人數或 spike 門檻。
 
 史實性證據圖與時代場景在生圖前同時路由 `history`：runtime 史實頁只提供現況對照，新增的年代、器物、服飾、文本或科學主張仍須回查原典或權威館藏，並把來源與生成參數寫入逐件 ledger。
 
+任何玩家可見紙件（推理草紙、焦點紙、世界側舊紙、封存證物、帳冊或出版校樣）在
+prompt、製圖或接線前，另讀
+`02_設計/發現之前_實驗證據所有權與認知進階原則_v0.1.md` §5.2–5.3，並先填：
+
+```text
+paper_author / paper_state / fixed_facts / must_remain_unknown /
+branch_or_state_variants / overlay_responsibility / render_mode / art_lock_target
+```
+
+`working-draft` 的草紙感只代表推理中狀態，不是所有紙件的通用畫風。`neutralBase`
+只可省略玩家依局勢產生的答案；若 canonical 場景要求當拍看見固定歷史內容，且沒有
+deterministic layer 負責呈現，空白底圖為 `BLOCKED`。固定圖若提前畫入後續揭曉或
+分支專屬狀態同樣 `BLOCKED`。正式接線必須晚於 runtime 目標尺寸查核、必要 OCR 與
+總監的單件候選核准；接線後仍須通過章節視覺 QA，才可裁章級 Art Lock。細部畫面
+判準仍只由 §5.3 持有。
+
 取得後證據圖在 prompt、製圖或施工前，另讀
-`02_設計/發現之前_實驗證據所有權與認知進階原則_v0.1.md` §5.2；該節生效後，先依
+`02_設計/發現之前_實驗證據所有權與認知進階原則_v0.1.md` §5.2–5.3；該節生效後，先依
 canonical runtime 列出固定欄與狀態欄，再分類為 `fixed summary`、`finite variant`
 或 `player state`，據此選擇完整 raster、完整變體集或完整 deterministic 動態製圖。
 不得預設「精確文字與數字一律疊 SVG」，也不得預設「完整 raster 一律優先」。字體
