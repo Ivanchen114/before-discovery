@@ -11237,6 +11237,7 @@ tests.push({
   name: "CH4-CR-015|K1 三紙拆成兩問，共用離帶紙而不預選答案",
   fn: () => {
     const ui = readFileSync(path.join(here, "../src/chapter-ui.js"), "utf-8");
+    const stage = readFileSync(path.join(here, "../stage.html"), "utf-8");
     const required = [
       "用三張紙完成兩次單變因對照",
       "已引用來源｜無作用切線紙",
@@ -11309,6 +11310,21 @@ tests.push({
     if ((newK1Ui.match(/collision5Table orbitK1PaperTable/g) || []).length !== 1 ||
         newK1Ui.includes("orbitTrialChoice") || newK1Ui.includes('input.type = "radio"'))
       throw new Error("K1 還在表格下重抄選紙卡，或第二問仍假裝成單選 radio");
+    for (const fragment of [
+      ".orbitRuleDesigner.orbitTrialChooser { grid-template-columns:minmax(0,1fr); }",
+      ".orbitRuleDesigner.orbitTrialChooser > * { grid-column:1/-1; }",
+      ".orbitK1PaperTableWrap { width:100%; max-width:100%; min-width:0; }",
+      ".orbitK1PaperTable { min-width:680px; table-layout:fixed; }",
+      ".orbitK1PaperTable th:nth-child(5),.orbitK1PaperTable td:nth-child(5)",
+      "white-space:normal; overflow-wrap:anywhere;"
+    ]) if (!stage.includes(fragment))
+      throw new Error("K1 全寬證據鏈版型契約缺失:" + fragment);
+    if (!ui.includes('table.setAttribute("aria-label", mode === "first" ?') ||
+        !ui.includes('columnHead.scope = "col";') ||
+        !ui.includes('"、朝地心箭頭" + paperStrengthLabels[run.strength]') ||
+        !ui.includes('inFirstPair ? "第一問已選，第二問固定" : "第二問可選"') ||
+        !ui.includes('chosen ? "證據鏈已選" : "證據鏈未選"'))
+      throw new Error("K1 全寬證據表沒有保留題目、欄頭與完整勾選語意");
 
     const logicStart = ui.indexOf("function orbit4K1FirstSelection");
     const logicEnd = ui.indexOf("/* WB-CR-025b", logicStart);

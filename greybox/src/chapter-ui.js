@@ -8537,10 +8537,16 @@
           function renderK1PaperTable(mode) {
             var wrap = ship3El("div", null, chooser, "collision5TableWrap orbitK1PaperTableWrap");
             var table = ship3El("table", null, wrap, "collision5Table orbitK1PaperTable");
+            table.setAttribute("aria-label", mode === "first" ?
+              "第一問：在朝地心箭頭長度相同時，比較原本速度對軌道的影響" :
+              (mode === "second" ?
+                "第二問：在原本速度相同時，比較朝地心箭頭長度對軌道的影響" :
+                "兩次單變因對照已選紙張"));
             var head = ship3El("thead", null, table);
             var hr = ship3El("tr", null, head);
             ["選", "紙", "原本速度", "朝地心箭頭", "軌道結果"].forEach(function (label) {
-              ship3El("th", label, hr);
+              var columnHead = ship3El("th", label, hr);
+              columnHead.scope = "col";
             });
             var body = ship3El("tbody", null, table);
             paperTrials.forEach(function (run) {
@@ -8556,8 +8562,14 @@
               input.checked = chosen;
               input.disabled = mode === "locked" || mode === "wait-first" ||
                 (mode === "second" && inFirstPair);
-              input.setAttribute("aria-label", (mode === "first" ? "第一問勾選" :
-                (mode === "second" ? "第二問勾選" : "證據鏈已選取")) + "第 " + run.id + " 張紙");
+              var selectionLabel = mode === "first" ? "第一問可選" :
+                (mode === "second" ?
+                  (inFirstPair ? "第一問已選，第二問固定" : "第二問可選") :
+                  (chosen ? "證據鏈已選" : "證據鏈未選"));
+              input.setAttribute("aria-label", selectionLabel +
+                "第 " + run.id + " 張紙：原本速度" + paperSpeedLabels[run.speed] +
+                "、朝地心箭頭" + paperStrengthLabels[run.strength] +
+                "、" + (paperShapeLabels[run.actualShape] || run.actualShape));
               input.setAttribute("data-orbit-focus", (mode === "first" ? "orbit-k1-first-" : "orbit-k1-second-") + run.id);
               input.onchange = function () {
                 if (mode === "first") {

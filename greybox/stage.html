@@ -2622,6 +2622,19 @@
   .orbitPredictionPaper h4 { color:#72532e; }
   .orbitRuleDesigner .shipSelect { width:100%; min-height:42px; }
   .orbitRuleDesigner .orbitAction { grid-column:1/-1; }
+  /* K1 的兩問共用同一張證據表：來源→題目→提示→表格→確認必須單欄連讀。 */
+  .orbitRuleDesigner.orbitTrialChooser { grid-template-columns:minmax(0,1fr); }
+  .orbitRuleDesigner.orbitTrialChooser > * { grid-column:1/-1; }
+  .orbitK1PaperTableWrap { width:100%; max-width:100%; min-width:0; }
+  .orbitK1PaperTable { min-width:680px; table-layout:fixed; }
+  .orbitK1PaperTable th:nth-child(1),.orbitK1PaperTable td:nth-child(1) { width:52px; text-align:center; }
+  .orbitK1PaperTable th:nth-child(2),.orbitK1PaperTable td:nth-child(2) { width:72px; }
+  .orbitK1PaperTable th:nth-child(3),.orbitK1PaperTable td:nth-child(3) { width:96px; }
+  .orbitK1PaperTable th:nth-child(4),.orbitK1PaperTable td:nth-child(4) { width:112px; }
+  .orbitK1PaperTable th:nth-child(5),.orbitK1PaperTable td:nth-child(5) {
+    white-space:normal; overflow-wrap:anywhere;
+  }
+  .orbitK1PaperTable tbody tr { height:44px; }
   .orbitMathOptional,.orbitPressHistory { margin:9px 0; padding:8px 10px; border:1px solid rgba(83,99,113,.34);
     background:rgba(255,255,255,.24); }
   .orbitMathOptional summary,.orbitPressHistory summary { cursor:pointer; color:#435a70; font-weight:800; }
@@ -3225,7 +3238,7 @@ body[data-chapter="ch5"] #labCoach::before{content:"杜夏特萊｜"}
 })();
 </script>
 <script src="src/narrative.js?v=asset-68a6094d0847"></script>
-<script src="src/chapter-ui.js?v=asset-aebcd42a59df"></script>
+<script src="src/chapter-ui.js?v=asset-f50b16473449"></script>
 <script>
 (function () {
   "use strict";
